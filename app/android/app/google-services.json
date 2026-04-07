@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "562008973392",
+    "firebase_url": "https://gigapp-6dd02.firebaseio.com",
+    "project_id": "gigapp-6dd02",
+    "storage_bucket": "gigapp-6dd02.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562008973392:android:534420720c9a577f89b155",
+        "android_client_info": {
+          "package_name": "com.headlineapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "562008973392-ph4hhr0j9p5idoju63het8aeb84u9ovv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASFGcnu1bS9yI3QWT0JcVxrlLLJN0UEsk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "562008973392-ph4hhr0j9p5idoju63het8aeb84u9ovv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "562008973392-q78r228gfg3mhnocpkmrmba3494jlca0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gigapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

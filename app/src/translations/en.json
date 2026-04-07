@@ -1,0 +1,625 @@
+{
+    "common":  {
+                   "welcome":  "Welcome",
+                   "venues":  "Venues",
+                   "explore":  "Events around",
+                   "email":  "Email",
+                   "phoneNumber":  "Phone number",
+                   "password":  "Password",
+                   "continue":  "Continue",
+                   "seeAll":  "See all",
+                   "cancel":  "Cancel",
+                   "confirm":  "Confirm",
+                   "yes":  "Yes",
+                   "no":  "No",
+                   "empty":  "Echoes in the dark. Visit your first show and you can re-visit it here later",
+                   "other":  "Other",
+                   "next":  "Next",
+                   "apply":  "Apply",
+                   "close":  "Close"
+               },
+    "filters":  {
+                    "radiusTitle":  "Radius",
+                    "radius":  "Selected radius:",
+                    "dateTitle":  "Date",
+                    "date":  "Selected date"
+                },
+    "explore":  {
+                    "intro":  {
+                                  "eyebrow":  "Live music marketplace",
+                                  "title":  "Find gigs, discover talent, and book better nights",
+                                  "description":  "Headline connects artists, venues, and visitors in one place so every show is easier to discover and easier to make happen.",
+                                  "stats":  {
+                                                "shows":  "shows",
+                                                "artists":  "artists",
+                                                "venues":  "venues"
+                                            },
+                                  "audiences":  {
+                                                    "artists":  {
+                                                                    "title":  "For artists",
+                                                                    "description":  "Show who you are, get discovered by venues, and stay visible when new booking opportunities open up."
+                                                                },
+                                                    "venues":  {
+                                                                   "title":  "For venues",
+                                                                   "description":  "Browse artists to book, compare local acts, and keep your calendar filled with the right live experiences."
+                                                               },
+                                                    "visitors":  {
+                                                                     "title":  "For visitors",
+                                                                     "description":  "Find upcoming shows nearby, explore new favorites, and decide which nights out are worth your time."
+                                                                 }
+                                                }
+                              },
+                    "featuredEvents":  "Featured events",
+                    "popularEvents":  "Popular events near your location",
+                    "bands":  "Bands nearby",
+                    "venues":  "Venues nearby",
+                    "empty":  {
+                                  "title":  "There are no shows to display yet",
+                                  "tooltip":  "Try using the filters at the top",
+                                  "description":  "Explore is wired up, but there are no published shows, artists, or venues in the database yet.",
+                                  "artistTitle":  "For artists",
+                                  "artistDescription":  "Once artists create profiles and publish upcoming gigs, they will appear here.",
+                                  "venueTitle":  "For venues",
+                                  "venueDescription":  "As venues publish their programs and open booking nights, the lists will start to fill up.",
+                                  "visitorTitle":  "For visitors",
+                                  "visitorDescription":  "As soon as the first gigs are live, this is where people will discover what to go to next."
+                              },
+                    "sections":  {
+                                     "featured":  {
+                                                      "title":  "Featured nights",
+                                                      "description":  "A tighter selection of the strongest nearby gigs right now."
+                                                  },
+                                     "shows":  {
+                                                   "title":  "Shows worth going to",
+                                                   "description":  "A faster-scanning list of nights you can jump into right away."
+                                               },
+                                     "venues":  {
+                                                    "title":  "Venues to keep an eye on",
+                                                    "description":  "Rooms, stages, and clubs already shaping strong upcoming nights."
+                                                },
+                                     "bands":  {
+                                                   "title":  "Bands to discover",
+                                                   "description":  "Local acts and new favorites to book, follow, or go see live."
+                                               }
+                                 },
+                    "labels":  {
+                                   "venue":  "Venue",
+                                   "band":  "Band"
+                               },
+                    "audience":  {
+                                     "label":  "Explore as",
+                                     "visitor":  "Visitor",
+                                     "band":  "Band",
+                                     "venue":  "Venue"
+                                 },
+                    "matchmaking":  {
+                                        "bandTitle":  "Venues looking for bands",
+                                        "bandDescription":  "As a band, you get a quicker view of which rooms and nights look like a strong fit right now.",
+                                        "venueTitle":  "Bands looking for gigs",
+                                        "venueDescription":  "As a venue, you can quickly discover acts that look ready for more bookings and fit your upcoming nights.",
+                                        "venueBadge":  "Venue booking now",
+                                        "bandBadge":  "Band seeking gigs",
+                                        "openSlot":  "Open slots",
+                                        "readyToBook":  "Ready to book",
+                                        "bandFallback":  "This venue has opened up new booking slots and is looking for the right live energy for upcoming nights.",
+                                        "venueFallback":  "This band is visible for new bookings and looking for rooms that fit their live sound.",
+                                        "noVenueMatchesTitle":  "No open venue opportunities right now",
+                                        "noVenueMatchesDescription":  "As more venues mark themselves as actively looking for bands, they will appear here so artists can quickly find the right rooms to contact.",
+                                        "noBandMatchesTitle":  "No bands are actively looking for gigs right now",
+                                        "noBandMatchesDescription":  "As more artists mark themselves as open for bookings, this section will fill up automatically."
+                                    },
+                    "inquiry":  {
+                                    "defaultBandMessage":  "Hi {{targetName}}! We are interested in playing with you and would love to hear more about your upcoming booking opportunities.",
+                                    "submitting":  "Sending...",
+                                    "messageLabel":  "Message",
+                                    "validationTitle":  "Fill in the key details",
+                                    "phoneLabel":  "Phone (optional)",
+                                    "bandAction":  "Show interest",
+                                    "validationDescription":  "Name, email, and a message are required to send the inquiry.",
+                                    "successTitle":  "Inquiry sent",
+                                    "venueAction":  "Send booking inquiry",
+                                    "messagePlaceholder":  "Write a few lines about what you are looking for",
+                                    "venueTitle":  "Send booking inquiry to {{targetName}}",
+                                    "successDescription":  "Your inquiry to {{targetName}} has been sent.",
+                                    "emailLabel":  "Email",
+                                    "errorTitle":  "Could not send inquiry",
+                                    "bandDescription":  "Send a short pitch and your contact details so the venue can get back to you if you fit their open slots.",
+                                    "bandTitle":  "Show interest to {{targetName}}",
+                                    "emailPlaceholder":  "name@mail.com",
+                                    "defaultVenueMessage":  "Hi {{targetName}}! We run a venue and would love to talk about booking you for an upcoming night.",
+                                    "errorDescription":  "Please try again in a moment.",
+                                    "namePlaceholder":  "Your name or band name",
+                                    "submit":  "Send inquiry",
+                                    "phonePlaceholder":  "Phone number",
+                                    "venueDescription":  "Share a few lines about your night and what you want to book, and the inquiry will be sent to the band.",
+                                    "nameLabel":  "Name"
+                                }
+                },
+    "newUser":  {
+                    "title":  "Hello there!",
+                    "subTitle":  "Consider signing up for the best experience",
+                    "content":  {
+                                    "title":  "Just a few of the things we have to offer:",
+                                    "favourites":  "Add favourites get news from your favourites venues and bands!",
+                                    "notifications":  "Get notified when your favourite band or venue has news to tell"
+                                },
+                    "browse":  "I want to browse",
+                    "signUp":  "Sign up"
+                },
+    "show":  {
+                 "about":  "About",
+                 "bookingNotes":  "Booking notes",
+                 "songs":  "Songs",
+                 "buyTicket":  "Buy ticket",
+                 "noTickets":  "Tickets have not been released for this show yet.",
+                 "management":  {
+                                    "title":  "Show management",
+                                    "description":  "Publish the show when it is ready for discovery and add ticket types for the public release.",
+                                    "draft":  "Draft",
+                                    "published":  "Published",
+                                    "publish":  "Publish show",
+                                    "unpublish":  "Move back to draft",
+                                    "saving":  "Saving...",
+                                    "savedTitle":  "Saved",
+                                    "publishSuccess":  "The show is now visible in Explore and ready for ticket sales.",
+                                    "unpublishSuccess":  "The show has been moved back to draft.",
+                                    "errorTitle":  "Could not update show",
+                                    "error":  "Please try again in a moment.",
+                                    "lineup":  "Lineup and slots",
+                                    "openSlot":  "Open slot",
+                                    "ticketTitle":  "Release tickets",
+                                    "ticketName":  "Ticket name",
+                                    "ticketPrice":  "Price in SEK",
+                                    "ticketAmount":  "Number of tickets",
+                                    "reusableOn":  "Reusable ticket is on",
+                                    "reusableOff":  "Reusable ticket is off",
+                                    "createTicket":  "Create ticket type",
+                                    "slotTitle":  "Plan slot proposal",
+                                    "slotDescription":  "Create a concrete slot proposal for {{bandName}} in this show.",
+                                    "slotStartTime":  "Slot start time",
+                                    "slotDuration":  "Slot duration in minutes",
+                                    "createSlotProposal":  "Create slot proposal for {{bandName}}",
+                                    "slotSuccess":  "{{bandName}} has been added to the show lineup.",
+                                    "ticketSuccess":  "The ticket type has been added to the show.",
+                                    "ticketValidation":  "Add a ticket name, price, and amount before creating the ticket.",
+                                    "ticketsLeft":  "{{amount}} left"
+                                }
+             },
+    "profile":  {
+                    "profile":  "Profile",
+                    "signIn":  "Login",
+                    "signUp":  "Sign up",
+                    "signOut":  "Sign out",
+                    "authenticatedDescription":  "You are signed in and ready to build your presence in Headline.",
+                    "paragraph":  "Sign into your account",
+                    "hint":  "Don\u0027t have a gig account?",
+                    "pageBreak":  "or connect with",
+                    "apple":  "Sign in with Apple",
+                    "facebook":  "Facebook",
+                    "firstName":  "First name",
+                    "lastName":  "Last name",
+                    "theme":  {
+                                  "title":  "Theme",
+                                  "dark":  "Dark theme",
+                                  "light":  "Light theme"
+                              },
+                    "locale":  {
+                                   "title":  "App language",
+                                   "en":  "English",
+                                   "sv":  "Swedish"
+                               },
+                    "welcomeBack":  "Welcome back, {{name}}!",
+                    "showsVisited":  {
+                                         "single":  "{{amount}} show visited",
+                                         "multiple":  "{{amount}} shows visited"
+                                     },
+                    "settings":  {
+                                     "title":  "Settings"
+                                 },
+                    "history":  {
+                                    "title":  "History"
+                                },
+                    "favourites":  {
+                                       "title":  "Favourites",
+                                       "placeholder":  "You currently don\u0027t have any favourite venues or bands.\n\nAdd a new favourite by pressing the heart icon at the top right on the venue or and card."
+                                   },
+                    "preferences":  "Preferences",
+                    "accountStatus":  {
+                                          "title":  "Your account right now",
+                                          "description":  "Once you create an artist or venue profile, the account becomes bookable and gains its real role in the app.",
+                                          "bands":  "{{amount}} bands",
+                                          "venues":  "{{amount}} venues"
+                                      },
+                    "nextStep":  {
+                                     "title":  "Next step",
+                                     "description":  "You are in. As we build out onboarding, you will be able to create your artist or venue profile and then publish that you are looking for gigs or acts."
+                                 },
+                    "builders":  {
+                                     "title":  "Build your profiles",
+                                     "description":  "The same account can be both an artist and a venue. Create one, the other, or multiple of each if that matches how you work.",
+                                     "createBand":  "Create artist profile",
+                                     "addBand":  "Add another band",
+                                     "createVenue":  "Create venue profile",
+                                     "addVenue":  "Add another venue"
+                                 },
+                    "planner":  {
+                                    "createShow":  "Plan a show",
+                                    "createFestival":  "Plan a festival"
+                                },
+                    "matchmaking":  {
+                                        "bandSectionTitle":  "Bands looking for gigs",
+                                        "bandSectionDescription":  "Control which of your bands should appear as actively open for new gigs and add a short booking note.",
+                                        "venueSectionTitle":  "Venues looking for bands",
+                                        "venueSectionDescription":  "Control which of your venues are actively looking for new acts and describe what you want to book.",
+                                        "bandCardDescription":  "When this is on, venues can discover the band in the matchmaking section of Explore.",
+                                        "venueCardDescription":  "When this is on, bands can discover the venue profile in the matchmaking section of Explore.",
+                                        "bandToggleOn":  "This band is looking for gigs",
+                                        "bandToggleOff":  "This band is not looking for gigs",
+                                        "venueToggleOn":  "This venue is looking for bands",
+                                        "venueToggleOff":  "This venue is not looking for bands",
+                                        "notesLabel":  "Booking notes",
+                                        "bandNotesPlaceholder":  "Share which dates, cities, or kinds of nights you are aiming for.",
+                                        "venueNotesPlaceholder":  "Share what kind of act, setup, or upcoming night you want to book.",
+                                        "saveBand":  "Save band status",
+                                        "saveVenue":  "Save venue status",
+                                        "saving":  "Saving...",
+                                        "successTitle":  "Saved",
+                                        "bandSaved":  "The band's booking status has been updated.",
+                                        "venueSaved":  "The venue booking status has been updated.",
+                                        "errorTitle":  "Could not save",
+                                        "errorDescription":  "Please try again in a moment."
+                                 }
+                    ,
+                    "inbox":  {
+                                  "title":  "Booking inbox",
+                                  "description":  "Follow incoming and outgoing inquiries in one place.",
+                                  "cta":  "Open inbox"
+                              }
+                },
+    "inbox":  {
+                 "hero":  {
+                              "eyebrow":  "Booking inbox",
+                              "title":  "Keep every booking inquiry that needs attention in one place",
+                              "description":  "See incoming and outgoing booking requests, then reply, mark as read, or archive them without leaving the app."
+                          },
+                 "stats":  {
+                               "total":  "total",
+                               "incoming":  "incoming",
+                               "outgoing":  "outgoing",
+                               "needsReply":  "needs reply"
+                           },
+                 "filters":  {
+                                "all":  "All",
+                                "incoming":  "Incoming",
+                                "outgoing":  "Outgoing",
+                                "needsReply":  "Needs reply"
+                            },
+                 "direction":  {
+                                   "incoming":  "Incoming",
+                                   "outgoing":  "Outgoing"
+                               },
+                 "status":  {
+                                "new":  "New",
+                                "viewed":  "Read",
+                                "replied":  "Replied",
+                                "accepted":  "Accepted",
+                                "declined":  "Declined",
+                                "slotProposed":  "Slot proposed",
+                                "booked":  "Booked",
+                                "archived":  "Archived"
+                            },
+                 "source":  {
+                               "demo":  "Demo",
+                               "local":  "Saved locally",
+                               "api":  "API"
+                           },
+                 "card":  {
+                              "incomingTitle":  "{{senderName}} wants to book {{targetName}}",
+                              "outgoingTitle":  "Inquiry sent to {{targetName}}",
+                              "fromTo":  "From {{senderName}} to {{targetName}}",
+                              "toFrom":  "To {{targetName}} from {{senderName}}"
+                          },
+                 "detail":  {
+                               "sender":  "Sender",
+                               "target":  "Target",
+                               "status":  "Status",
+                               "received":  "Received",
+                               "reply":  "Reply",
+                               "responded":  "Responded"
+                           },
+                 "reply":  {
+                               "label":  "Reply to this inquiry",
+                               "placeholder":  "Write a short answer, next step, or booking note.",
+                               "bookingConfirmed":  "{{senderName}} works for us. Let's lock this booking."
+                           },
+                 "actions":  {
+                                "openProfile":  "Open profile",
+                                "markRead":  "Mark as read",
+                                "archive":  "Archive",
+                                "reply":  "Reply",
+                                "accept":  "Accept",
+                                "decline":  "Decline",
+                                "planSlot":  "Plan slot",
+                                "openVenue":  "Open venue",
+                                "openShowFlow":  "Open booking flow",
+                                "confirmBooking":  "Confirm booking"
+                            },
+                 "timeline":  {
+                                 "inquirySent":  "Inquiry sent",
+                                 "accepted":  "Accepted",
+                                 "slotProposed":  "Slot proposed",
+                                 "booked":  "Booked"
+                             },
+                 "empty":  {
+                               "title":  "The inbox is quiet for now",
+                               "description":  "When you send or receive real booking inquiries, they will collect here."
+                           },
+                 "seed":  {
+                              "incomingBandMessage":  "{{senderName}} has an open night and wants to book {{targetName}}.",
+                              "outgoingVenueMessage":  "You sent an inquiry to {{targetName}} from {{senderName}}.",
+                              "outgoingVenueReply":  "{{senderName}} likes the idea and wants to continue the conversation.",
+                              "acceptedReply":  "{{senderName}} wants to move forward and lock a slot.",
+                              "archivedBandMessage":  "{{senderName}} reached out to {{targetName}}, but the thread has already been archived."
+                          }
+             },
+    "tickets":  {
+                    "header":  "My tickets",
+                    "hero":  {
+                                 "title":  "Your nights, gathered in one place",
+                                 "description":  "This is where your tickets, entry passes, and upcoming nights live so you can get to the right show quickly.",
+                                 "signedOut":  "Sign in to view your tickets, or preview how the ticket wallet will look."
+                             },
+                    "count":  "{{amount}} tickets",
+                    "preview":  "Preview mode",
+                    "loading":  "Loading tickets...",
+                    "upcoming":  "Upcoming",
+                    "upcomingDescription":  "Tickets you will use soon.",
+                    "past":  "Past nights",
+                    "pastDescription":  "Shows you have already attended or used the ticket for.",
+                    "emptyTitle":  "No tickets yet",
+                    "emptyDescription":  "Once purchase and scanning are fully wired into the app, your tickets will appear here.",
+                    "emptySignedOutTitle":  "Sign in to view your tickets",
+                    "emptySignedOutDescription":  "The ticket flow is tied to your account, so you need to be signed in to view upcoming or past nights.",
+                    "details":  {
+                                    "event":  "EVENT",
+                                    "ticketType":  "TICKET TYPE",
+                                    "location":  "WHERE",
+                                    "enterFrom":  "ENTER FROM",
+                                    "title":  "Ticket details",
+                                    "passTitle":  "Entry pass",
+                                    "scanHint":  "Show this code at the door",
+                                    "price":  "PRICE",
+                                    "orderId":  "ORDER ID",
+                                    "lineup":  "LINEUP",
+                                    "missingTitle":  "No ticket selected",
+                                    "missingDescription":  "Go back to the ticket screen and open a ticket to view its details."
+                                }
+                },
+    "checkout":  {
+                     "header":  "Mock checkout",
+                     "title":  "Complete your ticket purchase",
+                     "description":  "This is a mock payment flow for now. Once you confirm, the ticket is created on your account and added to your wallet.",
+                     "ticketTitle":  "Selected ticket",
+                     "ticketType":  "TICKET TYPE",
+                     "quantity":  "QUANTITY",
+                     "mockPaymentTitle":  "Payment method",
+                     "mockPaymentDescription":  "Mock card ending in 4242. No real payment is processed in this flow.",
+                     "summaryTitle":  "Order summary",
+                     "subtotal":  "SUBTOTAL",
+                     "total":  "TOTAL",
+                     "payNow":  "Pay now",
+                     "processing":  "Processing...",
+                     "emptyTitle":  "No ticket selected",
+                     "emptyDescription":  "Go back to the show and choose a ticket type before opening checkout.",
+                     "errorTitle":  "Could not complete purchase",
+                     "errorDescription":  "The mock payment could not be completed right now. Please try again in a moment.",
+                     "completed":  {
+                                       "header":  "Purchase complete",
+                                       "title":  "Your ticket is ready",
+                                       "description":  "The ticket has been added to your wallet and can be shown at the door when it is time.",
+                                       "showFallback":  "Your upcoming show",
+                                       "ticketType":  "TICKET TYPE",
+                                       "quantity":  "QUANTITY",
+                                       "total":  "TOTAL",
+                                       "openTickets":  "Open my tickets",
+                                       "backToExplore":  "Back to Explore"
+                                   }
+                 },
+    "auth":  {
+                 "hero":  {
+                              "eyebrow":  "Claim your place in live music",
+                              "title":  "Sign in to book, get booked, and shape the next night",
+                              "description":  "We are keeping Firebase for identity so we can ship a stable auth layer quickly and build the real artist and venue flows on top of it."
+                          },
+                 "switch":  {
+                                "signIn":  "Sign in",
+                                "signUp":  "Create account"
+                            },
+                 "signIn":  {
+                                "title":  "Welcome back",
+                                "description":  "Sign in with your email to restore your account, your context, and your upcoming booking flows.",
+                                "submit":  "Sign in",
+                                "footer":  "Once signed in, we can connect this account to your artist and venue profiles in the next step."
+                            },
+                 "signUp":  {
+                                "title":  "Create an account with room to grow",
+                                "description":  "Start with your contact details and choose the path that best matches you right now.",
+                                "submit":  "Create account",
+                                "footer":  "This selection guides onboarding. Your actual artist or venue role becomes active once you create that profile."
+                            },
+                 "fields":  {
+                                "firstName":  "First name",
+                                "lastName":  "Last name",
+                                "email":  "Email",
+                                "phone":  "Phone number",
+                                "password":  "Password"
+                            },
+                 "placeholders":  {
+                                      "firstName":  "Alex",
+                                      "lastName":  "Rivera",
+                                      "email":  "name@mail.com",
+                                      "phone":  "Phone number",
+                                      "password":  "A password you will remember"
+                                  },
+                 "roles":  {
+                               "heading":  "Which path should we start you on?",
+                               "visitor":  {
+                                               "title":  "Visitor",
+                                               "description":  "I want to discover gigs, follow venues, and see what is on."
+                                           },
+                               "band":  {
+                                            "title":  "Band or artist",
+                                            "description":  "I want to be discovered by venues and mark that I am looking for gigs."
+                                        },
+                               "venue":  {
+                                             "title":  "Venue",
+                                             "description":  "I want to find artists to book and show when I am looking for new acts."
+                                         }
+                           },
+                 "validation":  {
+                                    "title":  "Fill in the key details first",
+                                    "signIn":  "Email and password are required to sign in.",
+                                    "signUp":  "First name, last name, email, phone number, and password are required to create the account."
+                                },
+                 "common":  {
+                                "loading":  "Working on it..."
+                            }
+             },
+    "onboarding":  {
+                       "common":  {
+                                      "eyebrow":  "Build your booking surface",
+                                      "name":  "Name",
+                                      "description":  "Description",
+                                      "street":  "Street address",
+                                      "streetPlaceholder":  "Main Street 12",
+                                      "city":  "City",
+                                      "cityPlaceholder":  "Stockholm",
+                                      "zipCode":  "Zip code",
+                                      "zipCodePlaceholder":  "111 20",
+                                      "state":  "Region or state",
+                                      "statePlaceholder":  "Stockholm County",
+                                      "country":  "Country",
+                                      "countryPlaceholder":  "Sweden",
+                                      "locationNote":  "We connect the profile to your current location when available, otherwise we use a safe default position until you fine-tune it later.",
+                                      "submitting":  "Saving..."
+                                  },
+                       "band":  {
+                                    "title":  "Create artist profile",
+                                    "description":  "This is the foundation for showing that you are bookable and later marking that you are looking for gigs.",
+                                    "namePlaceholder":  "Your band name",
+                                    "descriptionPlaceholder":  "Share a short take on your sound, live energy, and what makes the act bookable.",
+                                    "price":  "Target fee (SEK)",
+                                    "pricePlaceholder":  "5000",
+                                    "submit":  "Create artist profile"
+                                },
+                       "venue":  {
+                                     "title":  "Create venue profile",
+                                     "description":  "This is the foundation for showing your room, club, or stage and later marking that you are looking for acts.",
+                                     "namePlaceholder":  "Venue or stage name",
+                                     "descriptionPlaceholder":  "Share a short take on the room, the crowd, and the kinds of nights you book.",
+                                     "submit":  "Create venue profile"
+                                 },
+                       "validation":  {
+                                          "title":  "A few details are missing",
+                                          "authRequired":  "You need to be signed in before you can create a profile.",
+                                          "requiredFields":  "Name, street address, city, zip code, and country are required to create the profile.",
+                                          "bandPrice":  "Please add a target fee for the artist profile.",
+                                          "unknownError":  "Something went wrong. Please try again in a moment."
+                                      },
+                       "success":  {
+                                       "title":  "Profile created",
+                                       "band":  "The artist profile is now created and linked to your account.",
+                                       "venue":  "The venue profile is now created and linked to your account."
+                                   }
+             },
+    "showPlanner":  {
+                        "common":  {
+                                       "eyebrow":  "Plan live nights",
+                                       "saving":  "Saving...",
+                                       "loading":  "Loading planner...",
+                                       "defaultShowName":  "New show",
+                                       "venueFallback":  "Selected venue"
+                                   },
+                        "hero":  {
+                                     "title":  "Build shows, slots and festival days",
+                                     "description":  "Plan a standard show with open slots or build a city festival across several days and venues in the same flow."
+                                 },
+                        "modes":  {
+                                      "single":  "Single show",
+                                      "festival":  "Festival setup"
+                                  },
+                        "festival":  {
+                                         "title":  "Festival frame",
+                                         "description":  "Set a shared title and tone for the festival, then build each day or venue below."
+                                     },
+                        "fields":  {
+                                       "festivalName":  "Festival name",
+                                       "festivalDescription":  "Festival description",
+                                       "venue":  "Choose venue",
+                                       "name":  "Show name",
+                                       "description":  "Description",
+                                       "date":  "Date",
+                                       "slots":  "Slots",
+                                       "slotsDescription":  "Create open or booked times for the night. A slot without a band becomes an open place to fill later.",
+                                       "startTime":  "Start time",
+                                       "duration":  "Duration in minutes",
+                                       "assignBand":  "Assign band to slot"
+                                   },
+                        "placeholders":  {
+                                             "festivalName":  "Stockholm Live Week",
+                                             "festivalDescription":  "A city-wide festival with several stages, days and sounds.",
+                                             "showName":  "Thursday on the main stage",
+                                             "dayName":  "Friday on the courtyard stage",
+                                             "showDescription":  "Describe the night, the theme or the audience you want to reach."
+                                         },
+                        "labels":  {
+                                      "festivalDay":  "Festival day {{amount}}",
+                                      "singleShow":  "Show",
+                                      "slotNumber":  "Slot {{amount}}",
+                                      "openSlot":  "Open slot"
+                                  },
+                        "actions":  {
+                                       "addSlot":  "Add slot",
+                                       "removeSlot":  "Remove slot",
+                                       "addDay":  "Add day or venue",
+                                       "removeDay":  "Remove day",
+                                       "manageShow":  "Manage show",
+                                       "planSuggestedBand":  "Plan slot for {{bandName}}",
+                                       "createShow":  "Create show",
+                                       "createFestival":  "Create festival setup"
+                                   },
+                        "matching":  {
+                                         "title":  "Accepted inquiry ready for planning",
+                                         "description":  "You accepted {{bandName}}. Start with a new show draft below, or attach the band to one of your planned shows."
+                                     },
+                        "planned":  {
+                                        "title":  "Planned shows",
+                                        "description":  "This is what is already planned per venue and how many open slots are still available.",
+                                        "emptyVenue":  "There are no planned shows for this venue yet.",
+                                        "totalSlots":  "{{amount}} slots",
+                                        "openSlots":  "{{amount}} open",
+                                        "bookedSlots":  "{{amount}} booked"
+                                    },
+                        "validation":  {
+                                           "title":  "Some details are missing",
+                                           "noVenue":  "You need at least one venue on the account to plan shows.",
+                                           "festivalName":  "A festival setup needs a festival name.",
+                                           "requiredFields":  "Venue, date and at least one slot are required for each show.",
+                                           "slotFields":  "Each slot needs a start time and duration in minutes."
+                                       },
+                        "success":  {
+                                        "title":  "Planner saved",
+                                        "single":  "The show is created and added to your venue planning.",
+                                        "festival":  "The festival days are created and added to your venue planning."
+                                    },
+                        "errors":  {
+                                       "title":  "Could not save",
+                                       "create":  "Something went wrong while creating the show. Please try again in a moment.",
+                                       "loadPlans":  "We could not load your planned shows right now."
+                                   },
+                        "empty":  {
+                                      "title":  "Create a venue profile first",
+                                      "description":  "Once you have at least one venue on the account you can plan standard shows, open slots and festival setups here."
+                                  }
+                    }
+}

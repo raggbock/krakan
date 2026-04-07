@@ -1,0 +1,623 @@
+{
+    "common":  {
+                   "welcome":  "Valkommen",
+                   "venues":  "Spelstallen",
+                   "explore":  "Spelningar i narheten",
+                   "email":  "Email",
+                   "phoneNumber":  "Telefonnummer",
+                   "password":  "Losenord",
+                   "continue":  "Fortsatt",
+                   "seeAll":  "Se alla",
+                   "cancel":  "Avbryt",
+                   "confirm":  "Bekrafta",
+                   "yes":  "Ja",
+                   "no":  "Nej",
+                   "empty":  "Har ekar det tomt. Vi kunde inte hitta nagot att lagga har",
+                   "other":  "Annat",
+                   "next":  "Nasta",
+                   "apply":  "TIllampa",
+                   "close":  "Stang"
+               },
+    "filters":  {
+                    "radiusTitle":  "Radius",
+                    "radius":  "Vald radius",
+                    "dateTitle":  "Datum",
+                    "date":  "Valt datum"
+                },
+    "explore":  {
+                    "intro":  {
+                                  "eyebrow":  "Marknadsplats for livemusik",
+                                  "title":  "Hitta spelningar, upptack artister och boka battre kvallar",
+                                  "description":  "Headline samlar artister, spelstallen och besokare pa ett stalle sa att det blir enklare att hitta ratt spelning och enklare att fylla kalendern.",
+                                  "stats":  {
+                                                "shows":  "spelningar",
+                                                "artists":  "artister",
+                                                "venues":  "spelstallen"
+                                            },
+                                  "audiences":  {
+                                                    "artists":  {
+                                                                    "title":  "For artister",
+                                                                    "description":  "Visa vilka ni ar, bli upptackta av spelstallen och hall er synliga nar nya bokningar dyker upp."
+                                                                },
+                                                    "venues":  {
+                                                                   "title":  "For spelstallen",
+                                                                   "description":  "Hitta artister att boka, jamfor lokala akter och bygg ett starkare program for kommande kvallar."
+                                                               },
+                                                    "visitors":  {
+                                                                     "title":  "For besokare",
+                                                                     "description":  "Hitta spelningar i narheten, upptack nya favoriter och valj vilka kvallar som ar varda att ga pa."
+                                                                 }
+                                                }
+                              },
+                    "featuredEvents":  "Utvalda spelningar",
+                    "popularEvents":  "Populara spelningar nara dig",
+                    "bands":  "Band i narheten",
+                    "venues":  "Spelstallen i narheten",
+                    "empty":  {
+                                  "title":  "Det finns inga spelningar att visa an",
+                                  "tooltip":  "Testa filtren langst upp",
+                                  "description":  "Explore ar redo, men just nu finns det inga publicerade spelningar, artister eller spelstallen i databasen.",
+                                  "artistTitle":  "For artister",
+                                  "artistDescription":  "Nar artister lagger upp sina profiler och kommande spelningar dyker de upp har.",
+                                  "venueTitle":  "For spelstallen",
+                                  "venueDescription":  "Nar spelstallen publicerar sina program och bokningsbara kvallar fylls listorna pa automatiskt.",
+                                  "visitorTitle":  "For besokare",
+                                  "visitorDescription":  "Nar de forsta spelningarna ar publicerade kommer du att kunna hitta nya kvallar att ga pa direkt har."
+                              },
+                    "sections":  {
+                                     "featured":  {
+                                                      "title":  "Utvalda kvallar",
+                                                      "description":  "Borst bland de starkaste spelningarna som ligger narmast just nu."
+                                                  },
+                                     "shows":  {
+                                                   "title":  "Spelningar att ga pa",
+                                                   "description":  "Snabbskannad lista over kvallar som ar enkla att hoppa vidare in i."
+                                               },
+                                     "venues":  {
+                                                    "title":  "Spelstallen att halla koll pa",
+                                                    "description":  "Rum, scener och klubbar som redan har eller kan bygga starka kvallar."
+                                                },
+                                     "bands":  {
+                                                   "title":  "Band att upptacka",
+                                                   "description":  "Lokala akter och nya favoriter att boka, folja eller ga och se live."
+                                               }
+                                 },
+                    "labels":  {
+                                   "venue":  "Spelstalle",
+                                   "band":  "Band"
+                               },
+                    "audience":  {
+                                     "label":  "Utforska som",
+                                     "visitor":  "Besokare",
+                                     "band":  "Band",
+                                     "venue":  "Spelstalle"
+                                 },
+                    "matchmaking":  {
+                                        "bandTitle":  "Spelstallen som letar efter band",
+                                        "bandDescription":  "Som band far du en snabb bild av vilka scener och kvallar som ser ut att passa er just nu.",
+                                        "venueTitle":  "Band som letar efter spelningar",
+                                        "venueDescription":  "Som spelstalle kan du snabbt upptacka akter som ser redo ut for fler gigs och matchar era kvallar.",
+                                        "venueBadge":  "Spelstalle som bokar",
+                                        "bandBadge":  "Band som soker spelning",
+                                        "openSlot":  "Oppna slots",
+                                        "readyToBook":  "Redo att boka",
+                                        "bandFallback":  "Spelstallet har oppnat upp for nya akter och letar efter ratt livekansla till kommande kvallar.",
+                                        "venueFallback":  "Bandet ar synligt for nya spelningar och letar efter scener som matchar deras livekansla.",
+                                        "noVenueMatchesTitle":  "Inga oppna bokningsmojligheter just nu",
+                                        "noVenueMatchesDescription":  "Nar fler spelstallen markerar att de soker band dyker de upp har, sa att ni snabbt kan hitta ratt scen att kontakta.",
+                                        "noBandMatchesTitle":  "Inga band soker spelningar just nu",
+                                        "noBandMatchesDescription":  "Nar fler artister markerar att de vill hitta fler gigs fylls den har sektionen pa automatiskt."
+                                    },
+                    "inquiry":  {
+                                    "defaultBandMessage":  "Hej {{targetName}}! Vi ar intresserade av att spela hos er och skulle garna hora mer om era kommande bookingmojligheter.",
+                                    "submitting":  "Skickar...",
+                                    "messageLabel":  "Meddelande",
+                                    "validationTitle":  "Fyll i de viktigaste uppgifterna",
+                                    "phoneLabel":  "Telefon (valfritt)",
+                                    "bandAction":  "Anmal intresse",
+                                    "validationDescription":  "Namn, e-post och meddelande behovs for att skicka forfragan.",
+                                    "successTitle":  "Forfragan skickad",
+                                    "venueAction":  "Skicka bookingforfragan",
+                                    "messagePlaceholder":  "Skriv nagra rader om vad du letar efter",
+                                    "venueTitle":  "Skicka bookingforfragan till {{targetName}}",
+                                    "successDescription":  "Din forfragan till {{targetName}} ar nu skickad.",
+                                    "emailLabel":  "E-post",
+                                    "errorTitle":  "Det gick inte att skicka",
+                                    "bandDescription":  "Skicka en kort pitch med kontaktuppgifter sa kan spelstallet aterkomma om ni passar deras oppna slots.",
+                                    "bandTitle":  "Anmal intresse till {{targetName}}",
+                                    "emailPlaceholder":  "namn@mail.se",
+                                    "defaultVenueMessage":  "Hej {{targetName}}! Vi driver ett spelstalle och skulle vilja prata om att boka er till en kommande kvall.",
+                                    "errorDescription":  "Forsok igen om en liten stund.",
+                                    "namePlaceholder":  "Ditt namn eller bandnamn",
+                                    "submit":  "Skicka forfragan",
+                                    "phonePlaceholder":  "07X-XXX XX XX",
+                                    "venueDescription":  "Beratta kort om kvallen och vad ni vill boka, sa skickas forfragan vidare till bandet.",
+                                    "nameLabel":  "Namn"
+                                }
+                },
+    "newUser":  {
+                    "title":  "Hej dar!",
+                    "subTitle":  "Overvag att skapa ett konto for den basta upplevelsen",
+                    "content":  {
+                                    "title":  "Nagra exempel pa vad vi kan erbjuda:",
+                                    "favourites":  "Lagg till favoriter for att fa nyheter fran dina favoritband och spelstallen!",
+                                    "notifications":  "Bli notifierad nar ditt favoritband eller favoritspelstalle har nyheter att dela"
+                                },
+                    "browse":  "Jag vill kika forst",
+                    "signUp":  "Skapa konto"
+                },
+    "show":  {
+                 "about":  "Om",
+                 "bookingNotes":  "Booking-notes",
+                 "songs":  "Latar",
+                 "buyTicket":  "Kop biljett",
+                 "noTickets":  "Biljetter har inte slappts for den har spelningen an.",
+                 "management":  {
+                                    "title":  "Hantera spelning",
+                                    "description":  "Publicera spelningen nar den ar redo att upptackas och lagg till biljettyper innan slappet.",
+                                    "draft":  "Utkast",
+                                    "published":  "Publicerad",
+                                    "publish":  "Publicera spelning",
+                                    "unpublish":  "Flytta tillbaka till utkast",
+                                    "saving":  "Sparar...",
+                                    "savedTitle":  "Sparat",
+                                    "publishSuccess":  "Spelningen ar nu synlig i Explore och redo for biljettkop.",
+                                    "unpublishSuccess":  "Spelningen ligger nu tillbaka som utkast.",
+                                    "errorTitle":  "Det gick inte att uppdatera spelningen",
+                                    "error":  "Forsok igen om en liten stund.",
+                                    "lineup":  "Lineup och slots",
+                                    "openSlot":  "Oppet slot",
+                                    "ticketTitle":  "Slapp biljetter",
+                                    "ticketName":  "Biljettnamn",
+                                    "ticketPrice":  "Pris i SEK",
+                                    "ticketAmount":  "Antal biljetter",
+                                    "reusableOn":  "Ateranvandbar biljett ar paslagen",
+                                    "reusableOff":  "Ateranvandbar biljett ar avstangd",
+                                    "createTicket":  "Skapa biljettyp",
+                                    "slotTitle":  "Planera slotforslag",
+                                    "slotDescription":  "Skapa ett konkret slotforslag for {{bandName}} i den har spelningen.",
+                                    "slotStartTime":  "Starttid for slot",
+                                    "slotDuration":  "Slotlangd i minuter",
+                                    "createSlotProposal":  "Skapa slotforslag for {{bandName}}",
+                                    "slotSuccess":  "{{bandName}} har lagts till i spelningens lineup.",
+                                    "ticketSuccess":  "Biljettypen ar tillagd pa spelningen.",
+                                    "ticketValidation":  "Fyll i biljettnamn, pris och antal innan du skapar biljetten.",
+                                    "ticketsLeft":  "{{amount}} kvar"
+                                }
+             },
+    "profile":  {
+                    "profile":  "Profil",
+                    "signIn":  "Logga in",
+                    "signUp":  "Registrera dig",
+                    "signOut":  "Logga ut",
+                    "authenticatedDescription":  "Du ar inloggad och redo att bygga din narvaro i Headline.",
+                    "paragraph":  "Logga in med ditt konto",
+                    "hint":  "Har du inget giggkonto?",
+                    "pageBreak":  "eller anslut med",
+                    "apple":  "Logga in med Apple",
+                    "facebook":  "Facebook",
+                    "theme":  {
+                                  "title":  "Tema",
+                                  "dark":  "Anvand morkt tema",
+                                  "light":  "Anvand ljust tema"
+                              },
+                    "locale":  {
+                                   "title":  "Sprak i appen",
+                                   "en":  "Engelska",
+                                   "sv":  "Svenska"
+                               },
+                    "welcomeBack":  "Valkommen tillbaka, {{name}}!",
+                    "showsVisited":  {
+                                         "single":  "{{amount}} spelning besokt",
+                                         "multiple":  "{{amount}} spelningar besokta"
+                                     },
+                    "settings":  {
+                                     "title":  "Installningar"
+                                 },
+                    "history":  {
+                                    "title":  "Historik"
+                                },
+                    "favourites":  {
+                                       "title":  "Favoriter",
+                                       "placeholder":  "Du har for narvarande inga favoritband eller spelstallen.\n\nLagg till en favorit genom att trycka pa hjartikonen hogst upp pa band- eller spelstalleskortet."
+                                   },
+                    "preferences":  "Installningar",
+                    "accountStatus":  {
+                                          "title":  "Ditt konto just nu",
+                                          "description":  "Nar du skapar en artist- eller venueprofil blir kontot bokningsbart och far riktig roll i appen.",
+                                          "bands":  "{{amount}} band",
+                                          "venues":  "{{amount}} spelstallen"
+                                      },
+                    "nextStep":  {
+                                     "title":  "Nasta steg",
+                                     "description":  "Du ar inne. Nar vi bygger vidare onboardingflodet kan du skapa artist- eller venueprofil och sedan lagga upp att du soker spelningar eller akter."
+                                 },
+                    "builders":  {
+                                     "title":  "Bygg dina profiler",
+                                     "description":  "Samma konto kan vara bade artist och spelstalle. Skapa den ena, den andra eller flera av varje om det passar hur du jobbar.",
+                                     "createBand":  "Skapa artistprofil",
+                                     "addBand":  "Lagg till ett till band",
+                                     "createVenue":  "Skapa venueprofil",
+                                     "addVenue":  "Lagg till ett till spelstalle"
+                                 },
+                    "planner":  {
+                                    "createShow":  "Planera spelning",
+                                    "createFestival":  "Planera festival"
+                                },
+                    "matchmaking":  {
+                                        "bandSectionTitle":  "Band som soker spelningar",
+                                        "bandSectionDescription":  "Styr vilka av dina band som ska synas som aktiva for nya gigs och lagg till en kort bookingtext.",
+                                        "venueSectionTitle":  "Spelstallen som soker band",
+                                        "venueSectionDescription":  "Styr vilka av dina venues som aktivt letar efter nya akter och skriv vad ni vill boka.",
+                                        "bandCardDescription":  "Nar detta ar paslaget kan spelstallen upptacka bandet i matchningsdelen av Explore.",
+                                        "venueCardDescription":  "Nar detta ar paslaget kan band upptacka venueprofilen i matchningsdelen av Explore.",
+                                        "bandToggleOn":  "Bandet soker spelningar",
+                                        "bandToggleOff":  "Bandet soker inte spelningar",
+                                        "venueToggleOn":  "Spelstallet soker band",
+                                        "venueToggleOff":  "Spelstallet soker inte band",
+                                        "notesLabel":  "Booking-notes",
+                                        "bandNotesPlaceholder":  "Skriv kort vilka datum, stader eller typer av kvallar ni helst letar efter.",
+                                        "venueNotesPlaceholder":  "Skriv kort vad ni letar efter for akt, setup eller kommande kvall.",
+                                        "saveBand":  "Spara bandstatus",
+                                        "saveVenue":  "Spara venue-status",
+                                        "saving":  "Sparar...",
+                                        "successTitle":  "Sparat",
+                                        "bandSaved":  "Bandets bookingstatus ar uppdaterad.",
+                                        "venueSaved":  "Venueprofilens bookingstatus ar uppdaterad.",
+                                        "errorTitle":  "Det gick inte att spara",
+                                        "errorDescription":  "Forsok igen om en liten stund."
+                                 }
+                    ,
+                    "inbox":  {
+                                  "title":  "Bokningsinkorg",
+                                  "description":  "Folj inkommande och skickade forfragningar pa ett stalle.",
+                                  "cta":  "Oppna inboxen"
+                              }
+                },
+    "inbox":  {
+                 "hero":  {
+                              "eyebrow":  "Bokningsinkorg",
+                              "title":  "Samla alla forfragningar som behover svar",
+                              "description":  "Har ser du inkommande och skickade bookingforfragningar, sa att du snabbt kan svara, markera som last eller arkivera."
+                          },
+                 "stats":  {
+                               "total":  "totalt",
+                               "incoming":  "inkommande",
+                               "outgoing":  "skickade",
+                               "needsReply":  "behover svar"
+                           },
+                 "filters":  {
+                                "all":  "Alla",
+                                "incoming":  "Inkommande",
+                                "outgoing":  "Skickade",
+                                "needsReply":  "Behover svar"
+                            },
+                 "direction":  {
+                                   "incoming":  "Inkommande",
+                                   "outgoing":  "Skickad"
+                               },
+                 "status":  {
+                                "new":  "Ny",
+                                "viewed":  "Last",
+                                "replied":  "Besvarad",
+                                "accepted":  "Accepterad",
+                                "declined":  "Nekad",
+                                "slotProposed":  "Slotforslag skickat",
+                                "booked":  "Bokad",
+                                "archived":  "Arkiverad"
+                            },
+                 "source":  {
+                               "demo":  "Demo",
+                               "local":  "Lokalt sparad",
+                               "api":  "API"
+                           },
+                 "card":  {
+                              "incomingTitle":  "{{senderName}} vill boka {{targetName}}",
+                              "outgoingTitle":  "Fraga skickad till {{targetName}}",
+                              "fromTo":  "Fran {{senderName}} till {{targetName}}",
+                              "toFrom":  "Till {{targetName}} fran {{senderName}}"
+                          },
+                 "detail":  {
+                               "sender":  "Avsandare",
+                               "target":  "Mal",
+                               "status":  "Status",
+                               "received":  "Mottaget",
+                               "reply":  "Svar",
+                               "responded":  "Besvarat"
+                           },
+                 "reply":  {
+                               "label":  "Svara pa forfragan",
+                               "placeholder":  "Skriv ett kort svar, nasta steg eller bookingnote.",
+                               "bookingConfirmed":  "{{senderName}} fungerar for oss. Nu laser vi bokningen."
+                           },
+                 "actions":  {
+                                "openProfile":  "Oppna profil",
+                                "markRead":  "Markera som last",
+                                "archive":  "Arkivera",
+                                "reply":  "Svara",
+                                "accept":  "Acceptera",
+                                "decline":  "Neka",
+                                "planSlot":  "Planera slot",
+                                "openVenue":  "Oppna venue",
+                                "openShowFlow":  "Oppna bokningsflodet",
+                                "confirmBooking":  "Bekrafta bokning"
+                            },
+                 "timeline":  {
+                                 "inquirySent":  "Forfragan skickad",
+                                 "accepted":  "Accepterad",
+                                 "slotProposed":  "Slotforslag skickat",
+                                 "booked":  "Bokad"
+                             },
+                 "empty":  {
+                               "title":  "Inboxen ar lugn just nu",
+                               "description":  "Nar du skickar eller far riktiga bookingforfragningar samlas de har."
+                           },
+                 "seed":  {
+                              "incomingBandMessage":  "{{senderName}} har en oppen kvall och vill boka {{targetName}}.",
+                              "outgoingVenueMessage":  "Du skickade en forfragan till {{targetName}} fran {{senderName}}.",
+                              "outgoingVenueReply":  "{{senderName}} gillar iden och vill prata vidare om upplagget.",
+                              "acceptedReply":  "{{senderName}} vill ga vidare och lasa en slot.",
+                              "archivedBandMessage":  "{{senderName}} kontaktade {{targetName}}, men arendet har redan arkiverats."
+                          }
+             },
+    "tickets":  {
+                    "header":  "Mina biljetter",
+                    "hero":  {
+                                 "title":  "Dina kvallar, samlade pa ett stalle",
+                                 "description":  "Har hamnar biljetter, entrer och kvallar du ska till sa att du snabbt kommer vidare till ratt spelning.",
+                                 "signedOut":  "Logga in for att se dina biljetter, eller forhandsgranska hur biljettplankan kommer att se ut."
+                             },
+                    "count":  "{{amount}} biljetter",
+                    "preview":  "Preview-lage",
+                    "loading":  "Laddar biljetter...",
+                    "upcoming":  "Kommande",
+                    "upcomingDescription":  "Biljetter du snart ska anvanda.",
+                    "past":  "Tidigare kvallar",
+                    "pastDescription":  "Spelningar du redan har varit pa eller anvant biljetten till.",
+                    "emptyTitle":  "Inga biljetter an",
+                    "emptyDescription":  "Nar kop och scanning kommer hela vagen in i appen dyker dina biljetter upp har.",
+                    "emptySignedOutTitle":  "Logga in for att se dina biljetter",
+                    "emptySignedOutDescription":  "Biljettflodet ar kopplat till ditt konto, sa du behover vara inloggad for att se kommande eller tidigare kvallar.",
+                    "details":  {
+                                    "event":  "EVENEMANG",
+                                    "ticketType":  "BILJETTYP",
+                                    "location":  "VAR",
+                                    "enterFrom":  "ENTRE FRAN",
+                                    "title":  "Biljettdetaljer",
+                                    "passTitle":  "Entrypass",
+                                    "scanHint":  "Visa den har koden i dorren",
+                                    "price":  "PRIS",
+                                    "orderId":  "ORDER-ID",
+                                    "lineup":  "LINEUP",
+                                    "missingTitle":  "Ingen biljett vald",
+                                    "missingDescription":  "Ga tillbaka till biljettsidan och oppna en biljett for att se detaljerna."
+                                }
+                },
+    "checkout":  {
+                     "header":  "Mockcheckout",
+                     "title":  "Slutfor ditt biljettkop",
+                     "description":  "Det har ar ett mockat betalflode just nu. Nar du bekraftar skapas biljetten pa ditt konto och laggs i din wallet.",
+                     "ticketTitle":  "Vald biljett",
+                     "ticketType":  "BILJETTYP",
+                     "quantity":  "ANTAL",
+                     "mockPaymentTitle":  "Betalsatt",
+                     "mockPaymentDescription":  "Mockkort som slutar pa 4242. Ingen riktig betalning behandlas i det har flodet.",
+                     "summaryTitle":  "Ordersammanfattning",
+                     "subtotal":  "DELSUMMA",
+                     "total":  "TOTALT",
+                     "payNow":  "Betala nu",
+                     "processing":  "Bearbetar...",
+                     "emptyTitle":  "Ingen biljett vald",
+                     "emptyDescription":  "Ga tillbaka till spelningen och valj en biljettyp innan du oppnar checkout.",
+                     "errorTitle":  "Kopet kunde inte genomforas",
+                     "errorDescription":  "Mockbetalningen gick inte igenom just nu. Forsok igen om en liten stund.",
+                     "completed":  {
+                                       "header":  "Kopet ar klart",
+                                       "title":  "Din biljett ar redo",
+                                       "description":  "Biljetten har lagts i din wallet och kan visas i dorren nar det ar dags.",
+                                       "showFallback":  "Din kommande spelning",
+                                       "ticketType":  "BILJETTYP",
+                                       "quantity":  "ANTAL",
+                                       "total":  "TOTALT",
+                                       "openTickets":  "Oppna mina biljetter",
+                                       "backToExplore":  "Tillbaka till Explore"
+                                   }
+                 },
+    "auth":  {
+                 "hero":  {
+                              "eyebrow":  "Skapa din plats i livemusiken",
+                              "title":  "Logga in for att boka, bli bokad och bygga nasta spelning",
+                              "description":  "Vi behaller Firebase som identitet, sa att vi kan fa en stabil authgrund snabbt och bygga vidare pa riktiga artist- och venuefloden ovanpa den."
+                          },
+                 "switch":  {
+                                "signIn":  "Logga in",
+                                "signUp":  "Skapa konto"
+                            },
+                 "signIn":  {
+                                "title":  "Valkommen tillbaka",
+                                "description":  "Logga in med din e-post for att hamta ditt konto, din kontext och dina kommande bookingfloden.",
+                                "submit":  "Logga in",
+                                "footer":  "Nar du ar inloggad kan vi knyta ditt konto till artist- och venueprofiler i nasta steg."
+                            },
+                 "signUp":  {
+                                "title":  "Skapa ett konto som gar att bygga vidare pa",
+                                "description":  "Borja med dina kontaktuppgifter och valj vilket spar som ligger narmast dig just nu.",
+                                "submit":  "Skapa konto",
+                                "footer":  "Rollvalet har styr onboarding. Din riktiga artist- eller venue-roll blir aktiv nar du skapar profilen."
+                            },
+                 "fields":  {
+                                "firstName":  "Fornamn",
+                                "lastName":  "Efternamn",
+                                "email":  "E-post",
+                                "phone":  "Telefonnummer",
+                                "password":  "Losenord"
+                            },
+                 "placeholders":  {
+                                      "firstName":  "Sebastian",
+                                      "lastName":  "Myrdahl",
+                                      "email":  "namn@mail.se",
+                                      "phone":  "07X-XXX XX XX",
+                                      "password":  "Minst ett losenord du kommer ihag"
+                                  },
+                 "roles":  {
+                               "heading":  "Vilket spar vill du starta i?",
+                               "visitor":  {
+                                               "title":  "Besokare",
+                                               "description":  "Jag vill hitta spelningar, folja scener och se vad som ar pa gang."
+                                           },
+                               "band":  {
+                                            "title":  "Band eller artist",
+                                            "description":  "Jag vill bli hittad av spelstallen och kunna markera att jag soker spelningar."
+                                        },
+                               "venue":  {
+                                             "title":  "Spelstalle",
+                                             "description":  "Jag vill hitta artister att boka och markera nar jag letar efter nya akter."
+                                         }
+                           },
+                 "validation":  {
+                                    "title":  "Fyll i uppgifterna forst",
+                                    "signIn":  "E-post och losenord behovs for att logga in.",
+                                    "signUp":  "Fornamn, efternamn, e-post, telefonnummer och losenord behovs for att skapa kontot."
+                                },
+                 "common":  {
+                                "loading":  "Jobbar pa det..."
+                            }
+             },
+    "onboarding":  {
+                       "common":  {
+                                      "eyebrow":  "Bygg din bookingyta",
+                                      "name":  "Namn",
+                                      "description":  "Beskrivning",
+                                      "street":  "Adress",
+                                      "streetPlaceholder":  "Vasagatan 13",
+                                      "city":  "Stad",
+                                      "cityPlaceholder":  "Stockholm",
+                                      "zipCode":  "Postnummer",
+                                      "zipCodePlaceholder":  "111 20",
+                                      "state":  "Region eller lan",
+                                      "statePlaceholder":  "Stockholms lan",
+                                      "country":  "Land",
+                                      "countryPlaceholder":  "Sweden",
+                                      "locationNote":  "Vi kopplar profilen till din nuvarande plats om den finns, annars anvander vi en trygg standardposition tills du kan finjustera den senare.",
+                                      "submitting":  "Sparar..."
+                                  },
+                       "band":  {
+                                    "title":  "Skapa artistprofil",
+                                    "description":  "Det har blir grunden for att visa att du ar bokningsbar och senare kunna markera att du soker spelningar.",
+                                    "namePlaceholder":  "Ditt bandnamn",
+                                    "descriptionPlaceholder":  "Beratta kort om sound, livekansla och vad som gor akten bokningsbar.",
+                                    "price":  "Onskat gage (SEK)",
+                                    "pricePlaceholder":  "5000",
+                                    "submit":  "Skapa artistprofil"
+                                },
+                       "venue":  {
+                                     "title":  "Skapa venueprofil",
+                                     "description":  "Det har blir grunden for att visa scenen, lokalen eller klubben och senare kunna markera att ni letar efter akter.",
+                                     "namePlaceholder":  "Namn pa venue eller scen",
+                                     "descriptionPlaceholder":  "Beratta kort om lokalen, publiken och vilken typ av kvallar ni bokar.",
+                                     "submit":  "Skapa venueprofil"
+                                 },
+                       "validation":  {
+                                          "title":  "Det saknas nagra uppgifter",
+                                          "authRequired":  "Du maste vara inloggad innan du kan skapa en profil.",
+                                          "requiredFields":  "Namn, adress, stad, postnummer och land behovs for att skapa profilen.",
+                                          "bandPrice":  "Ange ett onskat gage for artistprofilen.",
+                                          "unknownError":  "Nagot gick fel. Forsok igen om en liten stund."
+                                      },
+                       "success":  {
+                                       "title":  "Profil skapad",
+                                       "band":  "Artistprofilen ar nu skapad och kopplad till ditt konto.",
+                                       "venue":  "Venueprofilen ar nu skapad och kopplad till ditt konto."
+                                   }
+             },
+    "showPlanner":  {
+                        "common":  {
+                                       "eyebrow":  "Planera livekvallar",
+                                       "saving":  "Sparar...",
+                                       "loading":  "Laddar planeringen...",
+                                       "defaultShowName":  "Ny spelning",
+                                       "venueFallback":  "Vald venue"
+                                   },
+                        "hero":  {
+                                     "title":  "Bygg spelningar, slots och festivaldagar",
+                                     "description":  "Planera en vanlig spelning med oppna slots eller lagg upp en stadsfestival over flera dagar och venues i samma flode."
+                                 },
+                        "modes":  {
+                                      "single":  "En spelning",
+                                      "festival":  "Festivalupplagg"
+                                  },
+                        "festival":  {
+                                         "title":  "Festivalram",
+                                         "description":  "Satt en gemensam titel och ton for festivalen. Sedan kan du bygga varje dag eller venue nedan."
+                                     },
+                        "fields":  {
+                                       "festivalName":  "Festivalnamn",
+                                       "festivalDescription":  "Festivalbeskrivning",
+                                       "venue":  "Valj venue",
+                                       "name":  "Namn pa spelning",
+                                       "description":  "Beskrivning",
+                                       "date":  "Datum",
+                                       "slots":  "Slots",
+                                       "slotsDescription":  "Skapa oppna eller bokade tider for kvallen. En slot utan band blir en oppen plats att fylla senare.",
+                                       "startTime":  "Starttid",
+                                       "duration":  "Langd i minuter",
+                                       "assignBand":  "Koppla band till slot"
+                                   },
+                        "placeholders":  {
+                                             "festivalName":  "Stockholm Live Week",
+                                             "festivalDescription":  "En stadsspridd festival med flera scener, dagar och olika stilar.",
+                                             "showName":  "Torsdag pa stora scen",
+                                             "dayName":  "Fredag pa innergardsscenen",
+                                             "showDescription":  "Beskriv kvallen, temat eller vilken publik ni siktar pa."
+                                         },
+                        "labels":  {
+                                      "festivalDay":  "Festivaldag {{amount}}",
+                                      "singleShow":  "Spelning",
+                                      "slotNumber":  "Slot {{amount}}",
+                                      "openSlot":  "Oppet slot"
+                                  },
+                        "actions":  {
+                                       "addSlot":  "Lagg till slot",
+                                       "removeSlot":  "Ta bort slot",
+                                       "addDay":  "Lagg till dag eller venue",
+                                       "removeDay":  "Ta bort dag",
+                                       "manageShow":  "Hantera spelning",
+                                       "planSuggestedBand":  "Planera slot for {{bandName}}",
+                                       "createShow":  "Skapa spelning",
+                                       "createFestival":  "Skapa festivalupplagg"
+                                   },
+                        "matching":  {
+                                         "title":  "Accepterad forfragan ar redo att planeras",
+                                         "description":  "Du har accepterat {{bandName}}. Borja med ett nytt spelutkast nedan eller koppla bandet till en av dina planerade spelningar."
+                                     },
+                        "planned":  {
+                                        "title":  "Planerade spelningar",
+                                        "description":  "Har ser du vad som redan ligger inne per venue och hur manga oppna slots som finns kvar.",
+                                        "emptyVenue":  "Det finns inga planerade spelningar for det har spelstallet an.",
+                                        "totalSlots":  "{{amount}} slots",
+                                        "openSlots":  "{{amount}} oppna",
+                                        "bookedSlots":  "{{amount}} bokade"
+                                    },
+                        "validation":  {
+                                           "title":  "Det saknas uppgifter",
+                                           "noVenue":  "Du behover minst ett spelstalle pa kontot for att kunna planera spelningar.",
+                                           "festivalName":  "Festivalupplagg behover ett festivalnamn.",
+                                           "requiredFields":  "Venue, datum och minst ett slot behovs for varje spelning.",
+                                           "slotFields":  "Varje slot behover starttid och langd i minuter."
+                                       },
+                        "success":  {
+                                        "title":  "Planeringen ar sparad",
+                                        "single":  "Spelningen ar skapad och lagd till i din venueplanering.",
+                                        "festival":  "Festivaldagarna ar skapade och lagda till i venueplaneringen."
+                                    },
+                        "errors":  {
+                                       "title":  "Det gick inte att spara",
+                                       "create":  "Nagot gick fel nar spelningen skulle skapas. Forsok igen om en liten stund.",
+                                       "loadPlans":  "Vi kunde inte hamta era planerade spelningar just nu."
+                                   },
+                        "empty":  {
+                                      "title":  "Skapa en venueprofil forst",
+                                      "description":  "Nar du har minst ett spelstalle pa kontot kan du planera vanliga spelningar, oppna slots och festivalupplagg har."
+                                  }
+                    }
+}

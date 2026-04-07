@@ -1,0 +1,38 @@
+# Dependencies
+app/node_modules/
+web/node_modules/
+web/.next/
+
+# Build artifacts
+app/android/app/.cxx/
+app/android/app/build/
+app/ios/Pods/
+app/ios/build/
+api/**/bin/
+api/**/obj/
+api/**/.vs/
+
+# Environment
+app/.env
+app/.config/*.env
+web/.env*
+
+# Secrets
+api/**/appsettings.Development.json
+api/**/usersecrets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+
+# Claude Code
+.claude/
+.mcp.json
+.agents/
+skills-lock.json

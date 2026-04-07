@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Context Interviewer"
+  short_description: "Ask deep questions before starting work"
+  default_prompt: "Use $project-context-interviewer to interview me thoroughly about the project before making decisions."

@@ -1,0 +1,256 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ── Kråkan Palette ── */
+  --color-parchment: #F2EBE0;
+  --color-parchment-light: #F8F4ED;
+  --color-espresso: #2C241D;
+  --color-espresso-light: #4A3F34;
+  --color-rust: #C45B35;
+  --color-rust-light: #D4764E;
+  --color-mustard: #D4A043;
+  --color-mustard-light: #E3BC6A;
+  --color-forest: #5B7352;
+  --color-forest-light: #7A9470;
+  --color-lavender: #9B8EA8;
+  --color-cream-warm: #EDE5D8;
+  --color-card: #FAF7F2;
+  --color-error: #B84233;
+
+  /* ── Typography ── */
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-nunito);
+
+  /* ── Spacing & Radius ── */
+  --radius-card: 1.25rem;
+  --radius-pill: 9999px;
+  --radius-input: 0.875rem;
+}
+
+/* ── Base ── */
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-espresso);
+  font-family: var(--font-body), system-ui, sans-serif;
+  position: relative;
+}
+
+/* Paper grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--color-mustard);
+  color: var(--color-espresso);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-parchment);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-cream-warm);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-lavender);
+}
+
+/* ── Typography helpers ── */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.font-body {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* ── Decorative elements ── */
+
+/* Cross-stitch style dotted border */
+.stitch-border {
+  border: 2px dashed var(--color-cream-warm);
+  border-spacing: 6px;
+}
+
+/* Hand-drawn underline effect */
+.hand-underline {
+  text-decoration: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='8' viewBox='0 0 100 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6 Q 10 2, 20 5 T 40 4 T 60 6 T 80 3 T 100 5' stroke='%23C45B35' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-position: bottom left;
+  background-repeat: repeat-x;
+  background-size: 100px 8px;
+  padding-bottom: 6px;
+}
+
+/* Stamp effect for badges */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transform: rotate(-2deg);
+  position: relative;
+}
+
+.stamp::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.3;
+}
+
+/* Vintage card style */
+.vintage-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-cream-warm);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 1px 2px rgba(44, 36, 29, 0.04),
+    0 4px 12px rgba(44, 36, 29, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.vintage-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--color-rust) 0%,
+    var(--color-mustard) 33%,
+    var(--color-forest) 66%,
+    var(--color-lavender) 100%
+  );
+  opacity: 0.7;
+}
+
+/* ── Animations ── */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gentleBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes handWiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes stampIn {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(1.4);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(1deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-2deg) scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.animate-bob {
+  animation: gentleBob 3s ease-in-out infinite;
+}
+
+.animate-stamp {
+  animation: stampIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Staggered entrance delays */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* ── Knit pattern background (subtle) ── */
+.knit-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 2 L12 8 L18 2' stroke='%23EDE5D8' stroke-width='1.5' fill='none'/%3E%3Cpath d='M6 10 L12 16 L18 10' stroke='%23EDE5D8' stroke-width='1.5' fill='none'/%3E%3Cpath d='M6 18 L12 24 L18 18' stroke='%23EDE5D8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-size: 24px 24px;
+}
+
+/* ── Input styles ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"] {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* ── Focus ring ── */
+*:focus-visible {
+  outline: 2px solid var(--color-rust);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Leaflet overrides ── */
+.leaflet-container {
+  font-family: var(--font-body), system-ui, sans-serif !important;
+  background: var(--color-cream-warm) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-card) !important;
+  border: 1px solid var(--color-cream-warm) !important;
+  box-shadow: 0 4px 16px rgba(44, 36, 29, 0.1) !important;
+  font-family: var(--font-body), system-ui, sans-serif !important;
+}
+
+.leaflet-popup-tip {
+  border-top-color: var(--color-card) !important;
+}
