@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { api, FleaMarketDetails } from '@/lib/api'
-import { KrakanLogo } from '@/components/krakan-logo'
+import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { useMarketDetails } from '@/hooks/use-market-details'
+import { useBooking } from '@/hooks/use-booking'
 
 const DAY_NAMES = [
   'Söndag',
@@ -18,21 +20,14 @@ const DAY_NAMES = [
 
 export default function FleaMarketDetailsPage() {
   const { id } = useParams<{ id: string }>()
-  const [market, setMarket] = useState<FleaMarketDetails | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!id) return
-    api.fleaMarkets
-      .details(id)
-      .then(setMarket)
-      .finally(() => setLoading(false))
-  }, [id])
+  const { user } = useAuth()
+  const { market, tables, loading } = useMarketDetails(id)
+  const booking = useBooking()
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <KrakanLogo size={40} className="text-rust animate-bob" />
+        <FyndstigenLogo size={40} className="text-rust animate-bob" />
       </div>
     )
   }
@@ -40,7 +35,7 @@ export default function FleaMarketDetailsPage() {
   if (!market) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <KrakanLogo size={56} className="text-espresso/15 mx-auto mb-4" />
+        <FyndstigenLogo size={56} className="text-espresso/15 mx-auto mb-4" />
         <h1 className="font-display text-2xl font-bold">
           Loppisen hittades inte
         </h1>
@@ -75,6 +70,30 @@ export default function FleaMarketDetailsPage() {
         </svg>
         Tillbaka
       </Link>
+
+      {/* Images */}
+      {market.flea_market_images?.length > 0 && (
+        <div className="mb-8 animate-fade-up">
+          <div className={`grid gap-3 ${market.flea_market_images.length === 1 ? '' : 'grid-cols-2 sm:grid-cols-3'}`}>
+            {market.flea_market_images
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((img) => (
+                <div
+                  key={img.id}
+                  className={`rounded-xl overflow-hidden bg-cream-warm ${
+                    market.flea_market_images.length === 1 ? 'aspect-[2/1]' : 'aspect-square'
+                  }`}
+                >
+                  <img
+                    src={api.images.getPublicUrl(img.storage_path)}
+                    alt={market.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="animate-fade-up">
@@ -193,33 +212,151 @@ export default function FleaMarketDetailsPage() {
           <div className="vintage-card p-6 animate-fade-up delay-3">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-lg bg-mustard/15 flex items-center justify-center shrink-0 mt-0.5">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  className="text-mustard"
-                >
-                  <circle
-                    cx="8"
-                    cy="5"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M2 14C2 11.2 4.7 9 8 9s6 2.2 6 5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-mustard">
+                  <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M2 14C2 11.2 4.7 9 8 9s6 2.2 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
               <div>
-                <h2 className="font-display font-bold text-lg mb-1">
-                  Arrangör
-                </h2>
-                <p className="text-espresso/70">{market.organizerName}</p>
+                <h2 className="font-display font-bold text-lg mb-1">Arrangör</h2>
+                <Link
+                  href={`/arrangorer/${market.organizer_id}`}
+                  className="text-rust hover:text-rust-light transition-colors font-medium"
+                >
+                  {market.organizerName}
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bookable tables */}
+        {tables.length > 0 && (
+          <div className="vintage-card p-6 animate-fade-up delay-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-lavender/15 flex items-center justify-center shrink-0 mt-0.5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-lavender">
+                  <rect x="2" y="3" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+                  <line x1="4" y1="11" x2="4" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <line x1="12" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h2 className="font-display font-bold text-lg mb-1">Boka bord</h2>
+                <p className="text-sm text-espresso/50 mb-4">
+                  Hyr en plats och sälj dina prylar här.
+                </p>
+
+                {/* Booking success message */}
+                {booking.status === 'done' && (
+                  <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-4">
+                    Bokningsförfrågan skickad! Arrangören återkommer.
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {tables.map((table) => {
+                    const isSelected = booking.selectedTable?.id === table.id
+                    return (
+                      <div key={table.id}>
+                        <button
+                          onClick={() =>
+                            booking.selectTable(isSelected ? null : table)
+                          }
+                          className={`w-full text-left flex items-center justify-between rounded-xl p-4 transition-all ${
+                            isSelected
+                              ? 'bg-rust/8 border border-rust/20'
+                              : 'bg-parchment hover:bg-cream-warm border border-transparent'
+                          }`}
+                        >
+                          <div>
+                            <p className="font-medium text-sm">{table.label}</p>
+                            <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/40">
+                              {table.size_description && (
+                                <span>{table.size_description}</span>
+                              )}
+                              {table.description && (
+                                <span>&middot; {table.description}</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="font-display font-bold text-rust">
+                            {table.price_sek} kr
+                          </span>
+                        </button>
+
+                        {/* Booking form (inline) */}
+                        {isSelected && (
+                          <div className="mt-3 ml-4 pl-4 border-l-2 border-rust/15 space-y-3 animate-fade-in">
+                            <div>
+                              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                                Datum
+                              </label>
+                              <input
+                                type="date"
+                                value={booking.date}
+                                onChange={(e) => booking.setDate(e.target.value)}
+                                className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
+                              />
+                              {booking.date &&
+                                booking.bookedDates.includes(booking.date) && (
+                                  <p className="text-xs text-error mt-1">
+                                    Redan bokat detta datum.
+                                  </p>
+                                )}
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                                Meddelande (valfritt)
+                              </label>
+                              <textarea
+                                value={booking.message}
+                                onChange={(e) =>
+                                  booking.setMessage(e.target.value)
+                                }
+                                rows={2}
+                                placeholder="Berätta vad du säljer..."
+                                className="w-full rounded-lg bg-card px-3 py-2 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-espresso/40">
+                                {table.price_sek} kr + 12% serviceavgift
+                              </p>
+                              {user ? (
+                                <button
+                                  onClick={() => booking.submit(id, user!.id)}
+                                  disabled={
+                                    booking.status === 'saving' ||
+                                    !booking.date ||
+                                    booking.bookedDates.includes(booking.date)
+                                  }
+                                  className="bg-rust text-parchment px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
+                                >
+                                  {booking.status === 'saving'
+                                    ? 'Skickar...'
+                                    : 'Skicka förfrågan'}
+                                </button>
+                              ) : (
+                                <Link
+                                  href="/auth"
+                                  className="text-rust text-xs font-semibold"
+                                >
+                                  Logga in för att boka
+                                </Link>
+                              )}
+                            </div>
+                            {booking.status === 'error' && (
+                              <p className="text-xs text-error">
+                                Något gick fel. Försök igen.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -227,7 +364,7 @@ export default function FleaMarketDetailsPage() {
       </div>
 
       {/* Map link */}
-      <div className="mt-8 animate-fade-up delay-4">
+      <div className="mt-8 animate-fade-up delay-5">
         <Link
           href="/map"
           className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"

@@ -1,39 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { api, FleaMarket } from '@/lib/api'
-import { KrakanLogo } from '@/components/krakan-logo'
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-}
+import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { getInitials } from '@fyndstigen/shared'
+import { useSearch } from '@/hooks/use-search'
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<FleaMarket[] | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  async function handleSearch(q: string) {
-    if (!q.trim()) {
-      setResults(null)
-      return
-    }
-    setLoading(true)
-    try {
-      const data = await api.search.query(q)
-      setResults(data.fleaMarkets)
-    } catch {
-      setResults([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { query, results, loading, search } = useSearch()
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
@@ -70,10 +43,7 @@ export default function SearchPage() {
         <input
           type="text"
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            handleSearch(e.target.value)
-          }}
+          onChange={(e) => search(e.target.value)}
           placeholder="Skriv namn på en loppis..."
           className="w-full h-14 rounded-2xl bg-card pl-12 pr-5 text-base border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/30"
         />
@@ -82,7 +52,7 @@ export default function SearchPage() {
       {/* Loading */}
       {loading && (
         <div className="flex justify-center py-16">
-          <KrakanLogo size={36} className="text-rust animate-bob" />
+          <FyndstigenLogo size={36} className="text-rust animate-bob" />
         </div>
       )}
 
@@ -140,7 +110,7 @@ export default function SearchPage() {
             </>
           ) : (
             <div className="text-center py-16">
-              <KrakanLogo
+              <FyndstigenLogo
                 size={48}
                 className="text-espresso/15 mx-auto mb-3"
               />
@@ -158,7 +128,7 @@ export default function SearchPage() {
       {/* Idle state */}
       {!results && !loading && (
         <div className="text-center py-20 animate-fade-in delay-2">
-          <KrakanLogo
+          <FyndstigenLogo
             size={56}
             className="text-espresso/8 mx-auto mb-4"
           />

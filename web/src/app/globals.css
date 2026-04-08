@@ -238,6 +238,17 @@ input[type="search"] {
   border-radius: 4px;
 }
 
+/* ── Trail animation ── */
+@keyframes trailDraw {
+  from { stroke-dashoffset: 2000; }
+  to { stroke-dashoffset: 0; }
+}
+
+.trail-path {
+  stroke-dashoffset: 2000;
+  animation: trailDraw 4s ease-out forwards;
+}
+
 /* ── Leaflet overrides ── */
 .leaflet-container {
   font-family: var(--font-body), system-ui, sans-serif !important;

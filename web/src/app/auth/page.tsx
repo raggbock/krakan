@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { KrakanLogo } from '@/components/krakan-logo'
+import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -38,7 +38,7 @@ export default function AuthPage() {
       <div className="vintage-card p-8 sm:p-10 animate-fade-up">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <KrakanLogo size={52} className="text-espresso" />
+          <FyndstigenLogo size={52} className="text-espresso" />
         </div>
 
         <h1 className="font-display text-2xl font-bold text-center">
@@ -115,7 +115,7 @@ export default function AuthPage() {
       </div>
 
       <p className="text-center text-xs text-espresso/30 mt-6">
-        Varje fynd har en historia.
+        Varje stig leder till ett fynd.
       </p>
     </div>
   )

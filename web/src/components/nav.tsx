@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { KrakanLogo } from './krakan-logo'
+import { FyndstigenLogo } from './fyndstigen-logo'
 
 export function Nav() {
   const { user, loading } = useAuth()
@@ -14,20 +14,21 @@ export function Nav() {
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
         {/* Brand */}
         <Link href="/" className="inline-flex items-center gap-2.5 group">
-          <KrakanLogo
+          <FyndstigenLogo
             size={32}
             className="text-espresso group-hover:text-rust transition-colors duration-300"
           />
           <span className="font-display font-bold text-lg tracking-tight text-espresso">
-            Kråkan
+            Fyndstigen
           </span>
         </Link>
 
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-1">
-          <NavLink href="/">Utforska</NavLink>
+          <NavLink href="/utforska">Utforska</NavLink>
           <NavLink href="/search">Sök</NavLink>
           <NavLink href="/map">Karta</NavLink>
+          <NavLink href="/rundor">Rundor</NavLink>
 
           <div className="w-px h-5 bg-cream-warm mx-2" />
 
@@ -54,18 +55,20 @@ export function Nav() {
 
         {/* Mobile hamburger */}
         <button
-          className="sm:hidden flex flex-col gap-1.5 p-2 -mr-2"
-          onClick={() => setMenuOpen(!menuOpen)}
+          className="flex flex-col justify-center items-center w-12 h-12 -mr-3 sm:hidden"
+          onClick={() => setMenuOpen((prev) => !prev)}
           aria-label="Meny"
+          type="button"
+          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
         >
           <span
-            className={`block w-5 h-0.5 bg-espresso transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`}
+            className={`block w-5 h-[2px] rounded-full bg-espresso transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`}
           />
           <span
-            className={`block w-5 h-0.5 bg-espresso transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`}
+            className={`block w-5 h-[2px] rounded-full bg-espresso transition-all duration-300 mt-[5px] ${menuOpen ? 'opacity-0' : ''}`}
           />
           <span
-            className={`block w-5 h-0.5 bg-espresso transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`}
+            className={`block w-5 h-[2px] rounded-full bg-espresso transition-all duration-300 mt-[5px] ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`}
           />
         </button>
       </div>
@@ -74,7 +77,7 @@ export function Nav() {
       {menuOpen && (
         <div className="sm:hidden bg-parchment border-t border-cream-warm animate-fade-in">
           <div className="px-6 py-4 flex flex-col gap-1">
-            <MobileNavLink href="/" onClick={() => setMenuOpen(false)}>
+            <MobileNavLink href="/utforska" onClick={() => setMenuOpen(false)}>
               Utforska
             </MobileNavLink>
             <MobileNavLink href="/search" onClick={() => setMenuOpen(false)}>
@@ -82,6 +85,9 @@ export function Nav() {
             </MobileNavLink>
             <MobileNavLink href="/map" onClick={() => setMenuOpen(false)}>
               Karta
+            </MobileNavLink>
+            <MobileNavLink href="/rundor" onClick={() => setMenuOpen(false)}>
+              Rundor
             </MobileNavLink>
 
             <div className="h-px bg-cream-warm my-2" />

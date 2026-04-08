@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ['@fyndstigen/shared'],
+  allowedDevOrigins: ['192.168.50.245'],
   async rewrites() {
     return [
       {
@@ -10,5 +13,7 @@ const nextConfig: NextConfig = {
     ]
   },
 };
+
+initOpenNextCloudflareForDev();
 
 export default nextConfig;
