@@ -108,6 +108,17 @@ export default function FleaMarketDetailsPage() {
           >
             {market.is_permanent ? 'Permanent' : 'Tillfällig'}
           </span>
+          {user?.id === market.organizer_id && (
+            <Link
+              href={`/fleamarkets/${id}/edit`}
+              className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-rust hover:text-rust-light transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M10.5 1.5L12.5 3.5L4.5 11.5L1.5 12.5L2.5 9.5L10.5 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Redigera
+            </Link>
+          )}
         </div>
 
         {market.description && (
