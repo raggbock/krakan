@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { useCreateMarket } from '@/hooks/use-create-market'
 
 type TableDraft = {
   label: string
@@ -19,8 +19,7 @@ export default function CreateMarketPage() {
   const { user, loading: authLoading } = useAuth()
 
   const [step, setStep] = useState<1 | 2>(1)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
 
   // Step 1: Market info
   const [name, setName] = useState('')
@@ -105,86 +104,19 @@ export default function CreateMarketPage() {
 
   async function handleSubmit() {
     if (!user || !name.trim() || !street.trim() || !city.trim()) return
-    setSaving(true)
-    setError('')
-
-    try {
-      // Geocode the address via Nominatim (OpenStreetMap)
-      let latitude = 59.33
-      let longitude = 18.07
-      try {
-        const q = encodeURIComponent(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 5000)
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
-          headers: { 'User-Agent': 'Fyndstigen/0.1' },
-          signal: controller.signal,
-        })
-        clearTimeout(timeout)
-        const results = await res.json()
-        if (results.length > 0) {
-          latitude = parseFloat(results[0].lat)
-          longitude = parseFloat(results[0].lon)
-        }
-      } catch {
-        // Fallback to Stockholm coordinates if geocoding fails
-      }
-
-      const { id } = await api.fleaMarkets.create({
-        name: name.trim(),
-        description: description.trim(),
-        address: {
-          street: street.trim(),
-          zipCode: zipCode.trim(),
-          city: city.trim(),
-          country: 'Sweden',
-          location: { latitude, longitude },
-        },
-        isPermanent,
-        organizerId: user.id,
-        openingHours: [],
-      })
-
-      // Create tables and upload images — only publish if everything succeeds
-      let allSucceeded = true
-
-      for (let i = 0; i < tables.length; i++) {
-        try {
-          await api.marketTables.create({
-            fleaMarketId: id,
-            label: tables[i].label,
-            description: tables[i].description || undefined,
-            priceSek: tables[i].priceSek,
-            sizeDescription: tables[i].sizeDescription || undefined,
-          })
-        } catch {
-          allSucceeded = false
-          setError(`Kunde inte skapa bord "${tables[i].label}". Loppisen sparades som utkast.`)
-          break
-        }
-      }
-
-      if (allSucceeded) {
-        for (const file of images) {
-          try {
-            await api.images.upload(id, file)
-          } catch {
-            allSucceeded = false
-            setError('Kunde inte ladda upp alla bilder. Loppisen sparades som utkast.')
-            break
-          }
-        }
-      }
-
-      if (allSucceeded) {
-        await api.fleaMarkets.publish(id)
-      }
-
-      router.push(`/fleamarkets/${id}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Något gick fel')
-    } finally {
-      setSaving(false)
+    const result = await createMarket({
+      name: name.trim(),
+      description: description.trim(),
+      street: street.trim(),
+      zipCode: zipCode.trim(),
+      city: city.trim(),
+      isPermanent,
+      organizerId: user.id,
+      tables,
+      images,
+    })
+    if (result) {
+      router.push(`/fleamarkets/${result.id}`)
     }
   }
 
@@ -549,7 +481,14 @@ export default function CreateMarketPage() {
               disabled={saving}
               className="flex-1 h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
             >
-              {saving ? 'Skapar...' : 'Publicera loppis'}
+              {saving
+                ? progress === 'geocoding' ? 'Söker adress...'
+                : progress === 'creating' ? 'Skapar loppis...'
+                : progress === 'tables' ? 'Skapar bord...'
+                : progress === 'images' ? 'Laddar upp bilder...'
+                : progress === 'publishing' ? 'Publicerar...'
+                : 'Skapar...'
+                : 'Publicera loppis'}
             </button>
           </div>
         </div>

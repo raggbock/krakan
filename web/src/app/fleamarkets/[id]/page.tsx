@@ -22,7 +22,7 @@ export default function FleaMarketDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { market, tables, loading } = useMarketDetails(id)
-  const booking = useBooking()
+  const booking = useBooking(id, user?.id)
 
   if (loading) {
     return (
@@ -269,7 +269,7 @@ export default function FleaMarketDetailsPage() {
                 </p>
 
                 {/* Booking success message */}
-                {booking.status === 'done' && (
+                {booking.isDone && (
                   <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-4">
                     Bokningsförfrågan skickad! Arrangören återkommer.
                   </div>
@@ -319,12 +319,11 @@ export default function FleaMarketDetailsPage() {
                                 onChange={(e) => booking.setDate(e.target.value)}
                                 className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
                               />
-                              {booking.date &&
-                                booking.bookedDates.includes(booking.date) && (
-                                  <p className="text-xs text-error mt-1">
-                                    Redan bokat detta datum.
-                                  </p>
-                                )}
+                              {booking.date && booking.dateValidation.error && (
+                                <p className="text-xs text-error mt-1">
+                                  {booking.dateValidation.error}
+                                </p>
+                              )}
                             </div>
                             <div>
                               <label className="text-xs font-semibold text-espresso/60 block mb-1">
@@ -342,19 +341,15 @@ export default function FleaMarketDetailsPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <p className="text-xs text-espresso/40">
-                                {table.price_sek} kr + 12% serviceavgift
+                                {booking.totalPrice} kr (inkl {booking.commission} kr avgift)
                               </p>
                               {user ? (
                                 <button
-                                  onClick={() => booking.submit(id, user!.id)}
-                                  disabled={
-                                    booking.status === 'saving' ||
-                                    !booking.date ||
-                                    booking.bookedDates.includes(booking.date)
-                                  }
+                                  onClick={booking.submit}
+                                  disabled={!booking.canSubmit}
                                   className="bg-rust text-parchment px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
                                 >
-                                  {booking.status === 'saving'
+                                  {booking.isSubmitting
                                     ? 'Skickar...'
                                     : 'Skicka förfrågan'}
                                 </button>
@@ -367,9 +362,9 @@ export default function FleaMarketDetailsPage() {
                                 </Link>
                               )}
                             </div>
-                            {booking.status === 'error' && (
+                            {booking.submitError && (
                               <p className="text-xs text-error">
-                                Något gick fel. Försök igen.
+                                {booking.submitError}
                               </p>
                             )}
                           </div>
