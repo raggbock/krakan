@@ -53,15 +53,6 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" > .env.local
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
 
-      - name: Verify env
-        working-directory: web
-        run: |
-          echo "File size: $(wc -c < .env.local)"
-          echo "URL var length: ${#NEXT_PUBLIC_SUPABASE_URL}"
-          echo "URL starts with: ${NEXT_PUBLIC_SUPABASE_URL:0:8}"
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-
       - name: Build
         working-directory: web
         run: npx next build
