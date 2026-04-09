@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '@/lib/api'
+import { api, geo } from '@/lib/api'
 import type { FleaMarketDetails, FleaMarketImage, MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
@@ -213,25 +213,8 @@ export default function EditMarketPage() {
 
     try {
       // Geocode
-      let latitude = 59.33
-      let longitude = 18.07
-      try {
-        const q = encodeURIComponent(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 5000)
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
-          { headers: { 'User-Agent': 'Fyndstigen/0.1' }, signal: controller.signal },
-        )
-        clearTimeout(timeout)
-        const results = await res.json()
-        if (results.length > 0) {
-          latitude = parseFloat(results[0].lat)
-          longitude = parseFloat(results[0].lon)
-        }
-      } catch {
-        // Fallback coords
-      }
+      const coords = await geo.geocode(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
+      const { lat: latitude, lng: longitude } = coords
 
       // Update market
       await api.fleaMarkets.update(id, {

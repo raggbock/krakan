@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { api, FleaMarketNearBy } from '@/lib/api'
+import { geo } from '@/lib/api'
+import type { FleaMarketNearBy } from '@/lib/api'
 import { FyndstigenLogo } from './fyndstigen-logo'
 
 // Custom marker using a warm rust-colored SVG
@@ -49,8 +50,7 @@ export default function MapView() {
     )
 
     function loadMarkets(lat: number, lng: number) {
-      api.fleaMarkets
-        .nearBy({ latitude: lat, longitude: lng, radiusKm: 60 })
+      geo.nearbyMarkets({ lat, lng }, 60)
         .then((data) => setMarkets(data ?? []))
         .catch(() => setError('Kunde inte ladda loppisar'))
         .finally(() => setLoading(false))

@@ -14,6 +14,10 @@ export {
   generateBatchLabels,
 } from './booking'
 
+// Geo
+export { createGeo } from './geo'
+export type { LatLng, GeoService, GeoOptions } from './geo'
+
 // Utilities
 export { checkOpeningHours } from './opening-hours'
 export type { OpeningHoursEntry } from './opening-hours'

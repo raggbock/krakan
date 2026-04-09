@@ -13,9 +13,10 @@ import {
 } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { api, FleaMarketNearBy } from '@/lib/api'
+import { api, geo } from '@/lib/api'
+import type { FleaMarketNearBy } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
-import { optimizeRoute, type Stop, checkOpeningHours, type OpeningHoursEntry } from '@fyndstigen/shared'
+import { checkOpeningHours, type OpeningHoursEntry, type Stop } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 
 // Marker icons
@@ -71,8 +72,7 @@ export default function RouteBuilder() {
 
   // Load markets
   useEffect(() => {
-    api.fleaMarkets
-      .nearBy({ latitude: 59.27, longitude: 15.21, radiusKm: 60 })
+    geo.nearbyMarkets({ lat: 59.27, lng: 15.21 }, 60)
       .then((data) => setMarkets(data ?? []))
       .catch(() => setMarkets([]))
       .finally(() => setLoading(false))
@@ -122,7 +122,7 @@ export default function RouteBuilder() {
         : userPos
           ? userPos
           : undefined
-    const optimized = optimizeRoute(asStops, startPoint)
+    const optimized = geo.optimizeStops(asStops, startPoint)
     setStops(
       optimized.map((opt, i) => ({
         market: stops.find((s) => s.market.id === opt.id)!.market,

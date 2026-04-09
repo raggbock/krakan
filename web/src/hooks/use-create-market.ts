@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { api } from '@/lib/api'
+import { api, geo } from '@/lib/api'
 
 type TableDraft = {
   label: string
@@ -36,27 +36,10 @@ export function useCreateMarket() {
 
     try {
       // Geocode address
-      let latitude = 59.33
-      let longitude = 18.07
-      try {
-        const q = encodeURIComponent(
-          `${input.street.trim()}, ${input.zipCode.trim()} ${input.city.trim()}, Sweden`,
-        )
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 5000)
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
-          { headers: { 'User-Agent': 'Fyndstigen/0.1' }, signal: controller.signal },
-        )
-        clearTimeout(timeout)
-        const results = await res.json()
-        if (results.length > 0) {
-          latitude = parseFloat(results[0].lat)
-          longitude = parseFloat(results[0].lon)
-        }
-      } catch {
-        // Fallback to Stockholm coordinates
-      }
+      const coords = await geo.geocode(
+        `${input.street.trim()}, ${input.zipCode.trim()} ${input.city.trim()}, Sweden`,
+      )
+      const { lat: latitude, lng: longitude } = coords
 
       // Create market
       setProgress('creating')
