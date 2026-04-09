@@ -13,7 +13,7 @@ export default function SearchPage() {
       {/* Header */}
       <div className="animate-fade-up">
         <h1 className="font-display text-3xl font-bold">Sök loppisar</h1>
-        <p className="text-espresso/50 mt-2">
+        <p className="text-espresso/65 mt-2">
           Hitta loppisar efter namn eller plats.
         </p>
       </div>
@@ -84,7 +84,7 @@ export default function SearchPage() {
                       <h3 className="font-display font-bold group-hover:text-rust transition-colors duration-200">
                         {market.name}
                       </h3>
-                      <p className="text-sm text-espresso/50 mt-0.5">
+                      <p className="text-sm text-espresso/65 mt-0.5">
                         {market.city}
                       </p>
                     </div>

@@ -133,7 +133,7 @@ export default function CreateMarketPage() {
       <div className="max-w-md mx-auto px-6 py-20 text-center">
         <FyndstigenLogo size={48} className="text-espresso/15 mx-auto mb-4" />
         <h1 className="font-display text-xl font-bold">Logga in först</h1>
-        <p className="text-sm text-espresso/50 mt-2">
+        <p className="text-sm text-espresso/65 mt-2">
           Du behöver ett konto för att skapa en loppis.
         </p>
         <Link
@@ -159,7 +159,7 @@ export default function CreateMarketPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold">Skapa ny loppis</h1>
-      <p className="text-sm text-espresso/50 mt-1 mb-8">
+      <p className="text-sm text-espresso/65 mt-1 mb-8">
         Steg {step} av 2 &mdash;{' '}
         {step === 1 ? 'Information' : 'Lägg till bord'}
       </p>

@@ -27,7 +27,7 @@ export function BookableTablesCard({
         </div>
         <div className="flex-1">
           <h2 className="font-display font-bold text-lg mb-1">Boka bord</h2>
-          <p className="text-sm text-espresso/50 mb-4">
+          <p className="text-sm text-espresso/65 mb-4">
             Hyr en plats och sälj dina prylar här.
           </p>
 

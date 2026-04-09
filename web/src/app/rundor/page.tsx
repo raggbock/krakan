@@ -22,7 +22,7 @@ export default function RoutesDiscoveryPage() {
       <div className="flex items-end justify-between mb-8 animate-fade-up">
         <div>
           <h1 className="font-display text-3xl font-bold">Loppisrundor</h1>
-          <p className="text-espresso/50 mt-1">
+          <p className="text-espresso/65 mt-1">
             Upptäck populära rundor nära dig.
           </p>
         </div>

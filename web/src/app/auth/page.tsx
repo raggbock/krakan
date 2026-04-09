@@ -48,7 +48,7 @@ export default function AuthPage() {
         <h1 className="font-display text-2xl font-bold text-center">
           {mode === 'signin' ? 'Välkommen tillbaka' : 'Skapa konto'}
         </h1>
-        <p className="text-sm text-espresso/50 text-center mt-2 max-w-xs mx-auto">
+        <p className="text-sm text-espresso/65 text-center mt-2 max-w-xs mx-auto">
           {mode === 'signin'
             ? 'Logga in för att hantera dina loppisar och fynd.'
             : 'Börja publicera dina loppisar och nå fler besökare.'}

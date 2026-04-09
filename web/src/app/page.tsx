@@ -61,7 +61,7 @@ export default function LandingPage() {
             <span className="text-rust hand-underline">fynd</span>
           </h1>
 
-          <p className="text-espresso/55 mt-8 max-w-xl mx-auto text-lg sm:text-xl leading-relaxed animate-fade-up delay-3">
+          <p className="text-espresso/70 mt-8 max-w-xl mx-auto text-lg sm:text-xl leading-relaxed animate-fade-up delay-3">
             Fyndstigen samlar loppisar, loppmarknader och second hand-butiker
             &mdash; sök, boka bord, planera din runda och hitta skatter i ditt
             närområde.
@@ -110,7 +110,7 @@ export default function LandingPage() {
           <h2 className="font-display text-3xl sm:text-4xl font-bold">
             Tre steg till ditt nästa fynd
           </h2>
-          <p className="text-espresso/50 mt-3 max-w-md mx-auto">
+          <p className="text-espresso/65 mt-3 max-w-md mx-auto">
             Från soffa till loppisfynd &mdash; snabbt och enkelt.
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function LandingPage() {
                 <span className="stamp text-rust text-[10px]">Steg 1</span>
                 <h3 className="font-display text-xl font-bold">Hitta loppisar</h3>
               </div>
-              <p className="text-espresso/55 leading-relaxed">
+              <p className="text-espresso/70 leading-relaxed">
                 Sök bland hundratals loppisar efter namn, stad eller på kartan.
                 Filtrera permanenta butiker och tillfälliga marknader &mdash; se
                 öppettider, adress och vad som finns.
@@ -158,7 +158,7 @@ export default function LandingPage() {
                 <span className="stamp text-mustard text-[10px]">Steg 2</span>
                 <h3 className="font-display text-xl font-bold">Boka ditt bord</h3>
               </div>
-              <p className="text-espresso/55 leading-relaxed">
+              <p className="text-espresso/70 leading-relaxed">
                 Vill du sälja? Välj storlek och datum, skicka en förfrågan direkt
                 till arrangören. Du får svar och bekräftelse &mdash; inga samtal,
                 inga missförstånd.
@@ -181,7 +181,7 @@ export default function LandingPage() {
                 <span className="stamp text-forest text-[10px]">Steg 3</span>
                 <h3 className="font-display text-xl font-bold">Planera din runda</h3>
               </div>
-              <p className="text-espresso/55 leading-relaxed">
+              <p className="text-espresso/70 leading-relaxed">
                 Skapa en loppisrunda med flera stopp &mdash; Fyndstigen
                 optimerar rutten åt dig. Se körtider, avstånd och vilka loppisar
                 som är öppna just den dagen.
@@ -238,7 +238,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <h3 className="font-display text-2xl font-bold">Letar du fynd?</h3>
-            <p className="text-espresso/55 mt-3 leading-relaxed">
+            <p className="text-espresso/70 mt-3 leading-relaxed">
               Utforska loppisar i ditt område, spara favoriter, boka bord och
               planera din nästa loppisrunda med vägbeskrivning.
             </p>
@@ -262,7 +262,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <h3 className="font-display text-2xl font-bold">Arrangerar du loppis?</h3>
-            <p className="text-espresso/55 mt-3 leading-relaxed">
+            <p className="text-espresso/70 mt-3 leading-relaxed">
               Nå tusentals besökare, hantera bokningar digitalt och få statistik
               över intäkter. Publicera din loppis på fem minuter.
             </p>
@@ -296,7 +296,7 @@ export default function LandingPage() {
             <br />
             <span className="text-rust">vart leder din?</span>
           </h2>
-          <p className="text-espresso/50 mt-5 text-lg max-w-md mx-auto">
+          <p className="text-espresso/65 mt-5 text-lg max-w-md mx-auto">
             Gå med tusentals loppis-älskare som redan hittat sin stig till
             nästa fynd.
           </p>
@@ -347,7 +347,7 @@ function StatCard({
       <span className={`font-display text-3xl sm:text-4xl font-bold ${textMap[color]}`}>
         {number}
       </span>
-      <p className="text-sm text-espresso/50 mt-1 font-medium">{label}</p>
+      <p className="text-sm text-espresso/65 mt-1 font-medium">{label}</p>
     </div>
   )
 }

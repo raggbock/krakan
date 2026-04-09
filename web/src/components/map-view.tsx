@@ -95,7 +95,7 @@ export default function MapView() {
                 <p className="font-display font-bold text-sm text-espresso">
                   {market.name}
                 </p>
-                <p className="text-xs text-espresso/50 mt-1">{market.city}</p>
+                <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
                 {market.description && (
                   <p className="text-xs text-espresso/40 mt-1 line-clamp-2">
                     {market.description}

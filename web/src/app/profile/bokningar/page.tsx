@@ -86,7 +86,7 @@ export default function BookingsPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold mb-2">Bokningar</h1>
-      <p className="text-sm text-espresso/50 mb-8">
+      <p className="text-sm text-espresso/65 mb-8">
         Hantera bokningsförfrågningar för dina loppisar.
       </p>
 

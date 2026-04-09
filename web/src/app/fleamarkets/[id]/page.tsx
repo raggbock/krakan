@@ -32,7 +32,7 @@ export default function FleaMarketDetailsPage() {
         <h1 className="font-display text-2xl font-bold">
           Loppisen hittades inte
         </h1>
-        <p className="text-espresso/50 mt-2">
+        <p className="text-espresso/65 mt-2">
           Den kanske har tagits bort eller flyttat.
         </p>
         <Link

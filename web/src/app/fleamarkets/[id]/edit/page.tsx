@@ -288,7 +288,7 @@ export default function EditMarketPage() {
       <div className="max-w-md mx-auto px-6 py-20 text-center">
         <FyndstigenLogo size={48} className="text-espresso/15 mx-auto mb-4" />
         <h1 className="font-display text-xl font-bold">Logga in först</h1>
-        <p className="text-sm text-espresso/50 mt-2">
+        <p className="text-sm text-espresso/65 mt-2">
           Du behöver vara inloggad för att redigera en loppis.
         </p>
         <Link
@@ -317,7 +317,7 @@ export default function EditMarketPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold">Redigera loppis</h1>
-      <p className="text-sm text-espresso/50 mt-1 mb-8">
+      <p className="text-sm text-espresso/65 mt-1 mb-8">
         Uppdatera information, bilder, öppettider och bord.
       </p>
 

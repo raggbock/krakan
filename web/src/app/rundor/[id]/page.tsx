@@ -162,7 +162,7 @@ export default function RouteViewerPage() {
                     <h3 className="font-display font-bold group-hover:text-rust transition-colors">
                       {fm.name}
                     </h3>
-                    <p className="text-sm text-espresso/50 mt-0.5">
+                    <p className="text-sm text-espresso/65 mt-0.5">
                       {fm.street}, {fm.city}
                     </p>
                   </div>

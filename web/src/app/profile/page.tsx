@@ -47,7 +47,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold">Min profil</h1>
-              <p className="text-sm text-espresso/50 mt-0.5">{user?.email}</p>
+              <p className="text-sm text-espresso/65 mt-0.5">{user?.email}</p>
             </div>
           </div>
           <Link
@@ -85,7 +85,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina loppisar</h2>
-            <p className="text-sm text-espresso/50 mt-0.5">
+            <p className="text-sm text-espresso/65 mt-0.5">
               Hantera dina loppmarknader.
             </p>
           </div>
@@ -150,7 +150,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina rundor</h2>
-            <p className="text-sm text-espresso/50 mt-0.5">
+            <p className="text-sm text-espresso/65 mt-0.5">
               Dina sparade loppisrundor.
             </p>
           </div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
         <h2 className="font-display text-lg font-bold mb-2">
           Skapa en loppis
         </h2>
-        <p className="text-sm text-espresso/50 mb-5">
+        <p className="text-sm text-espresso/65 mb-5">
           Publicera din loppis så att besökare kan hitta den.
         </p>
         <Link

@@ -117,7 +117,7 @@ export default function OrganizerProfilePage() {
                   <h3 className="font-display font-bold group-hover:text-rust transition-colors">
                     {market.name}
                   </h3>
-                  <p className="text-sm text-espresso/50 mt-0.5">
+                  <p className="text-sm text-espresso/65 mt-0.5">
                     {market.city}
                   </p>
                 </div>

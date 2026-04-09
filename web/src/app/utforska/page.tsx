@@ -135,7 +135,7 @@ export default function ExplorePage() {
                 <span className="font-display text-3xl font-bold text-mustard">
                   {markets.length}
                 </span>
-                <span className="text-xs text-espresso/50 mt-1 font-medium">
+                <span className="text-xs text-espresso/65 mt-1 font-medium">
                   loppisar
                 </span>
               </div>
@@ -174,7 +174,7 @@ export default function ExplorePage() {
           <h2 className="font-display text-xl font-bold">
             Inga loppisar ännu
           </h2>
-          <p className="text-espresso/50 mt-2 max-w-sm mx-auto">
+          <p className="text-espresso/65 mt-2 max-w-sm mx-auto">
             När arrangörer börjar publicera loppisar kommer de dyka upp här.
             Fyndstigen håller utkik!
           </p>
@@ -189,7 +189,7 @@ export default function ExplorePage() {
               <h2 className="font-display text-2xl font-bold">
                 Loppisar nära dig
               </h2>
-              <p className="text-sm text-espresso/50 mt-1">
+              <p className="text-sm text-espresso/65 mt-1">
                 Bläddra bland loppisar i ditt område.
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function ExplorePage() {
                   <h3 className="font-display font-bold text-lg group-hover:text-rust transition-colors duration-200">
                     {market.name}
                   </h3>
-                  <p className="text-sm text-espresso/50 mt-1.5 flex items-center gap-1.5">
+                  <p className="text-sm text-espresso/65 mt-1.5 flex items-center gap-1.5">
                     <svg
                       width="12"
                       height="12"
@@ -271,7 +271,7 @@ export default function ExplorePage() {
               >
                 &larr; Föregående
               </button>
-              <span className="text-sm text-espresso/50">
+              <span className="text-sm text-espresso/65">
                 Sida {page} av {totalPages}
               </span>
               <button

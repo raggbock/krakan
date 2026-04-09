@@ -201,7 +201,7 @@ export default function RouteBuilder() {
           </Link>
 
           <h1 className="font-display text-2xl font-bold">Skapa loppisrunda</h1>
-          <p className="text-sm text-espresso/50 mt-1">
+          <p className="text-sm text-espresso/65 mt-1">
             Klicka på loppisar i kartan eller sök nedan.
           </p>
 
@@ -370,7 +370,7 @@ export default function RouteBuilder() {
             </button>
           ) : (
             <div className="mt-6 vintage-card p-4 text-center">
-              <p className="text-sm text-espresso/50">
+              <p className="text-sm text-espresso/65">
                 <Link href="/auth" className="text-rust font-semibold">
                   Logga in
                 </Link>{' '}
@@ -441,7 +441,7 @@ export default function RouteBuilder() {
                     <p className="font-display font-bold text-sm">
                       {market.name}
                     </p>
-                    <p className="text-xs text-espresso/50 mt-1">
+                    <p className="text-xs text-espresso/65 mt-1">
                       {market.city}
                     </p>
                     <button

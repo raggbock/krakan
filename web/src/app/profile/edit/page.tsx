@@ -88,7 +88,7 @@ export default function EditProfilePage() {
       </button>
 
       <h1 className="font-display text-2xl font-bold mb-2">Redigera profil</h1>
-      <p className="text-sm text-espresso/50 mb-8">
+      <p className="text-sm text-espresso/65 mb-8">
         Din arrangörsprofil syns publikt på{' '}
         <span className="text-espresso/70">/arrangorer/{user?.id?.slice(0, 8)}...</span>
       </p>

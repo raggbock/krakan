@@ -81,7 +81,7 @@ export default function RootLayout({
                   <p className="font-display font-bold text-lg text-espresso">
                     Fyndstigen
                   </p>
-                  <p className="text-sm text-espresso/50 mt-1">
+                  <p className="text-sm text-espresso/65 mt-1">
                     Varje stig leder till ett fynd.
                   </p>
                 </div>
