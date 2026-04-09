@@ -1,13 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!url || !key) {
-  console.warn('Supabase env vars missing — API calls will fail at runtime')
+function initClient(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (url && key) {
+    return createClient(url, key)
+  }
+  // During SSG prerendering, env vars may not be available.
+  // Return a dummy client that will fail at runtime but not at build time.
+  return createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder')
 }
 
-export const supabase = createClient(
-  url || 'https://placeholder.supabase.co',
-  key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.placeholder',
-)
+export const supabase = initClient()

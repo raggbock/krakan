@@ -56,8 +56,11 @@ jobs:
       - name: Verify env
         working-directory: web
         run: |
-          echo "URL length: $(wc -c < .env.local)"
-          grep -c 'NEXT_PUBLIC' .env.local
+          echo "File size: $(wc -c < .env.local)"
+          echo "URL var length: ${#NEXT_PUBLIC_SUPABASE_URL}"
+          echo "URL starts with: ${NEXT_PUBLIC_SUPABASE_URL:0:8}"
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
 
       - name: Build
         working-directory: web
