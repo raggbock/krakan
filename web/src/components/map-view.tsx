@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api, FleaMarketNearBy } from '@/lib/api'
@@ -18,16 +18,43 @@ const icon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
+const DEFAULT_CENTER = { lat: 59.33, lng: 18.07 } // Stockholm fallback
+
+function FlyToLocation({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap()
+  useEffect(() => {
+    map.flyTo([lat, lng], 11, { duration: 1.2 })
+  }, [map, lat, lng])
+  return null
+}
+
 export default function MapView() {
   const [markets, setMarkets] = useState<FleaMarketNearBy[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [center, setCenter] = useState(DEFAULT_CENTER)
 
   useEffect(() => {
-    api.fleaMarkets
-      .nearBy({ latitude: 59.27, longitude: 15.21, radiusKm: 60 })
-      .then((data) => setMarkets(data ?? []))
-      .catch(() => setMarkets([]))
-      .finally(() => setLoading(false))
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        setCenter(loc)
+        loadMarkets(loc.lat, loc.lng)
+      },
+      () => {
+        // Geolocation denied or unavailable — use default
+        loadMarkets(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng)
+      },
+      { timeout: 5000 },
+    )
+
+    function loadMarkets(lat: number, lng: number) {
+      api.fleaMarkets
+        .nearBy({ latitude: lat, longitude: lng, radiusKm: 60 })
+        .then((data) => setMarkets(data ?? []))
+        .catch(() => setError('Kunde inte ladda loppisar'))
+        .finally(() => setLoading(false))
+    }
   }, [])
 
   return (
@@ -37,7 +64,7 @@ export default function MapView() {
         <div>
           <h1 className="font-display font-bold">Karta</h1>
           <p className="text-xs text-espresso/40">
-            {markets.length} loppisar i närheten
+            {error ? error : `${markets.length} loppisar i närheten`}
           </p>
         </div>
         {loading && (
@@ -47,11 +74,12 @@ export default function MapView() {
 
       {/* Map */}
       <MapContainer
-        center={[59.27, 15.21]}
+        center={[DEFAULT_CENTER.lat, DEFAULT_CENTER.lng]}
         zoom={11}
         className="flex-1 w-full"
         style={{ minHeight: '300px' }}
       >
+        <FlyToLocation lat={center.lat} lng={center.lng} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

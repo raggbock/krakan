@@ -13,9 +13,10 @@ const markerSvg = (num: number) =>
 type Props = {
   stops: RouteStop[]
   onRoutingResult?: (result: RoutingResult | null) => void
+  onRoutingError?: (failed: boolean) => void
 }
 
-export default function RouteMap({ stops, onRoutingResult }: Props) {
+export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Props) {
   const [roadGeometry, setRoadGeometry] = useState<[number, number][] | null>(
     null,
   )
@@ -44,11 +45,13 @@ export default function RouteMap({ stops, onRoutingResult }: Props) {
     }
 
     const coords = positions.map(([lat, lng]) => ({ lat, lng }))
+    onRoutingError?.(false)
     fetchDrivingRoute(coords).then((result) => {
       if (result) {
         setRoadGeometry(result.geometry)
       } else {
         setRoadGeometry(null)
+        onRoutingError?.(true)
       }
       onRoutingResult?.(result)
     })

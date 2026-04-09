@@ -48,7 +48,7 @@ export default function CreateMarketPage() {
   }
 
   function removeImage(idx: number) {
-    URL.revokeObjectURL(imagePreviews[idx])
+    imagePreviews.forEach(URL.revokeObjectURL)
     const next = images.filter((_, i) => i !== idx)
     setImages(next)
     setImagePreviews(next.map((f) => URL.createObjectURL(f)))
@@ -114,9 +114,13 @@ export default function CreateMarketPage() {
       let longitude = 18.07
       try {
         const q = encodeURIComponent(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
         const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
           headers: { 'User-Agent': 'Fyndstigen/0.1' },
+          signal: controller.signal,
         })
+        clearTimeout(timeout)
         const results = await res.json()
         if (results.length > 0) {
           latitude = parseFloat(results[0].lat)
@@ -141,24 +145,40 @@ export default function CreateMarketPage() {
         openingHours: [],
       })
 
-      // Create tables
+      // Create tables and upload images — only publish if everything succeeds
+      let allSucceeded = true
+
       for (let i = 0; i < tables.length; i++) {
-        await api.marketTables.create({
-          fleaMarketId: id,
-          label: tables[i].label,
-          description: tables[i].description || undefined,
-          priceSek: tables[i].priceSek,
-          sizeDescription: tables[i].sizeDescription || undefined,
-        })
+        try {
+          await api.marketTables.create({
+            fleaMarketId: id,
+            label: tables[i].label,
+            description: tables[i].description || undefined,
+            priceSek: tables[i].priceSek,
+            sizeDescription: tables[i].sizeDescription || undefined,
+          })
+        } catch {
+          allSucceeded = false
+          setError(`Kunde inte skapa bord "${tables[i].label}". Loppisen sparades som utkast.`)
+          break
+        }
       }
 
-      // Upload images
-      for (const file of images) {
-        await api.images.upload(id, file)
+      if (allSucceeded) {
+        for (const file of images) {
+          try {
+            await api.images.upload(id, file)
+          } catch {
+            allSucceeded = false
+            setError('Kunde inte ladda upp alla bilder. Loppisen sparades som utkast.')
+            break
+          }
+        }
       }
 
-      // Publish immediately
-      await api.fleaMarkets.publish(id)
+      if (allSucceeded) {
+        await api.fleaMarkets.publish(id)
+      }
 
       router.push(`/fleamarkets/${id}`)
     } catch (err) {

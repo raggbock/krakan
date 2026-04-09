@@ -1,14 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarkets } from '@/hooks/use-markets'
 
 export default function ExplorePage() {
-  const { markets, loading } = useMarkets({ page: 1, pageSize: 20 })
+  const [page, setPage] = useState(1)
+  const pageSize = 20
+  const { markets, count, loading, error } = useMarkets({ page, pageSize })
 
-  const isEmpty = !loading && !markets.length
+  const isEmpty = !loading && !error && !markets.length
+  const totalPages = Math.ceil(count / pageSize)
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -147,6 +151,19 @@ export default function ExplorePage() {
         </div>
       )}
 
+      {/* ── Error state ── */}
+      {error && !loading && (
+        <section className="vintage-card p-10 text-center animate-fade-up">
+          <p className="text-error font-medium">{error}</p>
+          <button
+            onClick={() => setPage(page)}
+            className="mt-4 text-sm text-rust font-semibold hover:text-rust-light transition-colors"
+          >
+            Försök igen
+          </button>
+        </section>
+      )}
+
       {/* ── Empty state ── */}
       {isEmpty && (
         <section className="vintage-card p-10 text-center animate-fade-up">
@@ -243,6 +260,29 @@ export default function ExplorePage() {
               </Link>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-10">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                &larr; Föregående
+              </button>
+              <span className="text-sm text-espresso/50">
+                Sida {page} av {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Nästa &rarr;
+              </button>
+            </div>
+          )}
         </section>
       )}
 

@@ -122,6 +122,10 @@ export default function EditMarketPage() {
   // --- Opening hours ---
   function addOpeningHour() {
     if (!ohOpen || !ohClose) return
+    if (ohOpen >= ohClose) {
+      setError('Stängningstid måste vara senare än öppningstid')
+      return
+    }
     const draft: OpeningHourDraft = {
       dayOfWeek: ohDay !== '' ? parseInt(ohDay, 10) : null,
       date: ohDate || null,
@@ -213,10 +217,13 @@ export default function EditMarketPage() {
       let longitude = 18.07
       try {
         const q = encodeURIComponent(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
-          { headers: { 'User-Agent': 'Fyndstigen/0.1' } },
+          { headers: { 'User-Agent': 'Fyndstigen/0.1' }, signal: controller.signal },
         )
+        clearTimeout(timeout)
         const results = await res.json()
         if (results.length > 0) {
           latitude = parseFloat(results[0].lat)

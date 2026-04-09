@@ -14,6 +14,7 @@ export default function RouteViewerPage() {
   const { id } = useParams<{ id: string }>()
   const { route, loading } = useRoute(id)
   const [routing, setRouting] = useState<RoutingResult | null>(null)
+  const [routingFailed, setRoutingFailed] = useState(false)
 
   if (loading) {
     return (
@@ -40,7 +41,6 @@ export default function RouteViewerPage() {
     )
   }
 
-  const totalStops = route.stops.length
   const validStops = route.stops.filter((s) => s.fleaMarket)
 
   return (
@@ -66,7 +66,7 @@ export default function RouteViewerPage() {
       <div className="animate-fade-up">
         <div className="flex flex-wrap items-center gap-3 mb-2">
           <h1 className="font-display text-3xl font-bold">{route.name}</h1>
-          <span className="stamp text-rust">{totalStops} stopp</span>
+          <span className="stamp text-rust">{validStops.length} stopp</span>
         </div>
         {route.description && (
           <p className="text-espresso/60 mt-2">{route.description}</p>
@@ -105,30 +105,35 @@ export default function RouteViewerPage() {
         </div>
       )}
 
+      {routingFailed && !routing && (
+        <p className="text-xs text-espresso/40 mt-4">
+          Kunde inte beräkna vägbeskrivning. Raka linjer visas istället.
+        </p>
+      )}
+
       {/* Map */}
       <div className="mt-6 rounded-2xl overflow-hidden border border-cream-warm h-[400px] animate-fade-up delay-1">
-        <RouteMap stops={validStops} onRoutingResult={setRouting} />
+        <RouteMap stops={validStops} onRoutingResult={setRouting} onRoutingError={setRoutingFailed} />
       </div>
 
       {/* Stops list */}
       <div className="mt-8 animate-fade-up delay-2">
         <h2 className="font-display text-xl font-bold mb-4">Stopp</h2>
         <div className="space-y-0">
-          {route.stops.map((stop, i) => {
-            if (!stop.fleaMarket) return null
-            const fm = stop.fleaMarket
+          {validStops.map((stop, vi) => {
+            const fm = stop.fleaMarket!
             const oh = route.planned_date
               ? checkOpeningHours(
                   (fm.openingHours ?? []) as OpeningHoursEntry[],
                   route.planned_date,
                 )
               : null
-            const leg = routing?.legs?.[i - 1]
+            const leg = routing?.legs?.[vi - 1]
 
             return (
               <div key={stop.id}>
                 {/* Leg connector (distance between previous stop and this one) */}
-                {i > 0 && leg && (
+                {vi > 0 && leg && (
                   <div className="flex items-center gap-3 py-2 pl-4">
                     <div className="w-8 flex justify-center">
                       <div className="w-px h-6 bg-rust/20" />
@@ -150,7 +155,7 @@ export default function RouteViewerPage() {
                   className="group flex items-center gap-4 vintage-card p-4 hover:shadow-md transition-all"
                 >
                   <div className="w-8 h-8 rounded-full bg-rust text-parchment flex items-center justify-center text-sm font-bold shrink-0">
-                    {i + 1}
+                    {vi + 1}
                   </div>
 
                   <div className="flex-1 min-w-0">

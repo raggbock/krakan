@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
@@ -31,6 +31,13 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
+      {/* Draft markets notice */}
+      {myMarkets.some((m) => !m.published_at) && (
+        <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up">
+          Du har opublicerade utkast — redigera dem för att publicera.
+        </div>
+      )}
+
       {/* Profile header */}
       <div className="vintage-card p-8 mb-6 animate-fade-up">
         <div className="flex items-center justify-between">
@@ -245,15 +252,28 @@ export default function ProfilePage() {
       </div>
 
       {/* Sign out */}
-      <button
-        onClick={async () => {
-          await signOut()
-          router.push('/')
-        }}
-        className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/60 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-3"
-      >
-        Logga ut
-      </button>
+      <SignOutButton signOut={signOut} onDone={() => router.push('/')} />
     </div>
+  )
+}
+
+function SignOutButton({ signOut, onDone }: { signOut: () => Promise<void>; onDone: () => void }) {
+  const [busy, setBusy] = useState(false)
+  return (
+    <button
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true)
+        try {
+          await signOut()
+          onDone()
+        } catch {
+          setBusy(false)
+        }
+      }}
+      className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/60 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-3 disabled:opacity-50"
+    >
+      {busy ? 'Loggar ut...' : 'Logga ut'}
+    </button>
   )
 }

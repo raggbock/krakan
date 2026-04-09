@@ -195,7 +195,7 @@ export function createApi(supabase: SupabaseClient) {
           .select('*')
           .not('published_at', 'is', null)
           .eq('is_deleted', false)
-          .ilike('name', `%${query}%`)
+          .ilike('name', `%${query.replace(/[%_\\]/g, '\\$&')}%`)
           .limit(20)
 
         if (error) throw error

@@ -8,8 +8,11 @@ export function useMarketDetails(id: string | undefined) {
   const [tables, setTables] = useState<MarketTable[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!id) return
+    setError(null)
     Promise.all([
       api.fleaMarkets.details(id),
       api.marketTables.list(id),
@@ -18,9 +21,12 @@ export function useMarketDetails(id: string | undefined) {
         setMarket(m)
         setTables(t)
       })
-      .catch(() => setMarket(null))
+      .catch(() => {
+        setMarket(null)
+        setError('Kunde inte ladda loppisen')
+      })
       .finally(() => setLoading(false))
   }, [id])
 
-  return { market, tables, loading }
+  return { market, tables, loading, error }
 }

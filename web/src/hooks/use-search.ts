@@ -7,6 +7,7 @@ export function useSearch(debounceMs = 300) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<FleaMarket[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const search = useCallback(
@@ -17,16 +18,19 @@ export function useSearch(debounceMs = 300) {
       if (!q.trim()) {
         setResults(null)
         setLoading(false)
+        setError(null)
         return
       }
 
       setLoading(true)
+      setError(null)
       timerRef.current = setTimeout(async () => {
         try {
           const data = await api.search.query(q)
           setResults(data.fleaMarkets)
         } catch {
           setResults([])
+          setError('Sökningen misslyckades')
         } finally {
           setLoading(false)
         }
@@ -35,5 +39,5 @@ export function useSearch(debounceMs = 300) {
     [debounceMs],
   )
 
-  return { query, results, loading, search }
+  return { query, results, loading, error, search }
 }

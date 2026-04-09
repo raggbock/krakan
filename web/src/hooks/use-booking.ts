@@ -27,7 +27,7 @@ export function useBooking(): BookingState {
       setBookedDates([])
       return
     }
-    api.bookings.availableDates(selectedTable.id).then(setBookedDates).catch(() => {})
+    api.bookings.availableDates(selectedTable.id).then(setBookedDates).catch(() => setBookedDates([]))
   }, [selectedTable?.id])
 
   async function submit(fleaMarketId: string, userId: string) {

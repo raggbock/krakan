@@ -43,7 +43,7 @@ export default function FleaMarketDetailsPage() {
           Den kanske har tagits bort eller flyttat.
         </p>
         <Link
-          href="/"
+          href="/utforska"
           className="inline-block mt-6 text-rust font-medium hover:text-rust-light transition-colors"
         >
           &larr; Tillbaka till utforska
@@ -56,7 +56,7 @@ export default function FleaMarketDetailsPage() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       {/* Back link */}
       <Link
-        href="/"
+        href="/utforska"
         className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors duration-200 mb-8"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -70,6 +70,16 @@ export default function FleaMarketDetailsPage() {
         </svg>
         Tillbaka
       </Link>
+
+      {/* Draft notice */}
+      {!market.published_at && user?.id === market.organizer_id && (
+        <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up">
+          Den här loppisen är ett opublicerat utkast och syns bara för dig.{' '}
+          <Link href={`/fleamarkets/${id}/edit`} className="underline font-medium">
+            Redigera och publicera
+          </Link>
+        </div>
+      )}
 
       {/* Images */}
       {market.flea_market_images?.length > 0 && (
