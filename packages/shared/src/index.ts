@@ -14,6 +14,13 @@ export {
   generateBatchLabels,
 } from './booking'
 
+// Ports
+export * from './ports'
+
+// Adapters
+export { createSupabaseAdapters, createSupabaseAuth, createSupabaseServerData } from './adapters'
+export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memory'
+
 // Geo
 export { createGeo } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'

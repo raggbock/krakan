@@ -1,8 +1,9 @@
-import { createApi, createGeo } from '@fyndstigen/shared'
+import { createApi, createGeo, createSupabaseAuth } from '@fyndstigen/shared'
 import { supabase } from './supabase'
 
 export const api = createApi(supabase)
 export const geo = createGeo(supabase)
+export const auth = createSupabaseAuth(supabase)
 
 // Re-export types for convenience
 export type {

@@ -1,35 +1,30 @@
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerData } from '@fyndstigen/shared'
 
 type Props = {
   params: Promise<{ id: string }>
   children: React.ReactNode
 }
 
-async function getRoute(id: string) {
+function getServerData() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
-  const { data } = await supabase
-    .from('routes')
-    .select('name, description, route_stops(id)')
-    .eq('id', id)
-    .single()
-  return data
+  return createSupabaseServerData(supabase)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const route = await getRoute(id)
+  const route = await getServerData().getRouteMeta(id)
   if (!route) {
     return { title: 'Rundan hittades inte' }
   }
 
-  const stopCount = (route as any).route_stops?.length ?? 0
   const description = route.description
     ? route.description.slice(0, 160)
-    : `Loppisrunda med ${stopCount} stopp. Planera din second hand-tur med Fyndstigen.`
+    : `Loppisrunda med ${route.stopCount} stopp. Planera din second hand-tur med Fyndstigen.`
 
   return {
     title: route.name,

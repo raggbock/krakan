@@ -1,27 +1,23 @@
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerData } from '@fyndstigen/shared'
 
 type Props = {
   params: Promise<{ id: string }>
   children: React.ReactNode
 }
 
-async function getMarket(id: string) {
+function getServerData() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
-  const { data } = await supabase
-    .from('flea_markets')
-    .select('name, description, city, street, zip_code, is_permanent, latitude, longitude')
-    .eq('id', id)
-    .single()
-  return data
+  return createSupabaseServerData(supabase)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const market = await getMarket(id)
+  const market = await getServerData().getMarketMeta(id)
   if (!market) {
     return { title: 'Loppis hittades inte' }
   }
@@ -45,9 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FleaMarketLayout({ params, children }: Props) {
   const { id } = await params
-  const market = await getMarket(id)
+  const market = await getServerData().getMarketMeta(id)
 
-  // JSON-LD structured data for flea market
   const jsonLd = market
     ? {
         '@context': 'https://schema.org',
