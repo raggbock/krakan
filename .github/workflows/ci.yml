@@ -53,9 +53,18 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" > .env.local
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
 
+      - name: Verify env
+        working-directory: web
+        run: |
+          echo "URL length: $(wc -c < .env.local)"
+          grep -c 'NEXT_PUBLIC' .env.local
+
       - name: Build
         working-directory: web
         run: npx next build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Run Lighthouse
         uses: treosh/lighthouse-ci-action@v12
