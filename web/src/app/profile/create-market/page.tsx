@@ -150,7 +150,7 @@ export default function CreateMarketPage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -246,7 +246,7 @@ export default function CreateMarketPage() {
               <button
                 onClick={() => setIsPermanent(true)}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'
+                  isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'
                 }`}
               >
                 Permanent
@@ -254,7 +254,7 @@ export default function CreateMarketPage() {
               <button
                 onClick={() => setIsPermanent(false)}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  !isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'
+                  !isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'
                 }`}
               >
                 Tillfällig
@@ -326,7 +326,7 @@ export default function CreateMarketPage() {
                 >
                   <div>
                     <p className="font-medium text-sm">{t.label}</p>
-                    <p className="text-xs text-espresso/40 mt-0.5">
+                    <p className="text-xs text-espresso/60 mt-0.5">
                       {t.sizeDescription}
                       {t.description && ` — ${t.description}`}
                     </p>

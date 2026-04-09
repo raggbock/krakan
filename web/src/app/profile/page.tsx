@@ -115,7 +115,7 @@ export default function ProfilePage() {
                       {market.name}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-espresso/40">
+                      <span className="text-xs text-espresso/60">
                         {market.city}
                       </span>
                       {!market.published_at && (
@@ -138,7 +138,7 @@ export default function ProfilePage() {
               size={40}
               className="text-espresso/10 mx-auto mb-3"
             />
-            <p className="text-sm text-espresso/40">
+            <p className="text-sm text-espresso/60">
               Du har inga loppisar ännu.
             </p>
           </div>
@@ -183,7 +183,7 @@ export default function ProfilePage() {
                       {route.name}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-espresso/40">
+                      <span className="text-xs text-espresso/60">
                         {route.stopCount} stopp
                       </span>
                       {!route.is_published && (
@@ -202,7 +202,7 @@ export default function ProfilePage() {
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-sm text-espresso/40">
+            <p className="text-sm text-espresso/60">
               Du har inga sparade rundor.
             </p>
             <Link

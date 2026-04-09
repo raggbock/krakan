@@ -308,7 +308,7 @@ export default function EditMarketPage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <Link
         href={`/fleamarkets/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -407,7 +407,7 @@ export default function EditMarketPage() {
                 <button
                   onClick={() => setIsPermanent(true)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'
+                    isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'
                   }`}
                 >
                   Permanent
@@ -415,7 +415,7 @@ export default function EditMarketPage() {
                 <button
                   onClick={() => setIsPermanent(false)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    !isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'
+                    !isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'
                   }`}
                 >
                   Tillfällig
@@ -526,7 +526,7 @@ export default function EditMarketPage() {
         <section className="vintage-card p-6 animate-fade-up delay-2">
           <h2 className="font-display font-bold text-lg mb-4">
             Bilder
-            <span className="text-sm font-normal text-espresso/40 ml-2">
+            <span className="text-sm font-normal text-espresso/60 ml-2">
               ({totalImageCount}/6)
             </span>
           </h2>
@@ -624,7 +624,7 @@ export default function EditMarketPage() {
                   >
                     <div>
                       <p className="font-medium text-sm">{t.label}</p>
-                      <p className="text-xs text-espresso/40 mt-0.5">
+                      <p className="text-xs text-espresso/60 mt-0.5">
                         {t.size_description}
                         {t.description && ` — ${t.description}`}
                       </p>
@@ -660,7 +660,7 @@ export default function EditMarketPage() {
           {/* New tables (not yet saved) */}
           {newTables.length > 0 && (
             <div className="space-y-2 mb-4">
-              <p className="text-xs font-semibold text-espresso/40 uppercase tracking-wide">
+              <p className="text-xs font-semibold text-espresso/60 uppercase tracking-wide">
                 Nya bord (sparas vid uppdatering)
               </p>
               {newTables.map((t, i) => (
@@ -670,7 +670,7 @@ export default function EditMarketPage() {
                 >
                   <div>
                     <p className="font-medium text-sm">{t.label}</p>
-                    <p className="text-xs text-espresso/40 mt-0.5">
+                    <p className="text-xs text-espresso/60 mt-0.5">
                       {t.sizeDescription}
                       {t.description && ` — ${t.description}`}
                     </p>

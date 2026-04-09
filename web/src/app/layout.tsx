@@ -85,7 +85,7 @@ export default function RootLayout({
                     Varje stig leder till ett fynd.
                   </p>
                 </div>
-                <div className="flex items-center gap-6 text-sm text-espresso/40">
+                <div className="flex items-center gap-6 text-sm text-espresso/60">
                   <span>&copy; {new Date().getFullYear()} Fyndstigen</span>
                 </div>
               </div>

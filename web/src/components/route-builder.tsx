@@ -186,7 +186,7 @@ export default function RouteBuilder() {
           {/* Header */}
           <Link
             href="/map"
-            className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-4"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path
@@ -240,13 +240,13 @@ export default function RouteBuilder() {
             <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
               <button
                 onClick={() => setUseGps(true)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
               >
                 Min position (GPS)
               </button>
               <button
                 onClick={() => setUseGps(false)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/40'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
               >
                 Välj på kartan
               </button>
@@ -308,7 +308,7 @@ export default function RouteBuilder() {
                         <p className="font-medium text-sm truncate">
                           {stop.market.name}
                         </p>
-                        <p className="text-xs text-espresso/40 truncate">
+                        <p className="text-xs text-espresso/60 truncate">
                           {stop.market.city}
                         </p>
                       </div>

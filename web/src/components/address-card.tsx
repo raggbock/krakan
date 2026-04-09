@@ -29,7 +29,7 @@ export function AddressCard({
             {street}, {zipCode} {city}
           </p>
           {country && (
-            <p className="text-espresso/40 text-sm mt-0.5">{country}</p>
+            <p className="text-espresso/60 text-sm mt-0.5">{country}</p>
           )}
         </div>
       </div>

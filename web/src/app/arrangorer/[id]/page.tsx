@@ -80,7 +80,7 @@ export default function OrganizerProfilePage() {
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-espresso/40">
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-espresso/60">
               {organizer.website && (
                 <a
                   href={organizer.website}

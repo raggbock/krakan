@@ -4,7 +4,7 @@ export function BackLink({ href, label = 'Tillbaka' }: { href: string; label?: s
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors duration-200 mb-8"
+      className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors duration-200 mb-8"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path

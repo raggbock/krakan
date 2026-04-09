@@ -79,7 +79,7 @@ export default function EditProfilePage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/40 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -99,7 +99,7 @@ export default function EditProfilePage() {
           <span className="text-sm font-semibold">
             {isPremium ? 'Premium-arrangör' : 'Gratis-arrangör'}
           </span>
-          <p className="text-xs text-espresso/40 mt-0.5">
+          <p className="text-xs text-espresso/60 mt-0.5">
             {isPremium
               ? 'Du har tillgång till statistik, bilder och utvalda-badgen.'
               : 'Uppgradera för statistik, bilder på loppisar och utvald-badge.'}

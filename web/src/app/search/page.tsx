@@ -61,7 +61,7 @@ export default function SearchPage() {
         <div className="mt-8 animate-fade-up">
           {results.length > 0 ? (
             <>
-              <p className="text-sm text-espresso/40 mb-4">
+              <p className="text-sm text-espresso/60 mb-4">
                 {results.length} resultat
               </p>
               <div className="space-y-3">
@@ -114,7 +114,7 @@ export default function SearchPage() {
                 size={48}
                 className="text-espresso/15 mx-auto mb-3"
               />
-              <p className="text-espresso/40 font-medium">
+              <p className="text-espresso/60 font-medium">
                 Inga loppisar hittades
               </p>
               <p className="text-sm text-espresso/30 mt-1">

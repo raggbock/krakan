@@ -56,7 +56,7 @@ export default function RoutesDiscoveryPage() {
           <h2 className="font-display text-lg font-bold">
             Inga rundor publicerade ännu
           </h2>
-          <p className="text-sm text-espresso/40 mt-2 max-w-sm mx-auto">
+          <p className="text-sm text-espresso/60 mt-2 max-w-sm mx-auto">
             Bli först med att skapa och dela en loppisrunda!
           </p>
           <Link
@@ -110,7 +110,7 @@ export default function RoutesDiscoveryPage() {
                   <h3 className="font-display font-bold group-hover:text-rust transition-colors">
                     {route.name}
                   </h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-espresso/40">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-espresso/60">
                     <span>{route.stop_count} stopp</span>
                     <span>Av {creatorName}</span>
                     {route.planned_date && (

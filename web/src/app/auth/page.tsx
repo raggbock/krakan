@@ -63,7 +63,7 @@ export default function AuthPage() {
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 mode === m
                   ? 'bg-card text-espresso shadow-sm'
-                  : 'text-espresso/40 hover:text-espresso/60'
+                  : 'text-espresso/60 hover:text-espresso/60'
               }`}
             >
               {m === 'signin' ? 'Logga in' : 'Skapa konto'}

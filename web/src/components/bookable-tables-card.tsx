@@ -52,7 +52,7 @@ export function BookableTablesCard({
                   >
                     <div>
                       <p className="font-medium text-sm">{table.label}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/40">
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/60">
                         {table.size_description && <span>{table.size_description}</span>}
                         {table.description && <span>&middot; {table.description}</span>}
                       </div>
@@ -93,7 +93,7 @@ export function BookableTablesCard({
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-espresso/40">
+                        <p className="text-xs text-espresso/60">
                           {booking.totalPrice} kr (inkl {booking.commission} kr avgift)
                         </p>
                         {user ? (

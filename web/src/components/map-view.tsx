@@ -63,7 +63,7 @@ export default function MapView() {
       <div className="bg-card border-b border-cream-warm px-6 py-3 flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold">Karta</h1>
-          <p className="text-xs text-espresso/40">
+          <p className="text-xs text-espresso/60">
             {error ? error : `${markets.length} loppisar i närheten`}
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function MapView() {
                 </p>
                 <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
                 {market.description && (
-                  <p className="text-xs text-espresso/40 mt-1 line-clamp-2">
+                  <p className="text-xs text-espresso/60 mt-1 line-clamp-2">
                     {market.description}
                   </p>
                 )}

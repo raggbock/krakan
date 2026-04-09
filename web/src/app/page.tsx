@@ -216,7 +216,7 @@ export default function LandingPage() {
                 &ldquo;Äntligen slipper jag ringa runt till arrangörer &mdash;
                 jag hittar, bokar och planerar allt från mobilen.&rdquo;
               </p>
-              <footer className="mt-6 text-sm text-espresso/40 font-medium">
+              <footer className="mt-6 text-sm text-espresso/60 font-medium">
                 &mdash; Loppis-Lisa, Göteborg
               </footer>
             </blockquote>
