@@ -119,7 +119,7 @@ export default function BookingsPage() {
         <div className="mb-8 animate-fade-up delay-1">
           <h2 className="font-display font-bold text-lg mb-3 flex items-center gap-2">
             Väntar på svar
-            <span className="bg-rust text-parchment text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="bg-rust text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
               {pending.length}
             </span>
           </h2>
@@ -236,7 +236,7 @@ function BookingCard({
           <button
             onClick={onConfirm}
             disabled={updating}
-            className="flex-1 h-9 rounded-lg bg-forest text-parchment text-xs font-bold hover:bg-forest-light transition-colors disabled:opacity-50"
+            className="flex-1 h-9 rounded-lg bg-forest text-white text-xs font-bold hover:bg-forest-light transition-colors disabled:opacity-50"
           >
             {updating ? '...' : 'Godkänn'}
           </button>

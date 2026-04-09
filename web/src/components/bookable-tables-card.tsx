@@ -100,7 +100,7 @@ export function BookableTablesCard({
                           <button
                             onClick={booking.submit}
                             disabled={!booking.canSubmit}
-                            className="bg-rust text-parchment px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
+                            className="bg-rust text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
                           >
                             {booking.isSubmitting ? 'Skickar...' : 'Skicka förfrågan'}
                           </button>

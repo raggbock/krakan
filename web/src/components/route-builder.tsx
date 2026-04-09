@@ -299,7 +299,7 @@ export default function RouteBuilder() {
                       className={`flex items-center gap-3 bg-parchment rounded-xl p-3 cursor-grab active:cursor-grabbing transition-all ${dragIdx === i ? 'opacity-50 scale-95' : ''}`}
                     >
                       {/* Number badge */}
-                      <div className="w-7 h-7 rounded-full bg-rust text-parchment flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-rust text-white flex items-center justify-center text-xs font-bold shrink-0">
                         {i + 1}
                       </div>
 
@@ -364,7 +364,7 @@ export default function RouteBuilder() {
             <button
               onClick={handleSave}
               disabled={saving || !name.trim() || stops.length === 0}
-              className="w-full h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 mt-6 shadow-sm"
+              className="w-full h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 mt-6 shadow-sm"
             >
               {saving ? 'Sparar...' : 'Spara loppisrunda'}
             </button>

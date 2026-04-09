@@ -138,7 +138,7 @@ export default function CreateMarketPage() {
         </p>
         <Link
           href="/auth"
-          className="inline-block mt-5 bg-rust text-parchment px-6 py-2.5 rounded-full text-sm font-semibold"
+          className="inline-block mt-5 bg-rust text-white px-6 py-2.5 rounded-full text-sm font-semibold"
         >
           Logga in
         </Link>
@@ -307,7 +307,7 @@ export default function CreateMarketPage() {
           <button
             onClick={() => setStep(2)}
             disabled={!name.trim() || !street.trim() || !city.trim()}
-            className="w-full h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm mt-2"
+            className="w-full h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm mt-2"
           >
             Nästa &mdash; Lägg till bord
           </button>
@@ -479,7 +479,7 @@ export default function CreateMarketPage() {
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="flex-1 h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
+              className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
             >
               {saving
                 ? progress === 'geocoding' ? 'Söker adress...'

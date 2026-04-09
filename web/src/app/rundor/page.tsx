@@ -28,7 +28,7 @@ export default function RoutesDiscoveryPage() {
         </div>
         <Link
           href="/rundor/skapa"
-          className="inline-flex items-center gap-2 bg-rust text-parchment px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 bg-rust text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors shadow-sm"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <line
@@ -61,7 +61,7 @@ export default function RoutesDiscoveryPage() {
           </p>
           <Link
             href="/rundor/skapa"
-            className="inline-block mt-5 bg-rust text-parchment px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors"
+            className="inline-block mt-5 bg-rust text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors"
           >
             Skapa din första runda
           </Link>

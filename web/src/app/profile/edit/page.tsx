@@ -190,7 +190,7 @@ export default function EditProfilePage() {
         <button
           type="submit"
           disabled={saving}
-          className="h-12 w-full rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
+          className="h-12 w-full rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
         >
           {saving ? 'Sparar...' : saved ? 'Sparat!' : 'Spara ändringar'}
         </button>

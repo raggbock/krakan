@@ -225,7 +225,7 @@ export default function ProfilePage() {
         </p>
         <Link
           href="/profile/create-market"
-          className="inline-flex items-center gap-2 bg-rust text-parchment px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200 shadow-sm"
+          className="inline-flex items-center gap-2 bg-rust text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200 shadow-sm"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <line

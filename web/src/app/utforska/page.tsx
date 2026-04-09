@@ -72,7 +72,7 @@ export default function ExplorePage() {
               <div className="flex flex-wrap gap-4 mt-8">
                 <Link
                   href="/search"
-                  className="inline-flex items-center gap-2 bg-rust text-parchment px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200 shadow-sm"
+                  className="inline-flex items-center gap-2 bg-rust text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200 shadow-sm"
                 >
                   <svg
                     width="16"

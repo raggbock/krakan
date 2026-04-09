@@ -70,7 +70,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-4 mt-10 animate-fade-up delay-4">
             <Link
               href="/utforska"
-              className="group inline-flex items-center gap-2.5 bg-rust text-parchment px-8 py-4 rounded-full text-base font-semibold hover:bg-rust-light transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2.5 bg-rust text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-rust-light transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="opacity-80">
                 <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2" />
@@ -244,7 +244,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/utforska"
-              className="inline-flex items-center gap-2 mt-6 bg-rust text-parchment px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 mt-6 bg-rust text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors shadow-sm"
             >
               Börja utforska
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -268,7 +268,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/profile/create-market"
-              className="inline-flex items-center gap-2 mt-6 bg-forest text-parchment px-6 py-3 rounded-full text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 mt-6 bg-forest text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm"
             >
               Skapa din loppis
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

@@ -110,7 +110,7 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors duration-200 disabled:opacity-50 shadow-sm mt-1"
+            className="h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors duration-200 disabled:opacity-50 shadow-sm mt-1"
           >
             {loading
               ? 'Vänta...'

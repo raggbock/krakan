@@ -293,7 +293,7 @@ export default function EditMarketPage() {
         </p>
         <Link
           href="/auth"
-          className="inline-block mt-5 bg-rust text-parchment px-6 py-2.5 rounded-full text-sm font-semibold"
+          className="inline-block mt-5 bg-rust text-white px-6 py-2.5 rounded-full text-sm font-semibold"
         >
           Logga in
         </Link>
@@ -751,7 +751,7 @@ export default function EditMarketPage() {
           <button
             onClick={handleSubmit}
             disabled={saving || !name.trim() || !street.trim() || !city.trim()}
-            className="flex-1 h-12 rounded-xl bg-rust text-parchment font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
+            className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {saving ? 'Sparar...' : 'Spara ändringar'}
           </button>

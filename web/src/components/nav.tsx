@@ -44,7 +44,7 @@ export function Nav() {
               ) : (
                 <Link
                   href="/auth"
-                  className="ml-1 bg-rust text-parchment px-5 py-2 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200"
+                  className="ml-1 bg-rust text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200"
                 >
                   Logga in
                 </Link>
@@ -105,7 +105,7 @@ export function Nav() {
                   <Link
                     href="/auth"
                     onClick={() => setMenuOpen(false)}
-                    className="mt-2 bg-rust text-parchment text-center px-5 py-3 rounded-xl text-sm font-semibold hover:bg-rust-light transition-colors"
+                    className="mt-2 bg-rust text-white text-center px-5 py-3 rounded-xl text-sm font-semibold hover:bg-rust-light transition-colors"
                   >
                     Logga in
                   </Link>

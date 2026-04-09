@@ -154,7 +154,7 @@ export default function RouteViewerPage() {
                   href={`/fleamarkets/${fm.id}`}
                   className="group flex items-center gap-4 vintage-card p-4 hover:shadow-md transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full bg-rust text-parchment flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-rust text-white flex items-center justify-center text-sm font-bold shrink-0">
                     {vi + 1}
                   </div>
 
