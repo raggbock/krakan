@@ -9,23 +9,28 @@ import Router from './features/navigation/Router'
 
 import store from './app/store'
 import AppLoader from './app/AppLoader'
+import { PostHogProvider } from 'posthog-react-native'
 import { initSentry, Sentry } from './lib/sentry'
+import { initPostHog, posthog } from './lib/posthog'
 
 initSentry()
+initPostHog()
 
 function App() {
   LogBox.ignoreAllLogs()
 
   return (
-    <LocaleProvider>
-      <Provider store={store}>
-        <ThemeProvider>
-          <AppLoader>
-            <Router />
-          </AppLoader>
-        </ThemeProvider>
-      </Provider>
-    </LocaleProvider>
+    <PostHogProvider client={posthog}>
+      <LocaleProvider>
+        <Provider store={store}>
+          <ThemeProvider>
+            <AppLoader>
+              <Router />
+            </AppLoader>
+          </ThemeProvider>
+        </Provider>
+      </LocaleProvider>
+    </PostHogProvider>
   )
 }
 
