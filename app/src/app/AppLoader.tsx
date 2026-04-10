@@ -4,6 +4,7 @@ import styled from 'styled-components/native'
 import { useLocale } from '../features/locale/useLocale'
 import { locationGetUserLocation } from '../features/location/locationSlice'
 import { supabase } from '../lib/supabase'
+import { Sentry } from '../lib/sentry'
 import { contextClear } from '../features/context/contextSlice'
 import { Spinner } from '../components'
 import { AppDispatch } from './store'
@@ -41,6 +42,10 @@ const AppLoader: FC<AppLoaderProps> = ({ children }) => {
         dispatch(contextClear())
         dispatch(navigationShouldShowSignIn())
       }
+      setLoading(false)
+    })
+    .catch((err) => {
+      Sentry.captureException(err)
       setLoading(false)
     })
 

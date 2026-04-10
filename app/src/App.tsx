@@ -1,32 +1,32 @@
 import 'react-native-gesture-handler'
-import React, { useEffect } from 'react'
-import { Provider, useDispatch } from 'react-redux'
+import React from 'react'
+import { Provider } from 'react-redux'
 import { LogBox } from 'react-native'
 
 import ThemeProvider from './features/theme/ThemeProvider'
-// import { PortalProvider } from '../components/Portal';
 import { LocaleProvider } from './features/locale/LocaleContext'
 import Router from './features/navigation/Router'
-import useTranslation from './features/locale/useTranslation'
 
 import store from './app/store'
 import AppLoader from './app/AppLoader'
-// import AppLoader from './AppLoader';
+import { initSentry, Sentry } from './lib/sentry'
 
-export default function App() {
+initSentry()
+
+function App() {
   LogBox.ignoreAllLogs()
 
   return (
     <LocaleProvider>
       <Provider store={store}>
         <ThemeProvider>
-          {/* <PortalProvider> */}
           <AppLoader>
             <Router />
           </AppLoader>
-          {/* </PortalProvider> */}
         </ThemeProvider>
       </Provider>
     </LocaleProvider>
   )
 }
+
+export default Sentry.wrap(App)
