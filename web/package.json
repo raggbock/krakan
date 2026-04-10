@@ -27,6 +27,8 @@
   },
   "optionalDependencies": {
     "@ast-grep/napi-linux-x64-gnu": "0.40.5",
+    "@next/swc-linux-x64-gnu": "16.2.2",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.2.2",
     "lightningcss-linux-x64-gnu": "1.32.0"
   },
   "devDependencies": {
