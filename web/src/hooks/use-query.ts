@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import * as Sentry from '@sentry/nextjs'
 
 // ── useQuery: fetch data on mount / deps change ─────────────────
 
@@ -37,8 +38,9 @@ export function useQuery<T>(
       .then((result) => {
         if (seq === seqRef.current) setData(result)
       })
-      .catch(() => {
+      .catch((err) => {
         if (seq === seqRef.current) setError(errorMessage)
+        Sentry.captureException(err)
       })
       .finally(() => {
         if (seq === seqRef.current) setLoading(false)
@@ -81,8 +83,9 @@ export function useMutation<TPayload, TReturn = void>(
       const result = await action(payload)
       onSuccess?.(result)
       return result
-    } catch {
+    } catch (err) {
       setError(errorMessage)
+      Sentry.captureException(err)
       return undefined
     } finally {
       setLoading(false)
