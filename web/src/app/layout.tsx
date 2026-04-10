@@ -4,6 +4,8 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { Nav } from '@/components/nav'
 import { TrailBackground } from '@/components/trail-background'
+import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
+import { Suspense } from 'react'
 
 const fraunces = Fraunces({
   variable: '--font-fraunces',
@@ -70,28 +72,33 @@ export default function RootLayout({
       className={`${fraunces.variable} ${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body">
-        <AuthProvider>
-          <TrailBackground />
-          <Nav />
-          <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
-          <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
-            <div className="max-w-6xl mx-auto px-6 py-10">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div>
-                  <p className="font-display font-bold text-lg text-espresso">
-                    Fyndstigen
-                  </p>
-                  <p className="text-sm text-espresso/65 mt-1">
-                    Varje stig leder till ett fynd.
-                  </p>
-                </div>
-                <div className="flex items-center gap-6 text-sm text-espresso/60">
-                  <span>&copy; {new Date().getFullYear()} Fyndstigen</span>
+        <PostHogProvider>
+          <AuthProvider>
+            <Suspense fallback={null}>
+              <PostHogPageview />
+            </Suspense>
+            <TrailBackground />
+            <Nav />
+            <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
+            <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
+              <div className="max-w-6xl mx-auto px-6 py-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div>
+                    <p className="font-display font-bold text-lg text-espresso">
+                      Fyndstigen
+                    </p>
+                    <p className="text-sm text-espresso/65 mt-1">
+                      Varje stig leder till ett fynd.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-6 text-sm text-espresso/60">
+                    <span>&copy; {new Date().getFullYear()} Fyndstigen</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </footer>
-        </AuthProvider>
+            </footer>
+          </AuthProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
