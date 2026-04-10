@@ -25,6 +25,9 @@
     "react-dom": "19.2.4",
     "react-leaflet": "^5.0.0"
   },
+  "optionalDependencies": {
+    "@ast-grep/napi-linux-x64-gnu": "0.40.5"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
