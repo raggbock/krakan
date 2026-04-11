@@ -5,16 +5,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   transpilePackages: ['@fyndstigen/shared'],
   allowedDevOrigins: ['192.168.50.245'],
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.fyndstigen.se' }],
-        destination: 'https://fyndstigen.se/:path*',
-        permanent: true,
-      },
-    ]
-  },
   async rewrites() {
     return [
       {
