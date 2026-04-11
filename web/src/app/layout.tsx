@@ -20,6 +20,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://fyndstigen.se'),
   title: {
     default: 'Fyndstigen — Hitta loppisar nära dig',
     template: '%s | Fyndstigen',
