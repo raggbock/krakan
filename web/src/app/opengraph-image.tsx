@@ -1,19 +1,10 @@
 import { ImageResponse } from "next/og";
 
-export const dynamic = "force-dynamic";
 export const alt = "Fyndstigen — Hitta loppisar nära dig";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const [fraunces, nunito] = await Promise.all([
-    fetch(new URL("./fonts/fraunces-bold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer()
-    ),
-    fetch(new URL("./fonts/nunito-regular.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer()
-    ),
-  ]);
 
   return new ImageResponse(
     (
@@ -132,7 +123,7 @@ export default async function Image() {
           {/* Title */}
           <div
             style={{
-              fontFamily: "Fraunces",
+              fontFamily: "Georgia, serif",
               fontSize: 72,
               fontWeight: 700,
               color: "#2C241D",
@@ -145,7 +136,7 @@ export default async function Image() {
           {/* Tagline */}
           <div
             style={{
-              fontFamily: "Nunito",
+              fontFamily: "sans-serif",
               fontSize: 28,
               color: "#4A3F34",
               opacity: 0.7,
@@ -178,7 +169,7 @@ export default async function Image() {
                   border: `1.5px solid ${pill.color}33`,
                   borderRadius: 999,
                   padding: "8px 20px",
-                  fontFamily: "Nunito",
+                  fontFamily: "sans-serif",
                   fontSize: 18,
                   color: "#2C241D",
                 }}
@@ -205,7 +196,7 @@ export default async function Image() {
             display: "flex",
             alignItems: "center",
             gap: 8,
-            fontFamily: "Nunito",
+            fontFamily: "sans-serif",
             fontSize: 16,
             color: "#2C241D",
             opacity: 0.35,
@@ -215,22 +206,6 @@ export default async function Image() {
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: [
-        {
-          name: "Fraunces",
-          data: fraunces,
-          style: "normal",
-          weight: 700,
-        },
-        {
-          name: "Nunito",
-          data: nunito,
-          style: "normal",
-          weight: 400,
-        },
-      ],
-    }
+    { ...size }
   );
 }
