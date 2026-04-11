@@ -1,22 +1,18 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
-export const dynamic = "force-dynamic";
 export const alt = "Fyndstigen — Hitta loppisar nära dig";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const fraunces = await fetch(
-    new URL(
-      "https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0K7iN7hzFUPJH58nBEsQHoVMC2ag.woff"
-    )
-  ).then((res) => res.arrayBuffer());
-
-  const nunito = await fetch(
-    new URL(
-      "https://fonts.gstatic.com/s/nunito/v26/XRXI3I6Li01BKofiOc5wtlZ2di8HDLshRTY9jo7eTWk.woff"
-    )
-  ).then((res) => res.arrayBuffer());
+  const fraunces = await readFile(
+    join(process.cwd(), "src/app/fonts/fraunces-bold.ttf")
+  );
+  const nunito = await readFile(
+    join(process.cwd(), "src/app/fonts/nunito-regular.ttf")
+  );
 
   return new ImageResponse(
     (
