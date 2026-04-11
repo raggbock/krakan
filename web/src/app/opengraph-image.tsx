@@ -1,18 +1,19 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export const alt = "Fyndstigen — Hitta loppisar nära dig";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const frauncesPromise = fetch(
+  new URL("./fonts/fraunces-bold.ttf", import.meta.url)
+).then((res) => res.arrayBuffer());
+
+const nunitoPromise = fetch(
+  new URL("./fonts/nunito-regular.ttf", import.meta.url)
+).then((res) => res.arrayBuffer());
+
 export default async function Image() {
-  const fraunces = await readFile(
-    join(process.cwd(), "src/app/fonts/fraunces-bold.ttf")
-  );
-  const nunito = await readFile(
-    join(process.cwd(), "src/app/fonts/nunito-regular.ttf")
-  );
+  const [fraunces, nunito] = await Promise.all([frauncesPromise, nunitoPromise]);
 
   return new ImageResponse(
     (
