@@ -1,0 +1,210 @@
+========================================================
+FYNDSTIGEN — Manuell setup-checklista
+========================================================
+
+Denna fil beskriver steg som måste göras manuellt i
+externa tjänster (Stripe, Supabase, Cloudflare) för att
+betalningsflödet ska fungera.
+
+Alla kodändringar är redan mergade till develop.
+
+
+========================================================
+1. STRIPE — Skapa konto och hämta nycklar
+========================================================
+
+1.1  Gå till https://dashboard.stripe.com och logga in
+     (eller skapa nytt konto).
+
+1.2  Aktivera Connect:
+     Settings > Connect > Get started
+     Välj "Standard" som kontotyp.
+     Detta låter arrangörer koppla sina egna Stripe-konton.
+
+1.3  Hämta API-nycklar (TEST MODE — slå på "Test mode" i dashboarden):
+     Developers > API keys
+
+     Du behöver:
+       - Publishable key:  pk_test_...
+       - Secret key:       sk_test_...
+
+1.4  Skapa webhook-endpoint:
+     Developers > Webhooks > Add endpoint
+
+     URL:
+       https://yqeegfhwbjnlrdurstxp.supabase.co/functions/v1/stripe-webhooks
+
+     Events att prenumerera på:
+       - account.updated
+       - payment_intent.canceled
+       - payment_intent.payment_failed
+
+     När endpointen är skapad, kopiera "Signing secret":
+       whsec_...
+
+
+========================================================
+2. SUPABASE — Secrets för Edge Functions
+========================================================
+
+2.1  Gå till Supabase Dashboard > ditt projekt > Edge Functions > Secrets
+     (eller kör via CLI: npx supabase secrets set ...)
+
+     Lägg till följande secrets:
+
+       STRIPE_SECRET_KEY       = sk_test_...    (från steg 1.3)
+       STRIPE_WEBHOOK_SECRET   = whsec_...      (från steg 1.4)
+       ALLOWED_ORIGINS         = https://fyndstigen-staging.sebastian-myrdahl.workers.dev,https://fyndstigen.se
+
+     ALLOWED_ORIGINS styr vilka domäner som får anropa
+     edge functions (CORS). Lägg till alla domäner du
+     vill stödja, kommaseparerade.
+
+2.2  Deploya Edge Functions:
+     Kör från projektets root:
+
+       npx supabase functions deploy stripe-connect-create
+       npx supabase functions deploy stripe-connect-status
+       npx supabase functions deploy stripe-connect-refresh
+       npx supabase functions deploy stripe-payment-create
+       npx supabase functions deploy stripe-payment-capture
+       npx supabase functions deploy stripe-payment-cancel
+       npx supabase functions deploy stripe-webhooks
+
+     Eller alla på en gång:
+       npx supabase functions deploy
+
+
+========================================================
+3. SUPABASE — Databasmigrationer
+========================================================
+
+3.1  Aktivera pg_cron-extensionen:
+     Dashboard > Database > Extensions > sök "pg_cron" > Enable
+
+     pg_cron behövs för att automatiskt avbryta bokningar
+     där kortet hållits i 7 dagar utan svar från arrangören.
+
+3.2  Aktivera pg_trgm-extensionen:
+     Dashboard > Database > Extensions > sök "pg_trgm" > Enable
+
+     pg_trgm ger fuzzy textsökning (ILIKE) med index,
+     så att sökning på loppnamn inte gör full table scan.
+
+3.3  Kör migrationen:
+     Migration 00002 (betalning) och 00003 (index/constraints)
+     behöver appliceras. Antingen:
+
+     a) Via Supabase CLI:
+        npx supabase db push
+
+     b) Via Supabase Dashboard > SQL Editor:
+        Kopiera innehållet i:
+          supabase/migrations/00002_stripe_payment.sql
+          supabase/migrations/00003_indexes_and_constraints.sql
+        Kör dem i ordning.
+
+     VIKTIGT: pg_cron och pg_trgm MÅSTE aktiveras (steg 3.1-3.2)
+     INNAN du kör migrationerna, annars misslyckas de.
+
+
+========================================================
+4. FRONTEND — Stripe publishable key
+========================================================
+
+4.1  Lokal utveckling:
+     Lägg till i web/.env.local:
+
+       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+4.2  Staging (Cloudflare Worker):
+     Uppdatera web/wrangler.staging.jsonc:
+     Byt "pk_test_REPLACE_ME" till ditt riktiga pk_test_...
+
+     Deployer sedan staging:
+       cd /c/Projects/Loppan
+       node node_modules/@opennextjs/cloudflare/dist/cli/index.js build
+       node node_modules/wrangler/bin/wrangler.js deploy --config web/wrangler.staging.jsonc
+
+     OBS: Kör ALLTID deploy från repo-root (inte web/).
+     Se "DEPLOY-NOTERINGAR" nedan.
+
+4.3  Produktion (wrangler.jsonc):
+     Lägg till NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY i
+     web/wrangler.jsonc under "vars" med produktionsnyckeln
+     (pk_live_... när du går live).
+
+
+========================================================
+5. TESTA BETALNINGSFLÖDET
+========================================================
+
+5.1  Använd Stripes testkort:
+       Kortnummer:  4242 4242 4242 4242
+       Utgång:      valfritt framtida datum (t.ex. 12/30)
+       CVC:         valfritt (t.ex. 123)
+
+5.2  Testa hela flödet:
+     a) Skapa en arrangör och koppla Stripe Connect
+        (Profil > Betalning > Koppla betalning)
+     b) Publicera en marknad med bord
+     c) Logga in som en annan användare
+     d) Boka ett bord — fyll i testkort
+     e) Verifiera att beloppet reserverats (Stripe Dashboard > Payments)
+     f) Som arrangör: godkänn bokningen — verifiera capture
+     g) Testa nekande — verifiera att holdet släpps
+
+5.3  Testa felfall:
+     - Nekat kort:  4000 0000 0000 0002
+     - 3D Secure:   4000 0000 0000 3220
+     - Insufficient funds: 4000 0000 0000 9995
+
+
+========================================================
+DEPLOY-NOTERINGAR
+========================================================
+
+Staging deploy (Cloudflare Workers):
+
+  Det finns en bugg i wrangler/opennextjs som gör att
+  deploy MÅSTE köras från REPO ROOT — inte från web/.
+
+  Bygge (kan köras från web/):
+    node /c/Projects/Loppan/node_modules/@opennextjs/cloudflare/dist/cli/index.js build
+
+  Deploy (MÅSTE köras från repo root):
+    cd /c/Projects/Loppan
+    node node_modules/wrangler/bin/wrangler.js deploy --config web/wrangler.staging.jsonc
+
+  Staging URL:
+    https://fyndstigen-staging.sebastian-myrdahl.workers.dev
+
+  Tester (körs från web/):
+    cd /c/Projects/Loppan/web
+    node ../node_modules/vitest/vitest.mjs run
+
+  npx fungerar INTE korrekt för wrangler/vitest i denna
+  monorepo pga hoisting-problem. Kör alltid via explicita
+  node-paths som ovan.
+
+
+========================================================
+SAMMANFATTNING AV NYA DATABASTABELLER
+========================================================
+
+stripe_accounts
+  - Kopplar arrangörer till deras Stripe Connect-konton
+  - onboarding_complete = true när Stripe bekräftar setup
+  - Arrangören måste ha onboarding_complete för att publicera
+
+bookings (nya kolumner)
+  - stripe_payment_intent_id  — Stripes PI-id för betalningen
+  - payment_status            — requires_capture / captured / cancelled / failed
+  - expires_at                — 7 dagar från bokningstillfället
+
+pg_cron-jobb
+  - cancel-expired-bookings: körs varje natt 03:00 UTC
+  - Avbryter bokningar där expires_at passerat
+
+
+========================================================
