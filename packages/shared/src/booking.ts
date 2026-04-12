@@ -35,6 +35,13 @@ export function validateBookingDate(
   return { valid: true }
 }
 
+export function calculateStripeAmounts(priceSek: number) {
+  const commissionSek = calculateCommission(priceSek)
+  const totalOre = (priceSek + commissionSek) * 100
+  const applicationFeeOre = commissionSek * 100
+  return { priceSek, commissionSek, totalOre, applicationFeeOre, commissionRate: COMMISSION_RATE }
+}
+
 export function generateBatchLabels(prefix: string, count: number, startAt = 1): string[] {
   if (count < 1 || count > 100) throw new Error('Count must be 1-100')
   if (!prefix.trim()) throw new Error('Prefix is required')

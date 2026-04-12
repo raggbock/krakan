@@ -1,7 +1,6 @@
 import { createHandler, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-
-const COMMISSION_RATE = 0.12
+import { calculateStripeAmounts } from '../_shared/pricing.ts'
 
 createHandler(async ({ user, admin, body }) => {
   const { marketTableId, fleaMarketId, bookingDate, message } = body as {
@@ -47,10 +46,7 @@ createHandler(async ({ user, admin, body }) => {
   if (existingBooking) throw new Error('Du har redan en pågående bokning för detta bord och datum')
 
   // Calculate amounts (in öre — Stripe uses smallest currency unit)
-  const priceSek = table.price_sek
-  const commissionSek = Math.round(priceSek * COMMISSION_RATE)
-  const totalOre = (priceSek + commissionSek) * 100
-  const applicationFeeOre = commissionSek * 100
+  const { priceSek, commissionSek, totalOre, applicationFeeOre, commissionRate } = calculateStripeAmounts(table.price_sek)
 
   // Create PaymentIntent with manual capture
   const paymentIntent = await stripe.paymentIntents.create({
@@ -82,7 +78,7 @@ createHandler(async ({ user, admin, body }) => {
       booking_date: bookingDate,
       price_sek: priceSek,
       commission_sek: commissionSek,
-      commission_rate: COMMISSION_RATE,
+      commission_rate: commissionRate,
       message: message || null,
       stripe_payment_intent_id: paymentIntent.id,
       payment_status: 'requires_capture',

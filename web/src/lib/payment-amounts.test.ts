@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateCommission, COMMISSION_RATE } from '@fyndstigen/shared'
-
-// Helper that mirrors the edge function logic
-function calculateStripeAmounts(priceSek: number) {
-  const commissionSek = calculateCommission(priceSek)
-  const totalOre = (priceSek + commissionSek) * 100
-  const applicationFeeOre = commissionSek * 100
-  return { priceSek, commissionSek, totalOre, applicationFeeOre }
-}
+import { calculateCommission, calculateStripeAmounts, COMMISSION_RATE } from '@fyndstigen/shared'
 
 describe('Stripe amount calculations — critical path', () => {
   describe('basic calculations', () => {

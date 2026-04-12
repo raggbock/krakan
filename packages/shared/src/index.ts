@@ -9,6 +9,7 @@ export * from './types'
 export {
   COMMISSION_RATE,
   calculateCommission,
+  calculateStripeAmounts,
   isValidStatusTransition,
   validateBookingDate,
   generateBatchLabels,
