@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api, BookingWithDetails, FleaMarket, OrganizerStats } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
@@ -52,11 +53,28 @@ export default function BookingsPage() {
   ) {
     setUpdatingId(bookingId)
     try {
-      await api.bookings.updateStatus(bookingId, status)
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers = { Authorization: `Bearer ${session?.access_token}` }
+
+      if (status === 'confirmed') {
+        const res = await supabase.functions.invoke('stripe-payment-capture', {
+          body: { bookingId },
+          headers,
+        })
+        if (res.error) throw new Error(res.data?.error || 'Capture failed')
+      } else {
+        const res = await supabase.functions.invoke('stripe-payment-cancel', {
+          body: { bookingId, newStatus: 'denied' },
+          headers,
+        })
+        if (res.error) throw new Error(res.data?.error || 'Cancel failed')
+      }
+
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, status } : b)),
       )
-    } catch {
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Något gick fel')
     } finally {
       setUpdatingId(null)
     }
@@ -204,6 +222,14 @@ function BookingCard({
             <span className={`stamp text-xs ${statusColors[booking.status]}`}>
               {statusLabels[booking.status]}
             </span>
+            {booking.payment_status && (
+              <span className="text-xs text-espresso/30">
+                {booking.payment_status === 'requires_capture' && '(reserverat)'}
+                {booking.payment_status === 'captured' && '(betald)'}
+                {booking.payment_status === 'cancelled' && '(återbetald)'}
+                {booking.payment_status === 'failed' && '(misslyckad)'}
+              </span>
+            )}
           </div>
           <p className="text-xs text-espresso/60 mt-1">
             {booking.market_table?.label} &middot;{' '}
