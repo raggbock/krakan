@@ -81,6 +81,19 @@ export type OrganizerStats = {
   total_commission_sek: number
 }
 
+// --- Stripe ---
+
+export type PaymentStatus = 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+
+export type StripeAccount = {
+  id: string
+  organizer_id: string
+  stripe_account_id: string
+  onboarding_complete: boolean
+  created_at: string
+  updated_at: string
+}
+
 // --- Market Tables ---
 
 export type MarketTable = {
@@ -111,6 +124,9 @@ export type Booking = {
   commission_rate: number
   message: string | null
   organizer_note: string | null
+  stripe_payment_intent_id: string | null
+  payment_status: PaymentStatus | null
+  expires_at: string | null
   created_at: string
 }
 

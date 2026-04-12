@@ -31,4 +31,6 @@ export type {
   CreateBookingPayload,
   CreateMarketTablePayload,
   AddressPayload,
+  StripeAccount,
+  PaymentStatus,
 } from '@fyndstigen/shared'
