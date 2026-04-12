@@ -51,3 +51,11 @@ begin
   return cancelled_count;
 end;
 $$;
+
+-- Schedule auto-cancel (requires pg_cron extension enabled via Supabase dashboard)
+-- Runs daily at 03:00 UTC
+select cron.schedule(
+  'cancel-expired-bookings',
+  '0 3 * * *',
+  $$select public.cancel_expired_bookings()$$
+);

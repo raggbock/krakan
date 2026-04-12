@@ -11,7 +11,8 @@
     "NEXT_PUBLIC_SENTRY_DSN": "https://284e4fb124ecef633f6d70fc0a5e8895@o4511195457060864.ingest.de.sentry.io/4511195458568272",
     "SENTRY_DSN": "https://284e4fb124ecef633f6d70fc0a5e8895@o4511195457060864.ingest.de.sentry.io/4511195458568272",
     "NEXT_PUBLIC_POSTHOG_KEY": "phc_uSz9KA9zzTT5iDPqmmXJvzamTcQjv4h2PVEUjcv8fC5e",
-    "NEXT_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com"
+    "NEXT_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_REPLACE_ME"
   },
   "assets": {
     "directory": ".open-next/assets",
