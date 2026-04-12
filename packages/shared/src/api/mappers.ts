@@ -111,7 +111,7 @@ export type RouteDetailsRow = Record<string, unknown> & {
 
 export function mapRouteWithStops(row: RouteDetailsRow): RouteWithStops {
   const { profiles, route_stops, ...rest } = row
-  const stops: RouteStop[] = [...route_stops]
+  const stops = [...route_stops]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((rs) => ({
       id: rs.id,
@@ -119,7 +119,7 @@ export function mapRouteWithStops(row: RouteDetailsRow): RouteWithStops {
       fleaMarket: rs.flea_markets
         ? { ...rs.flea_markets, openingHours: rs.flea_markets.opening_hours ?? [] }
         : null,
-    }))
+    })) as RouteStop[]
 
   return {
     ...rest,
