@@ -6,6 +6,5 @@
     "mobile"
   ],
   "devDependencies": {
-    "vitest": "^4.1.4"
   }
 }
