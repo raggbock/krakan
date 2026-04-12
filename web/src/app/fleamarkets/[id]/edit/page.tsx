@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketDetails, FleaMarketImage, MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import type { AddressValue } from '@/components/address-picker'
+
+const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
 
 const DAY_NAMES = [
   'Söndag',
@@ -46,9 +50,13 @@ export default function EditMarketPage() {
   // Market info
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [street, setStreet] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [city, setCity] = useState('')
+  const [address, setAddress] = useState<AddressValue>({
+    street: '',
+    zipCode: '',
+    city: '',
+    latitude: null,
+    longitude: null,
+  })
   const [isPermanent, setIsPermanent] = useState(true)
 
   // Opening hours
@@ -89,9 +97,13 @@ export default function EditMarketPage() {
 
       setName(market.name)
       setDescription(market.description ?? '')
-      setStreet(market.street)
-      setZipCode(market.zip_code ?? '')
-      setCity(market.city)
+      setAddress({
+        street: market.street,
+        zipCode: market.zip_code ?? '',
+        city: market.city,
+        latitude: market.latitude ?? null,
+        longitude: market.longitude ?? null,
+      })
       setIsPermanent(market.is_permanent)
 
       if (market.opening_hours?.length) {
@@ -206,24 +218,32 @@ export default function EditMarketPage() {
 
   // --- Submit ---
   async function handleSubmit() {
-    if (!user || !name.trim() || !street.trim() || !city.trim()) return
+    if (!user || !name.trim() || !address.street.trim() || !address.city.trim()) return
     setSaving(true)
     setError('')
     setSuccess('')
 
     try {
-      // Geocode
-      const coords = await geo.geocode(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
-      const { lat: latitude, lng: longitude } = coords
+      // Use map coordinates if available, otherwise geocode
+      let latitude: number
+      let longitude: number
+      if (address.latitude && address.longitude) {
+        latitude = address.latitude
+        longitude = address.longitude
+      } else {
+        const coords = await geo.geocode(`${address.street.trim()}, ${address.zipCode.trim()} ${address.city.trim()}, Sweden`)
+        latitude = coords.lat
+        longitude = coords.lng
+      }
 
       // Update market
       await api.fleaMarkets.update(id, {
         name: name.trim(),
         description: description.trim(),
         address: {
-          street: street.trim(),
-          zipCode: zipCode.trim(),
-          city: city.trim(),
+          street: address.street.trim(),
+          zipCode: address.zipCode.trim(),
+          city: address.city.trim(),
           country: 'Sweden',
           location: { latitude, longitude },
         },
@@ -362,42 +382,7 @@ export default function EditMarketPage() {
               />
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Gatuadress *
-              </label>
-              <input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                  Postnummer
-                </label>
-                <input
-                  type="text"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                  Stad *
-                </label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-                />
-              </div>
-            </div>
+            <AddressPicker value={address} onChange={setAddress} inputBg="bg-parchment" />
 
             <div>
               <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
@@ -750,7 +735,7 @@ export default function EditMarketPage() {
           </Link>
           <button
             onClick={handleSubmit}
-            disabled={saving || !name.trim() || !street.trim() || !city.trim()}
+            disabled={saving || !name.trim() || !address.street.trim() || !address.city.trim()}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {saving ? 'Sparar...' : 'Spara ändringar'}

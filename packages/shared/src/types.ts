@@ -13,6 +13,8 @@ export type FleaMarket = {
   city: string
   country: string
   is_permanent: boolean
+  latitude: number
+  longitude: number
   published_at: string | null
   organizer_id: string
   created_at: string

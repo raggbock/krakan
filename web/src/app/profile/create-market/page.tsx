@@ -3,9 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useCreateMarket } from '@/hooks/use-create-market'
+import type { AddressValue } from '@/components/address-picker'
+
+const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
 
 type TableDraft = {
   label: string
@@ -13,6 +17,23 @@ type TableDraft = {
   priceSek: number
   sizeDescription: string
 }
+
+type OpeningHourDraft = {
+  dayOfWeek: number | null
+  date: string | null
+  openTime: string
+  closeTime: string
+}
+
+const DAY_NAMES = [
+  'Söndag',
+  'Måndag',
+  'Tisdag',
+  'Onsdag',
+  'Torsdag',
+  'Fredag',
+  'Lördag',
+]
 
 export default function CreateMarketPage() {
   const router = useRouter()
@@ -24,12 +45,44 @@ export default function CreateMarketPage() {
   // Step 1: Market info
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [street, setStreet] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [city, setCity] = useState('')
+  const [address, setAddress] = useState<AddressValue>({
+    street: '',
+    zipCode: '',
+    city: '',
+    latitude: null,
+    longitude: null,
+  })
   const [isPermanent, setIsPermanent] = useState(true)
   const [images, setImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+
+  // Opening hours
+  const [openingHours, setOpeningHours] = useState<OpeningHourDraft[]>([])
+  const [ohDay, setOhDay] = useState<string>('')
+  const [ohDate, setOhDate] = useState('')
+  const [ohOpen, setOhOpen] = useState('10:00')
+  const [ohClose, setOhClose] = useState('16:00')
+
+  function addOpeningHour() {
+    if (!ohOpen || !ohClose) return
+    if (ohOpen >= ohClose) return
+    const draft: OpeningHourDraft = {
+      dayOfWeek: ohDay !== '' ? parseInt(ohDay, 10) : null,
+      date: ohDate || null,
+      openTime: ohOpen,
+      closeTime: ohClose,
+    }
+    if (draft.dayOfWeek === null && !draft.date) return
+    setOpeningHours((prev) => [...prev, draft])
+    setOhDay('')
+    setOhDate('')
+    setOhOpen('10:00')
+    setOhClose('16:00')
+  }
+
+  function removeOpeningHour(idx: number) {
+    setOpeningHours((prev) => prev.filter((_, i) => i !== idx))
+  }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
@@ -103,17 +156,21 @@ export default function CreateMarketPage() {
   }
 
   async function handleSubmit() {
-    if (!user || !name.trim() || !street.trim() || !city.trim()) return
+    if (!user || !name.trim() || !address.street.trim() || !address.city.trim()) return
     const result = await createMarket({
       name: name.trim(),
       description: description.trim(),
-      street: street.trim(),
-      zipCode: zipCode.trim(),
-      city: city.trim(),
+      street: address.street.trim(),
+      zipCode: address.zipCode.trim(),
+      city: address.city.trim(),
       isPermanent,
       organizerId: user.id,
       tables,
       images,
+      openingHours,
+      coordinates: address.latitude && address.longitude
+        ? { latitude: address.latitude, longitude: address.longitude }
+        : undefined,
     })
     if (result) {
       router.push(`/fleamarkets/${result.id}`)
@@ -198,45 +255,7 @@ export default function CreateMarketPage() {
             />
           </div>
 
-          <div>
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-              Gatuadress *
-            </label>
-            <input
-              type="text"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="Storgatan 1"
-              className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Postnummer
-              </label>
-              <input
-                type="text"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-                placeholder="702 11"
-                className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Stad *
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Örebro"
-                className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-              />
-            </div>
-          </div>
+          <AddressPicker value={address} onChange={setAddress} />
 
           <div>
             <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
@@ -258,6 +277,107 @@ export default function CreateMarketPage() {
                 }`}
               >
                 Tillfällig
+              </button>
+            </div>
+          </div>
+
+          {/* Opening hours */}
+          <div>
+            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
+              Öppettider
+            </label>
+
+            {openingHours.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {openingHours.map((oh, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
+                  >
+                    <span className="text-sm">
+                      {oh.dayOfWeek != null
+                        ? DAY_NAMES[oh.dayOfWeek]
+                        : oh.date}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium tabular-nums">
+                        {oh.openTime} &ndash; {oh.closeTime}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeOpeningHour(i)}
+                        className="text-espresso/20 hover:text-error transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-3 bg-parchment rounded-xl p-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Veckodag
+                  </label>
+                  <select
+                    value={ohDay}
+                    onChange={(e) => { setOhDay(e.target.value); if (e.target.value) setOhDate('') }}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  >
+                    <option value="">Inget (använd datum)</option>
+                    {DAY_NAMES.map((name, i) => (
+                      <option key={i} value={i}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Specifikt datum
+                  </label>
+                  <input
+                    type="date"
+                    value={ohDate}
+                    onChange={(e) => { setOhDate(e.target.value); if (e.target.value) setOhDay('') }}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Öppnar
+                  </label>
+                  <input
+                    type="time"
+                    value={ohOpen}
+                    onChange={(e) => setOhOpen(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Stänger
+                  </label>
+                  <input
+                    type="time"
+                    value={ohClose}
+                    onChange={(e) => setOhClose(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={addOpeningHour}
+                disabled={(!ohDay && !ohDate) || !ohOpen || !ohClose}
+                className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+              >
+                + Lägg till tid
               </button>
             </div>
           </div>
@@ -306,7 +426,7 @@ export default function CreateMarketPage() {
 
           <button
             onClick={() => setStep(2)}
-            disabled={!name.trim() || !street.trim() || !city.trim()}
+            disabled={!name.trim() || !address.street.trim() || !address.city.trim()}
             className="w-full h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm mt-2"
           >
             Nästa &mdash; Lägg till bord
