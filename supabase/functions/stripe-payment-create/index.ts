@@ -41,6 +41,17 @@ serve(async (req) => {
       .single()
     if (!stripeAccount?.onboarding_complete) throw new Error('Organizer has not completed Stripe setup')
 
+    // Idempotency: check for existing pending booking
+    const { data: existingBooking } = await admin
+      .from('bookings')
+      .select('id')
+      .eq('market_table_id', marketTableId)
+      .eq('booked_by', user.id)
+      .eq('booking_date', bookingDate)
+      .eq('status', 'pending')
+      .single()
+    if (existingBooking) throw new Error('Du har redan en pågående bokning för detta bord och datum')
+
     // Calculate amounts (in ore — Stripe uses smallest currency unit)
     const priceSek = table.price_sek
     const commissionRate = 0.12

@@ -38,7 +38,7 @@ serve(async (req) => {
       const pi = event.data.object
       await admin
         .from('bookings')
-        .update({ payment_status: 'cancelled' })
+        .update({ payment_status: 'cancelled', status: 'cancelled' })
         .eq('stripe_payment_intent_id', pi.id)
       break
     }
@@ -47,7 +47,7 @@ serve(async (req) => {
       const pi = event.data.object
       await admin
         .from('bookings')
-        .update({ payment_status: 'failed' })
+        .update({ payment_status: 'failed', status: 'cancelled' })
         .eq('stripe_payment_intent_id', pi.id)
       break
     }

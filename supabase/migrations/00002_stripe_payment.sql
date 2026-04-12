@@ -34,7 +34,7 @@ create index bookings_expires_idx on public.bookings (expires_at) where status =
 -- Function to auto-cancel expired bookings (called by pg_cron)
 create or replace function public.cancel_expired_bookings()
 returns integer
-language plpgsql security definer
+language plpgsql security definer set search_path = public
 as $$
 declare
   cancelled_count integer;
