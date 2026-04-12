@@ -5,6 +5,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { Nav } from '@/components/nav'
 import { TrailBackground } from '@/components/trail-background'
 import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
+import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
 
 const fraunces = Fraunces({
@@ -74,6 +75,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-body">
         <PostHogProvider>
+          <QueryProvider>
           <AuthProvider>
             <Suspense fallback={null}>
               <PostHogPageview />
@@ -99,6 +101,7 @@ export default function RootLayout({
               </div>
             </footer>
           </AuthProvider>
+          </QueryProvider>
         </PostHogProvider>
       </body>
     </html>
