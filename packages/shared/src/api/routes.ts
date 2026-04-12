@@ -1,11 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
-  RouteWithStops,
-  RouteSummary,
   PopularRoute,
   CreateRoutePayload,
   UpdateRoutePayload,
 } from '../types'
+import { mapRouteWithStops, mapRouteSummary, type RouteDetailsRow, type RouteSummaryRow } from './mappers'
 
 export function createRoutesApi(supabase: SupabaseClient) {
   return {
@@ -63,29 +62,7 @@ export function createRoutesApi(supabase: SupabaseClient) {
           .single()
 
         if (error) throw error
-
-        const raw = data as Record<string, unknown>
-        const profile = raw.profiles as { first_name?: string; last_name?: string } | null
-        const stops = ((raw.route_stops ?? []) as Array<Record<string, unknown>>)
-          .sort((a, b) => (a.sort_order as number) - (b.sort_order as number))
-          .map((rs) => {
-            const fm = rs.flea_markets as Record<string, unknown> | null
-            return {
-              id: rs.id as string,
-              sortOrder: rs.sort_order as number,
-              fleaMarket: fm
-                ? { ...fm, openingHours: (fm.opening_hours as unknown[]) ?? [] }
-                : null,
-            }
-          })
-
-        return {
-          ...data,
-          creatorName: profile
-            ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-            : '',
-          stops,
-        } as RouteWithStops
+        return mapRouteWithStops(data as RouteDetailsRow)
       },
 
       update: async (id: string, payload: UpdateRoutePayload) => {
@@ -151,10 +128,7 @@ export function createRoutesApi(supabase: SupabaseClient) {
           .order('created_at', { ascending: false })
 
         if (error) throw error
-        return (data ?? []).map((r: Record<string, unknown>) => ({
-          ...r,
-          stopCount: (r.route_stops as unknown[])?.length ?? 0,
-        })) as RouteSummary[]
+        return (data ?? []).map((r) => mapRouteSummary(r as RouteSummaryRow))
       },
 
       listPopular: async (params: { latitude: number; longitude: number; radiusKm?: number }) => {

@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,
-  FleaMarketDetails,
   FleaMarketNearBy,
   FleaMarketImage,
   SearchResult,
@@ -10,6 +9,7 @@ import type {
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
 } from '../types'
+import { mapFleaMarketDetails, type FleaMarketDetailsRow } from './mappers'
 
 export function createFleaMarketsApi(supabase: SupabaseClient) {
   return {
@@ -45,14 +45,7 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
           .single()
 
         if (error) throw error
-
-        const profile = (data as Record<string, unknown>).profiles as { first_name?: string; last_name?: string } | null
-        return {
-          ...data,
-          organizerName: profile
-            ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-            : '',
-        } as FleaMarketDetails
+        return mapFleaMarketDetails(data as FleaMarketDetailsRow)
       },
 
       nearBy: async (params: { latitude: number; longitude: number; radiusKm: number }) => {
