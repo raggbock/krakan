@@ -8,6 +8,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarketsByOrganizer } from '@/hooks/use-markets'
 import { useRoutesByUser } from '@/hooks/use-routes'
+import { StripeConnectButton } from '@/components/stripe-connect-button'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -80,8 +81,24 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* My markets */}
+      {/* Stripe Connect */}
       <div className="vintage-card p-8 mb-6 animate-fade-up delay-1">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-lg bg-forest/10 flex items-center justify-center shrink-0 mt-0.5">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-forest">
+              <rect x="1" y="4" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="1" y1="7.5" x2="15" y2="7.5" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h2 className="font-display font-bold text-lg mb-1">Betalning</h2>
+            <StripeConnectButton userId={user?.id} />
+          </div>
+        </div>
+      </div>
+
+      {/* My markets */}
+      <div className="vintage-card p-8 mb-6 animate-fade-up delay-2">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina loppisar</h2>
@@ -146,7 +163,7 @@ export default function ProfilePage() {
       </div>
 
       {/* My routes */}
-      <div className="vintage-card p-8 mb-6 animate-fade-up delay-2">
+      <div className="vintage-card p-8 mb-6 animate-fade-up delay-3">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina rundor</h2>
@@ -216,7 +233,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Actions */}
-      <div className="vintage-card p-8 mb-6 animate-fade-up delay-3">
+      <div className="vintage-card p-8 mb-6 animate-fade-up delay-4">
         <h2 className="font-display text-lg font-bold mb-2">
           Skapa en loppis
         </h2>
@@ -271,7 +288,7 @@ function SignOutButton({ signOut, onDone }: { signOut: () => Promise<void>; onDo
           setBusy(false)
         }
       }}
-      className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/60 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-3 disabled:opacity-50"
+      className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/60 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-4 disabled:opacity-50"
     >
       {busy ? 'Loggar ut...' : 'Logga ut'}
     </button>
