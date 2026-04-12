@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useCreateMarket } from '@/hooks/use-create-market'
+import { useStripeConnect } from '@/hooks/use-stripe-connect'
 import type { AddressValue } from '@/components/address-picker'
 
 const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
@@ -41,6 +42,7 @@ export default function CreateMarketPage() {
 
   const [step, setStep] = useState<1 | 2>(1)
   const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
+  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(user?.id)
 
   // Step 1: Market info
   const [name, setName] = useState('')
@@ -589,6 +591,13 @@ export default function CreateMarketPage() {
             </div>
           )}
 
+          {!stripeLoading && !stripeReady && (
+            <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-4">
+              <Link href="/profile" className="underline font-semibold">Koppla betalning</Link>
+              {' '}i din profil innan du kan publicera.
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button
               onClick={() => setStep(1)}
@@ -598,7 +607,7 @@ export default function CreateMarketPage() {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || !stripeReady}
               className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
             >
               {saving
