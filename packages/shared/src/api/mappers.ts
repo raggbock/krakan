@@ -25,11 +25,19 @@ type MarketTableJoin = {
   size_description: string | null
 } | null
 
-type OpeningHourJoin = {
+type OpeningHourRuleJoin = {
+  id: string
+  type: string
   day_of_week: number | null
-  date: string | null
+  anchor_date: string | null
   open_time: string
   close_time: string
+}
+
+type OpeningHourExceptionJoin = {
+  id: string
+  date: string
+  reason: string | null
 }
 
 type FleaMarketJoin = {
@@ -43,7 +51,8 @@ type FleaMarketJoin = {
   is_permanent: boolean
   latitude: number
   longitude: number
-  opening_hours: OpeningHourJoin[]
+  opening_hour_rules: OpeningHourRuleJoin[]
+  opening_hour_exceptions: OpeningHourExceptionJoin[]
 } | null
 
 type RouteStopJoin = {
@@ -117,7 +126,11 @@ export function mapRouteWithStops(row: RouteDetailsRow): RouteWithStops {
       id: rs.id,
       sortOrder: rs.sort_order,
       fleaMarket: rs.flea_markets
-        ? { ...rs.flea_markets, openingHours: rs.flea_markets.opening_hours ?? [] }
+        ? {
+            ...rs.flea_markets,
+            opening_hour_rules: rs.flea_markets.opening_hour_rules ?? [],
+            opening_hour_exceptions: rs.flea_markets.opening_hour_exceptions ?? [],
+          }
         : null,
     })) as RouteStop[]
 

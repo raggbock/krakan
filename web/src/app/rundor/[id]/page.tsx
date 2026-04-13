@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { checkOpeningHours, type OpeningHoursEntry, formatDistance, formatDuration, type RoutingResult } from '@fyndstigen/shared'
+import { checkOpeningHours, formatDistance, formatDuration, type RoutingResult } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useRoute } from '@/hooks/use-routes'
 
@@ -168,7 +168,8 @@ export default function RouteViewerPage() {
             const fm = stop.fleaMarket!
             const oh = route.planned_date
               ? checkOpeningHours(
-                  (fm.openingHours ?? []) as OpeningHoursEntry[],
+                  fm.opening_hour_rules ?? [],
+                  fm.opening_hour_exceptions ?? [],
                   route.planned_date,
                 )
               : null

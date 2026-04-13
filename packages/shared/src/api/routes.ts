@@ -53,7 +53,8 @@ export function createRoutesApi(supabase: SupabaseClient) {
               flea_markets (
                 id, name, description, street, zip_code, city, country,
                 is_permanent, latitude, longitude,
-                opening_hours (day_of_week, date, open_time, close_time)
+                opening_hour_rules (*),
+                opening_hour_exceptions (*)
               )
             ),
             profiles!routes_created_by_fkey (first_name, last_name)

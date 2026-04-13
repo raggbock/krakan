@@ -174,7 +174,7 @@ export type Route = {
 export type RouteStop = {
   id: string
   sortOrder: number
-  fleaMarket: (FleaMarket & { openingHours: OpeningHoursItem[] }) | null
+  fleaMarket: (FleaMarket & { opening_hour_rules: OpeningHourRule[]; opening_hour_exceptions: OpeningHourException[] }) | null
 }
 
 export type RouteWithStops = Route & {
