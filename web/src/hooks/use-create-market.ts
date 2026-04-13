@@ -11,11 +11,17 @@ type TableDraft = {
   sizeDescription: string
 }
 
-type OpeningHourDraft = {
+export type RuleDraft = {
+  type: 'weekly' | 'biweekly' | 'date'
   dayOfWeek: number | null
-  date: string | null
+  anchorDate: string | null
   openTime: string
   closeTime: string
+}
+
+export type ExceptionDraft = {
+  date: string
+  reason: string | null
 }
 
 export type CreateMarketInput = {
@@ -28,7 +34,8 @@ export type CreateMarketInput = {
   organizerId: string
   tables: TableDraft[]
   images: File[]
-  openingHours: OpeningHourDraft[]
+  openingHours: RuleDraft[]
+  openingHourExceptions: ExceptionDraft[]
   coordinates?: { latitude: number; longitude: number }
 }
 
@@ -74,6 +81,7 @@ export function useCreateMarket() {
         isPermanent: input.isPermanent,
         organizerId: input.organizerId,
         openingHours: input.openingHours,
+        openingHourExceptions: input.openingHourExceptions,
       })
 
       // Publish first so the market is visible on the map

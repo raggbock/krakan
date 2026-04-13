@@ -6,7 +6,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { useCreateMarket } from '@/hooks/use-create-market'
+import { useCreateMarket, type RuleDraft, type ExceptionDraft } from '@/hooks/use-create-market'
 import { useStripeConnect } from '@/hooks/use-stripe-connect'
 import type { AddressValue } from '@/components/address-picker'
 
@@ -19,22 +19,7 @@ type TableDraft = {
   sizeDescription: string
 }
 
-type OpeningHourDraft = {
-  dayOfWeek: number | null
-  date: string | null
-  openTime: string
-  closeTime: string
-}
-
-const DAY_NAMES = [
-  'Söndag',
-  'Måndag',
-  'Tisdag',
-  'Onsdag',
-  'Torsdag',
-  'Fredag',
-  'Lördag',
-]
+const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
 
 export default function CreateMarketPage() {
   const router = useRouter()
@@ -58,32 +43,54 @@ export default function CreateMarketPage() {
   const [images, setImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
-  // Opening hours
-  const [openingHours, setOpeningHours] = useState<OpeningHourDraft[]>([])
+  // Opening hours — rule-based
+  const [rules, setRules] = useState<RuleDraft[]>([])
+  const [exceptions, setExceptions] = useState<ExceptionDraft[]>([])
+  const [ruleType, setRuleType] = useState<'weekly' | 'biweekly' | 'date'>('weekly')
   const [ohDay, setOhDay] = useState<string>('')
-  const [ohDate, setOhDate] = useState('')
+  const [ohAnchorDate, setOhAnchorDate] = useState('')
   const [ohOpen, setOhOpen] = useState('10:00')
   const [ohClose, setOhClose] = useState('16:00')
+  const [showExceptionForm, setShowExceptionForm] = useState(false)
+  const [exDate, setExDate] = useState('')
+  const [exReason, setExReason] = useState('')
 
-  function addOpeningHour() {
-    if (!ohOpen || !ohClose) return
-    if (ohOpen >= ohClose) return
-    const draft: OpeningHourDraft = {
-      dayOfWeek: ohDay !== '' ? parseInt(ohDay, 10) : null,
-      date: ohDate || null,
-      openTime: ohOpen,
-      closeTime: ohClose,
-    }
-    if (draft.dayOfWeek === null && !draft.date) return
-    setOpeningHours((prev) => [...prev, draft])
+  const canAddRule =
+    ohOpen && ohClose && ohOpen < ohClose &&
+    (ruleType === 'date' ? !!ohAnchorDate : !!ohDay) &&
+    (ruleType === 'biweekly' ? !!ohAnchorDate : true)
+
+  function addRule() {
+    if (!canAddRule) return
+    setRules((prev) => [
+      ...prev,
+      {
+        type: ruleType,
+        dayOfWeek: ruleType === 'date' ? null : parseInt(ohDay, 10),
+        anchorDate: ohAnchorDate || null,
+        openTime: ohOpen,
+        closeTime: ohClose,
+      },
+    ])
     setOhDay('')
-    setOhDate('')
+    setOhAnchorDate('')
     setOhOpen('10:00')
     setOhClose('16:00')
   }
 
-  function removeOpeningHour(idx: number) {
-    setOpeningHours((prev) => prev.filter((_, i) => i !== idx))
+  function formatRuleLabel(r: RuleDraft): string {
+    if (r.type === 'weekly') return `Varje ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}`
+    if (r.type === 'biweekly') {
+      const anchor = r.anchorDate
+        ? ` från ${new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}`
+        : ''
+      return `Varannan ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}${anchor}`
+    }
+    return new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
   }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -169,7 +176,8 @@ export default function CreateMarketPage() {
       organizerId: user.id,
       tables,
       images,
-      openingHours,
+      openingHours: rules,
+      openingHourExceptions: exceptions,
       coordinates: address.latitude && address.longitude
         ? { latitude: address.latitude, longitude: address.longitude }
         : undefined,
@@ -289,25 +297,22 @@ export default function CreateMarketPage() {
               Öppettider
             </label>
 
-            {openingHours.length > 0 && (
+            {/* Rules list */}
+            {rules.length > 0 && (
               <div className="space-y-2 mb-3">
-                {openingHours.map((oh, i) => (
+                {rules.map((r, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
                   >
-                    <span className="text-sm">
-                      {oh.dayOfWeek != null
-                        ? DAY_NAMES[oh.dayOfWeek]
-                        : oh.date}
-                    </span>
+                    <span className="text-sm">{formatRuleLabel(r)}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium tabular-nums">
-                        {oh.openTime} &ndash; {oh.closeTime}
+                        {r.openTime} &ndash; {r.closeTime}
                       </span>
                       <button
                         type="button"
-                        onClick={() => removeOpeningHour(i)}
+                        onClick={() => setRules((prev) => prev.filter((_, j) => j !== i))}
                         className="text-espresso/20 hover:text-error transition-colors"
                       >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -321,34 +326,80 @@ export default function CreateMarketPage() {
             )}
 
             <div className="space-y-3 bg-parchment rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                    Veckodag
-                  </label>
-                  <select
-                    value={ohDay}
-                    onChange={(e) => { setOhDay(e.target.value); if (e.target.value) setOhDate('') }}
-                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
-                  >
-                    <option value="">Inget (använd datum)</option>
-                    {DAY_NAMES.map((name, i) => (
-                      <option key={i} value={i}>{name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                    Specifikt datum
-                  </label>
-                  <input
-                    type="date"
-                    value={ohDate}
-                    onChange={(e) => { setOhDate(e.target.value); if (e.target.value) setOhDay('') }}
-                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
-                  />
+              {/* Step 1: Type selector */}
+              <div>
+                <label className="text-xs font-semibold text-espresso/60 block mb-2">
+                  Typ av öppettid
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: 'weekly' as const, label: 'Varje vecka' },
+                    { value: 'biweekly' as const, label: 'Varannan vecka' },
+                    { value: 'date' as const, label: 'Specifikt datum' },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => { setRuleType(opt.value); setOhDay(''); setOhAnchorDate('') }}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+                        ruleType === opt.value
+                          ? 'bg-card text-espresso border-rust/40 shadow-sm'
+                          : 'bg-card/50 text-espresso/50 border-cream-warm hover:border-espresso/20'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
+
+              {/* Step 2: Details (varies by type) */}
+              <div className="grid grid-cols-2 gap-3">
+                {ruleType !== 'date' && (
+                  <div className={ruleType === 'biweekly' ? '' : 'col-span-2'}>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Veckodag
+                    </label>
+                    <select
+                      value={ohDay}
+                      onChange={(e) => setOhDay(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    >
+                      <option value="">Välj dag</option>
+                      {DAY_NAMES.map((dayName, i) => (
+                        <option key={i} value={i}>{dayName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {ruleType === 'biweekly' && (
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Första tillfället
+                    </label>
+                    <input
+                      type="date"
+                      value={ohAnchorDate}
+                      onChange={(e) => setOhAnchorDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                )}
+                {ruleType === 'date' && (
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Datum
+                    </label>
+                    <input
+                      type="date"
+                      value={ohAnchorDate}
+                      onChange={(e) => setOhAnchorDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-espresso/60 block mb-1">
@@ -373,15 +424,103 @@ export default function CreateMarketPage() {
                   />
                 </div>
               </div>
+
               <button
                 type="button"
-                onClick={addOpeningHour}
-                disabled={(!ohDay && !ohDate) || !ohOpen || !ohClose}
+                onClick={addRule}
+                disabled={!canAddRule}
                 className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
               >
                 + Lägg till tid
               </button>
             </div>
+
+            {/* Exceptions */}
+            {exceptions.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {exceptions.map((ex, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
+                  >
+                    <span className="text-sm">
+                      {new Date(ex.date + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {ex.reason && <span className="text-espresso/50 ml-1.5">({ex.reason})</span>}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setExceptions((prev) => prev.filter((_, j) => j !== i))}
+                      className="text-espresso/20 hover:text-error transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showExceptionForm ? (
+              <div className="space-y-3 bg-parchment rounded-xl p-4 mt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Datum
+                    </label>
+                    <input
+                      type="date"
+                      value={exDate}
+                      onChange={(e) => setExDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Anledning (valfri)
+                    </label>
+                    <input
+                      type="text"
+                      value={exReason}
+                      onChange={(e) => setExReason(e.target.value)}
+                      placeholder="T.ex. helgdag"
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 placeholder:text-espresso/25"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowExceptionForm(false); setExDate(''); setExReason('') }}
+                    className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors"
+                  >
+                    Avbryt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!exDate) return
+                      setExceptions((prev) => [...prev, { date: exDate, reason: exReason || null }])
+                      setExDate('')
+                      setExReason('')
+                      setShowExceptionForm(false)
+                    }}
+                    disabled={!exDate}
+                    className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+                  >
+                    + Lägg till
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowExceptionForm(true)}
+                className="w-full mt-3 h-9 rounded-lg text-sm font-semibold text-espresso/40 hover:text-espresso/60 transition-colors"
+              >
+                + Lägg till undantag (stängd dag)
+              </button>
+            )}
           </div>
 
           {/* Images */}
