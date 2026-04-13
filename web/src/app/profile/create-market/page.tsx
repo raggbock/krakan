@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -47,7 +47,20 @@ export default function CreateMarketPage() {
   const [rules, setRules] = useState<RuleDraft[]>([])
   const [exceptions, setExceptions] = useState<ExceptionDraft[]>([])
   const [ruleType, setRuleType] = useState<'weekly' | 'biweekly' | 'date'>('weekly')
-  const [ohDay, setOhDay] = useState<string>('')
+  const [ohDays, setOhDays] = useState<number[]>([])
+  const [ohDaysOpen, setOhDaysOpen] = useState(false)
+  const ohDaysRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ohDaysOpen) return
+    function handleClick(e: MouseEvent) {
+      if (ohDaysRef.current && !ohDaysRef.current.contains(e.target as Node)) {
+        setOhDaysOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [ohDaysOpen])
   const [ohAnchorDate, setOhAnchorDate] = useState('')
   const [ohOpen, setOhOpen] = useState('10:00')
   const [ohClose, setOhClose] = useState('16:00')
@@ -57,25 +70,34 @@ export default function CreateMarketPage() {
 
   const canAddRule =
     ohOpen && ohClose && ohOpen < ohClose &&
-    (ruleType === 'date' ? !!ohAnchorDate : !!ohDay) &&
+    (ruleType === 'date' ? !!ohAnchorDate : ohDays.length > 0) &&
     (ruleType === 'biweekly' ? !!ohAnchorDate : true)
+
+  function toggleDay(day: number) {
+    setOhDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    )
+  }
 
   function addRule() {
     if (!canAddRule) return
-    setRules((prev) => [
-      ...prev,
-      {
+    if (ruleType === 'date') {
+      setRules((prev) => [
+        ...prev,
+        { type: ruleType, dayOfWeek: null, anchorDate: ohAnchorDate || null, openTime: ohOpen, closeTime: ohClose },
+      ])
+    } else {
+      const newRules = ohDays.map((day) => ({
         type: ruleType,
-        dayOfWeek: ruleType === 'date' ? null : parseInt(ohDay, 10),
+        dayOfWeek: day,
         anchorDate: ohAnchorDate || null,
         openTime: ohOpen,
         closeTime: ohClose,
-      },
-    ])
-    setOhDay('')
+      }))
+      setRules((prev) => [...prev, ...newRules])
+    }
+    setOhDays([])
     setOhAnchorDate('')
-    setOhOpen('10:00')
-    setOhClose('16:00')
   }
 
   function formatRuleLabel(r: RuleDraft): string {
@@ -340,7 +362,7 @@ export default function CreateMarketPage() {
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => { setRuleType(opt.value); setOhDay(''); setOhAnchorDate('') }}
+                      onClick={() => { setRuleType(opt.value); setOhDays([]); setOhDaysOpen(false); setOhAnchorDate('') }}
                       className={`py-2.5 rounded-lg text-xs font-semibold transition-all border ${
                         ruleType === opt.value
                           ? 'bg-card text-espresso border-rust/40 shadow-sm'
@@ -356,20 +378,45 @@ export default function CreateMarketPage() {
               {/* Step 2: Details (varies by type) */}
               <div className="grid grid-cols-2 gap-3">
                 {ruleType !== 'date' && (
-                  <div className={ruleType === 'biweekly' ? '' : 'col-span-2'}>
+                  <div ref={ohDaysRef} className={`relative ${ruleType === 'biweekly' ? '' : 'col-span-2'}`}>
                     <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                      Veckodag
+                      Veckodagar
                     </label>
-                    <select
-                      value={ohDay}
-                      onChange={(e) => setOhDay(e.target.value)}
-                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    <button
+                      type="button"
+                      onClick={() => setOhDaysOpen((v) => !v)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 text-left flex items-center justify-between"
                     >
-                      <option value="">Välj dag</option>
-                      {DAY_NAMES.map((dayName, i) => (
-                        <option key={i} value={i}>{dayName}</option>
-                      ))}
-                    </select>
+                      <span className={ohDays.length ? 'text-espresso' : 'text-espresso/40'}>
+                        {ohDays.length
+                          ? ohDays
+                              .sort((a, b) => a - b)
+                              .map((d) => DAY_NAMES[d])
+                              .join(', ')
+                          : 'Välj dagar'}
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${ohDaysOpen ? 'rotate-180' : ''}`}>
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                    {ohDaysOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-card rounded-lg border border-cream-warm shadow-lg py-1">
+                        {DAY_NAMES.map((dayName, i) => (
+                          <label
+                            key={i}
+                            className="flex items-center gap-2.5 px-3 py-2 hover:bg-parchment cursor-pointer text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={ohDays.includes(i)}
+                              onChange={() => toggleDay(i)}
+                              className="accent-rust w-4 h-4"
+                            />
+                            {dayName}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
                 {ruleType === 'biweekly' && (
