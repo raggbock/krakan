@@ -32,6 +32,8 @@ const baseInput: CreateMarketInput = {
   organizerId: 'user-1',
   tables: [{ label: 'Bord 1', description: '', priceSek: 200, sizeDescription: '2x1m' }],
   images: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })],
+  openingHours: [{ type: 'weekly', dayOfWeek: 6, anchorDate: null, openTime: '10:00', closeTime: '16:00' }],
+  openingHourExceptions: [],
 }
 
 describe('useCreateMarket', () => {

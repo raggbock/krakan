@@ -127,8 +127,11 @@ export default function FleaMarketDetailsPage() {
           country={market.country}
         />
 
-        {market.opening_hours?.length > 0 && (
-          <OpeningHoursCard hours={market.opening_hours} />
+        {market.opening_hour_rules?.length > 0 && (
+          <OpeningHoursCard
+            rules={market.opening_hour_rules}
+            exceptions={market.opening_hour_exceptions ?? []}
+          />
         )}
 
         {market.organizerName && (
