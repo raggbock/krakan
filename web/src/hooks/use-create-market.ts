@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { api, geo } from '@/lib/api'
+import { GeocodeError } from '@fyndstigen/shared'
 
 type TableDraft = {
   label: string
@@ -109,7 +110,11 @@ export function useCreateMarket() {
 
       return { id }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Något gick fel')
+      if (err instanceof GeocodeError) {
+        setError('Kunde inte hitta adressen. Välj plats på kartan istället.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Något gick fel')
+      }
       return null
     } finally {
       setIsSubmitting(false)

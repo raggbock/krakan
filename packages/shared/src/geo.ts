@@ -5,17 +5,23 @@ import { optimizeRoute, type Stop } from './route-optimizer'
 
 export type LatLng = { lat: number; lng: number }
 
+export class GeocodeError extends Error {
+  constructor(address: string, cause?: unknown) {
+    super(`Kunde inte hitta koordinater för adressen: "${address}"`)
+    this.name = 'GeocodeError'
+    this.cause = cause
+  }
+}
+
 export type GeoOptions = {
   /** Nominatim request timeout in ms (default 5000) */
   timeoutMs?: number
   /** User-Agent for Nominatim (default 'Fyndstigen/0.1') */
   userAgent?: string
-  /** Fallback coordinates if geocoding fails (default: Stockholm) */
-  fallback?: LatLng
 }
 
 export type GeoService = {
-  /** Geocode a free-text address to coordinates. Returns fallback on failure. */
+  /** Geocode a free-text address to coordinates. Throws GeocodeError on failure. */
   geocode(address: string): Promise<LatLng>
   /** Find published flea markets within radiusKm of a point. */
   nearbyMarkets(center: LatLng, radiusKm: number): Promise<FleaMarketNearBy[]>
@@ -25,12 +31,9 @@ export type GeoService = {
   optimizeStops<T extends Stop>(stops: T[], startPoint?: LatLng): T[]
 }
 
-const STOCKHOLM: LatLng = { lat: 59.33, lng: 18.07 }
-
 export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoService {
   const timeoutMs = options?.timeoutMs ?? 5000
   const userAgent = options?.userAgent ?? 'Fyndstigen/0.1'
-  const fallback = options?.fallback ?? STOCKHOLM
 
   return {
     async geocode(address: string): Promise<LatLng> {
@@ -47,9 +50,10 @@ export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoSe
         if (results.length > 0) {
           return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) }
         }
-        return fallback
-      } catch {
-        return fallback
+        throw new GeocodeError(address)
+      } catch (err) {
+        if (err instanceof GeocodeError) throw err
+        throw new GeocodeError(address, err)
       }
     },
 

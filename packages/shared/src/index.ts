@@ -23,7 +23,7 @@ export { createSupabaseAdapters, createSupabaseAuth, createSupabaseServerData } 
 export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memory'
 
 // Geo
-export { createGeo } from './geo'
+export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Utilities

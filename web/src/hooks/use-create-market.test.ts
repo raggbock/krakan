@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
+import { GeocodeError } from '@fyndstigen/shared'
 import { useCreateMarket, type CreateMarketInput } from './use-create-market'
 
 vi.mock('@/lib/api', () => ({
@@ -93,6 +94,20 @@ describe('useCreateMarket', () => {
     expect(result.current.error).toContain('bilder')
     // Publish was already called before images
     expect(api.fleaMarkets.publish).toHaveBeenCalledWith('market-1')
+  })
+
+  it('shows user-friendly error when geocoding fails', async () => {
+    vi.mocked(geo.geocode).mockRejectedValue(new GeocodeError('Storgatan 1, 111 22 Stockholm, Sweden'))
+
+    const { result } = renderHook(() => useCreateMarket())
+
+    let outcome: { id: string } | null = null
+    await act(async () => {
+      outcome = await result.current.submit(baseInput)
+    })
+
+    expect(outcome).toBeNull()
+    expect(result.current.error).toBe('Kunde inte hitta adressen. Välj plats på kartan istället.')
   })
 
   it('returns null on market creation failure', async () => {
