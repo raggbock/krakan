@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Warm parchment background circle -->
+  <circle cx="256" cy="256" r="256" fill="#F2EBE0"/>
+
+  <!-- Winding S-trail (dashed) -->
+  <path
+    d="M100 390 C130 360, 200 340, 270 330 C340 320, 340 270, 280 240 C220 210, 220 170, 300 140 C350 120, 380 100, 400 80"
+    stroke="#2C241D"
+    stroke-width="14"
+    stroke-dasharray="24 18"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.85"
+  />
+
+  <!-- Start dot (rust) -->
+  <circle cx="95" cy="393" r="30" fill="#A84B2A"/>
+
+  <!-- Trail stops -->
+  <circle cx="280" cy="240" r="16" fill="#D4A043" opacity="0.9"/>
+  <circle cx="310" cy="135" r="16" fill="#496342" opacity="0.9"/>
+
+  <!-- Arrow head: equilateral triangle pointing upper-right, rotated 45deg -->
+  <polygon points="430,50 388,62 404,100" fill="#2C241D" opacity="0.85"/>
+</svg>
