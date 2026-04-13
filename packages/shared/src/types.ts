@@ -22,7 +22,8 @@ export type FleaMarket = {
 
 export type FleaMarketDetails = FleaMarket & {
   organizerName: string
-  opening_hours: OpeningHoursItem[]
+  opening_hour_rules: OpeningHourRule[]
+  opening_hour_exceptions: OpeningHourException[]
   flea_market_images: FleaMarketImage[]
 }
 
@@ -46,6 +47,23 @@ export type OpeningHoursItem = {
   date: string | null
   open_time: string
   close_time: string
+}
+
+export type RuleType = 'weekly' | 'biweekly' | 'date'
+
+export type OpeningHourRule = {
+  id: string
+  type: RuleType
+  day_of_week: number | null
+  anchor_date: string | null
+  open_time: string
+  close_time: string
+}
+
+export type OpeningHourException = {
+  id: string
+  date: string
+  reason: string | null
 }
 
 // --- Images ---
@@ -197,10 +215,15 @@ export type CreateFleaMarketPayload = {
   isPermanent: boolean
   organizerId: string
   openingHours: {
+    type: RuleType
     dayOfWeek: number | null
-    date: string | null
+    anchorDate: string | null
     openTime: string
     closeTime: string
+  }[]
+  openingHourExceptions?: {
+    date: string
+    reason: string | null
   }[]
 }
 
