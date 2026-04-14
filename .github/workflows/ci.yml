@@ -19,15 +19,17 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          rm -f package-lock.json web/package-lock.json
+          npm install
 
       - name: Type-check
         working-directory: web
-        run: yarn tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: Run tests
         working-directory: web
-        run: yarn vitest run
+        run: npx vitest run
 
   lighthouse:
     runs-on: ubuntu-latest
@@ -41,7 +43,9 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          rm -f package-lock.json web/package-lock.json
+          npm install
 
       - name: Create env file
         working-directory: web
@@ -51,7 +55,7 @@ jobs:
 
       - name: Build
         working-directory: web
-        run: yarn next build
+        run: npx next build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
