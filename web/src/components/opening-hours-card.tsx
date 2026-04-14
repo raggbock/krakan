@@ -1,7 +1,6 @@
 import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
 import { getUpcomingOpenDates } from '@fyndstigen/shared'
-
-const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
+import { DAY_NAMES } from '@/components/opening-hours-editor'
 
 function formatRuleSummary(rule: OpeningHourRule, upcoming: { date: string }[]): string {
   if (rule.type === 'weekly') return `Varje ${DAY_NAMES[rule.day_of_week!]?.toLowerCase()}`
@@ -52,14 +51,29 @@ export function OpeningHoursCard({
 
       {recurringRules.length > 0 && (
         <div className="space-y-2 mb-4">
-          {recurringRules.map((rule) => (
-            <div key={rule.id} className="flex justify-between items-center">
-              <span className="text-espresso">{formatRuleSummary(rule, upcoming)}</span>
-              <span className="font-medium tabular-nums text-espresso">
-                {rule.open_time.slice(0, 5)} – {rule.close_time.slice(0, 5)}
-              </span>
-            </div>
-          ))}
+          {(() => {
+            const groups = new Map<string, { label: string; times: string[] }>()
+            for (const rule of recurringRules) {
+              const key = `${rule.type}-${rule.day_of_week}-${rule.anchor_date ?? ''}`
+              const existing = groups.get(key)
+              if (existing) {
+                existing.times.push(`${rule.open_time.slice(0, 5)} – ${rule.close_time.slice(0, 5)}`)
+              } else {
+                groups.set(key, {
+                  label: formatRuleSummary(rule, upcoming),
+                  times: [`${rule.open_time.slice(0, 5)} – ${rule.close_time.slice(0, 5)}`],
+                })
+              }
+            }
+            return [...groups.entries()].map(([key, { label, times }]) => (
+              <div key={key} className="flex justify-between items-center">
+                <span className="text-espresso">{label}</span>
+                <span className="font-medium tabular-nums text-espresso">
+                  {times.join(', ')}
+                </span>
+              </div>
+            ))
+          })()}
         </div>
       )}
 
