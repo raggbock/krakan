@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 const organizationJsonLd = {
@@ -16,7 +17,39 @@ const organizationJsonLd = {
   },
 }
 
-export default function LandingPage() {
+async function getStats() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+  )
+
+  const [marketsRes, citiesRes, tablesRes] = await Promise.all([
+    supabase
+      .from('flea_markets')
+      .select('id', { count: 'exact', head: true })
+      .not('published_at', 'is', null)
+      .eq('is_deleted', false),
+    supabase
+      .from('flea_markets')
+      .select('city')
+      .not('published_at', 'is', null)
+      .eq('is_deleted', false),
+    supabase
+      .from('market_tables')
+      .select('id', { count: 'exact', head: true }),
+  ])
+
+  const marketCount = marketsRes.count ?? 0
+  const uniqueCities = new Set((citiesRes.data ?? []).map((r) => r.city)).size
+  const tableCount = tablesRes.count ?? 0
+
+  return { marketCount, uniqueCities, tableCount }
+}
+
+export default async function LandingPage() {
+  const { marketCount, uniqueCities, tableCount } = await getStats()
+  const isEarlyStage = marketCount < 10
+
   return (
     <div className="overflow-hidden">
       <script
@@ -157,7 +190,7 @@ export default function LandingPage() {
                 <h3 className="font-display text-xl font-bold">Hitta loppisar</h3>
               </div>
               <p className="text-espresso/70 leading-relaxed">
-                Sök bland hundratals loppisar efter namn, stad eller på kartan.
+                Sök bland loppisar efter namn, stad eller på kartan.
                 Filtrera permanenta butiker och tillfälliga marknader &mdash; se
                 öppettider, adress och vad som finns.
               </p>
@@ -213,34 +246,57 @@ export default function LandingPage() {
       </section>
 
       {/* ════════════════════════════════════════════
-          SOCIAL PROOF — Numbers + testimonial feel
+          STATS / SOCIAL PROOF
           ════════════════════════════════════════════ */}
       <section className="relative py-20 overflow-hidden">
-        {/* Subtle background accent */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cream-warm/30 to-transparent pointer-events-none" />
 
         <div className="relative max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
-            <StatCard number="100+" label="Loppisar" color="rust" />
-            <StatCard number="50+" label="Städer" color="forest" />
-            <StatCard number="500+" label="Bokningsbara bord" color="mustard" />
-            <StatCard number="Gratis" label="Att använda" color="lavender" />
-          </div>
-
-          {/* Quote */}
-          <div className="mt-16 text-center animate-fade-up delay-2">
-            <blockquote className="vintage-card p-8 sm:p-12 max-w-2xl mx-auto">
-              <svg width="32" height="24" viewBox="0 0 32 24" fill="none" className="mx-auto mb-4 text-rust/20">
-                <path d="M0 24V14.4C0 6.4 4.8 1.6 14.4 0l1.6 4.8C10.4 6.4 8 9.6 8 14.4h6V24H0zm18 0V14.4C18 6.4 22.8 1.6 32 0l-1.6 4.8C24.8 6.4 26 9.6 26 14.4h6V24H18z" fill="currentColor" />
-              </svg>
-              <p className="font-display text-xl sm:text-2xl font-bold text-espresso/80 leading-relaxed italic">
-                &ldquo;Äntligen slipper jag ringa runt till arrangörer &mdash;
-                jag hittar, bokar och planerar allt från mobilen.&rdquo;
+          {isEarlyStage ? (
+            <div className="text-center animate-fade-up">
+              <span className="stamp text-forest text-xs">Ny plattform</span>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold mt-4">
+                Vi har precis öppnat stigen
+              </h2>
+              <p className="text-espresso/65 mt-4 max-w-lg mx-auto text-lg leading-relaxed">
+                Fyndstigen är nytt och vi bygger upp plattformen tillsammans med
+                arrangörer och loppis-älskare runt om i Sverige. Var med från
+                början &mdash; registrera din loppis och bli en av de första.
               </p>
-              <footer className="mt-6 text-sm text-espresso/60 font-medium">
-                &mdash; Loppis-Lisa, Göteborg
-              </footer>
-            </blockquote>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
+              <StatCard number={`${marketCount}`} label="Loppisar" color="rust" />
+              <StatCard number={`${uniqueCities}`} label="Städer" color="forest" />
+              <StatCard number={`${tableCount}`} label="Bokningsbara bord" color="mustard" />
+              <StatCard number="Gratis" label="Att använda" color="lavender" />
+            </div>
+          )}
+
+          {/* CTA instead of fake quote */}
+          <div className="mt-16 text-center animate-fade-up delay-2">
+            <div className="vintage-card p-8 sm:p-12 max-w-2xl mx-auto">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="mx-auto mb-4 text-forest/30">
+                <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="2" />
+                <path d="M16 10v8M12 18h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <p className="font-display text-xl sm:text-2xl font-bold text-espresso/80 leading-relaxed">
+                Hjälp oss hitta alla loppisar i Sverige
+              </p>
+              <p className="text-espresso/60 mt-3 max-w-md mx-auto">
+                Saknas din favorit-loppis? Tipsa oss eller registrera den
+                direkt &mdash; tillsammans gör vi Fyndstigen komplett.
+              </p>
+              <Link
+                href="/profile/create-market"
+                className="inline-flex items-center gap-2 bg-forest text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm mt-6"
+              >
+                Lägg till en loppis
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -261,7 +317,7 @@ export default function LandingPage() {
               Har du en loppis?
             </h3>
             <p className="text-espresso/65 mt-2 leading-relaxed">
-              Publicera din loppis gratis och nå tusentals besökare. Hantera
+              Publicera din loppis gratis och nå fler besökare. Hantera
               bokningar, se statistik och få fler säljare &mdash; på fem minuter.
             </p>
           </div>
@@ -295,8 +351,7 @@ export default function LandingPage() {
             <span className="text-rust">vart leder din?</span>
           </h2>
           <p className="text-espresso/65 mt-5 text-lg max-w-md mx-auto">
-            Gå med tusentals loppis-älskare som redan hittat sin stig till
-            nästa fynd.
+            Bli en del av Fyndstigen och hitta ditt nästa fynd.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-8">
             <Link
