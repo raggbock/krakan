@@ -40,6 +40,7 @@ export function OpeningHoursEditor({
   const [showExceptionForm, setShowExceptionForm] = useState(false)
   const [exDate, setExDate] = useState('')
   const [exReason, setExReason] = useState('')
+  const [overlapWarning, setOverlapWarning] = useState('')
 
   const canAddRule =
     ohOpen && ohClose && ohOpen < ohClose &&
@@ -59,11 +60,26 @@ export function OpeningHoursEditor({
     )
   }
 
+  function overlaps(a: { openTime: string; closeTime: string }, b: { openTime: string; closeTime: string }) {
+    return a.openTime < b.closeTime && b.openTime < a.closeTime
+  }
+
+  function hasOverlap(prev: RuleDraft[], r: RuleDraft) {
+    return prev.some((p) => {
+      if (p.type !== r.type) return false
+      if (r.type === 'date') return p.anchorDate === r.anchorDate && overlaps(p, r)
+      return p.dayOfWeek === r.dayOfWeek && p.anchorDate === r.anchorDate && overlaps(p, r)
+    })
+  }
+
   function addRule() {
     if (!canAddRule) return
+    setOverlapWarning('')
     if (ruleType === 'date') {
       const rule = { type: ruleType, dayOfWeek: null, anchorDate: ohAnchorDate || null, openTime: ohOpen, closeTime: ohClose } as RuleDraft
-      setRules((prev) => isDuplicate(prev, rule) ? prev : [...prev, rule])
+      if (isDuplicate(rules, rule)) return
+      if (hasOverlap(rules, rule)) { setOverlapWarning('Tiderna överlappar med en befintlig tid'); return }
+      setRules((prev) => [...prev, rule])
     } else {
       const newRules = ohDays.map((day) => ({
         type: ruleType,
@@ -72,10 +88,14 @@ export function OpeningHoursEditor({
         openTime: ohOpen,
         closeTime: ohClose,
       }))
-      setRules((prev) => {
-        const unique = newRules.filter((r) => !isDuplicate(prev, r))
-        return unique.length > 0 ? [...prev, ...unique] : prev
-      })
+      const unique = newRules.filter((r) => !isDuplicate(rules, r))
+      const overlapping = unique.filter((r) => hasOverlap(rules, r))
+      if (overlapping.length > 0) {
+        const days = overlapping.map((r) => DAY_NAMES[r.dayOfWeek!]).join(', ')
+        setOverlapWarning(`Tiderna överlappar på ${days}`)
+        return
+      }
+      if (unique.length > 0) setRules((prev) => [...prev, ...unique])
     }
     setOhDays([])
     setOhAnchorDate('')
@@ -250,6 +270,10 @@ export function OpeningHoursEditor({
             />
           </div>
         </div>
+
+        {overlapWarning && (
+          <p className="text-xs text-error font-medium">{overlapWarning}</p>
+        )}
 
         <button
           type="button"

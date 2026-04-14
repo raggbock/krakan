@@ -41,14 +41,6 @@ export type FleaMarketNearBy = {
 
 // --- Opening Hours ---
 
-export type OpeningHoursItem = {
-  id: string
-  day_of_week: number | null
-  date: string | null
-  open_time: string
-  close_time: string
-}
-
 export type RuleType = 'weekly' | 'biweekly' | 'date'
 
 export type OpeningHourRule = {

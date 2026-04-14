@@ -43,9 +43,10 @@ export function checkOpeningHours(
     return { isOpen: true, hours: dateRules.map(toSlot) }
   }
 
-  // 3. Biweekly rules
+  // 3. Biweekly rules — anchor must fall on the same day of week to be valid
   const biweeklyRules = rules.filter((r) => {
     if (r.type !== 'biweekly' || r.day_of_week !== dayOfWeek || !r.anchor_date) return false
+    if (toDate(r.anchor_date).getDay() !== r.day_of_week) return false
     const weeks = weeksBetween(r.anchor_date, dateStr)
     return weeks >= 0 && weeks % 2 === 0
   })
