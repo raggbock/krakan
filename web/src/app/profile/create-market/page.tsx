@@ -389,7 +389,7 @@ export default function CreateMarketPage() {
                     >
                       <span className={ohDays.length ? 'text-espresso' : 'text-espresso/40'}>
                         {ohDays.length
-                          ? ohDays
+                          ? [...ohDays]
                               .sort((a, b) => a - b)
                               .map((d) => DAY_NAMES[d])
                               .join(', ')
