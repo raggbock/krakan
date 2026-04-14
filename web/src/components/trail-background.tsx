@@ -1,9 +1,7 @@
-'use client'
-
 /**
  * A winding trail SVG that sits behind page content.
- * The trail animates in with a stroke-dashoffset transition.
  * Small treasure icons are scattered along the path.
+ * Pure SVG — rendered as a Server Component to avoid hydration cost.
  */
 export function TrailBackground({ className = '' }: { className?: string }) {
   return (
