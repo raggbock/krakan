@@ -324,9 +324,9 @@ export default function RouteBuilder() {
                           Stängt
                         </span>
                       )}
-                      {oh && oh.isOpen && oh.hours && (
+                      {oh && oh.isOpen && oh.hours.length > 0 && (
                         <span className="text-forest text-xs font-medium shrink-0 tabular-nums">
-                          {oh.hours.open_time}–{oh.hours.close_time}
+                          {oh.hours.map((h) => `${h.open_time}–${h.close_time}`).join(', ')}
                         </span>
                       )}
 
