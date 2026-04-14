@@ -11,7 +11,6 @@ export type {
   FleaMarketDetails,
   FleaMarketNearBy,
   FleaMarketImage,
-  OpeningHoursItem,
   UserProfile,
   OrganizerProfile,
   OrganizerStats,

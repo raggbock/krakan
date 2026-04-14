@@ -153,6 +153,16 @@ describe('checkOpeningHours', () => {
     const result = checkOpeningHours(rules, [], '2026-04-25')
     expect(result).toEqual({ isOpen: false, hours: [] })
   })
+
+  it('ignores biweekly rule when anchor day_of_week mismatches', () => {
+    const rules: OpeningHourRule[] = [
+      // day_of_week=6 (Saturday) but anchor is 2026-04-20 (Monday)
+      { id: '1', type: 'biweekly', day_of_week: 6, anchor_date: '2026-04-20', open_time: '10:00', close_time: '16:00' },
+    ]
+    // 2026-05-02 is a Saturday, but the anchor is a Monday — rule is invalid
+    const result = checkOpeningHours(rules, [], '2026-05-02')
+    expect(result).toEqual({ isOpen: false, hours: [] })
+  })
 })
 
 describe('getUpcomingOpenDates', () => {
