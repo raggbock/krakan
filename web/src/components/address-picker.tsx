@@ -67,6 +67,16 @@ function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void
   return null
 }
 
+function MapCleanup() {
+  const map = useMap()
+  useEffect(() => {
+    return () => {
+      map.remove()
+    }
+  }, [map])
+  return null
+}
+
 export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: Props) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
@@ -259,6 +269,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             className="w-full h-full"
             style={{ minHeight: '240px' }}
           >
+            <MapCleanup />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

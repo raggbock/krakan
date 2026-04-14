@@ -9,6 +9,7 @@ import {
   Marker,
   Popup,
   Polyline,
+  useMap,
   useMapEvents,
 } from 'react-leaflet'
 import L from 'leaflet'
@@ -48,6 +49,16 @@ type MarketWithHours = FleaMarketNearBy & {
 type RouteStop = {
   market: MarketWithHours
   index: number
+}
+
+function MapCleanup() {
+  const map = useMap()
+  useEffect(() => {
+    return () => {
+      map.remove()
+    }
+  }, [map])
+  return null
 }
 
 export default function RouteBuilder() {
@@ -396,6 +407,7 @@ export default function RouteBuilder() {
           className="h-full w-full"
           style={{ minHeight: 0 }}
         >
+          <MapCleanup />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
