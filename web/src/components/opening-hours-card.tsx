@@ -39,7 +39,7 @@ export function OpeningHoursCard({
     const dates = upcoming.slice(0, 10).map((u) => ({ ...u, closed: false, reason: null as string | null }))
     for (const ex of exceptions) {
       if (ex.date >= today && !dates.find((d) => d.date === ex.date)) {
-        dates.push({ date: ex.date, open_time: '', close_time: '', closed: true, reason: ex.reason })
+        dates.push({ date: ex.date, hours: [], closed: true, reason: ex.reason })
       }
     }
     dates.sort((a, b) => a.date.localeCompare(b.date))
@@ -77,7 +77,9 @@ export function OpeningHoursCard({
                 {d.closed ? (
                   <span className="text-rust font-medium">Stängt{d.reason ? ` (${d.reason})` : ''}</span>
                 ) : (
-                  <span className="tabular-nums text-espresso/80">{d.open_time.slice(0, 5)} – {d.close_time.slice(0, 5)}</span>
+                  <span className="tabular-nums text-espresso/80">
+                    {d.hours.map((h) => `${h.open_time.slice(0, 5)} – ${h.close_time.slice(0, 5)}`).join(', ')}
+                  </span>
                 )}
               </div>
             ))}

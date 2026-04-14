@@ -28,7 +28,7 @@ export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
-export type { OpeningHoursResult, UpcomingDate } from './opening-hours'
+export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'
 export { optimizeRoute } from './route-optimizer'
 export type { Stop } from './route-optimizer'
 export { formatDistance, formatDuration, fetchDrivingRoute } from './routing'

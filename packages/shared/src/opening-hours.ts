@@ -1,15 +1,16 @@
 import type { OpeningHourRule, OpeningHourException } from './types'
 
+export type TimeSlot = { open_time: string; close_time: string }
+
 export type OpeningHoursResult = {
   isOpen: boolean
-  hours: { open_time: string; close_time: string } | null
+  hours: TimeSlot[]
   exception?: { reason: string | null }
 }
 
 export type UpcomingDate = {
   date: string
-  open_time: string
-  close_time: string
+  hours: TimeSlot[]
 }
 
 function toDate(dateStr: string): Date {
@@ -30,34 +31,35 @@ export function checkOpeningHours(
   // 1. Check exceptions first
   const exception = exceptions.find((e) => e.date === dateStr)
   if (exception) {
-    return { isOpen: false, hours: null, exception: { reason: exception.reason } }
+    return { isOpen: false, hours: [], exception: { reason: exception.reason } }
   }
 
   const dayOfWeek = toDate(dateStr).getDay()
+  const toSlot = (r: OpeningHourRule): TimeSlot => ({ open_time: r.open_time, close_time: r.close_time })
 
-  // 2. Date rules (highest priority)
-  const dateRule = rules.find((r) => r.type === 'date' && r.anchor_date === dateStr)
-  if (dateRule) {
-    return { isOpen: true, hours: { open_time: dateRule.open_time, close_time: dateRule.close_time } }
+  // 2. Date rules (highest priority) — if any exist for this date, use only those
+  const dateRules = rules.filter((r) => r.type === 'date' && r.anchor_date === dateStr)
+  if (dateRules.length > 0) {
+    return { isOpen: true, hours: dateRules.map(toSlot) }
   }
 
   // 3. Biweekly rules
-  const biweeklyRule = rules.find((r) => {
+  const biweeklyRules = rules.filter((r) => {
     if (r.type !== 'biweekly' || r.day_of_week !== dayOfWeek || !r.anchor_date) return false
     const weeks = weeksBetween(r.anchor_date, dateStr)
     return weeks >= 0 && weeks % 2 === 0
   })
-  if (biweeklyRule) {
-    return { isOpen: true, hours: { open_time: biweeklyRule.open_time, close_time: biweeklyRule.close_time } }
+  if (biweeklyRules.length > 0) {
+    return { isOpen: true, hours: biweeklyRules.map(toSlot) }
   }
 
   // 4. Weekly rules
-  const weeklyRule = rules.find((r) => r.type === 'weekly' && r.day_of_week === dayOfWeek)
-  if (weeklyRule) {
-    return { isOpen: true, hours: { open_time: weeklyRule.open_time, close_time: weeklyRule.close_time } }
+  const weeklyRules = rules.filter((r) => r.type === 'weekly' && r.day_of_week === dayOfWeek)
+  if (weeklyRules.length > 0) {
+    return { isOpen: true, hours: weeklyRules.map(toSlot) }
   }
 
-  return { isOpen: false, hours: null }
+  return { isOpen: false, hours: [] }
 }
 
 export function getUpcomingOpenDates(
@@ -74,8 +76,8 @@ export function getUpcomingOpenDates(
     d.setDate(d.getDate() + i)
     const dateStr = d.toISOString().slice(0, 10)
     const result = checkOpeningHours(rules, exceptions, dateStr)
-    if (result.isOpen && result.hours) {
-      results.push({ date: dateStr, open_time: result.hours.open_time, close_time: result.hours.close_time })
+    if (result.isOpen && result.hours.length > 0) {
+      results.push({ date: dateStr, hours: result.hours })
     }
   }
 

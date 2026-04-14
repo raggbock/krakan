@@ -215,9 +215,9 @@ export default function RouteViewerPage() {
                   {oh && !oh.isOpen && (
                     <span className="stamp text-error text-xs">Stängt</span>
                   )}
-                  {oh && oh.isOpen && oh.hours && (
+                  {oh && oh.isOpen && oh.hours.length > 0 && (
                     <span className="text-forest text-sm font-medium tabular-nums">
-                      {oh.hours.open_time}–{oh.hours.close_time}
+                      {oh.hours.map((h) => `${h.open_time}–${h.close_time}`).join(', ')}
                     </span>
                   )}
 
