@@ -28,6 +28,30 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       }
     },
 
+    async getOrganizerMeta(id) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, bio, website')
+        .eq('id', id)
+        .single()
+      if (!profile) return null
+
+      const { count } = await supabase
+        .from('flea_markets')
+        .select('id', { count: 'exact', head: true })
+        .eq('organizer_id', id)
+        .not('published_at', 'is', null)
+        .eq('is_deleted', false)
+
+      const name = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Arrangör'
+      return {
+        name,
+        bio: profile.bio,
+        website: profile.website,
+        marketCount: count ?? 0,
+      }
+    },
+
     async listPublishedMarketIds() {
       const { data } = await supabase
         .from('flea_markets')

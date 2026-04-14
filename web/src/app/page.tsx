@@ -1,9 +1,28 @@
 import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Fyndstigen',
+  url: 'https://fyndstigen.se',
+  description:
+    'Fyndstigen samlar loppisar och loppmarknader på ett ställe. Hitta second hand-skatter, boka bord och planera din loppisrunda.',
+  inLanguage: 'sv',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Fyndstigen',
+    url: 'https://fyndstigen.se',
+  },
+}
+
 export default function LandingPage() {
   return (
     <div className="overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       {/* ════════════════════════════════════════════
           HERO — Full-width, immersive trail opening
           ════════════════════════════════════════════ */}
@@ -79,14 +98,16 @@ export default function LandingPage() {
               Utforska loppisar
             </Link>
             <Link
-              href="/profile/create-market"
-              className="inline-flex items-center gap-2.5 bg-card text-espresso px-8 py-4 rounded-full text-base font-semibold border border-cream-warm hover:border-rust/30 hover:bg-cream-warm transition-all duration-300"
+              href="/rundor/skapa"
+              className="group inline-flex items-center gap-2.5 bg-forest text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-forest-light transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="opacity-50">
-                <line x1="10" y1="4" x2="10" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <line x1="4" y1="10" x2="16" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="opacity-80">
+                <circle cx="5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="15" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="8" cy="16" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M7 6.5L13 8M13 11L9.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
               </svg>
-              Publicera en loppis
+              Skapa runda
             </Link>
           </div>
 
@@ -225,57 +246,34 @@ export default function LandingPage() {
       </section>
 
       {/* ════════════════════════════════════════════
-          FOR ORGANIZERS — Dual CTA
+          FOR ORGANIZERS — Soft nudge
           ════════════════════════════════════════════ */}
-      <section className="max-w-5xl mx-auto px-6 py-24">
-        <div className="grid sm:grid-cols-2 gap-6">
-          {/* Visitor card */}
-          <div className="vintage-card p-8 sm:p-10 animate-fade-up">
-            <div className="w-12 h-12 rounded-xl bg-rust/10 flex items-center justify-center mb-5">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <circle cx="11" cy="11" r="9" stroke="var(--color-rust)" strokeWidth="2" />
-                <path d="M11 6v6l4 2" stroke="var(--color-rust)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <h3 className="font-display text-2xl font-bold">Letar du fynd?</h3>
-            <p className="text-espresso/70 mt-3 leading-relaxed">
-              Utforska loppisar i ditt område, spara favoriter, boka bord och
-              planera din nästa loppisrunda med vägbeskrivning.
-            </p>
-            <Link
-              href="/utforska"
-              className="inline-flex items-center gap-2 mt-6 bg-rust text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors shadow-sm"
-            >
-              Börja utforska
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
+      <section className="max-w-3xl mx-auto px-6 py-16">
+        <div className="vintage-card p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center gap-6 animate-fade-up">
+          <div className="w-14 h-14 rounded-2xl bg-mustard/10 flex items-center justify-center shrink-0">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <rect x="3" y="5" width="20" height="16" rx="3" stroke="var(--color-mustard)" strokeWidth="2" />
+              <path d="M9 13h8M13 9v8" stroke="var(--color-mustard)" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </div>
-
-          {/* Organizer card */}
-          <div className="vintage-card p-8 sm:p-10 animate-fade-up delay-1">
-            <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center mb-5">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <rect x="3" y="3" width="16" height="16" rx="3" stroke="var(--color-forest)" strokeWidth="2" />
-                <path d="M8 11h6M11 8v6" stroke="var(--color-forest)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <h3 className="font-display text-2xl font-bold">Arrangerar du loppis?</h3>
-            <p className="text-espresso/70 mt-3 leading-relaxed">
-              Nå tusentals besökare, hantera bokningar digitalt och få statistik
-              över intäkter. Publicera din loppis på fem minuter.
+          <div className="flex-1">
+            <h3 className="font-display text-xl sm:text-2xl font-bold">
+              Har du en loppis?
+            </h3>
+            <p className="text-espresso/65 mt-2 leading-relaxed">
+              Publicera din loppis gratis och nå tusentals besökare. Hantera
+              bokningar, se statistik och få fler säljare &mdash; på fem minuter.
             </p>
-            <Link
-              href="/profile/create-market"
-              className="inline-flex items-center gap-2 mt-6 bg-forest text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm"
-            >
-              Skapa din loppis
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
           </div>
+          <Link
+            href="/profile/create-market"
+            className="inline-flex items-center gap-2 bg-mustard text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-mustard-light transition-colors shadow-sm shrink-0"
+          >
+            Publicera
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
         </div>
       </section>
 

@@ -17,6 +17,13 @@ export interface ServerDataPort {
     stopCount: number
   } | null>
 
+  getOrganizerMeta(id: string): Promise<{
+    name: string
+    bio: string | null
+    website: string | null
+    marketCount: number
+  } | null>
+
   listPublishedMarketIds(): Promise<Array<{ id: string; updatedAt: string }>>
   listPublishedRouteIds(): Promise<Array<{ id: string; updatedAt: string }>>
 }
