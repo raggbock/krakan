@@ -37,13 +37,16 @@ export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
 
 type MarketMeta = Awaited<ReturnType<ServerDataPort['getMarketMeta']>>
 type RouteMeta = Awaited<ReturnType<ServerDataPort['getRouteMeta']>>
+type OrganizerMeta = Awaited<ReturnType<ServerDataPort['getOrganizerMeta']>>
 
 export function createInMemoryServerData(seed?: {
   markets?: Array<NonNullable<MarketMeta> & { id: string; updatedAt: string }>
   routes?: Array<NonNullable<RouteMeta> & { id: string; updatedAt: string }>
+  organizers?: Array<NonNullable<OrganizerMeta> & { id: string }>
 }): ServerDataPort {
   const markets = seed?.markets ?? []
   const routes = seed?.routes ?? []
+  const organizers = seed?.organizers ?? []
 
   return {
     async getMarketMeta(id) {
@@ -51,6 +54,9 @@ export function createInMemoryServerData(seed?: {
     },
     async getRouteMeta(id) {
       return routes.find((r) => r.id === id) ?? null
+    },
+    async getOrganizerMeta(id) {
+      return organizers.find((o) => o.id === id) ?? null
     },
     async listPublishedMarketIds() {
       return markets.map((m) => ({ id: m.id, updatedAt: m.updatedAt }))
