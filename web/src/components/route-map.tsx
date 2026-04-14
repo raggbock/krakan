@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteStop } from '@/lib/api'
@@ -14,6 +14,16 @@ type Props = {
   stops: RouteStop[]
   onRoutingResult?: (result: RoutingResult | null) => void
   onRoutingError?: (failed: boolean) => void
+}
+
+function MapCleanup() {
+  const map = useMap()
+  useEffect(() => {
+    return () => {
+      map.remove()
+    }
+  }, [map])
+  return null
 }
 
 export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Props) {
@@ -64,6 +74,7 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
       className="h-full w-full"
       style={{ minHeight: 0 }}
     >
+      <MapCleanup />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

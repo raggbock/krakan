@@ -21,6 +21,16 @@ const icon = new L.Icon({
 
 const DEFAULT_CENTER = { lat: 59.33, lng: 18.07 } // Stockholm fallback
 
+function MapCleanup() {
+  const map = useMap()
+  useEffect(() => {
+    return () => {
+      map.remove()
+    }
+  }, [map])
+  return null
+}
+
 function FlyToLocation({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
   useEffect(() => {
@@ -79,6 +89,7 @@ export default function MapView() {
         className="flex-1 w-full"
         style={{ minHeight: '300px' }}
       >
+        <MapCleanup />
         <FlyToLocation lat={center.lat} lng={center.lng} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
