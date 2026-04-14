@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../booking'
-import type { BookingWithDetails, BookingStatus, CreateBookingPayload } from '../types'
+import type { BookingStatus, CreateBookingPayload } from '../types'
+import { mapBookingForUser, mapBookingForOrganizer, type BookingRow } from './mappers'
 
 export function createBookingsApi(supabase: SupabaseClient) {
   return {
@@ -37,11 +38,7 @@ export function createBookingsApi(supabase: SupabaseClient) {
           .eq('booked_by', userId)
           .order('booking_date', { ascending: false })
         if (error) throw error
-        return (data ?? []).map((b: Record<string, unknown>) => ({
-          ...b,
-          market_table: b.market_tables,
-          flea_market: b.flea_markets,
-        })) as BookingWithDetails[]
+        return (data ?? []).map((b) => mapBookingForUser(b as BookingRow))
       },
 
       listByMarket: async (fleaMarketId: string) => {
@@ -56,11 +53,7 @@ export function createBookingsApi(supabase: SupabaseClient) {
           .in('status', ['pending', 'confirmed'])
           .order('booking_date')
         if (error) throw error
-        return (data ?? []).map((b: Record<string, unknown>) => ({
-          ...b,
-          market_table: b.market_tables,
-          booker: b.profiles,
-        })) as BookingWithDetails[]
+        return (data ?? []).map((b) => mapBookingForOrganizer(b as BookingRow))
       },
 
       updateStatus: async (id: string, newStatus: 'confirmed' | 'denied' | 'cancelled', note?: string) => {

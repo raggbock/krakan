@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import { api, MarketTable } from '@/lib/api'
 import { calculateCommission, COMMISSION_RATE, validateBookingDate } from '@fyndstigen/shared'
+import { supabase } from '@/lib/supabase'
 
 type DateValidation = { valid: boolean; error?: string }
 
@@ -33,6 +35,8 @@ type BookingHook = {
 }
 
 export function useBooking(marketId: string, userId: string | undefined): BookingHook {
+  const stripe = useStripe()
+  const elements = useElements()
   const [selectedTable, setSelectedTable] = useState<MarketTable | null>(null)
   const [date, setDate] = useState('')
   const [message, setMessage] = useState('')
@@ -65,29 +69,44 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   // Computed: can submit
   const canSubmit = !!selectedTable && !!date && dateValidation.valid && !!userId && !isSubmitting
 
-  async function submit() {
-    if (!canSubmit || !selectedTable) return
+  const submit = useCallback(async () => {
+    if (!canSubmit || !selectedTable || !stripe || !elements) return
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      await api.bookings.create({
-        marketTableId: selectedTable.id,
-        fleaMarketId: marketId,
-        bookedBy: userId!,
-        bookingDate: date,
-        priceSek: price,
-        message: message || undefined,
+      // 1. Create PaymentIntent via edge function
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await supabase.functions.invoke('stripe-payment-create', {
+        body: {
+          marketTableId: selectedTable.id,
+          fleaMarketId: marketId,
+          bookingDate: date,
+          message: message || undefined,
+        },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
       })
+      if (res.error) throw new Error(res.error.message || 'Failed to create payment')
+      const { clientSecret } = res.data
+
+      // 2. Confirm card payment (creates the hold)
+      const cardElement = elements.getElement(CardElement)
+      if (!cardElement) throw new Error('Card element not found')
+
+      const { error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: cardElement },
+      })
+      if (confirmError) throw new Error(confirmError.message)
+
       setIsDone(true)
       setSelectedTable(null)
       setDate('')
       setMessage('')
-    } catch {
-      setSubmitError('Något gick fel. Försök igen.')
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Något gick fel. Försök igen.')
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message])
 
   function reset() {
     setSelectedTable(null)

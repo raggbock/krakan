@@ -4,11 +4,27 @@ import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { checkOpeningHours, type OpeningHoursEntry, formatDistance, formatDuration, type RoutingResult } from '@fyndstigen/shared'
+import { checkOpeningHours, formatDistance, formatDuration, type RoutingResult } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useRoute } from '@/hooks/use-routes'
 
 const RouteMap = dynamic(() => import('@/components/route-map'), { ssr: false })
+
+function buildGoogleMapsUrl(stops: { fleaMarket?: { latitude: number; longitude: number } | null }[]) {
+  const coords = stops
+    .filter((s) => s.fleaMarket)
+    .map((s) => `${s.fleaMarket!.latitude},${s.fleaMarket!.longitude}`)
+  if (coords.length === 0) return '#'
+  const destination = coords[coords.length - 1]
+  const waypoints = coords.slice(0, -1).join('|')
+  const params = new URLSearchParams({
+    api: '1',
+    travelmode: 'driving',
+    destination,
+  })
+  if (waypoints) params.set('waypoints', waypoints)
+  return `https://www.google.com/maps/dir/?${params.toString()}`
+}
 
 export default function RouteViewerPage() {
   const { id } = useParams<{ id: string }>()
@@ -102,13 +118,41 @@ export default function RouteViewerPage() {
             </svg>
             <span className="text-sm font-medium">{formatDuration(routing.totalDuration)} med bil</span>
           </div>
+          {validStops.length > 0 && (
+            <a
+              href={buildGoogleMapsUrl(validStops)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-rust text-white rounded-full px-4 py-2 hover:bg-rust-light transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M2 14L14 2M14 2H6M14 2V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-sm font-semibold">Navigera i Google Maps</span>
+            </a>
+          )}
         </div>
       )}
 
       {routingFailed && !routing && (
-        <p className="text-xs text-espresso/60 mt-4">
-          Kunde inte beräkna vägbeskrivning. Raka linjer visas istället.
-        </p>
+        <div className="mt-4">
+          <p className="text-xs text-espresso/60 mb-3">
+            Kunde inte beräkna vägbeskrivning. Raka linjer visas istället.
+          </p>
+          {validStops.length > 0 && (
+            <a
+              href={buildGoogleMapsUrl(validStops)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-rust text-white rounded-full px-4 py-2 hover:bg-rust-light transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M2 14L14 2M14 2H6M14 2V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-sm font-semibold">Navigera i Google Maps</span>
+            </a>
+          )}
+        </div>
       )}
 
       {/* Map */}
@@ -124,7 +168,8 @@ export default function RouteViewerPage() {
             const fm = stop.fleaMarket!
             const oh = route.planned_date
               ? checkOpeningHours(
-                  (fm.openingHours ?? []) as OpeningHoursEntry[],
+                  fm.opening_hour_rules ?? [],
+                  fm.opening_hour_exceptions ?? [],
                   route.planned_date,
                 )
               : null

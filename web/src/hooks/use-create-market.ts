@@ -2,12 +2,26 @@
 
 import { useState } from 'react'
 import { api, geo } from '@/lib/api'
+import { GeocodeError } from '@fyndstigen/shared'
 
 type TableDraft = {
   label: string
   description: string
   priceSek: number
   sizeDescription: string
+}
+
+export type RuleDraft = {
+  type: 'weekly' | 'biweekly' | 'date'
+  dayOfWeek: number | null
+  anchorDate: string | null
+  openTime: string
+  closeTime: string
+}
+
+export type ExceptionDraft = {
+  date: string
+  reason: string | null
 }
 
 export type CreateMarketInput = {
@@ -20,6 +34,9 @@ export type CreateMarketInput = {
   organizerId: string
   tables: TableDraft[]
   images: File[]
+  openingHours: RuleDraft[]
+  openingHourExceptions: ExceptionDraft[]
+  coordinates?: { latitude: number; longitude: number }
 }
 
 type Progress = 'idle' | 'geocoding' | 'creating' | 'tables' | 'images' | 'publishing'
@@ -35,11 +52,19 @@ export function useCreateMarket() {
     setProgress('geocoding')
 
     try {
-      // Geocode address
-      const coords = await geo.geocode(
-        `${input.street.trim()}, ${input.zipCode.trim()} ${input.city.trim()}, Sweden`,
-      )
-      const { lat: latitude, lng: longitude } = coords
+      // Use pre-computed coordinates from map picker, or fall back to geocoding
+      let latitude: number
+      let longitude: number
+      if (input.coordinates) {
+        latitude = input.coordinates.latitude
+        longitude = input.coordinates.longitude
+      } else {
+        const coords = await geo.geocode(
+          `${input.street.trim()}, ${input.zipCode.trim()} ${input.city.trim()}, Sweden`,
+        )
+        latitude = coords.lat
+        longitude = coords.lng
+      }
 
       // Create market
       setProgress('creating')
@@ -55,8 +80,13 @@ export function useCreateMarket() {
         },
         isPermanent: input.isPermanent,
         organizerId: input.organizerId,
-        openingHours: [],
+        openingHours: input.openingHours,
+        openingHourExceptions: input.openingHourExceptions,
       })
+
+      // Publish first so the market is visible on the map
+      setProgress('publishing')
+      await api.fleaMarkets.publish(id)
 
       // Create tables
       setProgress('tables')
@@ -70,7 +100,7 @@ export function useCreateMarket() {
             sizeDescription: table.sizeDescription || undefined,
           })
         } catch {
-          setError(`Kunde inte skapa bord "${table.label}". Loppisen sparades som utkast.`)
+          setError(`Kunde inte skapa bord "${table.label}". Loppisen publicerades men vissa bord sparades inte.`)
           return { id }
         }
       }
@@ -81,18 +111,18 @@ export function useCreateMarket() {
         try {
           await api.images.upload(id, file)
         } catch {
-          setError('Kunde inte ladda upp alla bilder. Loppisen sparades som utkast.')
+          setError('Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.')
           return { id }
         }
       }
 
-      // Publish
-      setProgress('publishing')
-      await api.fleaMarkets.publish(id)
-
       return { id }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Något gick fel')
+      if (err instanceof GeocodeError) {
+        setError('Kunde inte hitta adressen. Välj plats på kartan istället.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Något gick fel')
+      }
       return null
     } finally {
       setIsSubmitting(false)

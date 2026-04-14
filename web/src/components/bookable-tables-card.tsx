@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { Elements, CardElement } from '@stripe/react-stripe-js'
 import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
+import { stripePromise } from '@/lib/stripe'
 
-export function BookableTablesCard({
+function BookableTablesInner({
   fleaMarketId,
   tables,
 }: {
@@ -33,7 +35,7 @@ export function BookableTablesCard({
 
           {booking.isDone && (
             <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-4">
-              Bokningsförfrågan skickad! Arrangören återkommer.
+              Bokning skickad! Beloppet är reserverat tills arrangören svarar.
             </div>
           )}
 
@@ -92,6 +94,25 @@ export function BookableTablesCard({
                           className="w-full rounded-lg bg-card px-3 py-2 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
                         />
                       </div>
+                      <div>
+                        <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                          Kortuppgifter
+                        </label>
+                        <div className="rounded-lg bg-card px-3 py-2.5 border border-cream-warm focus-within:border-rust/40 transition-all">
+                          <CardElement
+                            options={{
+                              style: {
+                                base: {
+                                  fontSize: '14px',
+                                  color: '#3D2B1F',
+                                  '::placeholder': { color: '#3D2B1F40' },
+                                },
+                                invalid: { color: '#C0392B' },
+                              },
+                            }}
+                          />
+                        </div>
+                      </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-espresso/60">
                           {booking.totalPrice} kr (inkl {booking.commission} kr avgift)
@@ -102,7 +123,7 @@ export function BookableTablesCard({
                             disabled={!booking.canSubmit}
                             className="bg-rust text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
                           >
-                            {booking.isSubmitting ? 'Skickar...' : 'Skicka förfrågan'}
+                            {booking.isSubmitting ? 'Behandlar...' : 'Boka & reservera'}
                           </button>
                         ) : (
                           <Link href="/auth" className="text-rust text-xs font-semibold">
@@ -122,5 +143,25 @@ export function BookableTablesCard({
         </div>
       </div>
     </div>
+  )
+}
+
+export function BookableTablesCard({
+  fleaMarketId,
+  tables,
+}: {
+  fleaMarketId: string
+  tables: MarketTable[]
+}) {
+  if (!stripePromise) {
+    return (
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={tables} />
+    )
+  }
+
+  return (
+    <Elements stripe={stripePromise}>
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={tables} />
+    </Elements>
   )
 }

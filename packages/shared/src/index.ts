@@ -9,6 +9,7 @@ export * from './types'
 export {
   COMMISSION_RATE,
   calculateCommission,
+  calculateStripeAmounts,
   isValidStatusTransition,
   validateBookingDate,
   generateBatchLabels,
@@ -22,12 +23,12 @@ export { createSupabaseAdapters, createSupabaseAuth, createSupabaseServerData } 
 export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memory'
 
 // Geo
-export { createGeo } from './geo'
+export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Utilities
-export { checkOpeningHours } from './opening-hours'
-export type { OpeningHoursEntry } from './opening-hours'
+export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
+export type { OpeningHoursResult, UpcomingDate } from './opening-hours'
 export { optimizeRoute } from './route-optimizer'
 export type { Stop } from './route-optimizer'
 export { formatDistance, formatDuration, fetchDrivingRoute } from './routing'

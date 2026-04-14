@@ -1,4 +1,4 @@
-import { createGeo } from '@fyndstigen/shared'
+import { createGeo, GeocodeError } from '@fyndstigen/shared'
 
 // Minimal Supabase mock for geo service (only nearbyMarkets uses it)
 const mockSupabase = {
@@ -25,37 +25,25 @@ describe('createGeo', () => {
       expect(result).toEqual({ lat: 59.33, lng: 18.07 })
     })
 
-    it('returns fallback when no results', async () => {
+    it('throws GeocodeError when no results', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         json: () => Promise.resolve([]),
       })
 
       const geo = createGeo(mockSupabase)
-      const result = await geo.geocode('xyznonexistent')
 
-      // Default fallback is Stockholm
-      expect(result).toEqual({ lat: 59.33, lng: 18.07 })
+      await expect(geo.geocode('xyznonexistent')).rejects.toThrow(GeocodeError)
     })
 
-    it('returns fallback on network error', async () => {
+    it('throws GeocodeError on network error', async () => {
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
 
       const geo = createGeo(mockSupabase)
-      const result = await geo.geocode('Stockholm')
 
-      expect(result).toEqual({ lat: 59.33, lng: 18.07 })
+      await expect(geo.geocode('Stockholm')).rejects.toThrow(GeocodeError)
     })
 
-    it('returns custom fallback on failure', async () => {
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error('fail'))
-
-      const geo = createGeo(mockSupabase, { fallback: { lat: 57.7, lng: 11.97 } })
-      const result = await geo.geocode('whatever')
-
-      expect(result).toEqual({ lat: 57.7, lng: 11.97 })
-    })
-
-    it('returns fallback on timeout (abort)', async () => {
+    it('throws GeocodeError on timeout (abort)', async () => {
       globalThis.fetch = vi.fn().mockImplementation(
         (_url: string, opts: { signal: AbortSignal }) =>
           new Promise((_resolve, reject) => {
@@ -64,9 +52,8 @@ describe('createGeo', () => {
       )
 
       const geo = createGeo(mockSupabase, { timeoutMs: 50 })
-      const result = await geo.geocode('Slow address')
 
-      expect(result).toEqual({ lat: 59.33, lng: 18.07 })
+      await expect(geo.geocode('Slow address')).rejects.toThrow(GeocodeError)
     })
   })
 

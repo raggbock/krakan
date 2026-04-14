@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
+import { GeocodeError } from '@fyndstigen/shared'
 import { useCreateMarket, type CreateMarketInput } from './use-create-market'
 
 vi.mock('@/lib/api', () => ({
@@ -31,6 +32,8 @@ const baseInput: CreateMarketInput = {
   organizerId: 'user-1',
   tables: [{ label: 'Bord 1', description: '', priceSek: 200, sizeDescription: '2x1m' }],
   images: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })],
+  openingHours: [{ type: 'weekly', dayOfWeek: 6, anchorDate: null, openTime: '10:00', closeTime: '16:00' }],
+  openingHourExceptions: [],
 }
 
 describe('useCreateMarket', () => {
@@ -71,12 +74,12 @@ describe('useCreateMarket', () => {
       outcome = await result.current.submit(baseInput)
     })
 
-    // Market was created, returned as draft
+    // Market was created and published, but table creation failed
     expect(outcome).toEqual({ id: 'market-1' })
     expect(result.current.error).toContain('Bord 1')
-    expect(result.current.error).toContain('utkast')
-    // Publish should NOT have been called
-    expect(api.fleaMarkets.publish).not.toHaveBeenCalled()
+    expect(result.current.error).toContain('publicerades')
+    // Publish was already called before tables
+    expect(api.fleaMarkets.publish).toHaveBeenCalledWith('market-1')
   })
 
   it('returns id but sets error on image upload failure', async () => {
@@ -91,7 +94,22 @@ describe('useCreateMarket', () => {
 
     expect(outcome).toEqual({ id: 'market-1' })
     expect(result.current.error).toContain('bilder')
-    expect(api.fleaMarkets.publish).not.toHaveBeenCalled()
+    // Publish was already called before images
+    expect(api.fleaMarkets.publish).toHaveBeenCalledWith('market-1')
+  })
+
+  it('shows user-friendly error when geocoding fails', async () => {
+    vi.mocked(geo.geocode).mockRejectedValue(new GeocodeError('Storgatan 1, 111 22 Stockholm, Sweden'))
+
+    const { result } = renderHook(() => useCreateMarket())
+
+    let outcome: { id: string } | null = null
+    await act(async () => {
+      outcome = await result.current.submit(baseInput)
+    })
+
+    expect(outcome).toBeNull()
+    expect(result.current.error).toBe('Kunde inte hitta adressen. Välj plats på kartan istället.')
   })
 
   it('returns null on market creation failure', async () => {

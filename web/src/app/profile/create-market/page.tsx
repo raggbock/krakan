@@ -1,11 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { useCreateMarket } from '@/hooks/use-create-market'
+import { useCreateMarket, type RuleDraft, type ExceptionDraft } from '@/hooks/use-create-market'
+import { useStripeConnect } from '@/hooks/use-stripe-connect'
+import type { AddressValue } from '@/components/address-picker'
+
+const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
 
 type TableDraft = {
   label: string
@@ -14,22 +19,101 @@ type TableDraft = {
   sizeDescription: string
 }
 
+const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
+
 export default function CreateMarketPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
 
   const [step, setStep] = useState<1 | 2>(1)
   const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
+  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(user?.id)
 
   // Step 1: Market info
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [street, setStreet] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [city, setCity] = useState('')
+  const [address, setAddress] = useState<AddressValue>({
+    street: '',
+    zipCode: '',
+    city: '',
+    latitude: null,
+    longitude: null,
+  })
   const [isPermanent, setIsPermanent] = useState(true)
   const [images, setImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+
+  // Opening hours — rule-based
+  const [rules, setRules] = useState<RuleDraft[]>([])
+  const [exceptions, setExceptions] = useState<ExceptionDraft[]>([])
+  const [ruleType, setRuleType] = useState<'weekly' | 'biweekly' | 'date'>('weekly')
+  const [ohDays, setOhDays] = useState<number[]>([])
+  const [ohDaysOpen, setOhDaysOpen] = useState(false)
+  const ohDaysRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ohDaysOpen) return
+    function handleClick(e: MouseEvent) {
+      if (ohDaysRef.current && !ohDaysRef.current.contains(e.target as Node)) {
+        setOhDaysOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [ohDaysOpen])
+  const [ohAnchorDate, setOhAnchorDate] = useState('')
+  const [ohOpen, setOhOpen] = useState('10:00')
+  const [ohClose, setOhClose] = useState('16:00')
+  const [showExceptionForm, setShowExceptionForm] = useState(false)
+  const [exDate, setExDate] = useState('')
+  const [exReason, setExReason] = useState('')
+
+  const canAddRule =
+    ohOpen && ohClose && ohOpen < ohClose &&
+    (ruleType === 'date' ? !!ohAnchorDate : ohDays.length > 0) &&
+    (ruleType === 'biweekly' ? !!ohAnchorDate : true)
+
+  function toggleDay(day: number) {
+    setOhDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    )
+  }
+
+  function addRule() {
+    if (!canAddRule) return
+    if (ruleType === 'date') {
+      setRules((prev) => [
+        ...prev,
+        { type: ruleType, dayOfWeek: null, anchorDate: ohAnchorDate || null, openTime: ohOpen, closeTime: ohClose },
+      ])
+    } else {
+      const newRules = ohDays.map((day) => ({
+        type: ruleType,
+        dayOfWeek: day,
+        anchorDate: ohAnchorDate || null,
+        openTime: ohOpen,
+        closeTime: ohClose,
+      }))
+      setRules((prev) => [...prev, ...newRules])
+    }
+    setOhDays([])
+    setOhAnchorDate('')
+  }
+
+  function formatRuleLabel(r: RuleDraft): string {
+    if (r.type === 'weekly') return `Varje ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}`
+    if (r.type === 'biweekly') {
+      const anchor = r.anchorDate
+        ? ` från ${new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}`
+        : ''
+      return `Varannan ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}${anchor}`
+    }
+    return new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
@@ -103,17 +187,22 @@ export default function CreateMarketPage() {
   }
 
   async function handleSubmit() {
-    if (!user || !name.trim() || !street.trim() || !city.trim()) return
+    if (!user || !name.trim() || !address.street.trim() || !address.city.trim()) return
     const result = await createMarket({
       name: name.trim(),
       description: description.trim(),
-      street: street.trim(),
-      zipCode: zipCode.trim(),
-      city: city.trim(),
+      street: address.street.trim(),
+      zipCode: address.zipCode.trim(),
+      city: address.city.trim(),
       isPermanent,
       organizerId: user.id,
       tables,
       images,
+      openingHours: rules,
+      openingHourExceptions: exceptions,
+      coordinates: address.latitude && address.longitude
+        ? { latitude: address.latitude, longitude: address.longitude }
+        : undefined,
     })
     if (result) {
       router.push(`/fleamarkets/${result.id}`)
@@ -198,45 +287,7 @@ export default function CreateMarketPage() {
             />
           </div>
 
-          <div>
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-              Gatuadress *
-            </label>
-            <input
-              type="text"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="Storgatan 1"
-              className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Postnummer
-              </label>
-              <input
-                type="text"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-                placeholder="702 11"
-                className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Stad *
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Örebro"
-                className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-              />
-            </div>
-          </div>
+          <AddressPicker value={address} onChange={setAddress} />
 
           <div>
             <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
@@ -260,6 +311,263 @@ export default function CreateMarketPage() {
                 Tillfällig
               </button>
             </div>
+          </div>
+
+          {/* Opening hours */}
+          <div>
+            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
+              Öppettider
+            </label>
+
+            {/* Rules list */}
+            {rules.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {rules.map((r, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
+                  >
+                    <span className="text-sm">{formatRuleLabel(r)}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium tabular-nums">
+                        {r.openTime} &ndash; {r.closeTime}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setRules((prev) => prev.filter((_, j) => j !== i))}
+                        className="text-espresso/20 hover:text-error transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-3 bg-parchment rounded-xl p-4">
+              {/* Step 1: Type selector */}
+              <div>
+                <label className="text-xs font-semibold text-espresso/60 block mb-2">
+                  Typ av öppettid
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: 'weekly' as const, label: 'Varje vecka' },
+                    { value: 'biweekly' as const, label: 'Varannan vecka' },
+                    { value: 'date' as const, label: 'Specifikt datum' },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => { setRuleType(opt.value); setOhDays([]); setOhDaysOpen(false); setOhAnchorDate('') }}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+                        ruleType === opt.value
+                          ? 'bg-card text-espresso border-rust/40 shadow-sm'
+                          : 'bg-card/50 text-espresso/50 border-cream-warm hover:border-espresso/20'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 2: Details (varies by type) */}
+              <div className="grid grid-cols-2 gap-3">
+                {ruleType !== 'date' && (
+                  <div ref={ohDaysRef} className={`relative ${ruleType === 'biweekly' ? '' : 'col-span-2'}`}>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Veckodagar
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setOhDaysOpen((v) => !v)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 text-left flex items-center justify-between"
+                    >
+                      <span className={ohDays.length ? 'text-espresso' : 'text-espresso/40'}>
+                        {ohDays.length
+                          ? ohDays
+                              .sort((a, b) => a - b)
+                              .map((d) => DAY_NAMES[d])
+                              .join(', ')
+                          : 'Välj dagar'}
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${ohDaysOpen ? 'rotate-180' : ''}`}>
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                    {ohDaysOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-card rounded-lg border border-cream-warm shadow-lg py-1">
+                        {DAY_NAMES.map((dayName, i) => (
+                          <label
+                            key={i}
+                            className="flex items-center gap-2.5 px-3 py-2 hover:bg-parchment cursor-pointer text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={ohDays.includes(i)}
+                              onChange={() => toggleDay(i)}
+                              className="accent-rust w-4 h-4"
+                            />
+                            {dayName}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {ruleType === 'biweekly' && (
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Första tillfället
+                    </label>
+                    <input
+                      type="date"
+                      value={ohAnchorDate}
+                      onChange={(e) => setOhAnchorDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                )}
+                {ruleType === 'date' && (
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Datum
+                    </label>
+                    <input
+                      type="date"
+                      value={ohAnchorDate}
+                      onChange={(e) => setOhAnchorDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Öppnar
+                  </label>
+                  <input
+                    type="time"
+                    value={ohOpen}
+                    onChange={(e) => setOhOpen(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Stänger
+                  </label>
+                  <input
+                    type="time"
+                    value={ohClose}
+                    onChange={(e) => setOhClose(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={addRule}
+                disabled={!canAddRule}
+                className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+              >
+                + Lägg till tid
+              </button>
+            </div>
+
+            {/* Exceptions */}
+            {exceptions.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {exceptions.map((ex, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
+                  >
+                    <span className="text-sm">
+                      {new Date(ex.date + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {ex.reason && <span className="text-espresso/50 ml-1.5">({ex.reason})</span>}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setExceptions((prev) => prev.filter((_, j) => j !== i))}
+                      className="text-espresso/20 hover:text-error transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showExceptionForm ? (
+              <div className="space-y-3 bg-parchment rounded-xl p-4 mt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Datum
+                    </label>
+                    <input
+                      type="date"
+                      value={exDate}
+                      onChange={(e) => setExDate(e.target.value)}
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                      Anledning (valfri)
+                    </label>
+                    <input
+                      type="text"
+                      value={exReason}
+                      onChange={(e) => setExReason(e.target.value)}
+                      placeholder="T.ex. helgdag"
+                      className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 placeholder:text-espresso/25"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowExceptionForm(false); setExDate(''); setExReason('') }}
+                    className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors"
+                  >
+                    Avbryt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!exDate) return
+                      setExceptions((prev) => [...prev, { date: exDate, reason: exReason || null }])
+                      setExDate('')
+                      setExReason('')
+                      setShowExceptionForm(false)
+                    }}
+                    disabled={!exDate}
+                    className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+                  >
+                    + Lägg till
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowExceptionForm(true)}
+                className="w-full mt-3 h-9 rounded-lg text-sm font-semibold text-espresso/40 hover:text-espresso/60 transition-colors"
+              >
+                + Lägg till undantag (stängd dag)
+              </button>
+            )}
           </div>
 
           {/* Images */}
@@ -306,7 +614,7 @@ export default function CreateMarketPage() {
 
           <button
             onClick={() => setStep(2)}
-            disabled={!name.trim() || !street.trim() || !city.trim()}
+            disabled={!name.trim() || !address.street.trim() || !address.city.trim()}
             className="w-full h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm mt-2"
           >
             Nästa &mdash; Lägg till bord
@@ -469,6 +777,13 @@ export default function CreateMarketPage() {
             </div>
           )}
 
+          {!stripeLoading && !stripeReady && (
+            <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-4">
+              <Link href="/profile" className="underline font-semibold">Koppla betalning</Link>
+              {' '}i din profil innan du kan publicera.
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button
               onClick={() => setStep(1)}
@@ -478,7 +793,7 @@ export default function CreateMarketPage() {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || !stripeReady}
               className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
             >
               {saving

@@ -1,29 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketDetails, FleaMarketImage, MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import type { RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
+import type { AddressValue } from '@/components/address-picker'
 
-const DAY_NAMES = [
-  'Söndag',
-  'Måndag',
-  'Tisdag',
-  'Onsdag',
-  'Torsdag',
-  'Fredag',
-  'Lördag',
-]
+const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
 
-type OpeningHourDraft = {
-  dayOfWeek: number | null
-  date: string | null
-  openTime: string
-  closeTime: string
-}
+const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
 
 type TableDraft = {
   id?: string
@@ -46,17 +36,39 @@ export default function EditMarketPage() {
   // Market info
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [street, setStreet] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [city, setCity] = useState('')
+  const [address, setAddress] = useState<AddressValue>({
+    street: '',
+    zipCode: '',
+    city: '',
+    latitude: null,
+    longitude: null,
+  })
   const [isPermanent, setIsPermanent] = useState(true)
 
-  // Opening hours
-  const [openingHours, setOpeningHours] = useState<OpeningHourDraft[]>([])
-  const [ohDay, setOhDay] = useState<string>('')
-  const [ohDate, setOhDate] = useState('')
+  // Opening hours — rule-based
+  const [rules, setRules] = useState<RuleDraft[]>([])
+  const [exceptions, setExceptions] = useState<ExceptionDraft[]>([])
+  const [ruleType, setRuleType] = useState<'weekly' | 'biweekly' | 'date'>('weekly')
+  const [ohDays, setOhDays] = useState<number[]>([])
+  const [ohDaysOpen, setOhDaysOpen] = useState(false)
+  const ohDaysRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ohDaysOpen) return
+    function handleClick(e: MouseEvent) {
+      if (ohDaysRef.current && !ohDaysRef.current.contains(e.target as Node)) {
+        setOhDaysOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [ohDaysOpen])
+  const [ohAnchorDate, setOhAnchorDate] = useState('')
   const [ohOpen, setOhOpen] = useState('10:00')
   const [ohClose, setOhClose] = useState('16:00')
+  const [showExceptionForm, setShowExceptionForm] = useState(false)
+  const [exDate, setExDate] = useState('')
+  const [exReason, setExReason] = useState('')
 
   // Images
   const [existingImages, setExistingImages] = useState<FleaMarketImage[]>([])
@@ -89,18 +101,31 @@ export default function EditMarketPage() {
 
       setName(market.name)
       setDescription(market.description ?? '')
-      setStreet(market.street)
-      setZipCode(market.zip_code ?? '')
-      setCity(market.city)
+      setAddress({
+        street: market.street,
+        zipCode: market.zip_code ?? '',
+        city: market.city,
+        latitude: market.latitude ?? null,
+        longitude: market.longitude ?? null,
+      })
       setIsPermanent(market.is_permanent)
 
-      if (market.opening_hours?.length) {
-        setOpeningHours(
-          market.opening_hours.map((oh) => ({
-            dayOfWeek: oh.day_of_week,
-            date: oh.date,
-            openTime: oh.open_time,
-            closeTime: oh.close_time,
+      if (market.opening_hour_rules?.length) {
+        setRules(
+          market.opening_hour_rules.map((r) => ({
+            type: r.type as 'weekly' | 'biweekly' | 'date',
+            dayOfWeek: r.day_of_week,
+            anchorDate: r.anchor_date,
+            openTime: r.open_time,
+            closeTime: r.close_time,
+          })),
+        )
+      }
+      if (market.opening_hour_exceptions?.length) {
+        setExceptions(
+          market.opening_hour_exceptions.map((ex) => ({
+            date: ex.date,
+            reason: ex.reason,
           })),
         )
       }
@@ -120,28 +145,51 @@ export default function EditMarketPage() {
   }
 
   // --- Opening hours ---
-  function addOpeningHour() {
-    if (!ohOpen || !ohClose) return
-    if (ohOpen >= ohClose) {
-      setError('Stängningstid måste vara senare än öppningstid')
-      return
-    }
-    const draft: OpeningHourDraft = {
-      dayOfWeek: ohDay !== '' ? parseInt(ohDay, 10) : null,
-      date: ohDate || null,
-      openTime: ohOpen,
-      closeTime: ohClose,
-    }
-    if (draft.dayOfWeek === null && !draft.date) return
-    setOpeningHours((prev) => [...prev, draft])
-    setOhDay('')
-    setOhDate('')
-    setOhOpen('10:00')
-    setOhClose('16:00')
+  const canAddRule =
+    ohOpen && ohClose && ohOpen < ohClose &&
+    (ruleType === 'date' ? !!ohAnchorDate : ohDays.length > 0) &&
+    (ruleType === 'biweekly' ? !!ohAnchorDate : true)
+
+  function toggleDay(day: number) {
+    setOhDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    )
   }
 
-  function removeOpeningHour(idx: number) {
-    setOpeningHours((prev) => prev.filter((_, i) => i !== idx))
+  function addRule() {
+    if (!canAddRule) return
+    if (ruleType === 'date') {
+      setRules((prev) => [
+        ...prev,
+        { type: ruleType, dayOfWeek: null, anchorDate: ohAnchorDate || null, openTime: ohOpen, closeTime: ohClose },
+      ])
+    } else {
+      const newRules = ohDays.map((day) => ({
+        type: ruleType,
+        dayOfWeek: day,
+        anchorDate: ohAnchorDate || null,
+        openTime: ohOpen,
+        closeTime: ohClose,
+      }))
+      setRules((prev) => [...prev, ...newRules])
+    }
+    setOhDays([])
+    setOhAnchorDate('')
+  }
+
+  function formatRuleLabel(r: RuleDraft): string {
+    if (r.type === 'weekly') return `Varje ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}`
+    if (r.type === 'biweekly') {
+      const anchor = r.anchorDate
+        ? ` från ${new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}`
+        : ''
+      return `Varannan ${DAY_NAMES[r.dayOfWeek!]?.toLowerCase()}${anchor}`
+    }
+    return new Date(r.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
   }
 
   // --- Images ---
@@ -206,29 +254,38 @@ export default function EditMarketPage() {
 
   // --- Submit ---
   async function handleSubmit() {
-    if (!user || !name.trim() || !street.trim() || !city.trim()) return
+    if (!user || !name.trim() || !address.street.trim() || !address.city.trim()) return
     setSaving(true)
     setError('')
     setSuccess('')
 
     try {
-      // Geocode
-      const coords = await geo.geocode(`${street.trim()}, ${zipCode.trim()} ${city.trim()}, Sweden`)
-      const { lat: latitude, lng: longitude } = coords
+      // Use map coordinates if available, otherwise geocode
+      let latitude: number
+      let longitude: number
+      if (address.latitude && address.longitude) {
+        latitude = address.latitude
+        longitude = address.longitude
+      } else {
+        const coords = await geo.geocode(`${address.street.trim()}, ${address.zipCode.trim()} ${address.city.trim()}, Sweden`)
+        latitude = coords.lat
+        longitude = coords.lng
+      }
 
       // Update market
       await api.fleaMarkets.update(id, {
         name: name.trim(),
         description: description.trim(),
         address: {
-          street: street.trim(),
-          zipCode: zipCode.trim(),
-          city: city.trim(),
+          street: address.street.trim(),
+          zipCode: address.zipCode.trim(),
+          city: address.city.trim(),
           country: 'Sweden',
           location: { latitude, longitude },
         },
         isPermanent,
-        openingHours,
+        openingHours: rules,
+        openingHourExceptions: exceptions,
       })
 
       // Delete removed images
@@ -362,42 +419,7 @@ export default function EditMarketPage() {
               />
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                Gatuadress *
-              </label>
-              <input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                  Postnummer
-                </label>
-                <input
-                  type="text"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-                  Stad *
-                </label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-                />
-              </div>
-            </div>
+            <AddressPicker value={address} onChange={setAddress} inputBg="bg-parchment" />
 
             <div>
               <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
@@ -429,24 +451,22 @@ export default function EditMarketPage() {
         <section className="vintage-card p-6 animate-fade-up delay-1">
           <h2 className="font-display font-bold text-lg mb-4">Öppettider</h2>
 
-          {openingHours.length > 0 && (
+          {/* Rules list */}
+          {rules.length > 0 && (
             <div className="space-y-2 mb-4">
-              {openingHours.map((oh, i) => (
+              {rules.map((r, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
                 >
-                  <span className="text-sm">
-                    {oh.dayOfWeek != null
-                      ? DAY_NAMES[oh.dayOfWeek]
-                      : oh.date}
-                  </span>
+                  <span className="text-sm">{formatRuleLabel(r)}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium tabular-nums">
-                      {oh.openTime} &ndash; {oh.closeTime}
+                      {r.openTime} &ndash; {r.closeTime}
                     </span>
                     <button
-                      onClick={() => removeOpeningHour(i)}
+                      type="button"
+                      onClick={() => setRules((prev) => prev.filter((_, j) => j !== i))}
                       className="text-espresso/20 hover:text-error transition-colors"
                     >
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -460,34 +480,105 @@ export default function EditMarketPage() {
           )}
 
           <div className="space-y-3 bg-parchment rounded-xl p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                  Veckodag
-                </label>
-                <select
-                  value={ohDay}
-                  onChange={(e) => { setOhDay(e.target.value); if (e.target.value) setOhDate('') }}
-                  className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
-                >
-                  <option value="">Inget (använd datum)</option>
-                  {DAY_NAMES.map((name, i) => (
-                    <option key={i} value={i}>{name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                  Specifikt datum
-                </label>
-                <input
-                  type="date"
-                  value={ohDate}
-                  onChange={(e) => { setOhDate(e.target.value); if (e.target.value) setOhDay('') }}
-                  className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
-                />
+            {/* Step 1: Type selector */}
+            <div>
+              <label className="text-xs font-semibold text-espresso/60 block mb-2">
+                Typ av öppettid
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'weekly' as const, label: 'Varje vecka' },
+                  { value: 'biweekly' as const, label: 'Varannan vecka' },
+                  { value: 'date' as const, label: 'Specifikt datum' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { setRuleType(opt.value); setOhDays([]); setOhDaysOpen(false); setOhAnchorDate('') }}
+                    className={`py-2.5 rounded-lg text-xs font-semibold transition-all border ${
+                      ruleType === opt.value
+                        ? 'bg-card text-espresso border-rust/40 shadow-sm'
+                        : 'bg-card/50 text-espresso/50 border-cream-warm hover:border-espresso/20'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Step 2: Details (varies by type) */}
+            <div className="grid grid-cols-2 gap-3">
+              {ruleType !== 'date' && (
+                <div ref={ohDaysRef} className={`relative ${ruleType === 'biweekly' ? '' : 'col-span-2'}`}>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Veckodagar
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setOhDaysOpen((v) => !v)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 text-left flex items-center justify-between"
+                  >
+                    <span className={ohDays.length ? 'text-espresso' : 'text-espresso/40'}>
+                      {ohDays.length
+                        ? ohDays
+                            .sort((a, b) => a - b)
+                            .map((d) => DAY_NAMES[d])
+                            .join(', ')
+                        : 'Välj dagar'}
+                    </span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${ohDaysOpen ? 'rotate-180' : ''}`}>
+                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  {ohDaysOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-card rounded-lg border border-cream-warm shadow-lg py-1">
+                      {DAY_NAMES.map((dayName, i) => (
+                        <label
+                          key={i}
+                          className="flex items-center gap-2.5 px-3 py-2 hover:bg-parchment cursor-pointer text-sm"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={ohDays.includes(i)}
+                            onChange={() => toggleDay(i)}
+                            className="accent-rust w-4 h-4"
+                          />
+                          {dayName}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {ruleType === 'biweekly' && (
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Första tillfället
+                  </label>
+                  <input
+                    type="date"
+                    value={ohAnchorDate}
+                    onChange={(e) => setOhAnchorDate(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+              )}
+              {ruleType === 'date' && (
+                <div className="col-span-2">
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Datum
+                  </label>
+                  <input
+                    type="date"
+                    value={ohAnchorDate}
+                    onChange={(e) => setOhAnchorDate(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-espresso/60 block mb-1">
@@ -512,14 +603,103 @@ export default function EditMarketPage() {
                 />
               </div>
             </div>
+
             <button
-              onClick={addOpeningHour}
-              disabled={(!ohDay && !ohDate) || !ohOpen || !ohClose}
+              type="button"
+              onClick={addRule}
+              disabled={!canAddRule}
               className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
             >
               + Lägg till tid
             </button>
           </div>
+
+          {/* Exceptions */}
+          {exceptions.length > 0 && (
+            <div className="space-y-2 mt-4">
+              {exceptions.map((ex, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between bg-parchment rounded-xl px-4 py-3"
+                >
+                  <span className="text-sm">
+                    {new Date(ex.date + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {ex.reason && <span className="text-espresso/50 ml-1.5">({ex.reason})</span>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setExceptions((prev) => prev.filter((_, j) => j !== i))}
+                    className="text-espresso/20 hover:text-error transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {showExceptionForm ? (
+            <div className="space-y-3 bg-parchment rounded-xl p-4 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Datum
+                  </label>
+                  <input
+                    type="date"
+                    value={exDate}
+                    onChange={(e) => setExDate(e.target.value)}
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                    Anledning (valfri)
+                  </label>
+                  <input
+                    type="text"
+                    value={exReason}
+                    onChange={(e) => setExReason(e.target.value)}
+                    placeholder="T.ex. helgdag"
+                    className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 placeholder:text-espresso/25"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowExceptionForm(false); setExDate(''); setExReason('') }}
+                  className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors"
+                >
+                  Avbryt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!exDate) return
+                    setExceptions((prev) => [...prev, { date: exDate, reason: exReason || null }])
+                    setExDate('')
+                    setExReason('')
+                    setShowExceptionForm(false)
+                  }}
+                  disabled={!exDate}
+                  className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+                >
+                  + Lägg till
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowExceptionForm(true)}
+              className="w-full mt-4 h-9 rounded-lg text-sm font-semibold text-espresso/40 hover:text-espresso/60 transition-colors"
+            >
+              + Lägg till undantag (stängd dag)
+            </button>
+          )}
         </section>
 
         {/* === SECTION: Images === */}
@@ -750,7 +930,7 @@ export default function EditMarketPage() {
           </Link>
           <button
             onClick={handleSubmit}
-            disabled={saving || !name.trim() || !street.trim() || !city.trim()}
+            disabled={saving || !name.trim() || !address.street.trim() || !address.city.trim()}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {saving ? 'Sparar...' : 'Spara ändringar'}

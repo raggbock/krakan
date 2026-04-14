@@ -34,6 +34,16 @@ export function createSupabaseAuth(supabase: SupabaseClient): AuthPort {
       if (error) throw error
     },
 
+    async signInWithGoogle(redirectTo?: string) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo ?? window.location.origin,
+        },
+      })
+      if (error) throw error
+    },
+
     async signOut() {
       await supabase.auth.signOut()
     },

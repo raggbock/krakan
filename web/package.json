@@ -10,13 +10,18 @@
     "test": "vitest",
     "test:run": "vitest run",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:staging": "opennextjs-cloudflare build && wrangler deploy --config wrangler.staging.jsonc",
+    "deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@fyndstigen/shared": "*",
     "@opennextjs/cloudflare": "^1.18.0",
     "@sentry/nextjs": "^10.48.0",
+    "@stripe/react-stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^9.1.0",
     "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.99.0",
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
     "next": "16.2.2",
@@ -33,6 +38,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20",

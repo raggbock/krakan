@@ -16,7 +16,7 @@ import 'leaflet/dist/leaflet.css'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
-import { checkOpeningHours, type OpeningHoursEntry, type Stop } from '@fyndstigen/shared'
+import { checkOpeningHours, type OpeningHourRule, type OpeningHourException, type Stop } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 
 // Marker icons
@@ -41,7 +41,8 @@ function numberedIcon(num: number) {
 }
 
 type MarketWithHours = FleaMarketNearBy & {
-  openingHours?: OpeningHoursEntry[]
+  opening_hour_rules?: OpeningHourRule[]
+  opening_hour_exceptions?: OpeningHourException[]
 }
 
 type RouteStop = {
@@ -284,7 +285,8 @@ export default function RouteBuilder() {
                 {stops.map((stop, i) => {
                   const oh = plannedDate
                     ? checkOpeningHours(
-                        (stop.market.openingHours ?? []) as OpeningHoursEntry[],
+                        stop.market.opening_hour_rules ?? [],
+                        stop.market.opening_hour_exceptions ?? [],
                         plannedDate,
                       )
                     : null

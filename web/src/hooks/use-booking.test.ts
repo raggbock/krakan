@@ -1,12 +1,38 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 
+// Mock Stripe hooks
+const mockConfirmCardPayment = vi.fn().mockResolvedValue({ error: null })
+const mockGetElement = vi.fn().mockReturnValue({})
+
+vi.mock('@stripe/react-stripe-js', () => ({
+  useStripe: () => ({ confirmCardPayment: mockConfirmCardPayment }),
+  useElements: () => ({ getElement: mockGetElement }),
+  CardElement: 'card-element',
+}))
+
+// Mock supabase
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { access_token: 'test-token' } },
+      }),
+    },
+    functions: {
+      invoke: vi.fn().mockResolvedValue({
+        data: { clientSecret: 'pi_test_secret', bookingId: 'booking-1' },
+        error: null,
+      }),
+    },
+  },
+}))
+
 // Mock the api module
 vi.mock('@/lib/api', () => ({
   api: {
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
-      create: vi.fn().mockResolvedValue({ id: 'booking-1' }),
     },
   },
 }))
@@ -18,6 +44,7 @@ vi.mock('@fyndstigen/shared', async () => {
 })
 
 import { api } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 
 const mockTable = {
   id: 'table-1',
@@ -37,7 +64,11 @@ describe('useBooking', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(api.bookings.availableDates).mockResolvedValue([])
-    vi.mocked(api.bookings.create).mockResolvedValue({ id: 'booking-1' })
+    mockConfirmCardPayment.mockResolvedValue({ error: null })
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: { clientSecret: 'pi_test_secret', bookingId: 'booking-1' },
+      error: null,
+    })
   })
 
   it('starts with empty state', () => {
@@ -132,7 +163,7 @@ describe('useBooking', () => {
     })
   })
 
-  it('submit calls API and resets state on success', async () => {
+  it('submit creates payment intent and confirms card', async () => {
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
     act(() => {
@@ -141,25 +172,50 @@ describe('useBooking', () => {
     })
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
-
     await act(async () => { await result.current.submit() })
 
-    expect(api.bookings.create).toHaveBeenCalledWith(
-      expect.objectContaining({
+    // Verify edge function was called
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('stripe-payment-create', expect.objectContaining({
+      body: expect.objectContaining({
         marketTableId: 'table-1',
         fleaMarketId: 'market-1',
-        bookedBy: 'user-1',
         bookingDate: '2026-12-01',
-        priceSek: 200,
       }),
-    )
+    }))
+
+    // Verify Stripe card confirmation
+    expect(mockConfirmCardPayment).toHaveBeenCalledWith('pi_test_secret', {
+      payment_method: { card: {} },
+    })
+
     expect(result.current.isDone).toBe(true)
     expect(result.current.selectedTable).toBeNull()
-    expect(result.current.date).toBe('')
   })
 
-  it('submit sets error on failure', async () => {
-    vi.mocked(api.bookings.create).mockRejectedValue(new Error('fail'))
+  it('submit sets error on payment failure', async () => {
+    mockConfirmCardPayment.mockResolvedValue({
+      error: { message: 'Card declined' },
+    })
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(result.current.submitError).toBe('Card declined')
+    expect(result.current.isDone).toBe(false)
+  })
+
+  it('submit sets error when edge function fails', async () => {
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: { error: 'Organizer has not completed Stripe setup' },
+      error: new Error('Function error'),
+    })
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 

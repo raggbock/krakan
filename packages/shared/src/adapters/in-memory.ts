@@ -24,6 +24,10 @@ export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
       currentUser = { id: 'test-user', email: _email }
       listeners.forEach((cb) => cb(currentUser))
     },
+    async signInWithGoogle() {
+      currentUser = { id: 'test-user', email: 'google@test.com' }
+      listeners.forEach((cb) => cb(currentUser))
+    },
     async signOut() {
       currentUser = null
       listeners.forEach((cb) => cb(null))

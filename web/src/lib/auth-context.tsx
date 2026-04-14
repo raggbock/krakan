@@ -19,6 +19,7 @@ type AuthState = {
     password: string,
     metadata?: Record<string, string>,
   ) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthState>({
   loading: true,
   signIn: async () => {},
   signUp: async () => {},
+  signInWithGoogle: async () => {},
   signOut: async () => {},
 })
 
@@ -56,12 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await auth.signUp(email, password, metadata)
   }
 
+  async function signInWithGoogle() {
+    await auth.signInWithGoogle()
+  }
+
   async function signOut() {
     await auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

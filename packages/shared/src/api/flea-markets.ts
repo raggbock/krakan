@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,
-  FleaMarketDetails,
   FleaMarketNearBy,
   FleaMarketImage,
   SearchResult,
@@ -10,6 +9,7 @@ import type {
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
 } from '../types'
+import { mapFleaMarketDetails, type FleaMarketDetailsRow } from './mappers'
 
 export function createFleaMarketsApi(supabase: SupabaseClient) {
   return {
@@ -37,7 +37,8 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
           .from('flea_markets')
           .select(`
             *,
-            opening_hours (*),
+            opening_hour_rules (*),
+            opening_hour_exceptions (*),
             flea_market_images (*),
             profiles!flea_markets_organizer_id_fkey (first_name, last_name)
           `)
@@ -45,14 +46,7 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
           .single()
 
         if (error) throw error
-
-        const profile = (data as Record<string, unknown>).profiles as { first_name?: string; last_name?: string } | null
-        return {
-          ...data,
-          organizerName: profile
-            ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-            : '',
-        } as FleaMarketDetails
+        return mapFleaMarketDetails(data as FleaMarketDetailsRow)
       },
 
       nearBy: async (params: { latitude: number; longitude: number; radiusKm: number }) => {
@@ -84,19 +78,31 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
 
         if (error) throw error
 
+        // Insert opening hour rules
         if (payload.openingHours?.length) {
-          const { error: ohError } = await supabase
-            .from('opening_hours')
-            .insert(
-              payload.openingHours.map((oh) => ({
-                flea_market_id: data.id,
-                day_of_week: oh.dayOfWeek,
-                date: oh.date,
-                open_time: oh.openTime,
-                close_time: oh.closeTime,
-              })),
-            )
+          const { error: ohError } = await supabase.from('opening_hour_rules').insert(
+            payload.openingHours.map((oh) => ({
+              flea_market_id: data.id,
+              type: oh.type,
+              day_of_week: oh.dayOfWeek,
+              anchor_date: oh.anchorDate,
+              open_time: oh.openTime,
+              close_time: oh.closeTime,
+            })),
+          )
           if (ohError) throw ohError
+        }
+
+        // Insert opening hour exceptions
+        if (payload.openingHourExceptions?.length) {
+          const { error: exError } = await supabase.from('opening_hour_exceptions').insert(
+            payload.openingHourExceptions.map((ex) => ({
+              flea_market_id: data.id,
+              date: ex.date,
+              reason: ex.reason,
+            })),
+          )
+          if (exError) throw exError
         }
 
         return { id: data.id }
@@ -119,21 +125,33 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
 
         if (error) throw error
 
-        await supabase.from('opening_hours').delete().eq('flea_market_id', id)
-
+        // Replace opening hour rules
+        await supabase.from('opening_hour_rules').delete().eq('flea_market_id', id)
         if (payload.openingHours?.length) {
-          const { error: ohError } = await supabase
-            .from('opening_hours')
-            .insert(
-              payload.openingHours.map((oh) => ({
-                flea_market_id: id,
-                day_of_week: oh.dayOfWeek,
-                date: oh.date,
-                open_time: oh.openTime,
-                close_time: oh.closeTime,
-              })),
-            )
+          const { error: ohError } = await supabase.from('opening_hour_rules').insert(
+            payload.openingHours.map((oh) => ({
+              flea_market_id: id,
+              type: oh.type,
+              day_of_week: oh.dayOfWeek,
+              anchor_date: oh.anchorDate,
+              open_time: oh.openTime,
+              close_time: oh.closeTime,
+            })),
+          )
           if (ohError) throw ohError
+        }
+
+        // Replace opening hour exceptions
+        await supabase.from('opening_hour_exceptions').delete().eq('flea_market_id', id)
+        if (payload.openingHourExceptions?.length) {
+          const { error: exError } = await supabase.from('opening_hour_exceptions').insert(
+            payload.openingHourExceptions.map((ex) => ({
+              flea_market_id: id,
+              date: ex.date,
+              reason: ex.reason,
+            })),
+          )
+          if (exError) throw exError
         }
       },
 

@@ -13,6 +13,8 @@ export type FleaMarket = {
   city: string
   country: string
   is_permanent: boolean
+  latitude: number
+  longitude: number
   published_at: string | null
   organizer_id: string
   created_at: string
@@ -20,7 +22,8 @@ export type FleaMarket = {
 
 export type FleaMarketDetails = FleaMarket & {
   organizerName: string
-  opening_hours: OpeningHoursItem[]
+  opening_hour_rules: OpeningHourRule[]
+  opening_hour_exceptions: OpeningHourException[]
   flea_market_images: FleaMarketImage[]
 }
 
@@ -44,6 +47,23 @@ export type OpeningHoursItem = {
   date: string | null
   open_time: string
   close_time: string
+}
+
+export type RuleType = 'weekly' | 'biweekly' | 'date'
+
+export type OpeningHourRule = {
+  id: string
+  type: RuleType
+  day_of_week: number | null
+  anchor_date: string | null
+  open_time: string
+  close_time: string
+}
+
+export type OpeningHourException = {
+  id: string
+  date: string
+  reason: string | null
 }
 
 // --- Images ---
@@ -79,6 +99,19 @@ export type OrganizerStats = {
   total_commission_sek: number
 }
 
+// --- Stripe ---
+
+export type PaymentStatus = 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+
+export type StripeAccount = {
+  id: string
+  organizer_id: string
+  stripe_account_id: string
+  onboarding_complete: boolean
+  created_at: string
+  updated_at: string
+}
+
 // --- Market Tables ---
 
 export type MarketTable = {
@@ -109,6 +142,9 @@ export type Booking = {
   commission_rate: number
   message: string | null
   organizer_note: string | null
+  stripe_payment_intent_id: string | null
+  payment_status: PaymentStatus | null
+  expires_at: string | null
   created_at: string
 }
 
@@ -138,7 +174,7 @@ export type Route = {
 export type RouteStop = {
   id: string
   sortOrder: number
-  fleaMarket: (FleaMarket & { openingHours: OpeningHoursItem[] }) | null
+  fleaMarket: (FleaMarket & { opening_hour_rules: OpeningHourRule[]; opening_hour_exceptions: OpeningHourException[] }) | null
 }
 
 export type RouteWithStops = Route & {
@@ -179,10 +215,15 @@ export type CreateFleaMarketPayload = {
   isPermanent: boolean
   organizerId: string
   openingHours: {
+    type: RuleType
     dayOfWeek: number | null
-    date: string | null
+    anchorDate: string | null
     openTime: string
     closeTime: string
+  }[]
+  openingHourExceptions?: {
+    date: string
+    reason: string | null
   }[]
 }
 
