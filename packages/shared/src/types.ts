@@ -207,6 +207,7 @@ export type CreateFleaMarketPayload = {
   address: AddressPayload
   isPermanent: boolean
   organizerId: string
+  autoAcceptBookings?: boolean
   openingHours: {
     type: RuleType
     dayOfWeek: number | null

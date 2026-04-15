@@ -72,6 +72,7 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
             location: `POINT(${payload.address.location.longitude} ${payload.address.location.latitude})`,
             is_permanent: payload.isPermanent,
             organizer_id: payload.organizerId,
+            auto_accept_bookings: payload.autoAcceptBookings ?? false,
           })
           .select('id')
           .single()
