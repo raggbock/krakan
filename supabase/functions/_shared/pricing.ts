@@ -22,3 +22,37 @@ export function calculateStripeAmounts(priceSek: number) {
   const applicationFeeOre = commissionSek * 100
   return { priceSek, commissionSek, totalOre, applicationFeeOre, commissionRate: COMMISSION_RATE }
 }
+
+export function isFreePriced(priceSek: number): boolean {
+  return priceSek === 0
+}
+
+type BookingOutcome = {
+  status: 'pending' | 'confirmed'
+  paymentStatus: 'free' | 'requires_payment' | 'requires_capture'
+  needsStripe: boolean
+  captureMethod: 'automatic' | 'manual' | null
+  expiresAt: string | null
+}
+
+export function resolveBookingOutcome(priceSek: number, autoAccept: boolean): BookingOutcome {
+  const free = isFreePriced(priceSek)
+
+  if (free && autoAccept) {
+    return { status: 'confirmed', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: null }
+  }
+
+  if (free && !autoAccept) {
+    const expires = new Date()
+    expires.setDate(expires.getDate() + 7)
+    return { status: 'pending', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: expires.toISOString() }
+  }
+
+  if (!free && autoAccept) {
+    return { status: 'pending', paymentStatus: 'requires_payment', needsStripe: true, captureMethod: 'automatic', expiresAt: null }
+  }
+
+  const expires = new Date()
+  expires.setDate(expires.getDate() + 7)
+  return { status: 'pending', paymentStatus: 'requires_capture', needsStripe: true, captureMethod: 'manual', expiresAt: expires.toISOString() }
+}
