@@ -3,30 +3,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import { api, MarketTable } from '@/lib/api'
-import { calculateCommission, COMMISSION_RATE, validateBookingDate } from '@fyndstigen/shared'
+import { calculateCommission, COMMISSION_RATE, isFreePriced, validateBookingDate } from '@fyndstigen/shared'
 import { supabase } from '@/lib/supabase'
 
 type DateValidation = { valid: boolean; error?: string }
 
 type BookingHook = {
-  // State
   selectedTable: MarketTable | null
   date: string
   message: string
   bookedDates: string[]
-
-  // Setters
   selectTable: (table: MarketTable | null) => void
   setDate: (date: string) => void
   setMessage: (msg: string) => void
-
-  // Computed
   dateValidation: DateValidation
   commission: number
   totalPrice: number
+  isFree: boolean
   canSubmit: boolean
-
-  // Mutation
   submit: () => Promise<void>
   isSubmitting: boolean
   isDone: boolean
@@ -45,7 +39,6 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [bookedDates, setBookedDates] = useState<string[]>([])
 
-  // Fetch booked dates when table changes
   useEffect(() => {
     if (!selectedTable) {
       setBookedDates([])
@@ -54,29 +47,26 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
     api.bookings.availableDates(selectedTable.id).then(setBookedDates).catch(() => setBookedDates([]))
   }, [selectedTable?.id])
 
-  // Computed: date validation
   const today = new Date().toISOString().slice(0, 10)
   const dateValidation = useMemo<DateValidation>(() => {
     if (!date) return { valid: false }
     return validateBookingDate(date, bookedDates, today)
   }, [date, bookedDates, today])
 
-  // Computed: pricing
   const price = selectedTable?.price_sek ?? 0
-  const commission = calculateCommission(price, COMMISSION_RATE)
+  const isFree = isFreePriced(price)
+  const commission = isFree ? 0 : calculateCommission(price, COMMISSION_RATE)
   const totalPrice = price + commission
 
-  // Computed: can submit
   const canSubmit = !!selectedTable && !!date && dateValidation.valid && !!userId && !isSubmitting
 
   const submit = useCallback(async () => {
-    if (!canSubmit || !selectedTable || !stripe || !elements) return
+    if (!canSubmit || !selectedTable) return
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      // 1. Create PaymentIntent via edge function
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await supabase.functions.invoke('stripe-payment-create', {
+      const res = await supabase.functions.invoke('booking-create', {
         body: {
           marketTableId: selectedTable.id,
           fleaMarketId: marketId,
@@ -85,17 +75,18 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
         },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       })
-      if (res.error) throw new Error(res.error.message || 'Failed to create payment')
-      const { clientSecret } = res.data
+      if (res.error) throw new Error(res.error.message || 'Failed to create booking')
 
-      // 2. Confirm card payment (creates the hold)
-      const cardElement = elements.getElement(CardElement)
-      if (!cardElement) throw new Error('Card element not found')
+      if (res.data.clientSecret) {
+        if (!stripe || !elements) throw new Error('Stripe not loaded')
+        const cardElement = elements.getElement(CardElement)
+        if (!cardElement) throw new Error('Card element not found')
 
-      const { error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElement },
-      })
-      if (confirmError) throw new Error(confirmError.message)
+        const { error: confirmError } = await stripe.confirmCardPayment(res.data.clientSecret, {
+          payment_method: { card: cardElement },
+        })
+        if (confirmError) throw new Error(confirmError.message)
+      }
 
       setIsDone(true)
       setSelectedTable(null)
@@ -119,21 +110,9 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   }
 
   return {
-    selectedTable,
-    date,
-    message,
-    bookedDates,
-    selectTable: setSelectedTable,
-    setDate,
-    setMessage,
-    dateValidation,
-    commission,
-    totalPrice,
-    canSubmit,
-    submit,
-    isSubmitting,
-    isDone,
-    submitError,
-    reset,
+    selectedTable, date, message, bookedDates,
+    selectTable: setSelectedTable, setDate, setMessage,
+    dateValidation, commission, totalPrice, isFree, canSubmit,
+    submit, isSubmitting, isDone, submitError, reset,
   }
 }

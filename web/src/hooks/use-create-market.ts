@@ -32,6 +32,7 @@ export type CreateMarketInput = {
   city: string
   isPermanent: boolean
   organizerId: string
+  autoAcceptBookings?: boolean
   tables: TableDraft[]
   images: File[]
   openingHours: RuleDraft[]
@@ -80,6 +81,7 @@ export function useCreateMarket() {
         },
         isPermanent: input.isPermanent,
         organizerId: input.organizerId,
+        autoAcceptBookings: input.autoAcceptBookings,
         openingHours: input.openingHours,
         openingHourExceptions: input.openingHourExceptions,
       })

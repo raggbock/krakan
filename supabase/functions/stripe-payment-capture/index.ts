@@ -11,11 +11,12 @@ createHandler(async ({ user, admin, body }) => {
     .single()
   if (bookingErr || !booking) throw new NotFoundError('Booking not found')
   if (booking.status !== 'pending') throw new Error('Booking is not pending')
-  if (!booking.stripe_payment_intent_id) throw new Error('No payment intent for this booking')
 
   await verifyOrganizer(admin, booking.flea_market_id, user.id)
 
-  await stripe.paymentIntents.capture(booking.stripe_payment_intent_id)
+  if (booking.stripe_payment_intent_id) {
+    await stripe.paymentIntents.capture(booking.stripe_payment_intent_id)
+  }
 
   const { error: updateErr } = await admin
     .from('bookings')

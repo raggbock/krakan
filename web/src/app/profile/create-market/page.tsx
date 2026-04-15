@@ -67,8 +67,12 @@ export default function CreateMarketPage() {
     setImagePreviews(next.map((f) => URL.createObjectURL(f)))
   }
 
+  const [autoAcceptBookings, setAutoAcceptBookings] = useState(false)
+
   // Step 2: Tables
   const [tables, setTables] = useState<TableDraft[]>([])
+  const hasAnyPaidTable = tables.some((t) => t.priceSek > 0)
+  const needsStripe = hasAnyPaidTable
   const [tableLabel, setTableLabel] = useState('')
   const [tableDesc, setTableDesc] = useState('')
   const [tablePrice, setTablePrice] = useState('')
@@ -125,6 +129,7 @@ export default function CreateMarketPage() {
       zipCode: address.zipCode.trim(),
       city: address.city.trim(),
       isPermanent,
+      autoAcceptBookings,
       organizerId: user.id,
       tables,
       images,
@@ -322,7 +327,7 @@ export default function CreateMarketPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-display font-bold text-rust text-sm">
-                      {t.priceSek} kr
+                      {t.priceSek > 0 ? `${t.priceSek} kr` : 'Gratis'}
                     </span>
                     <button
                       onClick={() => removeTable(i)}
@@ -458,10 +463,37 @@ export default function CreateMarketPage() {
             </div>
           )}
 
-          {!stripeLoading && !stripeReady && (
+          {/* Auto-accept toggle */}
+          <div className="flex items-center justify-between p-4 bg-cream-warm/50 rounded-xl mb-4">
+            <div>
+              <p className="text-sm font-semibold text-espresso">
+                Godkänn bokningar automatiskt
+              </p>
+              <p className="text-xs text-espresso/60 mt-0.5">
+                Bokningar bekräftas direkt utan din godkännande
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoAcceptBookings}
+              onClick={() => setAutoAcceptBookings(!autoAcceptBookings)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                autoAcceptBookings ? 'bg-rust' : 'bg-espresso/20'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                  autoAcceptBookings ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {!stripeLoading && !stripeReady && needsStripe && (
             <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-4">
               <Link href="/profile" className="underline font-semibold">Koppla betalning</Link>
-              {' '}i din profil innan du kan publicera.
+              {' '}för att ta betalt för bord.
             </div>
           )}
 
@@ -474,7 +506,7 @@ export default function CreateMarketPage() {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={saving || !stripeReady}
+              disabled={saving || (needsStripe && !stripeReady)}
               className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-50 shadow-sm"
             >
               {saving

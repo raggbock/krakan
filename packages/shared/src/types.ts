@@ -17,6 +17,7 @@ export type FleaMarket = {
   longitude: number
   published_at: string | null
   organizer_id: string
+  auto_accept_bookings: boolean
   created_at: string
 }
 
@@ -93,7 +94,7 @@ export type OrganizerStats = {
 
 // --- Stripe ---
 
-export type PaymentStatus = 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+export type PaymentStatus = 'requires_capture' | 'requires_payment' | 'captured' | 'cancelled' | 'failed' | 'free'
 
 export type StripeAccount = {
   id: string
@@ -206,6 +207,7 @@ export type CreateFleaMarketPayload = {
   address: AddressPayload
   isPermanent: boolean
   organizerId: string
+  autoAcceptBookings?: boolean
   openingHours: {
     type: RuleType
     dayOfWeek: number | null

@@ -51,6 +51,39 @@ serve(async (req) => {
         .eq('stripe_payment_intent_id', pi.id)
       break
     }
+
+    case 'payment_intent.succeeded': {
+      const pi = event.data.object
+      // Find the booking
+      const { data: booking } = await admin
+        .from('bookings')
+        .select('id, flea_market_id, status')
+        .eq('stripe_payment_intent_id', pi.id)
+        .single()
+      if (!booking) break
+
+      // Check if market has auto-accept
+      const { data: market } = await admin
+        .from('flea_markets')
+        .select('auto_accept_bookings')
+        .eq('id', booking.flea_market_id)
+        .single()
+
+      if (market?.auto_accept_bookings) {
+        // Auto-accept: confirm immediately
+        await admin
+          .from('bookings')
+          .update({ status: 'confirmed', payment_status: 'captured' })
+          .eq('id', booking.id)
+      } else {
+        // Manual: mark payment as ready for capture
+        await admin
+          .from('bookings')
+          .update({ payment_status: 'requires_capture' })
+          .eq('id', booking.id)
+      }
+      break
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {
