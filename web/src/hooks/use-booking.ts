@@ -1,10 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
+import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, MarketTable } from '@/lib/api'
 import { calculateCommission, COMMISSION_RATE, isFreePriced, validateBookingDate } from '@fyndstigen/shared'
 import { supabase } from '@/lib/supabase'
+import { usePostHog } from 'posthog-js/react'
 
 type DateValidation = { valid: boolean; error?: string }
 
@@ -29,6 +31,7 @@ type BookingHook = {
 }
 
 export function useBooking(marketId: string, userId: string | undefined): BookingHook {
+  const posthog = usePostHog()
   const stripe = useStripe()
   const elements = useElements()
   const [selectedTable, setSelectedTable] = useState<MarketTable | null>(null)
@@ -39,15 +42,20 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [bookedDates, setBookedDates] = useState<string[]>([])
 
+  const fetchIdRef = useRef(0)
+  const selectedTableId = selectedTable?.id ?? null
   useEffect(() => {
-    if (!selectedTable) {
+    if (!selectedTableId) {
       setBookedDates([])
       return
     }
-    api.bookings.availableDates(selectedTable.id).then(setBookedDates).catch(() => setBookedDates([]))
-  }, [selectedTable?.id])
+    const id = ++fetchIdRef.current
+    api.bookings.availableDates(selectedTableId)
+      .then((dates) => { if (id === fetchIdRef.current) setBookedDates(dates) })
+      .catch(() => { if (id === fetchIdRef.current) setBookedDates([]) })
+  }, [selectedTableId])
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const dateValidation = useMemo<DateValidation>(() => {
     if (!date) return { valid: false }
     return validateBookingDate(date, bookedDates, today)
@@ -64,8 +72,17 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
     if (!canSubmit || !selectedTable) return
     setIsSubmitting(true)
     setSubmitError(null)
+    posthog?.capture('booking_initiated', {
+      flea_market_id: marketId,
+      market_name: selectedTable.label,
+      table_label: selectedTable.label,
+      price_sek: selectedTable.price_sek,
+      is_free: isFree,
+    })
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Du måste vara inloggad')
+
       const res = await supabase.functions.invoke('booking-create', {
         body: {
           marketTableId: selectedTable.id,
@@ -73,13 +90,13 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
           bookingDate: date,
           message: message || undefined,
         },
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.error) throw new Error(res.error.message || 'Failed to create booking')
 
       if (res.data.clientSecret) {
         if (!stripe || !elements) throw new Error('Stripe not loaded')
-        const cardElement = elements.getElement(CardElement)
+        const cardElement = elements.getElement(CardElement) as StripeCardElement | null
         if (!cardElement) throw new Error('Card element not found')
 
         const { error: confirmError } = await stripe.confirmCardPayment(res.data.clientSecret, {
@@ -97,7 +114,7 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
     } finally {
       setIsSubmitting(false)
     }
-  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message])
+  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message, posthog, isFree])
 
   function reset() {
     setSelectedTable(null)

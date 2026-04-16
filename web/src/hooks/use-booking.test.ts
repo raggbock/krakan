@@ -1,6 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 
+// Mock PostHog
+const mockCapture = vi.fn()
+vi.mock('posthog-js/react', () => ({
+  usePostHog: () => ({ capture: mockCapture }),
+}))
+
 // Mock Stripe hooks
 const mockConfirmCardPayment = vi.fn().mockResolvedValue({ error: null })
 const mockGetElement = vi.fn().mockReturnValue({})
@@ -38,9 +44,9 @@ vi.mock('@/lib/api', () => ({
 }))
 
 // Mock shared imports
-vi.mock('@fyndstigen/shared', async () => {
-  const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')
-  return actual
+vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual }
 })
 
 import { api } from '@/lib/api'
@@ -58,6 +64,13 @@ const mockTable = {
   sort_order: 0,
   created_at: '',
   updated_at: '',
+}
+
+const mockFreeTable = {
+  ...mockTable,
+  id: 'table-free',
+  label: 'Gratisbord B1',
+  price_sek: 0,
 }
 
 describe('useBooking', () => {
@@ -175,7 +188,7 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     // Verify edge function was called
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('stripe-payment-create', expect.objectContaining({
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
       body: expect.objectContaining({
         marketTableId: 'table-1',
         fleaMarketId: 'market-1',
@@ -229,6 +242,64 @@ describe('useBooking', () => {
 
     expect(result.current.submitError).toBeTruthy()
     expect(result.current.isDone).toBe(false)
+  })
+
+  it('isFree is true for free table', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockFreeTable) })
+
+    expect(result.current.isFree).toBe(true)
+    expect(result.current.commission).toBe(0)
+    expect(result.current.totalPrice).toBe(0)
+  })
+
+  it('isFree is false for paid table', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+
+    expect(result.current.isFree).toBe(false)
+  })
+
+  it('submit skips Stripe for free table', async () => {
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: { bookingId: 'booking-free' },
+      error: null,
+    })
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => {
+      result.current.selectTable(mockFreeTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    // Edge function called with free table
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+      body: expect.objectContaining({ marketTableId: 'table-free' }),
+    }))
+
+    // Stripe NOT called — no clientSecret returned
+    expect(mockConfirmCardPayment).not.toHaveBeenCalled()
+
+    expect(result.current.isDone).toBe(true)
+  })
+
+  it('switching from paid to free table updates pricing', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    expect(result.current.isFree).toBe(false)
+    expect(result.current.totalPrice).toBe(224)
+
+    act(() => { result.current.selectTable(mockFreeTable) })
+    expect(result.current.isFree).toBe(true)
+    expect(result.current.commission).toBe(0)
+    expect(result.current.totalPrice).toBe(0)
   })
 
   it('reset clears all state', async () => {
