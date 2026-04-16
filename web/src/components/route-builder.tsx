@@ -9,37 +9,16 @@ import {
   Marker,
   Popup,
   Polyline,
-  useMap,
   useMapEvents,
 } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
+import { usePostHog } from 'posthog-js/react'
 import { checkOpeningHours, type OpeningHourRule, type OpeningHourException, type Stop } from '@fyndstigen/shared'
+import { inactiveMarkerIcon, numberedMarkerIcon, startPointIcon } from '@/lib/map-markers'
 import { FyndstigenLogo } from './fyndstigen-logo'
-
-// Marker icons
-const defaultMarkerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="%23998A7A"/><circle cx="14" cy="13" r="5" fill="%23F2EBE0"/></svg>`
-const activeMarkerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="%23C45B35"/><circle cx="14" cy="13" r="5" fill="%23F2EBE0"/><text x="14" y="17" text-anchor="middle" font-size="11" font-weight="bold" fill="%23C45B35" font-family="sans-serif">%NUM%</text></svg>`
-
-const defaultIcon = new L.Icon({
-  iconUrl: `data:image/svg+xml,${encodeURIComponent(defaultMarkerSvg)}`,
-  iconSize: [28, 40],
-  iconAnchor: [14, 40],
-  popupAnchor: [0, -36],
-})
-
-function numberedIcon(num: number) {
-  const svg = activeMarkerSvg.replace('%NUM%', String(num))
-  return new L.Icon({
-    iconUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,
-    iconSize: [28, 40],
-    iconAnchor: [14, 40],
-    popupAnchor: [0, -36],
-  })
-}
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]
@@ -51,19 +30,10 @@ type RouteStop = {
   index: number
 }
 
-function MapCleanup() {
-  const map = useMap()
-  useEffect(() => {
-    return () => {
-      map.remove()
-    }
-  }, [map])
-  return null
-}
-
 export default function RouteBuilder() {
   const router = useRouter()
   const { user } = useAuth()
+  const posthog = usePostHog()
 
   const [markets, setMarkets] = useState<MarketWithHours[]>([])
   const [stops, setStops] = useState<RouteStop[]>([])
@@ -114,6 +84,11 @@ export default function RouteBuilder() {
         ...prev,
         { market, index: prev.length },
       ])
+      posthog?.capture('route_market_added', {
+        flea_market_id: market.id,
+        market_name: market.name,
+        market_city: market.city,
+      })
     }
   }
 
@@ -175,6 +150,11 @@ export default function RouteBuilder() {
         startLongitude: startLng,
         plannedDate: plannedDate || undefined,
         stops: stops.map((s) => ({ fleaMarketId: s.market.id })),
+      })
+      posthog?.capture('route_saved', {
+        route_id: id,
+        stop_count: stops.length,
+        market_ids: stops.map((s) => s.market.id),
       })
       router.push(`/rundor/${id}`)
     } catch {
@@ -407,7 +387,6 @@ export default function RouteBuilder() {
           className="h-full w-full"
           style={{ minHeight: 0 }}
         >
-          <MapCleanup />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -420,13 +399,7 @@ export default function RouteBuilder() {
           {!useGps && customStart && (
             <Marker
               position={[customStart.lat, customStart.lng]}
-              icon={
-                new L.Icon({
-                  iconUrl: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="%235B7352" stroke="white" stroke-width="2"/></svg>`)}`,
-                  iconSize: [20, 20],
-                  iconAnchor: [10, 10],
-                })
-              }
+              icon={startPointIcon}
             >
               <Popup>
                 <span className="text-sm font-medium">Startpunkt</span>
@@ -445,7 +418,7 @@ export default function RouteBuilder() {
               <Marker
                 key={market.id}
                 position={[market.latitude, market.longitude]}
-                icon={inRoute ? numberedIcon(stopIndex + 1) : defaultIcon}
+                icon={inRoute ? numberedMarkerIcon(stopIndex + 1) : inactiveMarkerIcon}
                 eventHandlers={{
                   click: () => toggleMarket(market),
                 }}
