@@ -47,9 +47,7 @@ export function createProfilesApi(supabase: SupabaseClient) {
 
       stats: async (userId: string) => {
         const { data, error } = await supabase
-          .from('organizer_stats')
-          .select('*')
-          .eq('organizer_id', userId)
+          .rpc('organizer_stats_for', { p_organizer_id: userId })
           .single()
         if (error && error.code !== 'PGRST116') throw error
         return (data ?? {
