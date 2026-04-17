@@ -6,6 +6,7 @@ import { api, OrganizerProfile } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { supabase } from '@/lib/supabase'
+import { features } from '@/lib/feature-flags'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -137,14 +138,14 @@ export default function EditProfilePage() {
       </p>
 
       {/* Success banner */}
-      {showSuccess && (
+      {features.skyltfonstret && showSuccess && (
         <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-6 animate-fade-up">
           Skyltfönstret är aktiverat! Dina loppisar får nu bättre synlighet.
         </div>
       )}
 
       {/* Skyltfönstret */}
-      <div className="vintage-card p-6 mb-6">
+      {features.skyltfonstret && <div className="vintage-card p-6 mb-6">
         {isPremium ? (
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -182,7 +183,7 @@ export default function EditProfilePage() {
             </button>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Edit form */}
       <form onSubmit={handleSave} className="space-y-5">

@@ -8,6 +8,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+import { features } from '@/lib/feature-flags'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
@@ -63,6 +64,11 @@ export default function OrganizerStatsPage() {
   }
 
   useEffect(() => {
+    if (!features.skyltfonstret) {
+      setIsPremium(false)
+      setTierLoading(false)
+      return
+    }
     if (!id) return
     api.organizers.get(id)
       .then((org) => setIsPremium((org?.subscription_tier ?? 0) >= 1))
@@ -111,13 +117,14 @@ export default function OrganizerStatsPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-up delay-1">
-        {isPremium ? (
+        {isPremium && (
           <StatCard
             label="Sidvisningar"
             value={totals.pageviews_30d.toLocaleString('sv-SE')}
             subValue={totals.pageviews_total.toLocaleString('sv-SE')}
           />
-        ) : (
+        )}
+        {features.skyltfonstret && !isPremium && (
           <LockedStatCard label="Sidvisningar" />
         )}
         <StatCard
@@ -145,7 +152,7 @@ export default function OrganizerStatsPage() {
         </div>
       )}
 
-      {!isPremium && (
+      {features.skyltfonstret && !isPremium && (
         <div className="vintage-card p-5 mb-8 relative overflow-hidden animate-fade-up delay-2">
           <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
           <p className="font-display text-2xl font-bold text-espresso/15">—</p>
@@ -212,7 +219,7 @@ export default function OrganizerStatsPage() {
       )}
 
       {/* Skyltfönstret upsell banner for free tier */}
-      {!isPremium && (
+      {features.skyltfonstret && !isPremium && (
         <div className="vintage-card p-6 mt-8 bg-mustard/5 border-mustard/20 animate-fade-up delay-4">
           <h3 className="font-display font-bold text-lg mb-2">Skyltfönstret</h3>
           <p className="text-sm text-espresso/70 mb-3">

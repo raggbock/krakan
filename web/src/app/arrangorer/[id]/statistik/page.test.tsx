@@ -5,6 +5,8 @@ import { useAuth } from '@/lib/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { api } from '@/lib/api'
 
+vi.mock('@/lib/feature-flags', () => ({ features: { payments: true, skyltfonstret: true } }))
+
 // Mock next/navigation
 const mockReplace = vi.fn()
 const mockPush = vi.fn()

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { BookableTablesCard } from './bookable-tables-card'
 import type { MarketTable } from '@/lib/api'
 
+vi.mock('@/lib/feature-flags', () => ({ features: { payments: true, skyltfonstret: true } }))
 vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('@/hooks/use-booking', () => ({ useBooking: vi.fn() }))
 vi.mock('@/lib/stripe', () => ({ stripePromise: null }))

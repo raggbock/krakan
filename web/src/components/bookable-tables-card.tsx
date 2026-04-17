@@ -6,6 +6,7 @@ import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import { stripePromise } from '@/lib/stripe'
+import { features } from '@/lib/feature-flags'
 
 function BookableTablesInner({
   fleaMarketId,
@@ -35,7 +36,9 @@ function BookableTablesInner({
 
           {booking.isDone && (
             <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-4">
-              Bokning skickad! Beloppet är reserverat tills arrangören svarar.
+              {booking.isFree
+                ? 'Bokning skickad!'
+                : 'Bokning skickad! Beloppet är reserverat tills arrangören svarar.'}
             </div>
           )}
 
@@ -60,7 +63,7 @@ function BookableTablesInner({
                       </div>
                     </div>
                     <span className="font-display font-bold text-rust">
-                      {table.price_sek} kr
+                      {table.price_sek === 0 ? 'Gratis' : `${table.price_sek} kr`}
                     </span>
                   </button>
 
@@ -94,28 +97,32 @@ function BookableTablesInner({
                           className="w-full rounded-lg bg-card px-3 py-2 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs font-semibold text-espresso/60 block mb-1">
-                          Kortuppgifter
-                        </label>
-                        <div className="rounded-lg bg-card px-3 py-2.5 border border-cream-warm focus-within:border-rust/40 transition-all">
-                          <CardElement
-                            options={{
-                              style: {
-                                base: {
-                                  fontSize: '14px',
-                                  color: '#3D2B1F',
-                                  '::placeholder': { color: '#3D2B1F40' },
+                      {!booking.isFree && (
+                        <div>
+                          <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                            Kortuppgifter
+                          </label>
+                          <div className="rounded-lg bg-card px-3 py-2.5 border border-cream-warm focus-within:border-rust/40 transition-all">
+                            <CardElement
+                              options={{
+                                style: {
+                                  base: {
+                                    fontSize: '14px',
+                                    color: '#3D2B1F',
+                                    '::placeholder': { color: '#3D2B1F40' },
+                                  },
+                                  invalid: { color: '#C0392B' },
                                 },
-                                invalid: { color: '#C0392B' },
-                              },
-                            }}
-                          />
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-espresso/60">
-                          {booking.totalPrice} kr (inkl {booking.commission} kr avgift)
+                          {booking.isFree
+                            ? 'Gratis'
+                            : `${booking.totalPrice} kr (inkl ${booking.commission} kr avgift)`}
                         </p>
                         {user ? (
                           <button
@@ -123,7 +130,7 @@ function BookableTablesInner({
                             disabled={!booking.canSubmit}
                             className="bg-rust text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-rust-light transition-colors disabled:opacity-40"
                           >
-                            {booking.isSubmitting ? 'Behandlar...' : 'Boka & reservera'}
+                            {booking.isSubmitting ? 'Behandlar...' : booking.isFree ? 'Boka' : 'Boka & reservera'}
                           </button>
                         ) : (
                           <Link href="/auth" className="text-rust text-xs font-semibold">
@@ -153,15 +160,22 @@ export function BookableTablesCard({
   fleaMarketId: string
   tables: MarketTable[]
 }) {
+  // When payments are off, only show free tables
+  const visibleTables = features.payments
+    ? tables
+    : tables.filter((t) => t.price_sek === 0)
+
+  if (visibleTables.length === 0) return null
+
   if (!stripePromise) {
     return (
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={tables} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} />
     )
   }
 
   return (
     <Elements stripe={stripePromise}>
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={tables} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} />
     </Elements>
   )
 }
