@@ -4,16 +4,14 @@ import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 
-type MarketBookingStats = {
+type RpcBookingRow = {
   flea_market_id: string
-  pending: number
-  confirmed: number
-  denied: number
-  cancelled: number
+  status: string
+  booking_count: number
   revenue_sek: number
 }
 
-type MarketRouteStats = {
+type RpcRouteRow = {
   flea_market_id: string
   route_count: number
 }
@@ -110,30 +108,32 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
   const marketList = await api.fleaMarkets.listByOrganizer(organizerId)
   if (marketList.length === 0) return []
 
-  const marketIds = marketList.map((m) => m.id)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
+  // All aggregation happens in SQL via RPC — no raw rows transferred
   const [bookings30d, bookingsTotal, routes30d, routesTotal, posthogRes] = await Promise.all([
-    fetchBookingStats(marketIds, thirtyDaysAgo),
-    fetchBookingStats(marketIds),
-    fetchRouteStats(marketIds, thirtyDaysAgo),
-    fetchRouteStats(marketIds),
+    supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
+    supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId }),
+    supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
+    supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId }),
     supabase.functions.invoke('organizer-stats', {
       body: { organizer_id: organizerId },
       headers: { Authorization: `Bearer ${session.access_token}` },
     }),
   ])
 
+  const bookingRows30d: RpcBookingRow[] = bookings30d.data ?? []
+  const bookingRowsTotal: RpcBookingRow[] = bookingsTotal.data ?? []
+  const routeRows30d: RpcRouteRow[] = routes30d.data ?? []
+  const routeRowsTotal: RpcRouteRow[] = routesTotal.data ?? []
   const posthogMarkets: PostHogMarketStats[] = posthogRes.data?.markets ?? []
 
   return marketList.map((market) => {
-    const b30 = bookings30d.find((b) => b.flea_market_id === market.id)
-    const bTot = bookingsTotal.find((b) => b.flea_market_id === market.id)
-    const r30 = routes30d.find((r) => r.flea_market_id === market.id)
-    const rTot = routesTotal.find((r) => r.flea_market_id === market.id)
+    const b30 = groupBookingRows(bookingRows30d, market.id)
+    const bTot = groupBookingRows(bookingRowsTotal, market.id)
+    const r30 = routeRows30d.find((r) => r.flea_market_id === market.id)
+    const rTot = routeRowsTotal.find((r) => r.flea_market_id === market.id)
     const ph = posthogMarkets.find((p) => p.flea_market_id === market.id)
-
-    const emptyBookings = { pending: 0, confirmed: 0, denied: 0, cancelled: 0 }
 
     return {
       flea_market_id: market.id,
@@ -141,14 +141,10 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
       pageviews_30d: ph?.pageviews_30d ?? 0,
       pageviews_total: ph?.pageviews_total ?? 0,
       bookings_initiated_30d: ph?.bookings_initiated_30d ?? 0,
-      bookings_30d: b30
-        ? { pending: b30.pending, confirmed: b30.confirmed, denied: b30.denied, cancelled: b30.cancelled }
-        : emptyBookings,
-      bookings_total: bTot
-        ? { pending: bTot.pending, confirmed: bTot.confirmed, denied: bTot.denied, cancelled: bTot.cancelled }
-        : emptyBookings,
-      revenue_30d_sek: b30?.revenue_sek ?? 0,
-      revenue_total_sek: bTot?.revenue_sek ?? 0,
+      bookings_30d: b30.counts,
+      bookings_total: bTot.counts,
+      revenue_30d_sek: b30.revenue,
+      revenue_total_sek: bTot.revenue,
       route_count_30d: r30?.route_count ?? 0,
       route_count_total: rTot?.route_count ?? 0,
       conversion_30d: ph && ph.pageviews_30d > 0
@@ -158,67 +154,14 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
   })
 }
 
-async function fetchBookingStats(
-  marketIds: string[],
-  since?: string,
-): Promise<MarketBookingStats[]> {
-  let query = supabase
-    .from('bookings')
-    .select('flea_market_id, status, price_sek, commission_sek')
-    .in('flea_market_id', marketIds)
-
-  if (since) {
-    query = query.gte('created_at', since)
+function groupBookingRows(rows: RpcBookingRow[], marketId: string) {
+  const counts = { pending: 0, confirmed: 0, denied: 0, cancelled: 0 }
+  let revenue = 0
+  for (const row of rows) {
+    if (row.flea_market_id !== marketId) continue
+    const status = row.status as keyof typeof counts
+    if (status in counts) counts[status] = row.booking_count
+    if (row.status === 'confirmed') revenue = row.revenue_sek
   }
-
-  const { data } = await query
-
-  if (!data) return []
-
-  const byMarket = new Map<string, MarketBookingStats>()
-  for (const row of data) {
-    if (!byMarket.has(row.flea_market_id)) {
-      byMarket.set(row.flea_market_id, {
-        flea_market_id: row.flea_market_id,
-        pending: 0, confirmed: 0, denied: 0, cancelled: 0,
-        revenue_sek: 0,
-      })
-    }
-    const stats = byMarket.get(row.flea_market_id)!
-    const status = row.status as keyof Pick<MarketBookingStats, 'pending' | 'confirmed' | 'denied' | 'cancelled'>
-    if (status in stats) stats[status]++
-    if (row.status === 'confirmed') {
-      stats.revenue_sek += (row.price_sek ?? 0) - (row.commission_sek ?? 0)
-    }
-  }
-
-  return [...byMarket.values()]
-}
-
-async function fetchRouteStats(
-  marketIds: string[],
-  since?: string,
-): Promise<MarketRouteStats[]> {
-  let query = supabase
-    .from('route_stops')
-    .select('flea_market_id')
-    .in('flea_market_id', marketIds)
-
-  if (since) {
-    query = query.gte('created_at', since)
-  }
-
-  const { data } = await query
-
-  if (!data) return []
-
-  const counts = new Map<string, number>()
-  for (const row of data) {
-    counts.set(row.flea_market_id, (counts.get(row.flea_market_id) ?? 0) + 1)
-  }
-
-  return [...counts.entries()].map(([flea_market_id, route_count]) => ({
-    flea_market_id,
-    route_count,
-  }))
+  return { counts, revenue }
 }
