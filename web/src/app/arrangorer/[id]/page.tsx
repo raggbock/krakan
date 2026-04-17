@@ -5,9 +5,11 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { api, OrganizerProfile, FleaMarket } from '@/lib/api'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { useAuth } from '@/lib/auth-context'
 
 export default function OrganizerProfilePage() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const [organizer, setOrganizer] = useState<OrganizerProfile | null>(null)
   const [markets, setMarkets] = useState<FleaMarket[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,6 +98,22 @@ export default function OrganizerProfilePage() {
           </div>
         </div>
       </div>
+
+      {user?.id === id && (
+        <div className="mt-4 animate-fade-up delay-1">
+          <Link
+            href={`/arrangorer/${id}/statistik`}
+            className="inline-flex items-center gap-2 vintage-card px-5 py-3 text-sm font-medium text-rust hover:shadow-md transition-all"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-rust">
+              <rect x="1" y="8" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.4" />
+              <rect x="5.5" y="5" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.6" />
+              <rect x="10" y="2" width="3" height="12" rx="0.5" fill="currentColor" opacity="0.8" />
+            </svg>
+            Visa statistik
+          </Link>
+        </div>
+      )}
 
       {/* Markets */}
       {markets.length > 0 && (
