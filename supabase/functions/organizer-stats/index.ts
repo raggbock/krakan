@@ -23,76 +23,95 @@ createHandler(async ({ user, admin, body }) => {
 
   const posthogKey = Deno.env.get('POSTHOG_PRIVATE_API_KEY')
   const posthogHost = Deno.env.get('POSTHOG_HOST') || 'https://eu.i.posthog.com'
+  const projectId = Deno.env.get('POSTHOG_PROJECT_ID')
 
-  const now = new Date()
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const marketIds = markets.map((m: { id: string }) => m.id)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  const result = await Promise.all(
-    markets.map(async (market: { id: string; name: string }) => {
-      let pageviews30d = 0
-      let pageviewsTotal = 0
-      let bookingsInitiated30d = 0
+  // Default: all zeros
+  const statsMap = new Map<string, { pageviews_30d: number; pageviews_total: number; bookings_initiated_30d: number }>()
+  for (const m of markets) {
+    statsMap.set(m.id, { pageviews_30d: 0, pageviews_total: 0, bookings_initiated_30d: 0 })
+  }
 
-      if (posthogKey) {
-        const urlPattern = `/fleamarkets/${market.id}`
+  // 3 batched HogQL queries (instead of 3×N individual queries)
+  if (posthogKey && projectId) {
+    const urlPatterns = marketIds.map((id: string) => `/fleamarkets/${id}`)
 
-        const [pv30, pvAll, bi30] = await Promise.all([
-          queryPostHog(posthogHost, posthogKey, {
-            event: '$pageview',
-            properties: [{ key: '$current_url', value: urlPattern, operator: 'icontains' }],
-            after: thirtyDaysAgo,
-          }),
-          queryPostHog(posthogHost, posthogKey, {
-            event: '$pageview',
-            properties: [{ key: '$current_url', value: urlPattern, operator: 'icontains' }],
-          }),
-          queryPostHog(posthogHost, posthogKey, {
-            event: 'booking_initiated',
-            properties: [{ key: 'flea_market_id', value: market.id, operator: 'exact' }],
-            after: thirtyDaysAgo,
-          }),
-        ])
+    const [pv30d, pvTotal, bi30d] = await Promise.all([
+      batchHogQL(posthogHost, posthogKey, projectId, {
+        query: `
+          SELECT
+            replaceRegexpOne(properties.$current_url, '.*(/fleamarkets/[^/?#]+).*', '\\\\1') as market_path,
+            count() as cnt
+          FROM events
+          WHERE event = '$pageview'
+            AND properties.$current_url LIKE '%/fleamarkets/%'
+            AND timestamp >= '${thirtyDaysAgo}'
+          GROUP BY market_path
+        `,
+      }),
+      batchHogQL(posthogHost, posthogKey, projectId, {
+        query: `
+          SELECT
+            replaceRegexpOne(properties.$current_url, '.*(/fleamarkets/[^/?#]+).*', '\\\\1') as market_path,
+            count() as cnt
+          FROM events
+          WHERE event = '$pageview'
+            AND properties.$current_url LIKE '%/fleamarkets/%'
+          GROUP BY market_path
+        `,
+      }),
+      batchHogQL(posthogHost, posthogKey, projectId, {
+        query: `
+          SELECT
+            properties.flea_market_id as market_id,
+            count() as cnt
+          FROM events
+          WHERE event = 'booking_initiated'
+            AND timestamp >= '${thirtyDaysAgo}'
+          GROUP BY market_id
+        `,
+      }),
+    ])
 
-        pageviews30d = pv30
-        pageviewsTotal = pvAll
-        bookingsInitiated30d = bi30
-      }
+    // Map pageview results (path → market id)
+    for (const [path, count] of pv30d) {
+      const id = marketIds.find((mid: string) => path === `/fleamarkets/${mid}`)
+      if (id && statsMap.has(id)) statsMap.get(id)!.pageviews_30d = count
+    }
+    for (const [path, count] of pvTotal) {
+      const id = marketIds.find((mid: string) => path === `/fleamarkets/${mid}`)
+      if (id && statsMap.has(id)) statsMap.get(id)!.pageviews_total = count
+    }
+    // Map booking_initiated results (market_id directly)
+    for (const [marketId, count] of bi30d) {
+      if (statsMap.has(marketId)) statsMap.get(marketId)!.bookings_initiated_30d = count
+    }
+  }
 
-      return {
-        flea_market_id: market.id,
-        name: market.name,
-        pageviews_30d: pageviews30d,
-        pageviews_total: pageviewsTotal,
-        bookings_initiated_30d: bookingsInitiated30d,
-      }
-    })
-  )
+  const result = markets.map((market: { id: string; name: string }) => {
+    const stats = statsMap.get(market.id)!
+    return {
+      flea_market_id: market.id,
+      name: market.name,
+      ...stats,
+    }
+  })
 
   return { markets: result }
 })
 
-async function queryPostHog(
+/**
+ * Execute a HogQL query and return rows as [key, count] pairs.
+ * The query must SELECT two columns: a grouping key and a count.
+ */
+async function batchHogQL(
   host: string,
   apiKey: string,
-  params: {
-    event: string
-    properties: { key: string; value: string; operator: string }[]
-    after?: string
-  },
-): Promise<number> {
-  const projectId = Deno.env.get('POSTHOG_PROJECT_ID')
-  if (!projectId) return 0
-
-  const body = {
-    query: {
-      kind: 'EventsQuery',
-      event: params.event,
-      properties: params.properties,
-      ...(params.after ? { after: params.after } : {}),
-      select: ['count()'],
-    },
-  }
-
+  projectId: string,
+  params: { query: string },
+): Promise<Array<[string, number]>> {
   try {
     const res = await fetch(`${host}/api/projects/${projectId}/query/`, {
       method: 'POST',
@@ -100,14 +119,20 @@ async function queryPostHog(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        query: { kind: 'HogQLQuery', query: params.query },
+      }),
     })
 
-    if (!res.ok) return 0
+    if (!res.ok) return []
 
     const data = await res.json()
-    return data.results?.[0]?.[0] ?? 0
+    // HogQL returns { results: [[key, count], ...] }
+    return (data.results ?? []).map((row: unknown[]) => [
+      String(row[0] ?? ''),
+      Number(row[1] ?? 0),
+    ])
   } catch {
-    return 0
+    return []
   }
 }
