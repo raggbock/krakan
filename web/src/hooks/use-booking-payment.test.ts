@@ -1,6 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 
+vi.mock('posthog-js/react', () => ({
+  usePostHog: () => ({ capture: vi.fn() }),
+}))
+
 const mockConfirmCardPayment = vi.fn().mockResolvedValue({ error: null })
 const mockGetElement = vi.fn().mockReturnValue({})
 
@@ -170,7 +174,7 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-payment-create', {
+    expect(mockInvoke).toHaveBeenCalledWith('booking-create', {
       body: {
         marketTableId: 'table-1',
         fleaMarketId: 'market-1',
@@ -192,7 +196,7 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-payment-create', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
       body: expect.objectContaining({
         message: undefined,
       }),
@@ -210,7 +214,7 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-payment-create', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
       headers: { Authorization: 'Bearer test-token' },
     }))
   })
