@@ -212,6 +212,39 @@ Staging deploy (Cloudflare Workers):
 
 
 ========================================================
+7. SKYLTFÖNSTRET — Stripe Subscription
+========================================================
+
+7.1  Skapa en Stripe Price i Stripe Dashboard:
+     - Produkt: "Skyltfönstret"
+     - Pris: 69 SEK / månad (recurring)
+     - Kopiera Price ID (price_...)
+
+7.2  Sätt secrets i Supabase:
+
+       supabase secrets set SKYLTFONSTRET_PRICE_ID=price_...
+
+7.3  Lägg till webhook-events i Stripe Dashboard:
+     Gå till samma webhook-endpoint som finns,
+     och lägg till dessa events:
+       - checkout.session.completed
+       - customer.subscription.deleted
+       - invoice.payment_failed
+
+7.4  Konfigurera Stripe Customer Portal:
+     Stripe Dashboard > Settings > Billing > Customer portal
+     Aktivera: Cancel subscription, Update payment method
+
+7.5  Deploya edge functions:
+
+       npx supabase functions deploy skyltfonstret-checkout
+       npx supabase functions deploy skyltfonstret-portal
+       npx supabase functions deploy stripe-webhooks
+
+7.6  Kör migration 00009_skyltfonstret.sql
+
+
+========================================================
 SAMMANFATTNING AV NYA DATABASTABELLER
 ========================================================
 
