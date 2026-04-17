@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { api } from '@/lib/api'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
@@ -17,11 +18,39 @@ function StatCard({ label, value, subValue }: { label: string; value: string; su
   )
 }
 
+function LockedStatCard({ label }: { label: string }) {
+  return (
+    <div className="vintage-card p-5 relative overflow-hidden">
+      <p className="text-sm text-espresso/60 mb-1">{label}</p>
+      <p className="font-display text-2xl font-bold text-espresso/15">—</p>
+      <div className="absolute inset-0 flex items-center justify-center bg-parchment/80">
+        <div className="text-center px-3">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="mx-auto mb-1.5 text-espresso/30">
+            <rect x="3" y="9" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M7 9V6a3 3 0 0 1 6 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <p className="text-xs font-medium text-espresso/50">Skyltfönstret</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function OrganizerStatsPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { markets, totals, loading, error } = useOrganizerStats(user?.id === id ? id : undefined)
+  const [isPremium, setIsPremium] = useState(false)
+  const [tierLoading, setTierLoading] = useState(true)
+
+  useEffect(() => {
+    if (!id) return
+    api.organizers.get(id)
+      .then((org) => setIsPremium((org?.subscription_tier ?? 0) >= 1))
+      .catch(() => setIsPremium(false))
+      .finally(() => setTierLoading(false))
+  }, [id])
 
   useEffect(() => {
     if (!authLoading && (!user || user.id !== id)) {
@@ -29,7 +58,7 @@ export default function OrganizerStatsPage() {
     }
   }, [authLoading, user, id, router])
 
-  if (authLoading || loading) {
+  if (authLoading || loading || tierLoading) {
     return (
       <div className="flex justify-center py-20">
         <FyndstigenLogo size={40} className="text-rust animate-bob" />
@@ -64,11 +93,15 @@ export default function OrganizerStatsPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-up delay-1">
-        <StatCard
-          label="Sidvisningar"
-          value={totals.pageviews_30d.toLocaleString('sv-SE')}
-          subValue={totals.pageviews_total.toLocaleString('sv-SE')}
-        />
+        {isPremium ? (
+          <StatCard
+            label="Sidvisningar"
+            value={totals.pageviews_30d.toLocaleString('sv-SE')}
+            subValue={totals.pageviews_total.toLocaleString('sv-SE')}
+          />
+        ) : (
+          <LockedStatCard label="Sidvisningar" />
+        )}
         <StatCard
           label="Bokningar"
           value={totals.bookings_30d.toLocaleString('sv-SE')}
@@ -86,16 +119,32 @@ export default function OrganizerStatsPage() {
         />
       </div>
 
-      {/* Conversion */}
-      {totals.conversion_30d > 0 && (
+      {/* Conversion — premium only */}
+      {isPremium && totals.conversion_30d > 0 && (
         <div className="vintage-card p-5 mb-8 animate-fade-up delay-2">
           <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
           <p className="font-display text-2xl font-bold">{totals.conversion_30d}%</p>
         </div>
       )}
 
-      {/* Per-market breakdown */}
-      {markets.length > 1 && (
+      {!isPremium && (
+        <div className="vintage-card p-5 mb-8 relative overflow-hidden animate-fade-up delay-2">
+          <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
+          <p className="font-display text-2xl font-bold text-espresso/15">—</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-parchment/80">
+            <div className="text-center px-3">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="mx-auto mb-1.5 text-espresso/30">
+                <rect x="3" y="9" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M7 9V6a3 3 0 0 1 6 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <p className="text-xs font-medium text-espresso/50">Skyltfönstret</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Per-market breakdown — premium only */}
+      {isPremium && markets.length > 1 && (
         <div className="animate-fade-up delay-3">
           <h2 className="font-display text-xl font-bold mb-4">Per loppis</h2>
           <div className="vintage-card overflow-hidden">
@@ -130,6 +179,33 @@ export default function OrganizerStatsPage() {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {!isPremium && markets.length > 1 && (
+        <div className="vintage-card p-8 text-center animate-fade-up delay-3">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="none" className="mx-auto mb-2 text-espresso/30">
+            <rect x="3" y="9" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M7 9V6a3 3 0 0 1 6 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <p className="font-display font-bold mb-1">Detaljerad statistik per loppis</p>
+          <p className="text-sm text-espresso/60">Uppgradera till Skyltfönstret för att se visningar, konvertering och mer per loppis.</p>
+        </div>
+      )}
+
+      {/* Skyltfönstret upsell banner for free tier */}
+      {!isPremium && (
+        <div className="vintage-card p-6 mt-8 bg-mustard/5 border-mustard/20 animate-fade-up delay-4">
+          <h3 className="font-display font-bold text-lg mb-2">Skyltfönstret</h3>
+          <p className="text-sm text-espresso/70 mb-3">
+            Ställ ut din loppis i Skyltfönstret och få tillgång till egen SEO, detaljerad statistik och mer synlighet.
+          </p>
+          <ul className="text-sm text-espresso/70 space-y-1 mb-4">
+            <li>&#10003; Bättre synlighet på Google</li>
+            <li>&#10003; Sidvisningar och konvertering</li>
+            <li>&#10003; Statistik per loppis</li>
+          </ul>
+          <p className="text-xs text-espresso/50">Kontakta oss för att uppgradera.</p>
         </div>
       )}
 
