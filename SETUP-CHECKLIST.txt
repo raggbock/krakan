@@ -38,6 +38,7 @@ Alla kodändringar är redan mergade till develop.
        - account.updated
        - payment_intent.canceled
        - payment_intent.payment_failed
+       - payment_intent.succeeded
 
      När endpointen är skapad, kopiera "Signing secret":
        whsec_...
@@ -63,10 +64,10 @@ Alla kodändringar är redan mergade till develop.
 2.2  Deploya Edge Functions:
      Kör från projektets root:
 
+       npx supabase functions deploy booking-create
        npx supabase functions deploy stripe-connect-create
        npx supabase functions deploy stripe-connect-status
        npx supabase functions deploy stripe-connect-refresh
-       npx supabase functions deploy stripe-payment-create
        npx supabase functions deploy stripe-payment-capture
        npx supabase functions deploy stripe-payment-cancel
        npx supabase functions deploy stripe-webhooks
@@ -91,18 +92,22 @@ Alla kodändringar är redan mergade till develop.
      pg_trgm ger fuzzy textsökning (ILIKE) med index,
      så att sökning på loppnamn inte gör full table scan.
 
-3.3  Kör migrationen:
-     Migration 00002 (betalning) och 00003 (index/constraints)
-     behöver appliceras. Antingen:
+3.3  Kör migrationerna:
+     Alla migrationer (00001–00006) behöver appliceras.
 
-     a) Via Supabase CLI:
+     a) Via Supabase CLI (enklast — kör alla automatiskt):
         npx supabase db push
 
      b) Via Supabase Dashboard > SQL Editor:
-        Kopiera innehållet i:
+        Kopiera och kör migrationerna i ordning:
+          supabase/migrations/00001_initial_schema.sql
           supabase/migrations/00002_stripe_payment.sql
           supabase/migrations/00003_indexes_and_constraints.sql
-        Kör dem i ordning.
+          supabase/migrations/00004_opening_hour_rules.sql
+          supabase/migrations/00005_auto_accept_and_free_bookings.sql
+          supabase/migrations/00006_fix_free_booking_constraints.sql
+          supabase/migrations/00007_fix_cron_free_payment_status.sql
+          supabase/migrations/00008_security_hardening.sql
 
      VIKTIGT: pg_cron och pg_trgm MÅSTE aktiveras (steg 3.1-3.2)
      INNAN du kör migrationerna, annars misslyckas de.
@@ -186,6 +191,24 @@ Staging deploy (Cloudflare Workers):
   npx fungerar INTE korrekt för wrangler/vitest i denna
   monorepo pga hoisting-problem. Kör alltid via explicita
   node-paths som ovan.
+
+
+========================================================
+6. POSTHOG ANALYTICS (organizer-stats edge function)
+========================================================
+
+6.1  Sätt secrets i Supabase:
+
+       supabase secrets set POSTHOG_PRIVATE_API_KEY=phx_...
+       supabase secrets set POSTHOG_PROJECT_ID=12345
+       supabase secrets set POSTHOG_HOST=https://eu.i.posthog.com
+
+     POSTHOG_HOST kan utelämnas — defaultar till
+     https://eu.i.posthog.com
+
+6.2  Deploya edge function:
+
+       npx supabase functions deploy organizer-stats
 
 
 ========================================================
