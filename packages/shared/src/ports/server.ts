@@ -12,7 +12,7 @@ export interface ServerDataPort {
     organizer_subscription_tier: number
     opening_hour_rules: Array<{
       type: string
-      day_of_week: number
+      day_of_week: number | null
       anchor_date: string | null
       open_time: string
       close_time: string

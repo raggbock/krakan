@@ -7,6 +7,8 @@ type Props = {
   children: React.ReactNode
 }
 
+const SCHEMA_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const
+
 function getServerData() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
@@ -22,19 +24,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Loppis hittades inte' }
   }
 
+  const isPremium = market.organizer_subscription_tier >= 1
   const title = market.name
-  const description = market.description
-    ? market.description.slice(0, 160)
-    : `${market.name} i ${market.city}. Hitta öppettider, adress och boka bord på Fyndstigen.`
+
+  let description: string
+  if (market.description) {
+    description = market.description.slice(0, 160)
+  } else if (isPremium && market.price_range) {
+    description = `${market.name} i ${market.city}. ${market.is_permanent ? 'Permanent' : 'Tillfällig'} loppis. Bord från ${market.price_range.min_sek} kr. Hitta öppettider och boka bord på Fyndstigen.`
+  } else {
+    description = `${market.name} i ${market.city}. Hitta öppettider, adress och boka bord på Fyndstigen.`
+  }
 
   return {
     title,
     description,
+    alternates: isPremium ? { canonical: `https://fyndstigen.se/fleamarkets/${id}` } : undefined,
     openGraph: {
       title: `${market.name} — Fyndstigen`,
       description,
       type: 'website',
       locale: 'sv_SE',
+      ...(isPremium && market.image_url ? { images: [{ url: market.image_url }] } : {}),
     },
   }
 }
@@ -42,6 +53,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function FleaMarketLayout({ params, children }: Props) {
   const { id } = await params
   const market = await getServerData().getMarketMeta(id)
+
+  const isPremium = market ? market.organizer_subscription_tier >= 1 : false
 
   const jsonLd = market
     ? {
@@ -66,6 +79,40 @@ export default async function FleaMarketLayout({ params, children }: Props) {
             }
           : {}),
         url: `https://fyndstigen.se/fleamarkets/${id}`,
+        ...(isPremium && market.opening_hour_rules.length > 0
+          ? {
+              openingHoursSpecification: market.opening_hour_rules
+                .filter((r) => r.type !== 'biweekly')
+                .map((r) => ({
+                  '@type': 'OpeningHoursSpecification',
+                  ...(r.type === 'weekly' && r.day_of_week !== null
+                    ? { dayOfWeek: SCHEMA_DAYS[r.day_of_week] }
+                    : {}),
+                  ...(r.type === 'date' && r.anchor_date
+                    ? { validFrom: r.anchor_date, validThrough: r.anchor_date }
+                    : {}),
+                  opens: r.open_time.slice(0, 5),
+                  closes: r.close_time.slice(0, 5),
+                })),
+            }
+          : {}),
+        ...(isPremium && market.price_range
+          ? { priceRange: `${market.price_range.min_sek}-${market.price_range.max_sek} SEK` }
+          : {}),
+        ...(isPremium && market.image_url ? { image: market.image_url } : {}),
+      }
+    : null
+
+  const breadcrumbLd = market && isPremium
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Fyndstigen', item: 'https://fyndstigen.se' },
+          { '@type': 'ListItem', position: 2, name: 'Loppisar', item: 'https://fyndstigen.se/search' },
+          { '@type': 'ListItem', position: 3, name: market.city, item: `https://fyndstigen.se/search?city=${encodeURIComponent(market.city)}` },
+          { '@type': 'ListItem', position: 4, name: market.name },
+        ],
       }
     : null
 
@@ -74,7 +121,13 @@ export default async function FleaMarketLayout({ params, children }: Props) {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
+      )}
+      {breadcrumbLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c') }}
         />
       )}
       {children}
