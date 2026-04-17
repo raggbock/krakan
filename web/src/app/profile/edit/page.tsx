@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { api, OrganizerProfile } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { supabase } from '@/lib/supabase'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -14,6 +15,48 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const searchParams = useSearchParams()
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // Check for success redirect from Stripe Checkout
+  useEffect(() => {
+    if (searchParams.get('skyltfonstret') === 'active') {
+      setShowSuccess(true)
+      router.replace('/profile/edit', { scroll: false })
+      setTimeout(() => setShowSuccess(false), 5000)
+    }
+  }, [searchParams, router])
+
+  async function handleUpgrade() {
+    setUpgradeLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+      const res = await supabase.functions.invoke('skyltfonstret-checkout', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.error || !res.data?.url) throw new Error('Failed to create checkout')
+      window.location.href = res.data.url
+    } catch {
+      setUpgradeLoading(false)
+    }
+  }
+
+  async function handleManageSubscription() {
+    setUpgradeLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+      const res = await supabase.functions.invoke('skyltfonstret-portal', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.error || !res.data?.url) throw new Error('Failed to create portal session')
+      window.location.href = res.data.url
+    } catch {
+      setUpgradeLoading(false)
+    }
+  }
 
   // Form state
   const [firstName, setFirstName] = useState('')
@@ -93,25 +136,51 @@ export default function EditProfilePage() {
         <span className="text-espresso/70">/arrangorer/{user?.id?.slice(0, 8)}...</span>
       </p>
 
-      {/* Tier badge */}
-      <div className="vintage-card p-5 mb-6 flex items-center justify-between">
-        <div>
-          <span className="text-sm font-semibold">
-            {isPremium ? 'Premium-arrangör' : 'Gratis-arrangör'}
-          </span>
-          <p className="text-xs text-espresso/60 mt-0.5">
-            {isPremium
-              ? 'Du har tillgång till statistik, bilder och utvalda-badgen.'
-              : 'Uppgradera för statistik, bilder på loppisar och utvald-badge.'}
-          </p>
+      {/* Success banner */}
+      {showSuccess && (
+        <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-6 animate-fade-up">
+          Skyltfönstret är aktiverat! Dina loppisar får nu bättre synlighet.
         </div>
-        {!isPremium && (
-          <span className="bg-mustard/15 text-mustard px-4 py-2 rounded-full text-xs font-bold">
-            Kommer snart
-          </span>
-        )}
-        {isPremium && (
-          <span className="stamp text-mustard text-xs">Premium</span>
+      )}
+
+      {/* Skyltfönstret */}
+      <div className="vintage-card p-6 mb-6">
+        {isPremium ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="stamp text-mustard text-xs">Skyltfönstret</span>
+              <span className="text-sm font-semibold">Aktivt</span>
+            </div>
+            <p className="text-sm text-espresso/60 mb-4">
+              Dina loppisar har utökad SEO, detaljerad statistik och bättre synlighet på Google.
+            </p>
+            <button
+              onClick={handleManageSubscription}
+              disabled={upgradeLoading}
+              className="text-sm text-rust hover:text-rust-light transition-colors disabled:opacity-50"
+            >
+              {upgradeLoading ? 'Laddar...' : 'Hantera prenumeration'}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <h3 className="font-display font-bold text-lg mb-2">Skyltfönstret</h3>
+            <p className="text-sm text-espresso/70 mb-3">
+              Ställ ut din loppis i Skyltfönstret och få tillgång till egen SEO, detaljerad statistik och mer synlighet.
+            </p>
+            <ul className="text-sm text-espresso/70 space-y-1 mb-4">
+              <li>&#10003; Bättre synlighet på Google</li>
+              <li>&#10003; Sidvisningar och konvertering</li>
+              <li>&#10003; Statistik per loppis</li>
+            </ul>
+            <button
+              onClick={handleUpgrade}
+              disabled={upgradeLoading}
+              className="h-11 px-6 rounded-xl bg-mustard text-white font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
+            >
+              {upgradeLoading ? 'Laddar...' : 'Uppgradera — 69 kr/mån'}
+            </button>
+          </div>
         )}
       </div>
 
