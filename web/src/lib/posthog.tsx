@@ -4,12 +4,16 @@ import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react'
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { getConsentStatus } from '@/components/cookie-consent'
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
     if (!key || !host) return
+
+    // Only initialize PostHog if user has accepted cookies
+    if (getConsentStatus() !== 'accepted') return
 
     posthog.init(key, {
       api_host: host,

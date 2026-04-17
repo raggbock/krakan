@@ -7,6 +7,8 @@ import { TrailBackground } from '@/components/trail-background'
 import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
 import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
+import { CookieConsent } from '@/components/cookie-consent'
+import Link from 'next/link'
 
 const fraunces = Fraunces({
   variable: '--font-fraunces',
@@ -95,11 +97,15 @@ export default function RootLayout({
                     </p>
                   </div>
                   <div className="flex items-center gap-6 text-sm text-espresso/60">
+                    <Link href="/integritetspolicy" className="hover:text-espresso transition-colors">
+                      Integritetspolicy
+                    </Link>
                     <span>&copy; {new Date().getFullYear()} Fyndstigen</span>
                   </div>
                 </div>
               </div>
             </footer>
+            <CookieConsent />
           </AuthProvider>
           </QueryProvider>
         </PostHogProvider>
