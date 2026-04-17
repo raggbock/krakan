@@ -7,6 +7,7 @@ import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
@@ -43,6 +44,23 @@ export default function OrganizerStatsPage() {
   const { markets, totals, loading, error } = useOrganizerStats(user?.id === id ? id : undefined)
   const [isPremium, setIsPremium] = useState(false)
   const [tierLoading, setTierLoading] = useState(true)
+
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+
+  async function handleUpgrade() {
+    setUpgradeLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+      const res = await supabase.functions.invoke('skyltfonstret-checkout', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.error || !res.data?.url) throw new Error('Failed to create checkout')
+      window.location.href = res.data.url
+    } catch {
+      setUpgradeLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -205,7 +223,13 @@ export default function OrganizerStatsPage() {
             <li>&#10003; Sidvisningar och konvertering</li>
             <li>&#10003; Statistik per loppis</li>
           </ul>
-          <p className="text-xs text-espresso/50">Kontakta oss för att uppgradera.</p>
+          <button
+            onClick={handleUpgrade}
+            disabled={upgradeLoading}
+            className="h-11 px-6 rounded-xl bg-mustard text-white font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
+          >
+            {upgradeLoading ? 'Laddar...' : 'Uppgradera — 69 kr/mån'}
+          </button>
         </div>
       )}
 
