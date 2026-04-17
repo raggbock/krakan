@@ -245,6 +245,43 @@ Staging deploy (Cloudflare Workers):
 
 
 ========================================================
+8. SKALBARHET — Rate limiting & Övervakning
+========================================================
+
+8.1  Supabase Rate Limiting:
+     Dashboard > Project Settings > API > Rate limiting
+     Rekommenderade gränser:
+       - Anon key: 100 req/min per IP
+       - Service role: obegränsat (bara edge functions)
+
+8.2  Kör migration 00010_stats_functions.sql:
+     Denna ersätter den tunga organizer_stats-viewn
+     med parametriserade RPC-funktioner.
+
+8.3  Övervaka RLS-policys med EXPLAIN ANALYZE:
+     Kör i SQL Editor vid behov:
+
+       EXPLAIN ANALYZE
+       SELECT * FROM opening_hours
+       WHERE flea_market_id = '<en-marknad-id>';
+
+     Om "Seq Scan" dyker upp på flea_markets-tabellen
+     i RLS-policy-subqueryn, verifiera att indexet
+     flea_markets_organizer_idx finns.
+
+8.4  PostHog API rate limits:
+     PostHog EU: ~5 req/s per API-nyckel.
+     organizer-stats gör nu 3 HogQL-queries totalt
+     (inte 3 per marknad). Bör aldrig trigga limits.
+
+8.5  Stripe rate limits:
+     Stripe: 100 req/s i live mode.
+     skyltfonstret-checkout gör max 3 Stripe-anrop
+     per request (customer create + subscription check
+     + checkout session). Bör aldrig trigga limits.
+
+
+========================================================
 SAMMANFATTNING AV NYA DATABASTABELLER
 ========================================================
 
