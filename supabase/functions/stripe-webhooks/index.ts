@@ -102,7 +102,11 @@ serve(async (req) => {
         const customerId = typeof session.customer === 'string'
           ? session.customer
           : null
-        if (customerId) {
+        if (!customerId) {
+          console.warn(`checkout.session.completed: no user_id or customer_id found for session ${session.id}`)
+          break
+        }
+        {
           const { error } = await admin
             .from('profiles')
             .update({ subscription_tier: 1 })
