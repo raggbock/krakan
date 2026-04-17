@@ -4,12 +4,63 @@ import type { ServerDataPort } from '../ports/server'
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
     async getMarketMeta(id) {
-      const { data } = await supabase
+      const { data: market } = await supabase
         .from('flea_markets')
-        .select('name, description, city, street, zip_code, is_permanent, latitude, longitude')
+        .select(`
+          name, description, city, street, zip_code, is_permanent, latitude, longitude,
+          organizer:profiles!organizer_id(subscription_tier),
+          opening_hour_rules(type, day_of_week, anchor_date, open_time, close_time),
+          market_tables(price_sek, is_available),
+          flea_market_images(storage_path, sort_order)
+        `)
         .eq('id', id)
         .single()
-      return data
+
+      if (!market) return null
+
+      // Extract organizer subscription tier
+      const organizer = market.organizer as unknown as { subscription_tier: number } | null
+      const organizer_subscription_tier = organizer?.subscription_tier ?? 0
+
+      // Extract opening hour rules
+      const opening_hour_rules = ((market.opening_hour_rules as unknown as Array<{
+        type: string; day_of_week: number | null; anchor_date: string | null
+        open_time: string; close_time: string
+      }>) ?? [])
+
+      // Compute price range from available tables
+      const tables = (market.market_tables as unknown as Array<{ price_sek: number; is_available: boolean }>) ?? []
+      const availableTables = tables.filter((t) => t.is_available)
+      const price_range = availableTables.length > 0
+        ? {
+            min_sek: Math.min(...availableTables.map((t) => t.price_sek)),
+            max_sek: Math.max(...availableTables.map((t) => t.price_sek)),
+          }
+        : null
+
+      // Get first image URL
+      const images = (market.flea_market_images as unknown as Array<{ storage_path: string; sort_order: number }>) ?? []
+      const sortedImages = [...images].sort((a, b) => a.sort_order - b.sort_order)
+      const firstImage = sortedImages[0]
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      const image_url = firstImage
+        ? `${supabaseUrl}/storage/v1/object/public/flea-market-images/${firstImage.storage_path}`
+        : null
+
+      return {
+        name: market.name,
+        description: market.description,
+        city: market.city,
+        street: market.street,
+        zip_code: market.zip_code,
+        latitude: market.latitude,
+        longitude: market.longitude,
+        is_permanent: market.is_permanent,
+        organizer_subscription_tier,
+        opening_hour_rules,
+        price_range,
+        image_url,
+      }
     },
 
     async getRouteMeta(id) {
