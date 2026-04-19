@@ -13,6 +13,8 @@ export {
   isValidStatusTransition,
   validateBookingDate,
   generateBatchLabels,
+  isFreePriced,
+  resolveBookingOutcome,
 } from './booking'
 
 // Ports
