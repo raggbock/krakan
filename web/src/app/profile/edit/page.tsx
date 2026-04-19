@@ -1,8 +1,6 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { api, OrganizerProfile } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
@@ -11,6 +9,20 @@ import { supabase } from '@/lib/supabase'
 import { features } from '@/lib/feature-flags'
 
 export default function EditProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-20">
+          <FyndstigenLogo size={40} className="text-rust animate-bob" />
+        </div>
+      }
+    >
+      <EditProfilePageInner />
+    </Suspense>
+  )
+}
+
+function EditProfilePageInner() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<OrganizerProfile | null>(null)
