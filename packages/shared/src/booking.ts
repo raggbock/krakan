@@ -74,7 +74,9 @@ export function resolveBookingOutcome(priceSek: number, autoAccept: boolean): Bo
   }
 
   if (!free && autoAccept) {
-    return { status: 'pending', paymentStatus: 'requires_payment', needsStripe: true, captureMethod: 'automatic', expiresAt: null }
+    const expires = new Date()
+    expires.setDate(expires.getDate() + 1)
+    return { status: 'pending', paymentStatus: 'requires_payment', needsStripe: true, captureMethod: 'automatic', expiresAt: expires.toISOString() }
   }
 
   // paid + manual

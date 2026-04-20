@@ -2,28 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteStop } from '@/lib/api'
 import { formatDistance, formatDuration, fetchDrivingRoute, type RoutingResult } from '@fyndstigen/shared'
-
-const markerSvg = (num: number) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="%23C45B35"/><circle cx="14" cy="13" r="5" fill="%23F2EBE0"/><text x="14" y="17" text-anchor="middle" font-size="11" font-weight="bold" fill="%23C45B35" font-family="sans-serif">${num}</text></svg>`
+import { numberedMarkerIcon } from '@/lib/map-markers'
 
 type Props = {
   stops: RouteStop[]
   onRoutingResult?: (result: RoutingResult | null) => void
   onRoutingError?: (failed: boolean) => void
-}
-
-function MapCleanup() {
-  const map = useMap()
-  useEffect(() => {
-    return () => {
-      map.remove()
-    }
-  }, [map])
-  return null
 }
 
 export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Props) {
@@ -74,7 +61,6 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
       className="h-full w-full"
       style={{ minHeight: 0 }}
     >
-      <MapCleanup />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -89,14 +75,7 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
           <Marker
             key={stop.id}
             position={pos}
-            icon={
-              new L.Icon({
-                iconUrl: `data:image/svg+xml,${encodeURIComponent(markerSvg(i + 1))}`,
-                iconSize: [28, 40],
-                iconAnchor: [14, 40],
-                popupAnchor: [0, -36],
-              })
-            }
+            icon={numberedMarkerIcon(i + 1)}
           >
             <Popup>
               <div className="min-w-[160px]">

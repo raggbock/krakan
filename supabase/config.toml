@@ -1,0 +1,38 @@
+project_id = "yqeegfhwbjnlrdurstxp"
+
+# JWT verification is disabled at the gateway because Supabase's new
+# asymmetric JWT signing keys (ES256) are incompatible with the platform's
+# legacy verify_jwt check. Auth is instead enforced inside each function
+# via _shared/handler.ts → getUser() which calls /auth/v1/user over HTTP
+# (the Auth service supports ES256). stripe-webhooks uses Stripe signature
+# verification instead of Supabase JWT.
+
+[functions.booking-create]
+verify_jwt = false
+
+[functions.organizer-stats]
+verify_jwt = false
+
+[functions.skyltfonstret-checkout]
+verify_jwt = false
+
+[functions.skyltfonstret-portal]
+verify_jwt = false
+
+[functions.stripe-connect-create]
+verify_jwt = false
+
+[functions.stripe-connect-refresh]
+verify_jwt = false
+
+[functions.stripe-connect-status]
+verify_jwt = false
+
+[functions.stripe-payment-cancel]
+verify_jwt = false
+
+[functions.stripe-payment-capture]
+verify_jwt = false
+
+[functions.stripe-webhooks]
+verify_jwt = false

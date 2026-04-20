@@ -2,16 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-
-const markerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="%23C45B35"/><circle cx="14" cy="13" r="5" fill="%23F2EBE0"/></svg>`
-
-const icon = new L.Icon({
-  iconUrl: `data:image/svg+xml,${encodeURIComponent(markerSvg)}`,
-  iconSize: [28, 40],
-  iconAnchor: [14, 40],
-})
+import { markerIcon } from '@/lib/map-markers'
 
 export type AddressValue = {
   street: string
@@ -64,16 +56,6 @@ function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void
       onClick(e.latlng.lat, e.latlng.lng)
     },
   })
-  return null
-}
-
-function MapCleanup() {
-  const map = useMap()
-  useEffect(() => {
-    return () => {
-      map.remove()
-    }
-  }, [map])
   return null
 }
 
@@ -269,7 +251,6 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             className="w-full h-full"
             style={{ minHeight: '240px' }}
           >
-            <MapCleanup />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -278,7 +259,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             {value.latitude && value.longitude && (
               <>
                 <FlyTo lat={value.latitude} lng={value.longitude} />
-                <Marker position={[value.latitude, value.longitude]} icon={icon} />
+                <Marker position={[value.latitude, value.longitude]} icon={markerIcon} />
               </>
             )}
           </MapContainer>

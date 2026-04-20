@@ -28,11 +28,16 @@ createHandler(async ({ user, admin, body }) => {
     await stripe.paymentIntents.cancel(booking.stripe_payment_intent_id)
   }
 
-  const { error: updateErr } = await admin
+  const newPaymentStatus = booking.stripe_payment_intent_id ? 'cancelled' : 'free'
+
+  const { data: updated, error: updateErr } = await admin
     .from('bookings')
-    .update({ status: newStatus, payment_status: 'cancelled' })
+    .update({ status: newStatus, payment_status: newPaymentStatus })
     .eq('id', bookingId)
-  if (updateErr) throw updateErr
+    .eq('status', 'pending')
+    .select('id')
+    .single()
+  if (updateErr || !updated) throw new Error('Booking was already updated by another action')
 
   return { success: true }
 })

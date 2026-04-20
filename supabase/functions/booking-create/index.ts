@@ -1,4 +1,4 @@
-import { createHandler, NotFoundError } from '../_shared/handler.ts'
+import { createHandler, HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { calculateStripeAmounts, resolveBookingOutcome } from '../_shared/pricing.ts'
 
@@ -10,6 +10,14 @@ createHandler(async ({ user, admin, body }) => {
     message?: string
   }
 
+  if (!marketTableId || !fleaMarketId || !bookingDate) {
+    throw new HttpError(400, 'Missing required fields: marketTableId, fleaMarketId, bookingDate')
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(bookingDate)) {
+    throw new HttpError(400, 'Invalid date format, expected YYYY-MM-DD')
+  }
+
   // Get market table for price
   const { data: table, error: tableErr } = await admin
     .from('market_tables')
@@ -19,13 +27,15 @@ createHandler(async ({ user, admin, body }) => {
   if (tableErr || !table) throw new NotFoundError('Table not found')
   if (table.flea_market_id !== fleaMarketId) throw new Error('Table does not belong to market')
 
-  // Get market for auto_accept and organizer
+  // Get market for auto_accept and organizer — must be published and not deleted
   const { data: market } = await admin
     .from('flea_markets')
     .select('organizer_id, auto_accept_bookings')
     .eq('id', fleaMarketId)
+    .not('published_at', 'is', null)
+    .eq('is_deleted', false)
     .single()
-  if (!market) throw new NotFoundError('Market not found')
+  if (!market) throw new NotFoundError('Market not found or not published')
 
   // Resolve what kind of booking this is
   const outcome = resolveBookingOutcome(table.price_sek, market.auto_accept_bookings)
@@ -64,6 +74,7 @@ createHandler(async ({ user, admin, body }) => {
 
   if (outcome.needsStripe && stripeAccountId) {
     const { totalOre, applicationFeeOre } = calculateStripeAmounts(table.price_sek)
+    const idempotencyKey = `${user.id}-${marketTableId}-${bookingDate}-${Date.now()}`
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalOre,
       currency: 'sek',
@@ -76,7 +87,7 @@ createHandler(async ({ user, admin, body }) => {
         booked_by: user.id,
         booking_date: bookingDate,
       },
-    })
+    }, { idempotencyKey })
     paymentIntentId = paymentIntent.id
     clientSecret = paymentIntent.client_secret
   }

@@ -76,6 +76,12 @@ export default function EditMarketPage() {
         api.marketTables.list(id),
       ])
 
+      // Verify current user is the organizer
+      if (market.organizer_id !== user?.id) {
+        router.replace(`/fleamarkets/${id}`)
+        return
+      }
+
       setName(market.name)
       setDescription(market.description ?? '')
       setAddress({

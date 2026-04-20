@@ -45,3 +45,6 @@ Thumbs.db
 .mcp.json
 .agents/
 skills-lock.json
+
+# Superpowers brainstorm sessions (local state)
+.superpowers/

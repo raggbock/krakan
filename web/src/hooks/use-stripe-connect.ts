@@ -30,8 +30,9 @@ export function useStripeConnect(userId: string | undefined): ConnectState {
     try {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
       const res = await supabase.functions.invoke('stripe-connect-status', {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.error) throw res.error
       setConnected(res.data.connected)
@@ -47,8 +48,9 @@ export function useStripeConnect(userId: string | undefined): ConnectState {
     try {
       setError(null)
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
       const res = await supabase.functions.invoke('stripe-connect-create', {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.error) throw res.error
       window.location.href = res.data.url
@@ -61,8 +63,9 @@ export function useStripeConnect(userId: string | undefined): ConnectState {
     try {
       setError(null)
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
       const res = await supabase.functions.invoke('stripe-connect-refresh', {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (res.error) throw res.error
       window.location.href = res.data.url

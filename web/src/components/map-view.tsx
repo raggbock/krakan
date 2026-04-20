@@ -3,33 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
+import { markerIcon } from '@/lib/map-markers'
 import { FyndstigenLogo } from './fyndstigen-logo'
 
-// Custom marker using a warm rust-colored SVG
-const markerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="%23C45B35"/><circle cx="14" cy="13" r="5" fill="%23F2EBE0"/></svg>`
-
-const icon = new L.Icon({
-  iconUrl: `data:image/svg+xml,${encodeURIComponent(markerSvg)}`,
-  iconSize: [28, 40],
-  iconAnchor: [14, 40],
-  popupAnchor: [0, -36],
-})
-
 const DEFAULT_CENTER = { lat: 59.33, lng: 18.07 } // Stockholm fallback
-
-function MapCleanup() {
-  const map = useMap()
-  useEffect(() => {
-    return () => {
-      map.remove()
-    }
-  }, [map])
-  return null
-}
 
 function FlyToLocation({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
@@ -89,7 +69,6 @@ export default function MapView() {
         className="flex-1 w-full"
         style={{ minHeight: '300px' }}
       >
-        <MapCleanup />
         <FlyToLocation lat={center.lat} lng={center.lng} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -99,7 +78,7 @@ export default function MapView() {
           <Marker
             key={market.id}
             position={[market.latitude, market.longitude]}
-            icon={icon}
+            icon={markerIcon}
           >
             <Popup>
               <div className="min-w-[200px] p-1">

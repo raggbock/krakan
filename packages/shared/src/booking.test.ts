@@ -35,15 +35,13 @@ describe('resolveBookingOutcome', () => {
     expect(result.expiresAt).not.toBeNull()
   })
 
-  it('paid + auto-accept → pending/requires_payment, stripe automatic', () => {
+  it('paid + auto-accept → pending/requires_payment, stripe automatic, has 24h expiry', () => {
     const result = resolveBookingOutcome(200, true)
-    expect(result).toEqual({
-      status: 'pending',
-      paymentStatus: 'requires_payment',
-      needsStripe: true,
-      captureMethod: 'automatic',
-      expiresAt: null,
-    })
+    expect(result.status).toBe('pending')
+    expect(result.paymentStatus).toBe('requires_payment')
+    expect(result.needsStripe).toBe(true)
+    expect(result.captureMethod).toBe('automatic')
+    expect(result.expiresAt).not.toBeNull()
   })
 
   it('paid + manual → pending/requires_capture, stripe manual, has expiry', () => {

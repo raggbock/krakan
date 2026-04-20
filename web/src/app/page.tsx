@@ -54,7 +54,7 @@ export default async function LandingPage() {
     <div className="overflow-hidden">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, '\\u003c') }}
       />
       {/* ════════════════════════════════════════════
           HERO — Full-width, immersive trail opening

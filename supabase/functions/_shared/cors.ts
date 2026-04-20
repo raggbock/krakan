@@ -1,7 +1,13 @@
-const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '*').split(',')
+const envOrigins = Deno.env.get('ALLOWED_ORIGINS')
+if (!envOrigins) {
+  console.warn('WARNING: ALLOWED_ORIGINS not set — CORS will reject all cross-origin requests')
+}
+const allowedOrigins = envOrigins ? envOrigins.split(',') : []
 
 export function getCorsHeaders(origin: string | null): Record<string, string> {
-  const resolvedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+  const resolvedOrigin = origin && allowedOrigins.includes(origin)
+    ? origin
+    : allowedOrigins[0] ?? ''
   return {
     'Access-Control-Allow-Origin': resolvedOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -11,7 +17,7 @@ export function getCorsHeaders(origin: string | null): Record<string, string> {
 
 // Backwards-compatible export for functions that don't pass origin
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': allowedOrigins[0],
+  'Access-Control-Allow-Origin': allowedOrigins[0] ?? '',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 }

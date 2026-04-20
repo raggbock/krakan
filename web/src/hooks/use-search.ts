@@ -1,43 +1,40 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { api, FleaMarket } from '@/lib/api'
 
 export function useSearch(debounceMs = 300) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<FleaMarket[] | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const search = useCallback(
-    (q: string) => {
-      setQuery(q)
-      clearTimeout(timerRef.current)
+  function search(q: string) {
+    setQuery(q)
+    clearTimeout(timerRef.current)
+    if (!q.trim()) {
+      setDebouncedQuery('')
+      return
+    }
+    timerRef.current = setTimeout(() => setDebouncedQuery(q), debounceMs)
+  }
 
-      if (!q.trim()) {
-        setResults(null)
-        setLoading(false)
-        setError(null)
-        return
-      }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['search', debouncedQuery],
+    queryFn: () => api.search.query(debouncedQuery),
+    enabled: !!debouncedQuery.trim(),
+    staleTime: 60_000,
+  })
 
-      setLoading(true)
-      setError(null)
-      timerRef.current = setTimeout(async () => {
-        try {
-          const data = await api.search.query(q)
-          setResults(data.fleaMarkets)
-        } catch {
-          setResults([])
-          setError('Sökningen misslyckades')
-        } finally {
-          setLoading(false)
-        }
-      }, debounceMs)
-    },
-    [debounceMs],
-  )
+  const results: FleaMarket[] | null = debouncedQuery
+    ? (data?.fleaMarkets ?? [])
+    : null
 
-  return { query, results, loading, error, search }
+  return {
+    query,
+    results,
+    loading: isLoading && !!debouncedQuery,
+    error: error ? 'Sökningen misslyckades' : null,
+    search,
+  }
 }

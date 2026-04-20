@@ -6,6 +6,13 @@ import { mapBookingForUser, mapBookingForOrganizer, type BookingRow } from './ma
 export function createBookingsApi(supabase: SupabaseClient) {
   return {
     bookings: {
+      /**
+       * @deprecated Use the `booking-create` edge function instead.
+       * This method inserts directly into the bookings table, bypassing
+       * Stripe payment creation, idempotency checks, free/auto-accept
+       * logic, and publication validation. It exists only for legacy
+       * compatibility and should NOT be used in new code.
+       */
       create: async (payload: CreateBookingPayload) => {
         const commissionSek = calculateCommission(payload.priceSek)
 
