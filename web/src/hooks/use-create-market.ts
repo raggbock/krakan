@@ -128,21 +128,29 @@ export function useCreateMarket() {
           continue
         }
 
-        // Transition pending image to uploading right before we process its item
-        // result — for a sequential saga this gives the same "one in flight" UX
-        // the old imperative hook had.
-        if (ev.phase === 'saving_images' && (ev.status === 'item_ok' || ev.status === 'item_error')) {
-          if (ev.kind === 'add') {
-            if (ev.status === 'item_ok') {
-              setImageStatuses((prev) =>
-                prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'done' } : s)),
-              )
-            } else {
-              setImageStatuses((prev) =>
-                prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'error' } : s)),
-              )
-              anyImageFailed = true
-            }
+        // Flip the in-flight file to 'uploading' when the saga announces it
+        // started, and to 'done'/'error' on resolution. Gives the user a
+        // spinner on the file currently being processed instead of a silent
+        // pending → done jump.
+        if (
+          ev.phase === 'saving_images' &&
+          ev.status !== 'start' &&
+          ev.status !== 'done' &&
+          ev.kind === 'add'
+        ) {
+          if (ev.status === 'item_start') {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'uploading' } : s)),
+            )
+          } else if (ev.status === 'item_ok') {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'done' } : s)),
+            )
+          } else if (ev.status === 'item_error') {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'error' } : s)),
+            )
+            anyImageFailed = true
           }
         }
 

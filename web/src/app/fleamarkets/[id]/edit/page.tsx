@@ -269,21 +269,34 @@ export default function EditMarketPage() {
         }
         if (
           ev.phase === 'saving_images' &&
-          (ev.status === 'item_ok' || ev.status === 'item_error') &&
+          ev.status !== 'start' &&
+          ev.status !== 'done' &&
           ev.kind === 'add'
         ) {
-          if (ev.status === 'item_ok') {
+          if (ev.status === 'item_start') {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'uploading' } : s)),
+            )
+          } else if (ev.status === 'item_ok') {
             setImageStatuses((prev) =>
               prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'done' } : s)),
             )
-          } else {
+          } else if (ev.status === 'item_error') {
             setImageStatuses((prev) =>
               prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'error' } : s)),
             )
             anyItemError = true
           }
         }
-        if (ev.phase === 'saving_tables' && ev.status === 'item_error') anyItemError = true
+        // Only surface a retry banner for adds; failed removes typically mean
+        // the row was already gone (another session, race) — not actionable.
+        if (
+          ev.phase === 'saving_tables' &&
+          ev.status === 'item_error' &&
+          ev.kind === 'add'
+        ) {
+          anyItemError = true
+        }
       }
 
       if (failedMsg) {

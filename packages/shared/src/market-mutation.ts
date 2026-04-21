@@ -105,6 +105,7 @@ export type MarketEvent =
   | { phase: 'saving_tables'; status: 'item_error'; kind: 'add'; index: number; error: AppError }
   | { phase: 'saving_tables'; status: 'item_error'; kind: 'remove'; index: number; tableId: string; error: AppError }
   | { phase: 'saving_tables'; status: 'done' }
+  | { phase: 'saving_images'; status: 'item_start'; kind: 'add'; index: number; file: File }
   | { phase: 'saving_images'; status: 'item_ok'; kind: 'add'; index: number; file: File }
   | { phase: 'saving_images'; status: 'item_ok'; kind: 'remove'; index: number; imageId: string }
   | { phase: 'saving_images'; status: 'item_error'; kind: 'add'; index: number; file: File; error: AppError }
@@ -328,6 +329,7 @@ export async function* runMarketMutation(
   }
   for (let i = 0; i < plan.images.add.length; i++) {
     const file = plan.images.add[i]
+    yield { phase: 'saving_images', status: 'item_start', kind: 'add', index: i, file }
     try {
       await api.images.add(marketId, file)
       yield { phase: 'saving_images', status: 'item_ok', kind: 'add', index: i, file }

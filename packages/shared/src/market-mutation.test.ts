@@ -83,6 +83,7 @@ describe('runMarketMutation — create new market', () => {
       'saving_tables:item_ok',
       'saving_tables:done',
       'saving_images:start',
+      'saving_images:item_start',
       'saving_images:item_ok',
       'saving_images:done',
       'end:complete',
@@ -164,10 +165,12 @@ describe('runMarketMutation — failures', () => {
     const events = await collect(plan, { api, geo: makeGeo() })
 
     const imageEvents = events.filter((e) => 'phase' in e && e.phase === 'saving_images')
-    // start + 2 items + done
-    expect(imageEvents).toHaveLength(4)
-    expect(imageEvents[1]).toMatchObject({ status: 'item_error', kind: 'add', index: 0 })
-    expect(imageEvents[2]).toMatchObject({ status: 'item_ok', kind: 'add', index: 1 })
+    // start + 2 × (item_start + item_ok/error) + done
+    expect(imageEvents).toHaveLength(6)
+    expect(imageEvents[1]).toMatchObject({ status: 'item_start', kind: 'add', index: 0 })
+    expect(imageEvents[2]).toMatchObject({ status: 'item_error', kind: 'add', index: 0 })
+    expect(imageEvents[3]).toMatchObject({ status: 'item_start', kind: 'add', index: 1 })
+    expect(imageEvents[4]).toMatchObject({ status: 'item_ok', kind: 'add', index: 1 })
     expect(events.at(-1)).toEqual({ type: 'complete', marketId: 'market-1' })
   })
 
