@@ -124,10 +124,14 @@ export default function AuthPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
-            <label className="text-sm font-semibold block mb-2 text-espresso/70">
+            <label
+              htmlFor="auth-email"
+              className="text-sm font-semibold block mb-2 text-espresso/70"
+            >
               E-post
             </label>
             <input
+              id="auth-email"
               type="email"
               required
               autoFocus
@@ -141,7 +145,10 @@ export default function AuthPage() {
           {mode !== 'forgot' && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-espresso/70">
+                <label
+                  htmlFor="auth-password"
+                  className="text-sm font-semibold text-espresso/70"
+                >
                   Lösenord
                 </label>
                 {mode === 'signin' && (
@@ -155,6 +162,7 @@ export default function AuthPage() {
                 )}
               </div>
               <input
+                id="auth-password"
                 type="password"
                 required
                 minLength={6}
