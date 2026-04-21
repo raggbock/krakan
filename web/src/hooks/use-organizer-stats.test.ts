@@ -6,6 +6,9 @@ vi.mock('@/lib/api', () => ({
     fleaMarkets: {
       listByOrganizer: vi.fn(),
     },
+    edge: {
+      invoke: vi.fn(),
+    },
   },
 }))
 
@@ -17,9 +20,6 @@ vi.mock('@/lib/supabase', () => ({
       }),
     },
     rpc: vi.fn(),
-    functions: {
-      invoke: vi.fn(),
-    },
   },
 }))
 
@@ -38,9 +38,7 @@ function setupDefaults() {
   vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([])
   // Default: RPC returns empty
   vi.mocked(supabase.rpc).mockResolvedValue({ data: [], error: null } as any)
-  vi.mocked(supabase.functions.invoke).mockResolvedValue({
-    data: { markets: [] }, error: null,
-  } as any)
+  vi.mocked(api.edge.invoke).mockResolvedValue({ markets: [] } as any)
 }
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
@@ -119,14 +117,11 @@ describe('useOrganizerStats', () => {
   it('calculates conversion_30d as round(initiated/pageviews * 100)', async () => {
     vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([mockMarket1] as any)
 
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: {
-        markets: [{
-          flea_market_id: 'market-1', name: 'Loppis Centrum',
-          pageviews_30d: 200, pageviews_total: 500, bookings_initiated_30d: 50,
-        }],
-      },
-      error: null,
+    vi.mocked(api.edge.invoke).mockResolvedValue({
+      markets: [{
+        flea_market_id: 'market-1', name: 'Loppis Centrum',
+        pageviews_30d: 200, pageviews_total: 500, bookings_initiated_30d: 50,
+      }],
     } as any)
 
     const { result } = renderHook(() => useOrganizerStats('org-1'))
@@ -139,14 +134,11 @@ describe('useOrganizerStats', () => {
   it('returns conversion_30d of 0 when pageviews_30d is 0', async () => {
     vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([mockMarket1] as any)
 
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: {
-        markets: [{
-          flea_market_id: 'market-1', name: 'Loppis Centrum',
-          pageviews_30d: 0, pageviews_total: 0, bookings_initiated_30d: 0,
-        }],
-      },
-      error: null,
+    vi.mocked(api.edge.invoke).mockResolvedValue({
+      markets: [{
+        flea_market_id: 'market-1', name: 'Loppis Centrum',
+        pageviews_30d: 0, pageviews_total: 0, bookings_initiated_30d: 0,
+      }],
     } as any)
 
     const { result } = renderHook(() => useOrganizerStats('org-1'))
@@ -158,9 +150,7 @@ describe('useOrganizerStats', () => {
   it('handles PostHog edge function failure gracefully', async () => {
     vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([mockMarket1] as any)
 
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: null, error: new Error('edge function unavailable'),
-    } as any)
+    vi.mocked(api.edge.invoke).mockRejectedValue(new Error('edge function unavailable'))
 
     const { result } = renderHook(() => useOrganizerStats('org-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))

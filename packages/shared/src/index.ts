@@ -3,6 +3,8 @@ export { createApi } from './api'
 export type { Api, CreateApiOptions } from './api'
 export { createImageService } from './api/images'
 export type { ImageService, ImageServiceDeps } from './api/images'
+export { createEdgeClient } from './api/edge'
+export type { EdgeClient } from './api/edge'
 
 // Types
 export * from './types'

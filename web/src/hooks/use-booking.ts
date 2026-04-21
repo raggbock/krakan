@@ -5,7 +5,6 @@ import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, MarketTable } from '@/lib/api'
 import { calculateCommission, COMMISSION_RATE, isFreePriced, validateBookingDate } from '@fyndstigen/shared'
-import { supabase } from '@/lib/supabase'
 import { usePostHog } from 'posthog-js/react'
 
 type DateValidation = { valid: boolean; error?: string }
@@ -80,26 +79,22 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
       is_free: isFree,
     })
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Du måste vara inloggad')
-
-      const res = await supabase.functions.invoke('booking-create', {
-        body: {
+      const data = await api.edge.invoke<{ clientSecret?: string; bookingId: string }>(
+        'booking-create',
+        {
           marketTableId: selectedTable.id,
           fleaMarketId: marketId,
           bookingDate: date,
           message: message || undefined,
         },
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error) throw new Error(res.error.message || 'Failed to create booking')
+      )
 
-      if (res.data.clientSecret) {
+      if (data.clientSecret) {
         if (!stripe || !elements) throw new Error('Stripe not loaded')
         const cardElement = elements.getElement(CardElement) as StripeCardElement | null
         if (!cardElement) throw new Error('Card element not found')
 
-        const { error: confirmError } = await stripe.confirmCardPayment(res.data.clientSecret, {
+        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret, {
           payment_method: { card: cardElement },
         })
         if (confirmError) throw new Error(confirmError.message)

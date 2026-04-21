@@ -2,14 +2,10 @@ import { renderHook, waitFor, act } from '@testing-library/react'
 import { useStripeConnect } from './use-stripe-connect'
 
 const mockInvoke = vi.fn()
-const mockGetSession = vi.fn().mockResolvedValue({
-  data: { session: { access_token: 'test-token' } },
-})
 
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: { getSession: () => mockGetSession() },
-    functions: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+vi.mock('@/lib/api', () => ({
+  api: {
+    edge: { invoke: (...args: unknown[]) => mockInvoke(...args) },
   },
 }))
 
@@ -17,16 +13,12 @@ describe('useStripeConnect — edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     window.location.href = ''
-    mockInvoke.mockResolvedValue({
-      data: { connected: false, onboarding_complete: false },
-      error: null,
-    })
+    mockInvoke.mockResolvedValue({ connected: false, onboarding_complete: false })
   })
 
   it('does not fetch status when userId is undefined', async () => {
     const { result } = renderHook(() => useStripeConnect(undefined))
 
-    // Should immediately be not loading, no fetch
     expect(result.current.loading).toBe(false)
     expect(mockInvoke).not.toHaveBeenCalled()
   })
@@ -40,14 +32,8 @@ describe('useStripeConnect — edge cases', () => {
   })
 
   it('does not redirect on startOnboarding failure', async () => {
-    mockInvoke.mockResolvedValueOnce({
-      data: { connected: false, onboarding_complete: false },
-      error: null,
-    })
-    mockInvoke.mockResolvedValueOnce({
-      data: null,
-      error: new Error('Stripe API down'),
-    })
+    mockInvoke.mockResolvedValueOnce({ connected: false, onboarding_complete: false })
+    mockInvoke.mockRejectedValueOnce(new Error('Stripe API down'))
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -60,14 +46,8 @@ describe('useStripeConnect — edge cases', () => {
   })
 
   it('does not redirect on refreshOnboarding failure', async () => {
-    mockInvoke.mockResolvedValueOnce({
-      data: { connected: true, onboarding_complete: false },
-      error: null,
-    })
-    mockInvoke.mockResolvedValueOnce({
-      data: null,
-      error: new Error('Account not found'),
-    })
+    mockInvoke.mockResolvedValueOnce({ connected: true, onboarding_complete: false })
+    mockInvoke.mockRejectedValueOnce(new Error('Account not found'))
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -78,16 +58,8 @@ describe('useStripeConnect — edge cases', () => {
   })
 
   it('clears error when startOnboarding succeeds after failure', async () => {
-    // Status check
-    mockInvoke.mockResolvedValueOnce({
-      data: { connected: false, onboarding_complete: false },
-      error: null,
-    })
-    // First onboarding attempt: fail
-    mockInvoke.mockResolvedValueOnce({
-      data: null,
-      error: new Error('Temporary failure'),
-    })
+    mockInvoke.mockResolvedValueOnce({ connected: false, onboarding_complete: false })
+    mockInvoke.mockRejectedValueOnce(new Error('Temporary failure'))
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -95,59 +67,26 @@ describe('useStripeConnect — edge cases', () => {
     await act(async () => { await result.current.startOnboarding() })
     expect(result.current.error).toBeTruthy()
 
-    // Second attempt: success
-    mockInvoke.mockResolvedValueOnce({
-      data: { url: 'https://connect.stripe.com/setup/retry' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValueOnce({ url: 'https://connect.stripe.com/setup/retry' })
 
     await act(async () => { await result.current.startOnboarding() })
     expect(result.current.error).toBeNull()
   })
 
-  it('passes correct function names to supabase invoke', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { connected: false, onboarding_complete: false },
-      error: null,
-    })
+  it('passes correct function names to api.edge.invoke', async () => {
+    mockInvoke.mockResolvedValue({ connected: false, onboarding_complete: false })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-status', expect.anything())
+    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-status')
 
-    mockInvoke.mockResolvedValueOnce({
-      data: { url: 'https://stripe.com' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValueOnce({ url: 'https://stripe.com' })
     await act(async () => { await result.current.startOnboarding() })
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-create', expect.anything())
+    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-create')
 
-    mockInvoke.mockResolvedValueOnce({
-      data: { url: 'https://stripe.com' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValueOnce({ url: 'https://stripe.com' })
     await act(async () => { await result.current.refreshOnboarding() })
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-refresh', expect.anything())
-  })
-
-  it('all three functions pass authorization header', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { connected: false, onboarding_complete: false, url: 'https://stripe.com' },
-      error: null,
-    })
-
-    const { result } = renderHook(() => useStripeConnect('user-1'))
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    // Status check had auth header
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-status', expect.objectContaining({
-      headers: { Authorization: 'Bearer test-token' },
-    }))
-
-    await act(async () => { await result.current.startOnboarding() })
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-create', expect.objectContaining({
-      headers: { Authorization: 'Bearer test-token' },
-    }))
+    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-refresh')
   })
 })

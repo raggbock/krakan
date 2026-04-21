@@ -4,6 +4,7 @@ import { createBookingsApi } from './api/bookings'
 import { createRoutesApi } from './api/routes'
 import { createProfilesApi } from './api/profiles'
 import { createImageService } from './api/images'
+import { createEdgeApi } from './api/edge'
 
 export type CreateApiOptions = {
   /**
@@ -21,6 +22,7 @@ export function createApi(supabase: SupabaseClient, options: CreateApiOptions = 
     ...createBookingsApi(supabase),
     ...createRoutesApi(supabase),
     ...createProfilesApi(supabase),
+    ...createEdgeApi(supabase),
     images: createImageService({ supabase, compress: options.compressImage }),
   }
 }

@@ -23,17 +23,7 @@ vi.mock('@/lib/api', () => ({
       get: vi.fn(),
       update: vi.fn(),
     },
-  },
-}))
-
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'test-token' } },
-      }),
-    },
-    functions: {
+    edge: {
       invoke: vi.fn(),
     },
   },
@@ -46,7 +36,6 @@ vi.mock('@/components/fyndstigen-logo', () => ({
 // Import mocked modules after vi.mock calls
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
 
 const freeProfile = {
   id: 'user-1',
@@ -126,7 +115,7 @@ describe('EditProfilePage', () => {
 
   it('free tier: upgrade button calls skyltfonstret-checkout and sets window.location.href', async () => {
     const checkoutUrl = 'https://checkout.stripe.com/test-session'
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({ data: { url: checkoutUrl }, error: null } as any)
+    vi.mocked(api.edge.invoke).mockResolvedValue({ url: checkoutUrl } as any)
     vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
 
     let capturedHref = ''
@@ -146,12 +135,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(upgradeBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(supabase.functions.invoke)).toHaveBeenCalledWith(
-        'skyltfonstret-checkout',
-        expect.objectContaining({
-          headers: { Authorization: 'Bearer test-token' },
-        })
-      )
+      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith('skyltfonstret-checkout')
     })
 
     await waitFor(() => {
@@ -183,7 +167,7 @@ describe('EditProfilePage', () => {
 
   it('premium tier: manage button calls skyltfonstret-portal and sets window.location.href', async () => {
     const portalUrl = 'https://billing.stripe.com/test-portal'
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({ data: { url: portalUrl }, error: null } as any)
+    vi.mocked(api.edge.invoke).mockResolvedValue({ url: portalUrl } as any)
     vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
 
     let capturedHref = ''
@@ -202,12 +186,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(manageBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(supabase.functions.invoke)).toHaveBeenCalledWith(
-        'skyltfonstret-portal',
-        expect.objectContaining({
-          headers: { Authorization: 'Bearer test-token' },
-        })
-      )
+      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith('skyltfonstret-portal')
     })
 
     await waitFor(() => {

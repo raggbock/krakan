@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/api'
 
 type ConnectState = {
   connected: boolean
@@ -32,14 +32,11 @@ export function useStripeConnect(
   async function checkStatus() {
     try {
       setLoading(true)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('stripe-connect-status', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error) throw res.error
-      setConnected(res.data.connected)
-      setOnboardingComplete(res.data.onboarding_complete)
+      const data = await api.edge.invoke<{ connected: boolean; onboarding_complete: boolean }>(
+        'stripe-connect-status',
+      )
+      setConnected(data.connected)
+      setOnboardingComplete(data.onboarding_complete)
     } catch {
       setError('Kunde inte hämta Stripe-status')
     } finally {
@@ -50,13 +47,8 @@ export function useStripeConnect(
   async function startOnboarding() {
     try {
       setError(null)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('stripe-connect-create', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error) throw res.error
-      window.location.href = res.data.url
+      const data = await api.edge.invoke<{ url: string }>('stripe-connect-create')
+      window.location.href = data.url
     } catch {
       setError('Kunde inte starta Stripe-koppling')
     }
@@ -65,13 +57,8 @@ export function useStripeConnect(
   async function refreshOnboarding() {
     try {
       setError(null)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('stripe-connect-refresh', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error) throw res.error
-      window.location.href = res.data.url
+      const data = await api.edge.invoke<{ url: string }>('stripe-connect-refresh')
+      window.location.href = data.url
     } catch {
       setError('Kunde inte generera ny Stripe-länk')
     }

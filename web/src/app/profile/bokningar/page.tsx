@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api, BookingWithDetails, FleaMarket, OrganizerStats } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
@@ -53,21 +52,10 @@ export default function BookingsPage() {
   ) {
     setUpdatingId(bookingId)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const headers = { Authorization: `Bearer ${session?.access_token}` }
-
       if (status === 'confirmed') {
-        const res = await supabase.functions.invoke('stripe-payment-capture', {
-          body: { bookingId },
-          headers,
-        })
-        if (res.error) throw new Error(res.data?.error || 'Capture failed')
+        await api.edge.invoke('stripe-payment-capture', { bookingId })
       } else {
-        const res = await supabase.functions.invoke('stripe-payment-cancel', {
-          body: { bookingId, newStatus: 'denied' },
-          headers,
-        })
-        if (res.error) throw new Error(res.data?.error || 'Cancel failed')
+        await api.edge.invoke('stripe-payment-cancel', { bookingId, newStatus: 'denied' })
       }
 
       setBookings((prev) =>
