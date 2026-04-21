@@ -1,6 +1,29 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { getSupabaseAdmin } from '../_shared/auth.ts'
+import { applyBookingEvent, type BookingEvent } from '../_shared/booking-lifecycle.ts'
+
+// Apply a lifecycle event to a booking identified by its Stripe PaymentIntent.
+// Returns a Response on DB error, undefined on success / not-found (idempotent).
+async function applyEventByPaymentIntent(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  paymentIntentId: string,
+  build: (booking: { status: 'pending' | 'confirmed' | 'denied' | 'cancelled'; flea_market_id: string }) => Promise<BookingEvent> | BookingEvent,
+): Promise<Response | undefined> {
+  const { data: booking } = await admin
+    .from('bookings')
+    .select('id, status, stripe_payment_intent_id, flea_market_id')
+    .eq('stripe_payment_intent_id', paymentIntentId)
+    .single()
+  if (!booking) return
+
+  const event = await build(booking)
+  const patch = applyBookingEvent(booking, event)
+  if (Object.keys(patch).length === 0) return
+
+  const { error } = await admin.from('bookings').update(patch).eq('id', booking.id)
+  if (error) return new Response('DB error', { status: 500 })
+}
 
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
 
@@ -36,56 +59,29 @@ serve(async (req) => {
 
     case 'payment_intent.canceled': {
       const pi = event.data.object
-      const { error } = await admin
-        .from('bookings')
-        .update({ payment_status: 'cancelled', status: 'cancelled' })
-        .eq('stripe_payment_intent_id', pi.id)
-      if (error) return new Response('DB error', { status: 500 })
+      const errResp = await applyEventByPaymentIntent(admin, pi.id, () => ({ type: 'stripe.payment_intent.canceled' }))
+      if (errResp) return errResp
       break
     }
 
     case 'payment_intent.payment_failed': {
       const pi = event.data.object
-      const { error } = await admin
-        .from('bookings')
-        .update({ payment_status: 'failed', status: 'cancelled' })
-        .eq('stripe_payment_intent_id', pi.id)
-      if (error) return new Response('DB error', { status: 500 })
+      const errResp = await applyEventByPaymentIntent(admin, pi.id, () => ({ type: 'stripe.payment_intent.failed' }))
+      if (errResp) return errResp
       break
     }
 
     case 'payment_intent.succeeded': {
       const pi = event.data.object
-      // Find the booking
-      const { data: booking } = await admin
-        .from('bookings')
-        .select('id, flea_market_id, status')
-        .eq('stripe_payment_intent_id', pi.id)
-        .single()
-      if (!booking) break
-
-      // Check if market has auto-accept
-      const { data: market } = await admin
-        .from('flea_markets')
-        .select('auto_accept_bookings')
-        .eq('id', booking.flea_market_id)
-        .single()
-
-      if (market?.auto_accept_bookings) {
-        // Auto-accept: confirm immediately
-        const { error } = await admin
-          .from('bookings')
-          .update({ status: 'confirmed', payment_status: 'captured' })
-          .eq('id', booking.id)
-        if (error) return new Response('DB error', { status: 500 })
-      } else {
-        // Manual: mark payment as ready for capture
-        const { error } = await admin
-          .from('bookings')
-          .update({ payment_status: 'requires_capture' })
-          .eq('id', booking.id)
-        if (error) return new Response('DB error', { status: 500 })
-      }
+      const errResp = await applyEventByPaymentIntent(admin, pi.id, async (booking) => {
+        const { data: market } = await admin
+          .from('flea_markets')
+          .select('auto_accept_bookings')
+          .eq('id', booking.flea_market_id)
+          .single()
+        return { type: 'stripe.payment_intent.succeeded', autoAccept: !!market?.auto_accept_bookings }
+      })
+      if (errResp) return errResp
       break
     }
 
