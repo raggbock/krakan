@@ -34,8 +34,23 @@ export type { BookingService, CreateBookingParams, DateValidation } from './book
 export * from './ports'
 
 // Adapters
-export { createSupabaseAdapters, createSupabaseAuth, createSupabaseServerData } from './adapters'
+export {
+  createSupabaseAdapters,
+  createSupabaseAuth,
+  createSupabaseServerData,
+  createSupabaseFleaMarkets,
+  createSupabaseSearch,
+  createSupabaseMarketTables,
+  createSupabaseBookings,
+  createSupabaseRoutes,
+  createSupabaseProfiles,
+  createSupabaseOrganizers,
+} from './adapters'
 export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memory'
+export { createInMemoryFleaMarkets, createInMemorySearch, createInMemoryMarketTables } from './adapters/in-memory/flea-markets'
+export { createInMemoryBookings } from './adapters/in-memory/bookings'
+export { createInMemoryRoutes } from './adapters/in-memory/routes'
+export { createInMemoryProfiles, createInMemoryOrganizers } from './adapters/in-memory/profiles'
 
 // Geo
 export { createGeo, GeocodeError } from './geo'

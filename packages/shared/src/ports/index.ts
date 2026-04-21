@@ -1,3 +1,8 @@
 export type { AuthPort, AuthUser } from './auth'
 export type { StoragePort } from './storage'
 export type { ServerDataPort } from './server'
+export type { Publishable } from './publishable'
+export type { FleaMarketRepository, SearchRepository, MarketTableRepository } from './flea-markets'
+export type { BookingRepository } from './bookings'
+export type { RouteRepository } from './routes'
+export type { ProfileRepository, OrganizerRepository } from './profiles'
