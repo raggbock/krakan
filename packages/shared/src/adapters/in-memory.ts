@@ -64,6 +64,24 @@ export function createInMemoryServerData(seed?: {
     async listPublishedMarketIds() {
       return markets.map((m) => ({ id: m.id, updatedAt: m.updatedAt }))
     },
+    async listCitiesWithMarkets() {
+      const byCity = new Map<string, { count: number; latest: string }>()
+      for (const m of markets) {
+        const city = (m as unknown as { city?: string }).city
+        if (!city) continue
+        const cur = byCity.get(city)
+        if (cur) {
+          cur.count += 1
+          if (m.updatedAt > cur.latest) cur.latest = m.updatedAt
+        } else {
+          byCity.set(city, { count: 1, latest: m.updatedAt })
+        }
+      }
+      return Array.from(byCity.entries()).map(([city, { count, latest }]) => ({
+        city, marketCount: count, latestUpdate: latest,
+      }))
+    },
+    async listMarketsInCity() { return [] },
     async listPublishedRouteIds() {
       return routes.map((r) => ({ id: r.id, updatedAt: r.updatedAt }))
     },

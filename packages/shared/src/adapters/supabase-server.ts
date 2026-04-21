@@ -120,5 +120,57 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         .eq('is_deleted', false)
       return (data ?? []).map((r) => ({ id: r.id, updatedAt: r.updated_at }))
     },
+
+    async listCitiesWithMarkets() {
+      const { data } = await supabase
+        .from('flea_markets')
+        .select('city, updated_at')
+        .not('published_at', 'is', null)
+        .eq('is_deleted', false)
+      const byCity = new Map<string, { count: number; latest: string }>()
+      for (const row of data ?? []) {
+        if (!row.city) continue
+        const cur = byCity.get(row.city)
+        if (cur) {
+          cur.count += 1
+          if (row.updated_at > cur.latest) cur.latest = row.updated_at
+        } else {
+          byCity.set(row.city, { count: 1, latest: row.updated_at })
+        }
+      }
+      return Array.from(byCity.entries()).map(([city, { count, latest }]) => ({
+        city,
+        marketCount: count,
+        latestUpdate: latest,
+      }))
+    },
+
+    async listMarketsInCity(cityNames) {
+      if (cityNames.length === 0) return []
+      const { data } = await supabase
+        .from('flea_markets')
+        .select('id, name, description, street, is_permanent, city, flea_market_images(storage_path, sort_order)')
+        .in('city', cityNames)
+        .not('published_at', 'is', null)
+        .eq('is_deleted', false)
+        .order('updated_at', { ascending: false })
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+      return (data ?? []).map((m) => {
+        const images = (m.flea_market_images as unknown as Array<{ storage_path: string; sort_order: number }>) ?? []
+        const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
+        const first = sorted[0]
+        return {
+          id: m.id,
+          name: m.name,
+          description: m.description,
+          street: m.street,
+          is_permanent: m.is_permanent,
+          city: m.city,
+          image_url: first
+            ? `${supabaseUrl}/storage/v1/object/public/flea-market-images/${first.storage_path}`
+            : null,
+        }
+      })
+    },
   }
 }

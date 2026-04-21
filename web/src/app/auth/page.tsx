@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function AuthPage() {
   const router = useRouter()
+  const posthog = usePostHog()
   const { user, signIn, signUp, signInWithGoogle, resetPasswordForEmail } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [resetSent, setResetSent] = useState(false)
@@ -32,6 +34,7 @@ export default function AuthPage() {
         router.push('/')
       } else if (mode === 'signup') {
         const { needsEmailConfirmation } = await signUp(email, password)
+        posthog?.capture('signup_completed', { method: 'email', needs_email_confirmation: needsEmailConfirmation })
         if (needsEmailConfirmation) {
           setConfirmationSent(true)
         } else {

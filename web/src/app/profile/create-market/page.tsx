@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
@@ -23,6 +24,7 @@ type TableDraft = {
 
 export default function CreateMarketPage() {
   const router = useRouter()
+  const posthog = usePostHog()
   const { user, loading: authLoading } = useAuth()
 
   const [step, setStep] = useState<1 | 2>(1)
@@ -146,6 +148,13 @@ export default function CreateMarketPage() {
         : undefined,
     })
     if (result) {
+      posthog?.capture('market_created', {
+        market_id: result.id,
+        is_permanent: isPermanent,
+        table_count: tables.length,
+        has_images: images.length > 0,
+        auto_accept: autoAcceptBookings,
+      })
       router.push(`/fleamarkets/${result.id}`)
     }
   }

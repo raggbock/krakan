@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData } from '@fyndstigen/shared'
+import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(
@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${baseUrl}/map`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${baseUrl}/rundor`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
+    { url: `${baseUrl}/fragor-svar`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ]
 
   const markets = await server.listPublishedMarketIds()
@@ -25,6 +26,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }))
 
+  const cities = await server.listCitiesWithMarkets()
+  const citySlugs = new Set<string>()
+  for (const c of cities) citySlugs.add(slugifyCity(c.city))
+  const cityPages: MetadataRoute.Sitemap = cities
+    // Dedupe by slug (multiple casings of the same city → one entry)
+    .filter((c, i, arr) => arr.findIndex((x) => slugifyCity(x.city) === slugifyCity(c.city)) === i)
+    .map((c) => ({
+      url: `${baseUrl}/loppisar/${slugifyCity(c.city)}`,
+      lastModified: new Date(c.latestUpdate),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+
   const routes = await server.listPublishedRouteIds()
   const routePages: MetadataRoute.Sitemap = routes.map((r) => ({
     url: `${baseUrl}/rundor/${r.id}`,
@@ -33,5 +47,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticPages, ...marketPages, ...routePages]
+  return [...staticPages, ...cityPages, ...marketPages, ...routePages]
 }

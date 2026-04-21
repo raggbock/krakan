@@ -133,10 +133,19 @@ export default function RootLayout({
                       Varje stig leder till ett fynd.
                     </p>
                   </div>
-                  <div className="flex items-center gap-6 text-sm text-espresso/60">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-espresso/60">
+                    <Link href="/fragor-svar" className="hover:text-espresso transition-colors">
+                      Frågor & svar
+                    </Link>
                     <Link href="/integritetspolicy" className="hover:text-espresso transition-colors">
                       Integritetspolicy
                     </Link>
+                    <a
+                      href="mailto:hej@fyndstigen.se"
+                      className="hover:text-espresso transition-colors"
+                    >
+                      hej@fyndstigen.se
+                    </a>
                     <span>&copy; {new Date().getFullYear()} Fyndstigen</span>
                   </div>
                 </div>

@@ -39,4 +39,15 @@ export interface ServerDataPort {
 
   listPublishedMarketIds(): Promise<Array<{ id: string; updatedAt: string }>>
   listPublishedRouteIds(): Promise<Array<{ id: string; updatedAt: string }>>
+
+  listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string }>>
+  listMarketsInCity(cityNames: string[]): Promise<Array<{
+    id: string
+    name: string
+    description: string | null
+    street: string
+    is_permanent: boolean
+    city: string
+    image_url: string | null
+  }>>
 }
