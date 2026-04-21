@@ -28,6 +28,10 @@ export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memo
 export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
+// Errors
+export { appError, isAppError } from './errors'
+export type { AppError, ErrorCode } from './errors'
+
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
 export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'
