@@ -6,7 +6,7 @@ import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import { stripePromise } from '@/lib/stripe'
-import { features } from '@/lib/feature-flags'
+import { useFlag } from '@/lib/flags'
 
 function BookableTablesInner({
   fleaMarketId,
@@ -160,8 +160,9 @@ export function BookableTablesCard({
   fleaMarketId: string
   tables: MarketTable[]
 }) {
+  const paymentsEnabled = useFlag('payments')
   // When payments are off, only show free tables
-  const visibleTables = features.payments
+  const visibleTables = paymentsEnabled
     ? tables
     : tables.filter((t) => t.price_sek === 0)
 

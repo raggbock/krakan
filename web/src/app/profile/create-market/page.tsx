@@ -16,7 +16,7 @@ import {
   clearDraft,
 } from '@/hooks/use-draft-autosave'
 import { ImageUploadList } from '@/components/image-upload-list'
-import { features } from '@/lib/feature-flags'
+import { useFlag } from '@/lib/flags'
 import type { AddressValue } from '@/components/address-picker'
 
 const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
@@ -56,6 +56,7 @@ export default function CreateMarketPage() {
   const router = useRouter()
   const posthog = usePostHog()
   const { user, loading: authLoading } = useAuth()
+  const paymentsEnabled = useFlag('payments')
 
   const [step, setStep] = useState<1 | 2>(1)
   const {
@@ -116,7 +117,7 @@ export default function CreateMarketPage() {
   // Step 2: Tables
   const [tables, setTables] = useState<TableDraft[]>([])
   const hasAnyPaidTable = tables.some((t) => t.priceSek > 0)
-  const needsStripe = features.payments && hasAnyPaidTable
+  const needsStripe = paymentsEnabled && hasAnyPaidTable
   // Only hit the Stripe Connect edge function once the organizer actually
   // adds a paid table — otherwise free-only drafts pay the round-trip
   // for nothing.
@@ -195,13 +196,13 @@ export default function CreateMarketPage() {
 
   function addTable() {
     if (!tableLabel) return
-    if (features.payments && !tablePrice) return
+    if (paymentsEnabled && !tablePrice) return
     setTables((prev) => [
       ...prev,
       {
         label: tableLabel,
         description: tableDesc,
-        priceSek: features.payments ? parseInt(tablePrice, 10) || 0 : 0,
+        priceSek: paymentsEnabled ? parseInt(tablePrice, 10) || 0 : 0,
         sizeDescription: tableSize,
       },
     ])
@@ -217,9 +218,9 @@ export default function CreateMarketPage() {
 
   function addBatchTables() {
     const count = parseInt(batchCount, 10)
-    const price = features.payments ? parseInt(tablePrice, 10) : 0
+    const price = paymentsEnabled ? parseInt(tablePrice, 10) : 0
     if (!batchPrefix || !count || count < 1 || count > 50) return
-    if (features.payments && !price) return
+    if (paymentsEnabled && !price) return
     const startNum = tables.length + 1
     const newTables: TableDraft[] = Array.from({ length: count }, (_, i) => ({
       label: `${batchPrefix} ${startNum + i}`,
@@ -508,7 +509,7 @@ export default function CreateMarketPage() {
 
             {batchMode ? (
               <div className="space-y-3">
-                <div className={`grid gap-3 ${features.payments ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <div className={`grid gap-3 ${paymentsEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <input
                     type="text"
                     value={batchPrefix}
@@ -525,7 +526,7 @@ export default function CreateMarketPage() {
                     max="50"
                     className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
                   />
-                  {features.payments && (
+                  {paymentsEnabled && (
                     <input
                       type="number"
                       value={tablePrice}
@@ -553,7 +554,7 @@ export default function CreateMarketPage() {
                 </div>
                 <button
                   onClick={addBatchTables}
-                  disabled={!batchPrefix || !batchCount || (features.payments && !tablePrice)}
+                  disabled={!batchPrefix || !batchCount || (paymentsEnabled && !tablePrice)}
                   className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
                 >
                   + Lägg till {batchCount || '...'} bord
@@ -561,7 +562,7 @@ export default function CreateMarketPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className={`grid gap-3 ${features.payments ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                <div className={`grid gap-3 ${paymentsEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   <input
                     type="text"
                     value={tableLabel}
@@ -569,7 +570,7 @@ export default function CreateMarketPage() {
                     placeholder="Namn, t.ex. Bord 1"
                     className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
                   />
-                  {features.payments && (
+                  {paymentsEnabled && (
                     <input
                       type="number"
                       value={tablePrice}
@@ -597,7 +598,7 @@ export default function CreateMarketPage() {
                 </div>
                 <button
                   onClick={addTable}
-                  disabled={!tableLabel || (features.payments && !tablePrice)}
+                  disabled={!tableLabel || (paymentsEnabled && !tablePrice)}
                   className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
                 >
                   + Lägg till

@@ -7,7 +7,7 @@ import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { features } from '@/lib/feature-flags'
+import { useFlag } from '@/lib/flags'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
@@ -42,6 +42,7 @@ export default function OrganizerStatsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { markets, totals, loading, error } = useOrganizerStats(user?.id === id ? id : undefined)
+  const skyltfonstretEnabled = useFlag('skyltfonstret')
   const [isPremium, setIsPremium] = useState(false)
   const [tierLoading, setTierLoading] = useState(true)
 
@@ -59,7 +60,7 @@ export default function OrganizerStatsPage() {
   }
 
   useEffect(() => {
-    if (!features.skyltfonstret) {
+    if (!skyltfonstretEnabled) {
       setIsPremium(false)
       setTierLoading(false)
       return
@@ -69,7 +70,7 @@ export default function OrganizerStatsPage() {
       .then((org) => setIsPremium((org?.subscription_tier ?? 0) >= 1))
       .catch(() => setIsPremium(false))
       .finally(() => setTierLoading(false))
-  }, [id])
+  }, [id, skyltfonstretEnabled])
 
   useEffect(() => {
     if (!authLoading && (!user || user.id !== id)) {
@@ -119,7 +120,7 @@ export default function OrganizerStatsPage() {
             subValue={totals.pageviews_total.toLocaleString('sv-SE')}
           />
         )}
-        {features.skyltfonstret && !isPremium && (
+        {skyltfonstretEnabled && !isPremium && (
           <LockedStatCard label="Sidvisningar" />
         )}
         <StatCard
@@ -147,7 +148,7 @@ export default function OrganizerStatsPage() {
         </div>
       )}
 
-      {features.skyltfonstret && !isPremium && (
+      {skyltfonstretEnabled && !isPremium && (
         <div className="vintage-card p-5 mb-8 relative overflow-hidden animate-fade-up delay-2">
           <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
           <p className="font-display text-2xl font-bold text-espresso/15">—</p>
@@ -214,7 +215,7 @@ export default function OrganizerStatsPage() {
       )}
 
       {/* Skyltfönstret upsell banner for free tier */}
-      {features.skyltfonstret && !isPremium && (
+      {skyltfonstretEnabled && !isPremium && (
         <div className="vintage-card p-6 mt-8 bg-mustard/5 border-mustard/20 animate-fade-up delay-4">
           <h3 className="font-display font-bold text-lg mb-2">Skyltfönstret</h3>
           <p className="text-sm text-espresso/70 mb-3">

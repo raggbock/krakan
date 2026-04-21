@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }))
 
-vi.mock('@/lib/feature-flags', () => ({ features: { payments: true, skyltfonstret: true } }))
+vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 
 vi.mock('@/lib/auth-context', () => ({
   useAuth: vi.fn(),
