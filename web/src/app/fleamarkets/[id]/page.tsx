@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
@@ -67,17 +68,20 @@ export default function FleaMarketDetailsPage() {
           <div className={`grid gap-3 ${market.flea_market_images.length === 1 ? '' : 'grid-cols-2 sm:grid-cols-3'}`}>
             {market.flea_market_images
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((img) => (
+              .map((img, idx) => (
                 <div
                   key={img.id}
-                  className={`rounded-xl overflow-hidden bg-cream-warm ${
+                  className={`relative rounded-xl overflow-hidden bg-cream-warm ${
                     market.flea_market_images.length === 1 ? 'aspect-[2/1]' : 'aspect-square'
                   }`}
                 >
-                  <img
+                  <Image
                     src={api.images.getPublicUrl(img.storage_path)}
                     alt={market.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes={market.flea_market_images.length === 1 ? '100vw' : '(min-width: 640px) 33vw, 50vw'}
+                    className="object-cover"
+                    priority={idx === 0}
                   />
                 </div>
               ))}

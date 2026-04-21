@@ -59,9 +59,38 @@ export const metadata: Metadata = {
     description:
       'Samlar loppisar på ett ställe. Hitta fynd, boka bord och planera din loppisrunda.',
   },
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,
+  },
+}
+
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Fyndstigen',
+  url: 'https://fyndstigen.se',
+  logo: 'https://fyndstigen.se/logo-512.png',
+  description:
+    'Fyndstigen samlar loppisar och loppmarknader på ett ställe. Hitta second hand-skatter, boka bord och planera din loppisrunda.',
+}
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Fyndstigen',
+  url: 'https://fyndstigen.se',
+  inLanguage: 'sv-SE',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://fyndstigen.se/search?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
   },
 }
 
@@ -76,6 +105,14 @@ export default function RootLayout({
       className={`${fraunces.variable} ${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <PostHogProvider>
           <QueryProvider>
           <AuthProvider>

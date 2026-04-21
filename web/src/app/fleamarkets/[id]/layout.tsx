@@ -39,13 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: isPremium ? { canonical: `https://fyndstigen.se/fleamarkets/${id}` } : undefined,
+    alternates: { canonical: `/fleamarkets/${id}` },
     openGraph: {
       title: `${market.name} — Fyndstigen`,
       description,
       type: 'website',
       locale: 'sv_SE',
-      ...(isPremium && market.image_url ? { images: [{ url: market.image_url }] } : {}),
+      ...(market.image_url ? { images: [{ url: market.image_url }] } : {}),
     },
   }
 }
@@ -53,8 +53,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function FleaMarketLayout({ params, children }: Props) {
   const { id } = await params
   const market = await getServerData().getMarketMeta(id)
-
-  const isPremium = market ? market.organizer_subscription_tier >= 1 : false
 
   const jsonLd = market
     ? {
@@ -79,7 +77,7 @@ export default async function FleaMarketLayout({ params, children }: Props) {
             }
           : {}),
         url: `https://fyndstigen.se/fleamarkets/${id}`,
-        ...(isPremium && market.opening_hour_rules.length > 0
+        ...(market.opening_hour_rules.length > 0
           ? {
               openingHoursSpecification: market.opening_hour_rules
                 .filter((r) => r.type !== 'biweekly')
@@ -96,14 +94,14 @@ export default async function FleaMarketLayout({ params, children }: Props) {
                 })),
             }
           : {}),
-        ...(isPremium && market.price_range
+        ...(market.price_range
           ? { priceRange: `${market.price_range.min_sek}-${market.price_range.max_sek} SEK` }
           : {}),
-        ...(isPremium && market.image_url ? { image: market.image_url } : {}),
+        ...(market.image_url ? { image: market.image_url } : {}),
       }
     : null
 
-  const breadcrumbLd = market && isPremium
+  const breadcrumbLd = market
     ? {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',

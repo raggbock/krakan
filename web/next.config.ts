@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
     // Atomic CSS stays small enough that the cache trade-off is worth it.
     inlineCss: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'yqeegfhwbjnlrdurstxp.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {
