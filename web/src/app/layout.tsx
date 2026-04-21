@@ -52,12 +52,14 @@ export const metadata: Metadata = {
     title: 'Fyndstigen — Hitta loppisar nära dig',
     description:
       'Samlar loppisar på ett ställe. Hitta fynd, boka bord och planera din loppisrunda.',
+    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Fyndstigen — Hitta loppisar nära dig',
     description:
       'Samlar loppisar på ett ställe. Hitta fynd, boka bord och planera din loppisrunda.',
+    images: ['/logo-512.png'],
   },
   alternates: {
     canonical: '/',
