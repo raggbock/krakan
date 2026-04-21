@@ -6,6 +6,7 @@
 // use the domain types from domain.ts instead.
 // ============================================================
 
+import type { RuleType } from './shared-enums'
 export type { BookingStatus, PaymentStatus, RuleType } from './shared-enums'
 
 // --- Flea Markets ---
@@ -31,7 +32,7 @@ export type FleaMarketRow = {
 
 export type OpeningHourRuleRow = {
   id: string
-  type: string
+  type: RuleType
   day_of_week: number | null
   anchor_date: string | null
   open_time: string

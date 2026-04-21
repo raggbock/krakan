@@ -23,7 +23,6 @@ const defaultProps = {
   markets: [],
   stops: [],
   onToggleMarket: vi.fn(),
-  isInRoute: (_id: string) => false,
   useGps: true,
   customStart: null,
   onCustomStartChange: vi.fn(),

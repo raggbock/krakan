@@ -195,7 +195,6 @@ export default function RouteBuilder() {
           markets={markets}
           stops={stops}
           onToggleMarket={toggleMarket}
-          isInRoute={isInRoute}
           useGps={useGps}
           customStart={customStart}
           onCustomStartChange={setCustomStart}

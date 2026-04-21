@@ -14,7 +14,7 @@
 import type { Api } from './api'
 import type { Booking } from './types'
 import type { BookingEvent, BookingPatch } from './booking-lifecycle'
-import { calculateCommission } from './booking'
+import { calculateCommission, validateBookingDate } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
 
 // Re-exported so callers need only this import surface.
@@ -69,14 +69,11 @@ export function createBookingService(deps: { api: Api }): BookingService {
     },
 
     validateDate(date, bookedDates, today) {
-      const todayStr = today ?? new Date().toISOString().slice(0, 10)
-      if (!date) return { valid: false, error: 'Datum krävs' }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { valid: false, error: 'Ogiltigt datumformat' }
-      const d = new Date(date + 'T12:00:00')
-      if (isNaN(d.getTime())) return { valid: false, error: 'Ogiltigt datum' }
-      if (date < todayStr) return { valid: false, error: 'Kan inte boka i det förflutna' }
-      if (bookedDates.includes(date)) return { valid: false, error: 'Redan bokat detta datum' }
-      return { valid: true }
+      return validateBookingDate(
+        date,
+        bookedDates,
+        today ?? new Date().toISOString().slice(0, 10),
+      )
     },
 
     async getBookedDates(tableId) {

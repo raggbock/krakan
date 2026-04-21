@@ -22,7 +22,6 @@ type Props = {
   markets: MarketWithHours[]
   stops: Array<{ market: MarketWithHours; index: number }>
   onToggleMarket: (market: MarketWithHours) => void
-  isInRoute: (marketId: string) => boolean
   useGps: boolean
   customStart: { lat: number; lng: number } | null
   onCustomStartChange: (pos: { lat: number; lng: number }) => void
@@ -45,7 +44,6 @@ export function RouteMap({
   markets,
   stops,
   onToggleMarket,
-  isInRoute,
   useGps,
   customStart,
   onCustomStartChange,
