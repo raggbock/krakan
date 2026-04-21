@@ -2,7 +2,8 @@ import { z } from 'https://esm.sh/zod@4.3.6'
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { calculateStripeAmounts, resolveBookingOutcome } from '../_shared/pricing.ts'
+import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '../_shared/pricing.ts'
+import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
 
 // Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
 // Kept duplicated (not imported) because this file runs on Deno via esm.sh and
@@ -99,6 +100,15 @@ defineEndpoint({
       clientSecret = paymentIntent.client_secret
     }
 
+    // Derive status/payment_status/expires_at via the lifecycle reducer.
+    // `resolveBookingOutcome` above still drives the pre-insert decisions
+    // (does Stripe need to be called, with what capture_method) but the
+    // row-shape for the initial insert now comes from applyBookingEvent.
+    const lifecyclePatch = applyBookingEvent(
+      { status: 'pending', stripe_payment_intent_id: paymentIntentId },
+      { type: 'created', autoAccept: market.auto_accept_bookings, paid: !isFreePriced(table.price_sek) },
+    )
+
     // Create booking
     const { data: booking, error: bookingErr } = await admin
       .from('bookings')
@@ -107,14 +117,12 @@ defineEndpoint({
         flea_market_id: fleaMarketId,
         booked_by: user.id,
         booking_date: bookingDate,
-        status: outcome.status,
         price_sek: priceSek,
         commission_sek: commissionSek,
         commission_rate: commissionRate,
         message: message || null,
         stripe_payment_intent_id: paymentIntentId,
-        payment_status: outcome.paymentStatus,
-        expires_at: outcome.expiresAt,
+        ...lifecyclePatch,
       })
       .select('id')
       .single()

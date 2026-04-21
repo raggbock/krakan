@@ -25,6 +25,8 @@ export {
   isFreePriced,
   resolveBookingOutcome,
 } from './booking'
+export { applyBookingEvent } from './booking-lifecycle'
+export type { BookingEvent, BookingPatch } from './booking-lifecycle'
 
 // Ports
 export * from './ports'

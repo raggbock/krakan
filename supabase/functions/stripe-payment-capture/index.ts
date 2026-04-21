@@ -1,5 +1,6 @@
 import { createHandler, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
+import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
 
 createHandler(async ({ user, admin, body }) => {
   const { bookingId } = body as { bookingId: string }
@@ -18,11 +19,11 @@ createHandler(async ({ user, admin, body }) => {
     await stripe.paymentIntents.capture(booking.stripe_payment_intent_id)
   }
 
-  const newPaymentStatus = booking.stripe_payment_intent_id ? 'captured' : 'free'
+  const patch = applyBookingEvent(booking, { type: 'organizer.approve' })
 
   const { data: updated, error: updateErr } = await admin
     .from('bookings')
-    .update({ status: 'confirmed', payment_status: newPaymentStatus })
+    .update(patch)
     .eq('id', bookingId)
     .eq('status', 'pending')
     .select('id')
