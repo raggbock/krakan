@@ -29,10 +29,6 @@ export default function CreateMarketPage() {
 
   const [step, setStep] = useState<1 | 2>(1)
   const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
-  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(
-    user?.id,
-    features.payments,
-  )
 
   // Step 1: Market info
   const [name, setName] = useState('')
@@ -79,6 +75,13 @@ export default function CreateMarketPage() {
   const [tables, setTables] = useState<TableDraft[]>([])
   const hasAnyPaidTable = tables.some((t) => t.priceSek > 0)
   const needsStripe = features.payments && hasAnyPaidTable
+  // Only hit the Stripe Connect edge function once the organizer actually
+  // adds a paid table — otherwise free-only drafts pay the round-trip
+  // for nothing.
+  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(
+    user?.id,
+    needsStripe,
+  )
   const [tableLabel, setTableLabel] = useState('')
   const [tableDesc, setTableDesc] = useState('')
   const [tablePrice, setTablePrice] = useState('')

@@ -12,10 +12,19 @@ export default function AuthPage() {
   const { user, signIn, signUp, signInWithGoogle, resetPasswordForEmail } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [resetSent, setResetSent] = useState(false)
+  const [nextPath, setNextPath] = useState('/utforska')
 
   useEffect(() => {
-    if (user) router.push('/')
-  }, [user, router])
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next')
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      setNextPath(next)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (user) router.push(nextPath)
+  }, [user, router, nextPath])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -31,14 +40,14 @@ export default function AuthPage() {
     try {
       if (mode === 'signin') {
         await signIn(email, password)
-        router.push('/')
+        router.push(nextPath)
       } else if (mode === 'signup') {
         const { needsEmailConfirmation } = await signUp(email, password)
         posthog?.capture('signup_completed', { method: 'email', needs_email_confirmation: needsEmailConfirmation })
         if (needsEmailConfirmation) {
           setConfirmationSent(true)
         } else {
-          router.push('/')
+          router.push(nextPath)
         }
       } else {
         await resetPasswordForEmail(email)
@@ -121,6 +130,8 @@ export default function AuthPage() {
             <input
               type="email"
               required
+              autoFocus
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="namn@mail.se"
@@ -147,6 +158,7 @@ export default function AuthPage() {
                 type="password"
                 required
                 minLength={6}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minst 6 tecken"

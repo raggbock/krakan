@@ -132,15 +132,12 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/rundor/skapa"
-              className="group inline-flex items-center gap-2.5 bg-forest text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-forest-light transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 text-forest font-semibold text-base hover:text-forest-light transition-colors px-4 py-4"
             >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="opacity-80">
-                <circle cx="5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.8" />
-                <circle cx="15" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
-                <circle cx="8" cy="16" r="2.5" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M7 6.5L13 8M13 11L9.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
+              Eller planera en runda
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Skapa runda
             </Link>
           </div>
 
@@ -318,7 +315,7 @@ export default async function LandingPage() {
             </h3>
             <p className="text-espresso/65 mt-2 leading-relaxed">
               Publicera din loppis gratis och nå fler besökare. Hantera
-              bokningar, se statistik och få fler säljare &mdash; på fem minuter.
+              bokningar, se statistik och få fler säljare.
             </p>
           </div>
           <Link
