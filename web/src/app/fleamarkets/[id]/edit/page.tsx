@@ -9,7 +9,8 @@ import type { FleaMarketDetails, FleaMarketImage, MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
-import type { RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
+import type { ImageUploadStatus, RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
+import { ImageUploadList } from '@/components/image-upload-list'
 import { compressImages } from '@/lib/compress-image'
 import type { AddressValue } from '@/components/address-picker'
 
@@ -34,6 +35,7 @@ export default function EditMarketPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [publishedAt, setPublishedAt] = useState<string | null>(null)
+  const [imageStatuses, setImageStatuses] = useState<ImageUploadStatus[]>([])
 
   // Market info
   const [name, setName] = useState('')
@@ -247,9 +249,26 @@ export default function EditMarketPage() {
         await api.images.delete(img.id, img.path)
       }
 
-      // Upload new images
-      for (const file of newImages) {
-        await api.images.upload(id, file)
+      // Upload new images — publish per-file status so the UI can show
+      // which file is in flight.
+      setImageStatuses(
+        newImages.map((f) => ({ name: f.name, state: 'pending' as const })),
+      )
+      for (let i = 0; i < newImages.length; i++) {
+        setImageStatuses((prev) =>
+          prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
+        )
+        try {
+          await api.images.upload(id, newImages[i])
+          setImageStatuses((prev) =>
+            prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
+          )
+        } catch (e) {
+          setImageStatuses((prev) =>
+            prev.map((s, idx) => (idx === i ? { ...s, state: 'error' } : s)),
+          )
+          throw e
+        }
       }
 
       // Delete removed tables
@@ -275,6 +294,7 @@ export default function EditMarketPage() {
       newImagePreviews.forEach(URL.revokeObjectURL)
       setNewImagePreviews([])
       setNewTables([])
+      setImageStatuses([])
 
       // Reload to get fresh data
       setLoading(true)
@@ -653,6 +673,10 @@ export default function EditMarketPage() {
           </section>
         )}
 
+        {saving && imageStatuses.length > 0 && (
+          <ImageUploadList statuses={imageStatuses} />
+        )}
+
         {/* === Save button === */}
         <div className="flex gap-3 pt-2">
           <Link
@@ -666,7 +690,11 @@ export default function EditMarketPage() {
             disabled={saving || publishing || !name.trim() || !address.street.trim() || !address.city.trim()}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
-            {saving ? 'Sparar...' : 'Spara ändringar'}
+            {saving && imageStatuses.some((s) => s.state === 'uploading' || s.state === 'pending')
+              ? `Laddar upp bilder (${imageStatuses.filter((s) => s.state === 'done').length}/${imageStatuses.length})...`
+              : saving
+                ? 'Sparar...'
+                : 'Spara ändringar'}
           </button>
         </div>
       </div>

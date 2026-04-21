@@ -42,15 +42,24 @@ export type CreateMarketInput = {
 
 type Progress = 'idle' | 'geocoding' | 'creating' | 'tables' | 'images' | 'publishing'
 
+export type ImageUploadStatus = {
+  name: string
+  state: 'pending' | 'uploading' | 'done' | 'error'
+}
+
 export function useCreateMarket() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<Progress>('idle')
+  const [imageStatuses, setImageStatuses] = useState<ImageUploadStatus[]>([])
 
   async function submit(input: CreateMarketInput): Promise<{ id: string } | null> {
     setIsSubmitting(true)
     setError(null)
     setProgress('geocoding')
+    setImageStatuses(
+      input.images.map((f) => ({ name: f.name, state: 'pending' as const })),
+    )
 
     try {
       // Use pre-computed coordinates from map picker, or fall back to geocoding
@@ -109,13 +118,26 @@ export function useCreateMarket() {
 
       // Upload images
       setProgress('images')
-      for (const file of input.images) {
+      let anyImageFailed = false
+      for (let i = 0; i < input.images.length; i++) {
+        setImageStatuses((prev) =>
+          prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
+        )
         try {
-          await api.images.upload(id, file)
+          await api.images.upload(id, input.images[i])
+          setImageStatuses((prev) =>
+            prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
+          )
         } catch {
-          setError('Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.')
-          return { id }
+          setImageStatuses((prev) =>
+            prev.map((s, idx) => (idx === i ? { ...s, state: 'error' } : s)),
+          )
+          anyImageFailed = true
         }
+      }
+      if (anyImageFailed) {
+        setError('Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.')
+        return { id }
       }
 
       return { id }
@@ -132,5 +154,5 @@ export function useCreateMarket() {
     }
   }
 
-  return { submit, isSubmitting, error, progress }
+  return { submit, isSubmitting, error, progress, imageStatuses }
 }

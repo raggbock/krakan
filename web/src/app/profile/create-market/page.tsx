@@ -15,6 +15,7 @@ import {
   loadDraft,
   clearDraft,
 } from '@/hooks/use-draft-autosave'
+import { ImageUploadList } from '@/components/image-upload-list'
 import { compressImages } from '@/lib/compress-image'
 import { features } from '@/lib/feature-flags'
 import type { AddressValue } from '@/components/address-picker'
@@ -58,7 +59,13 @@ export default function CreateMarketPage() {
   const { user, loading: authLoading } = useAuth()
 
   const [step, setStep] = useState<1 | 2>(1)
-  const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
+  const {
+    submit: createMarket,
+    isSubmitting: saving,
+    error,
+    progress,
+    imageStatuses,
+  } = useCreateMarket()
 
   // Draft autosave — hydrate once on mount from localStorage.
   const [hydrated, setHydrated] = useState(false)
@@ -643,6 +650,10 @@ export default function CreateMarketPage() {
             </div>
           )}
 
+          {progress === 'images' && imageStatuses.length > 0 && (
+            <ImageUploadList statuses={imageStatuses} />
+          )}
+
           <div className="flex gap-3">
             <button
               onClick={() => setStep(1)}
@@ -659,7 +670,7 @@ export default function CreateMarketPage() {
                 ? progress === 'geocoding' ? 'Söker adress...'
                 : progress === 'creating' ? 'Skapar loppis...'
                 : progress === 'tables' ? 'Skapar bord...'
-                : progress === 'images' ? 'Laddar upp bilder...'
+                : progress === 'images' ? `Laddar upp bilder (${imageStatuses.filter((s) => s.state === 'done').length}/${imageStatuses.length})...`
                 : progress === 'publishing' ? 'Publicerar...'
                 : 'Skapar...'
                 : 'Publicera loppis'}
