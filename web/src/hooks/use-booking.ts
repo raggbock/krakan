@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
-import { api, MarketTable } from '@/lib/api'
-import { calculateCommission, COMMISSION_RATE, isFreePriced, validateBookingDate } from '@fyndstigen/shared'
+import { api, bookingService, MarketTable } from '@/lib/api'
+import { isFreePriced } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 
 type DateValidation = { valid: boolean; error?: string }
@@ -57,13 +57,12 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const dateValidation = useMemo<DateValidation>(() => {
     if (!date) return { valid: false }
-    return validateBookingDate(date, bookedDates, today)
+    return bookingService.validateDate(date, bookedDates, today)
   }, [date, bookedDates, today])
 
   const price = selectedTable?.price_sek ?? 0
   const isFree = isFreePriced(price)
-  const commission = isFree ? 0 : calculateCommission(price, COMMISSION_RATE)
-  const totalPrice = price + commission
+  const { commission, total: totalPrice } = bookingService.calculateTotal(price)
 
   const canSubmit = !!selectedTable && !!date && dateValidation.valid && !!userId && !isSubmitting
 
@@ -79,7 +78,7 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
       is_free: isFree,
     })
     try {
-      const data = await api.endpoints.bookingCreate({
+      const data = await bookingService.createWithPayment({
         marketTableId: selectedTable.id,
         fleaMarketId: marketId,
         bookingDate: date,

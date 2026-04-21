@@ -15,16 +15,24 @@ vi.mock('@stripe/react-stripe-js', () => ({
 }))
 
 const mockInvoke = vi.fn()
-vi.mock('@/lib/api', () => ({
-  api: {
+vi.mock('@/lib/api', async () => {
+  const { createBookingService } = await import('@fyndstigen/shared')
+  const mockedApi = {
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
     },
     endpoints: {
       bookingCreate: (...args: unknown[]) => mockInvoke(...args),
     },
-  },
-}))
+    edge: {
+      invoke: vi.fn().mockResolvedValue({}),
+    },
+  }
+  return {
+    api: mockedApi,
+    bookingService: createBookingService({ api: mockedApi as never }),
+  }
+})
 
 vi.mock('@fyndstigen/shared', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')

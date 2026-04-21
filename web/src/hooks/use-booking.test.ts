@@ -17,17 +17,25 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-// Mock the api module (bookings + edge)
-vi.mock('@/lib/api', () => ({
-  api: {
+// Mock the api module (bookings, edge, and bookingService facade)
+vi.mock('@/lib/api', async (importOriginal) => {
+  const { createBookingService } = await import('@fyndstigen/shared')
+  const mockedApi = {
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
     },
     endpoints: {
       bookingCreate: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
     },
-  },
-}))
+    edge: {
+      invoke: vi.fn().mockResolvedValue({}),
+    },
+  }
+  return {
+    api: mockedApi,
+    bookingService: createBookingService({ api: mockedApi as never }),
+  }
+})
 
 // Mock shared imports
 vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
