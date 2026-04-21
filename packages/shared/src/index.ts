@@ -1,6 +1,8 @@
 // API
 export { createApi } from './api'
 export type { Api } from './api'
+export { createEdgeClient } from './api/edge'
+export type { EdgeClient } from './api/edge'
 
 // Types
 export * from './types'

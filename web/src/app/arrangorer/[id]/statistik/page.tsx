@@ -7,7 +7,6 @@ import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
 import { features } from '@/lib/feature-flags'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
@@ -51,13 +50,9 @@ export default function OrganizerStatsPage() {
   async function handleUpgrade() {
     setUpgradeLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('skyltfonstret-checkout', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error || !res.data?.url) throw new Error('Failed to create checkout')
-      window.location.href = res.data.url
+      const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-checkout')
+      if (!data?.url) throw new Error('Failed to create checkout')
+      window.location.href = data.url
     } catch {
       setUpgradeLoading(false)
     }

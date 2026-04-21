@@ -17,28 +17,14 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-// Mock supabase
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'test-token' } },
-      }),
-    },
-    functions: {
-      invoke: vi.fn().mockResolvedValue({
-        data: { clientSecret: 'pi_test_secret', bookingId: 'booking-1' },
-        error: null,
-      }),
-    },
-  },
-}))
-
-// Mock the api module
+// Mock the api module (bookings + edge)
 vi.mock('@/lib/api', () => ({
   api: {
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
+    },
+    edge: {
+      invoke: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
     },
   },
 }))
@@ -50,7 +36,6 @@ vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
 })
 
 import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
 
 const mockTable = {
   id: 'table-1',
@@ -78,10 +63,7 @@ describe('useBooking', () => {
     vi.clearAllMocks()
     vi.mocked(api.bookings.availableDates).mockResolvedValue([])
     mockConfirmCardPayment.mockResolvedValue({ error: null })
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: { clientSecret: 'pi_test_secret', bookingId: 'booking-1' },
-      error: null,
-    })
+    vi.mocked(api.edge.invoke).mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
   })
 
   it('starts with empty state', () => {
@@ -188,12 +170,10 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     // Verify edge function was called
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
-      body: expect.objectContaining({
-        marketTableId: 'table-1',
-        fleaMarketId: 'market-1',
-        bookingDate: '2026-12-01',
-      }),
+    expect(api.edge.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+      marketTableId: 'table-1',
+      fleaMarketId: 'market-1',
+      bookingDate: '2026-12-01',
     }))
 
     // Verify Stripe card confirmation
@@ -225,10 +205,7 @@ describe('useBooking', () => {
   })
 
   it('submit sets error when edge function fails', async () => {
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: { error: 'Organizer has not completed Stripe setup' },
-      error: new Error('Function error'),
-    })
+    vi.mocked(api.edge.invoke).mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -263,10 +240,7 @@ describe('useBooking', () => {
   })
 
   it('submit skips Stripe for free table', async () => {
-    vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: { bookingId: 'booking-free' },
-      error: null,
-    })
+    vi.mocked(api.edge.invoke).mockResolvedValue({ bookingId: 'booking-free' })
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -279,8 +253,8 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     // Edge function called with free table
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
-      body: expect.objectContaining({ marketTableId: 'table-free' }),
+    expect(api.edge.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+      marketTableId: 'table-free',
     }))
 
     // Stripe NOT called — no clientSecret returned

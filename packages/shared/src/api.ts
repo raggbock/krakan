@@ -3,6 +3,7 @@ import { createFleaMarketsApi } from './api/flea-markets'
 import { createBookingsApi } from './api/bookings'
 import { createRoutesApi } from './api/routes'
 import { createProfilesApi } from './api/profiles'
+import { createEdgeApi } from './api/edge'
 
 export function createApi(supabase: SupabaseClient) {
   return {
@@ -10,6 +11,7 @@ export function createApi(supabase: SupabaseClient) {
     ...createBookingsApi(supabase),
     ...createRoutesApi(supabase),
     ...createProfilesApi(supabase),
+    ...createEdgeApi(supabase),
   }
 }
 

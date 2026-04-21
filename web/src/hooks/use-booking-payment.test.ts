@@ -14,10 +14,14 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
+const mockInvoke = vi.fn()
 vi.mock('@/lib/api', () => ({
   api: {
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
+    },
+    edge: {
+      invoke: (...args: unknown[]) => mockInvoke(...args),
     },
   },
 }))
@@ -26,20 +30,6 @@ vi.mock('@fyndstigen/shared', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')
   return actual
 })
-
-const mockInvoke = vi.fn()
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'test-token' } },
-      }),
-    },
-    functions: {
-      invoke: (...args: unknown[]) => mockInvoke(...args),
-    },
-  },
-}))
 
 import { api } from '@/lib/api'
 
@@ -62,14 +52,10 @@ describe('useBooking — payment edge cases', () => {
     vi.clearAllMocks()
     vi.mocked(api.bookings.availableDates).mockResolvedValue([])
     mockConfirmCardPayment.mockResolvedValue({ error: null })
-    mockInvoke.mockResolvedValue({
-      data: { clientSecret: 'pi_test_secret', bookingId: 'booking-1' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
   })
 
   it('does not submit without Stripe (stripe hooks return null equivalent)', async () => {
-    // When Stripe is not loaded, submit should be a no-op
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
     act(() => {
@@ -79,8 +65,6 @@ describe('useBooking — payment edge cases', () => {
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
 
-    // Even if canSubmit is true, the submit function checks for stripe/elements
-    // In our mock they exist, so let's test the flow works
     await act(async () => { await result.current.submit() })
     expect(result.current.isDone).toBe(true)
   })
@@ -122,11 +106,8 @@ describe('useBooking — payment edge cases', () => {
     expect(result.current.isDone).toBe(false)
   })
 
-  it('handles edge function returning error in data', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { error: 'Du har redan en pågående bokning för detta bord och datum' },
-      error: new Error('Function returned error'),
-    })
+  it('handles edge function returning error', async () => {
+    mockInvoke.mockRejectedValue(new Error('Du har redan en pågående bokning för detta bord och datum'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -143,10 +124,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('handles organizer not having Stripe setup', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: new Error('Organizer has not completed Stripe setup'),
-    })
+    mockInvoke.mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -175,13 +153,10 @@ describe('useBooking — payment edge cases', () => {
     await act(async () => { await result.current.submit() })
 
     expect(mockInvoke).toHaveBeenCalledWith('booking-create', {
-      body: {
-        marketTableId: 'table-1',
-        fleaMarketId: 'market-1',
-        bookingDate: '2026-12-25',
-        message: 'Säljer vinterkläder',
-      },
-      headers: { Authorization: 'Bearer test-token' },
+      marketTableId: 'table-1',
+      fleaMarketId: 'market-1',
+      bookingDate: '2026-12-25',
+      message: 'Säljer vinterkläder',
     })
   })
 
@@ -197,33 +172,12 @@ describe('useBooking — payment edge cases', () => {
     await act(async () => { await result.current.submit() })
 
     expect(mockInvoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
-      body: expect.objectContaining({
-        message: undefined,
-      }),
-    }))
-  })
-
-  it('passes auth token to edge function', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
-
-    act(() => {
-      result.current.selectTable(mockTable)
-      result.current.setDate('2026-12-01')
-    })
-
-    await waitFor(() => expect(result.current.canSubmit).toBe(true))
-    await act(async () => { await result.current.submit() })
-
-    expect(mockInvoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
-      headers: { Authorization: 'Bearer test-token' },
+      message: undefined,
     }))
   })
 
   it('confirms card payment with correct client secret', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { clientSecret: 'pi_specific_secret_123', bookingId: 'b-99' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValue({ clientSecret: 'pi_specific_secret_123', bookingId: 'b-99' })
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -241,10 +195,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('does not confirm card if edge function fails', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: new Error('Server error'),
-    })
+    mockInvoke.mockRejectedValue(new Error('Server error'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -260,11 +211,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('clears previous error on new submit attempt', async () => {
-    // First attempt: fail
-    mockInvoke.mockResolvedValueOnce({
-      data: null,
-      error: new Error('Temporary error'),
-    })
+    mockInvoke.mockRejectedValueOnce(new Error('Temporary error'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -277,17 +224,12 @@ describe('useBooking — payment edge cases', () => {
     await act(async () => { await result.current.submit() })
     expect(result.current.submitError).toBeTruthy()
 
-    // Second attempt: need to re-select table since state was not reset
     act(() => {
       result.current.selectTable(mockTable)
       result.current.setDate('2026-12-02')
     })
 
-    // Setup success for second attempt
-    mockInvoke.mockResolvedValueOnce({
-      data: { clientSecret: 'pi_retry', bookingId: 'b-2' },
-      error: null,
-    })
+    mockInvoke.mockResolvedValueOnce({ clientSecret: 'pi_retry', bookingId: 'b-2' })
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
@@ -311,20 +253,13 @@ describe('useBooking — payment edge cases', () => {
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
 
-    // Start submit (don't await — we want to inspect mid-flight state)
     let submitDone = false
     result.current.submit().then(() => { submitDone = true })
 
-    // Wait for isSubmitting to flip true
     await waitFor(() => expect(result.current.isSubmitting).toBe(true))
 
-    // Resolve the pending invoke inside act so React processes the state update
     await act(async () => {
-      resolveInvoke({
-        data: { clientSecret: 'pi_test', bookingId: 'b-1' },
-        error: null,
-      })
-      // flush microtasks
+      resolveInvoke({ clientSecret: 'pi_test', bookingId: 'b-1' })
       await Promise.resolve()
     })
 
@@ -347,18 +282,12 @@ describe('useBooking — payment edge cases', () => {
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
 
-    // Start submit without awaiting
     result.current.submit()
 
-    // canSubmit should be false while submitting (isSubmitting=true)
     await waitFor(() => expect(result.current.canSubmit).toBe(false))
 
-    // Resolve so the test cleans up
     await act(async () => {
-      resolveInvoke({
-        data: { clientSecret: 'pi_test', bookingId: 'b-1' },
-        error: null,
-      })
+      resolveInvoke({ clientSecret: 'pi_test', bookingId: 'b-1' })
       await Promise.resolve()
     })
 
@@ -372,9 +301,9 @@ describe('useBooking — payment edge cases', () => {
     act(() => { r1.current.selectTable({ ...mockTable, price_sek: 100 }) })
     act(() => { r2.current.selectTable({ ...mockTable, price_sek: 500 }) })
 
-    expect(r1.current.commission).toBe(12)  // 100 * 0.12
+    expect(r1.current.commission).toBe(12)
     expect(r1.current.totalPrice).toBe(112)
-    expect(r2.current.commission).toBe(60)  // 500 * 0.12
+    expect(r2.current.commission).toBe(60)
     expect(r2.current.totalPrice).toBe(560)
   })
 

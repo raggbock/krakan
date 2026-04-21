@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { api, OrganizerProfile } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { supabase } from '@/lib/supabase'
 import { features } from '@/lib/feature-flags'
 
 export default function EditProfilePage() {
@@ -46,13 +45,9 @@ function EditProfilePageInner() {
   async function handleUpgrade() {
     setUpgradeLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('skyltfonstret-checkout', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error || !res.data?.url) throw new Error('Failed to create checkout')
-      window.location.href = res.data.url
+      const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-checkout')
+      if (!data?.url) throw new Error('Failed to create checkout')
+      window.location.href = data.url
     } catch {
       setUpgradeLoading(false)
     }
@@ -61,13 +56,9 @@ function EditProfilePageInner() {
   async function handleManageSubscription() {
     setUpgradeLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Not authenticated')
-      const res = await supabase.functions.invoke('skyltfonstret-portal', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      if (res.error || !res.data?.url) throw new Error('Failed to create portal session')
-      window.location.href = res.data.url
+      const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-portal')
+      if (!data?.url) throw new Error('Failed to create portal session')
+      window.location.href = data.url
     } catch {
       setUpgradeLoading(false)
     }

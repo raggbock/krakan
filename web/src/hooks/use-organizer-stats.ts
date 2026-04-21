@@ -116,17 +116,16 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
     supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId }),
-    supabase.functions.invoke('organizer-stats', {
-      body: { organizer_id: organizerId },
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    }),
+    api.edge
+      .invoke<{ markets: PostHogMarketStats[] }>('organizer-stats', { organizer_id: organizerId })
+      .catch(() => ({ markets: [] as PostHogMarketStats[] })),
   ])
 
   const bookingRows30d: RpcBookingRow[] = bookings30d.data ?? []
   const bookingRowsTotal: RpcBookingRow[] = bookingsTotal.data ?? []
   const routeRows30d: RpcRouteRow[] = routes30d.data ?? []
   const routeRowsTotal: RpcRouteRow[] = routesTotal.data ?? []
-  const posthogMarkets: PostHogMarketStats[] = posthogRes.data?.markets ?? []
+  const posthogMarkets: PostHogMarketStats[] = posthogRes?.markets ?? []
 
   return marketList.map((market) => {
     const b30 = groupBookingRows(bookingRows30d, market.id)

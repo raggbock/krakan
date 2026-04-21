@@ -21,19 +21,7 @@ vi.mock('@/lib/api', () => ({
     fleaMarkets: { listByOrganizer: vi.fn() },
     bookings: { listByMarket: vi.fn() },
     organizers: { stats: vi.fn() },
-  },
-}))
-
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'tok' } },
-      }),
-    },
-    functions: {
-      invoke: vi.fn().mockResolvedValue({ error: null, data: {} }),
-    },
+    edge: { invoke: vi.fn().mockResolvedValue({}) },
   },
 }))
 
@@ -43,7 +31,6 @@ vi.mock('@/components/fyndstigen-logo', () => ({
 
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
 
 const mockUser = { id: 'u1', email: 'organizer@test.se' }
 
@@ -123,7 +110,7 @@ beforeEach(() => {
   vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([mockMarket] as any)
   vi.mocked(api.bookings.listByMarket).mockResolvedValue([])
   vi.mocked(api.organizers.stats).mockResolvedValue(mockStats as any)
-  vi.mocked(supabase.functions.invoke).mockResolvedValue({ error: null, data: {} } as any)
+  vi.mocked(api.edge.invoke).mockResolvedValue({} as any)
 })
 
 describe('BookingsPage', () => {
@@ -202,12 +189,9 @@ describe('BookingsPage', () => {
     fireEvent.click(approveBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(supabase.functions.invoke)).toHaveBeenCalledWith(
+      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith(
         'stripe-payment-capture',
-        expect.objectContaining({
-          body: { bookingId: 'b1' },
-          headers: { Authorization: 'Bearer tok' },
-        }),
+        { bookingId: 'b1' },
       )
     })
   })
@@ -221,12 +205,9 @@ describe('BookingsPage', () => {
     fireEvent.click(denyBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(supabase.functions.invoke)).toHaveBeenCalledWith(
+      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith(
         'stripe-payment-cancel',
-        expect.objectContaining({
-          body: { bookingId: 'b1', newStatus: 'denied' },
-          headers: { Authorization: 'Bearer tok' },
-        }),
+        { bookingId: 'b1', newStatus: 'denied' },
       )
     })
   })
