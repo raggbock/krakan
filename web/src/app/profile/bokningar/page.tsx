@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api, BookingWithDetails, FleaMarket, OrganizerStats } from '@/lib/api'
+import { api, BookingView, FleaMarket, OrganizerStats } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
@@ -11,7 +11,7 @@ export default function BookingsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [myMarkets, setMyMarkets] = useState<FleaMarket[]>([])
-  const [bookings, setBookings] = useState<BookingWithDetails[]>([])
+  const [bookings, setBookings] = useState<BookingView[]>([])
   const [stats, setStats] = useState<OrganizerStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -177,24 +177,24 @@ function BookingCard({
   onDeny,
   updating,
 }: {
-  booking: BookingWithDetails
+  booking: BookingView
   onConfirm?: () => void
   onDeny?: () => void
   updating?: boolean
 }) {
   const bookerName =
-    [booking.booker?.first_name, booking.booker?.last_name]
+    [booking.booker?.firstName, booking.booker?.lastName]
       .filter(Boolean)
       .join(' ') || 'Anonym'
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: 'text-mustard',
     confirmed: 'text-forest',
     denied: 'text-error',
     cancelled: 'text-espresso/30',
   }
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: 'Väntar',
     confirmed: 'Bekräftad',
     denied: 'Nekad',
@@ -210,18 +210,18 @@ function BookingCard({
             <span className={`stamp text-xs ${statusColors[booking.status]}`}>
               {statusLabels[booking.status]}
             </span>
-            {booking.payment_status && (
+            {booking.payment.status && (
               <span className="text-xs text-espresso/30">
-                {booking.payment_status === 'requires_capture' && '(reserverat)'}
-                {booking.payment_status === 'captured' && '(betald)'}
-                {booking.payment_status === 'cancelled' && '(återbetald)'}
-                {booking.payment_status === 'failed' && '(misslyckad)'}
+                {booking.payment.status === 'requires_capture' && '(reserverat)'}
+                {booking.payment.status === 'captured' && '(betald)'}
+                {booking.payment.status === 'cancelled' && '(återbetald)'}
+                {booking.payment.status === 'failed' && '(misslyckad)'}
               </span>
             )}
           </div>
           <p className="text-xs text-espresso/60 mt-1">
-            {booking.market_table?.label} &middot;{' '}
-            {new Date(booking.booking_date).toLocaleDateString('sv-SE', {
+            {booking.table?.label} &middot;{' '}
+            {new Date(booking.date).toLocaleDateString('sv-SE', {
               weekday: 'short',
               day: 'numeric',
               month: 'short',
@@ -236,10 +236,10 @@ function BookingCard({
 
         <div className="text-right shrink-0">
           <p className="font-display font-bold text-rust">
-            {booking.price_sek} kr
+            {booking.price.baseSek} kr
           </p>
           <p className="text-xs text-espresso/30 mt-0.5">
-            avg. {booking.commission_sek} kr
+            avg. {booking.price.commissionSek} kr
           </p>
         </div>
       </div>
