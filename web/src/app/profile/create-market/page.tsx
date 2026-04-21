@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -10,6 +10,11 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import { useCreateMarket, type RuleDraft, type ExceptionDraft } from '@/hooks/use-create-market'
 import { useStripeConnect } from '@/hooks/use-stripe-connect'
+import {
+  useDraftAutosave,
+  loadDraft,
+  clearDraft,
+} from '@/hooks/use-draft-autosave'
 import { features } from '@/lib/feature-flags'
 import type { AddressValue } from '@/components/address-picker'
 
@@ -22,6 +27,30 @@ type TableDraft = {
   sizeDescription: string
 }
 
+const DRAFT_KEY = 'fyndstigen-create-market-draft'
+
+type CreateMarketDraft = {
+  step: 1 | 2
+  name: string
+  description: string
+  address: AddressValue
+  isPermanent: boolean
+  autoAcceptBookings: boolean
+  rules: RuleDraft[]
+  exceptions: ExceptionDraft[]
+  tables: TableDraft[]
+}
+
+function formatDraftAge(savedAt: number): string {
+  const seconds = Math.floor((Date.now() - savedAt) / 1000)
+  if (seconds < 60) return 'några sekunder sedan'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} min sedan`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} tim sedan`
+  return `${Math.floor(hours / 24)} dagar sedan`
+}
+
 export default function CreateMarketPage() {
   const router = useRouter()
   const posthog = usePostHog()
@@ -29,6 +58,10 @@ export default function CreateMarketPage() {
 
   const [step, setStep] = useState<1 | 2>(1)
   const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
+
+  // Draft autosave — hydrate once on mount from localStorage.
+  const [hydrated, setHydrated] = useState(false)
+  const [restoredAgeLabel, setRestoredAgeLabel] = useState<string | null>(null)
 
   // Step 1: Market info
   const [name, setName] = useState('')
@@ -89,6 +122,67 @@ export default function CreateMarketPage() {
   const [batchMode, setBatchMode] = useState(false)
   const [batchPrefix, setBatchPrefix] = useState('Bord')
   const [batchCount, setBatchCount] = useState('')
+
+  // Hydrate draft on first mount.
+  useEffect(() => {
+    const existing = loadDraft<CreateMarketDraft>(DRAFT_KEY)
+    if (existing) {
+      const d = existing.data
+      setStep(d.step)
+      setName(d.name)
+      setDescription(d.description)
+      setAddress(d.address)
+      setIsPermanent(d.isPermanent)
+      setAutoAcceptBookings(d.autoAcceptBookings)
+      setRules(d.rules)
+      setExceptions(d.exceptions)
+      setTables(d.tables)
+      const hasContent =
+        d.name.trim() !== '' ||
+        d.description.trim() !== '' ||
+        d.address.street.trim() !== '' ||
+        d.tables.length > 0 ||
+        d.rules.length > 0
+      if (hasContent) setRestoredAgeLabel(formatDraftAge(existing.savedAt))
+    }
+    setHydrated(true)
+    // Intentionally run once; subsequent state changes drive autosave.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist the current draft (debounced). Images are File objects and
+  // can't be serialized, so they're intentionally excluded — users need
+  // to re-select images after a restore.
+  const draft = useMemo<CreateMarketDraft>(
+    () => ({
+      step,
+      name,
+      description,
+      address,
+      isPermanent,
+      autoAcceptBookings,
+      rules,
+      exceptions,
+      tables,
+    }),
+    [step, name, description, address, isPermanent, autoAcceptBookings, rules, exceptions, tables],
+  )
+
+  useDraftAutosave(DRAFT_KEY, draft, { enabled: hydrated })
+
+  function discardDraft() {
+    clearDraft(DRAFT_KEY)
+    setStep(1)
+    setName('')
+    setDescription('')
+    setAddress({ street: '', zipCode: '', city: '', latitude: null, longitude: null })
+    setIsPermanent(true)
+    setAutoAcceptBookings(false)
+    setRules([])
+    setExceptions([])
+    setTables([])
+    setRestoredAgeLabel(null)
+  }
 
   function addTable() {
     if (!tableLabel) return
@@ -158,6 +252,7 @@ export default function CreateMarketPage() {
         has_images: images.length > 0,
         auto_accept: autoAcceptBookings,
       })
+      clearDraft(DRAFT_KEY)
       router.push(`/fleamarkets/${result.id}`)
     }
   }
@@ -205,6 +300,33 @@ export default function CreateMarketPage() {
         Steg {step} av 2 &mdash;{' '}
         {step === 1 ? 'Information' : 'Lägg till bord'}
       </p>
+
+      {restoredAgeLabel && (
+        <div className="flex items-start justify-between gap-3 bg-forest/8 border border-forest/20 rounded-xl px-4 py-3 mb-6 animate-fade-up">
+          <div className="text-sm text-espresso/75">
+            Fortsätter där du slutade — utkast sparat {restoredAgeLabel}.
+            <span className="block text-xs text-espresso/55 mt-0.5">
+              Obs: bilder måste väljas på nytt.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setRestoredAgeLabel(null)}
+              className="text-xs font-semibold text-forest hover:text-forest-light transition-colors px-2"
+            >
+              Stäng
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="text-xs font-semibold text-espresso/55 hover:text-espresso transition-colors px-2"
+            >
+              Börja om
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="flex gap-2 mb-8">
