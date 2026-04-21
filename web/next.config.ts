@@ -5,6 +5,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   transpilePackages: ['@fyndstigen/shared'],
   allowedDevOrigins: ['192.168.50.245'],
+  experimental: {
+    // Inline Tailwind CSS in <head> to remove the render-blocking CSS request.
+    // Atomic CSS stays small enough that the cache trade-off is worth it.
+    inlineCss: true,
+  },
   async rewrites() {
     return [
       {

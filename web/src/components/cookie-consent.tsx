@@ -18,7 +18,18 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (!getConsentStatus()) setVisible(true)
+    if (getConsentStatus()) return
+    // Defer the banner past LCP so it doesn't become the largest paint.
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+    }
+    const show = () => setVisible(true)
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(show, { timeout: 2000 })
+    } else {
+      const id = window.setTimeout(show, 1500)
+      return () => window.clearTimeout(id)
+    }
   }, [])
 
   function accept() {
