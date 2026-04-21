@@ -36,32 +36,27 @@ const mockUser = { id: 'u1', email: 'organizer@test.se' }
 
 const mockMarket = { id: 'fm1', name: 'Sommarlopppis', organizer_id: 'u1' }
 
+// mockBooking uses the BookingView (camelCase) shape produced by mapBookingViewForOrganizer
 const mockBooking = {
   id: 'b1',
-  market_table_id: 't1',
-  flea_market_id: 'fm1',
-  booked_by: 'u2',
-  booking_date: '2026-05-01',
+  table: { id: 't1', label: 'Bord A', description: null, sizeDescription: null },
+  market: null,
+  booker: { id: 'u2', firstName: 'Erik', lastName: 'Nilsson' },
+  date: '2026-05-01',
   status: 'pending',
-  price_sek: 200,
-  commission_sek: 24,
-  commission_rate: 0.12,
+  price: { baseSek: 200, commissionSek: 24, commissionRate: 0.12 },
   message: 'Säljer kläder',
-  organizer_note: null,
-  payment_status: 'requires_capture',
-  stripe_payment_intent_id: 'pi_test',
-  created_at: '',
-  updated_at: '',
-  market_table: { label: 'Bord A' },
-  booker: { first_name: 'Erik', last_name: 'Nilsson' },
+  organizerNote: null,
+  payment: { status: 'requires_capture', intentId: 'pi_test', expiresAt: null },
+  createdAt: '',
 }
 
 const mockConfirmedBooking = {
   ...mockBooking,
   id: 'b2',
   status: 'confirmed',
-  payment_status: 'captured',
-  booker: { first_name: 'Sara', last_name: 'Borg' },
+  payment: { status: 'captured', intentId: 'pi_test', expiresAt: null },
+  booker: { id: 'u3', firstName: 'Sara', lastName: 'Borg' },
 }
 
 const mockStats = {

@@ -1,7 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../booking'
 import type { BookingStatus, CreateBookingPayload } from '../types'
-import { mapBookingForUser, mapBookingForOrganizer, type BookingRow } from './mappers'
+import {
+  mapBookingForUser,
+  mapBookingForOrganizer,
+  mapBookingViewForUser,
+  mapBookingViewForOrganizer,
+  type BookingRow,
+} from './mappers'
 
 export function createBookingsApi(supabase: SupabaseClient) {
   return {
@@ -60,7 +66,7 @@ export function createBookingsApi(supabase: SupabaseClient) {
           .in('status', ['pending', 'confirmed'])
           .order('booking_date')
         if (error) throw error
-        return (data ?? []).map((b) => mapBookingForOrganizer(b as BookingRow))
+        return (data ?? []).map((b) => mapBookingViewForOrganizer(b as BookingRow))
       },
 
       updateStatus: async (id: string, newStatus: 'confirmed' | 'denied' | 'cancelled', note?: string) => {

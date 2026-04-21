@@ -25,6 +25,7 @@ export type {
   MarketTable,
   Booking,
   BookingWithDetails,
+  BookingView,
   Route,
   RouteStop,
   RouteWithStops,
