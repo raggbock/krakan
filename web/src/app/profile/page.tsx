@@ -10,7 +10,7 @@ import { useMarketsByOrganizer } from '@/hooks/use-markets'
 import { useRoutesByUser } from '@/hooks/use-routes'
 import { usePendingBookingsCount } from '@/hooks/use-pending-bookings-count'
 import { StripeConnectButton } from '@/components/stripe-connect-button'
-import { features } from '@/lib/feature-flags'
+import { useFlag } from '@/lib/flags'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const { markets: myMarkets, loading: marketsLoading } = useMarketsByOrganizer(user?.id)
   const { routes: myRoutes, loading: routesLoading } = useRoutesByUser(user?.id)
   const { count: pendingCount } = usePendingBookingsCount(user?.id)
+  const paymentsEnabled = useFlag('payments')
   const loading = authLoading || marketsLoading || routesLoading
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Stripe Connect */}
-      {features.payments && (
+      {paymentsEnabled && (
         <div className="vintage-card p-8 mb-6 animate-fade-up delay-1">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-lg bg-forest/10 flex items-center justify-center shrink-0 mt-0.5">

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { api, OrganizerProfile } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { features } from '@/lib/feature-flags'
+import { useFlag } from '@/lib/flags'
 
 export default function EditProfilePage() {
   return (
@@ -24,6 +24,7 @@ export default function EditProfilePage() {
 function EditProfilePageInner() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const skyltfonstretEnabled = useFlag('skyltfonstret')
   const [profile, setProfile] = useState<OrganizerProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -143,14 +144,14 @@ function EditProfilePageInner() {
       </p>
 
       {/* Success banner */}
-      {features.skyltfonstret && showSuccess && (
+      {skyltfonstretEnabled && showSuccess && (
         <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-6 animate-fade-up">
           Skyltfönstret är aktiverat! Dina loppisar får nu bättre synlighet.
         </div>
       )}
 
       {/* Skyltfönstret */}
-      {features.skyltfonstret && <div className="vintage-card p-6 mb-6">
+      {skyltfonstretEnabled && <div className="vintage-card p-6 mb-6">
         {isPremium ? (
           <div>
             <div className="flex items-center gap-2 mb-2">
