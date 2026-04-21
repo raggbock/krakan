@@ -11,7 +11,6 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import type { ImageUploadStatus, RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
 import { ImageUploadList } from '@/components/image-upload-list'
-import { compressImages } from '@/lib/compress-image'
 import type { AddressValue } from '@/components/address-picker'
 
 const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
@@ -142,8 +141,9 @@ export default function EditMarketPage() {
     const remaining = 6 - totalImages
     const toAdd = files.slice(0, remaining)
     if (toAdd.length === 0) return
-    const compressed = await compressImages(toAdd)
-    const combined = [...newImages, ...compressed]
+    // Compression happens inside api.images.add — previews show the original
+    // file the user picked, unmodified.
+    const combined = [...newImages, ...toAdd]
     newImagePreviews.forEach(URL.revokeObjectURL)
     setNewImages(combined)
     setNewImagePreviews(combined.map((f) => URL.createObjectURL(f)))
@@ -246,7 +246,7 @@ export default function EditMarketPage() {
 
       // Delete removed images
       for (const img of deletedImageIds) {
-        await api.images.delete(img.id, img.path)
+        await api.images.remove({ id: img.id, storage_path: img.path, sort_order: 0 })
       }
 
       // Upload new images — publish per-file status so the UI can show
@@ -259,7 +259,7 @@ export default function EditMarketPage() {
           prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
         )
         try {
-          await api.images.upload(id, newImages[i])
+          await api.images.add(id, newImages[i])
           setImageStatuses((prev) =>
             prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
           )
@@ -448,7 +448,7 @@ export default function EditMarketPage() {
                   }`}
                 >
                   <img
-                    src={api.images.getPublicUrl(img.storage_path)}
+                    src={api.images.publicUrl(img.storage_path)}
                     alt=""
                     className="w-full h-full object-cover"
                   />

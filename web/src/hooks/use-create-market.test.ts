@@ -12,7 +12,7 @@ vi.mock('@/lib/api', () => ({
       create: vi.fn().mockResolvedValue({ id: 'table-1' }),
     },
     images: {
-      upload: vi.fn().mockResolvedValue({ id: 'img-1' }),
+      add: vi.fn().mockResolvedValue({ id: 'img-1' }),
     },
   },
   geo: {
@@ -43,7 +43,7 @@ describe('useCreateMarket', () => {
     vi.mocked(api.fleaMarkets.create).mockResolvedValue({ id: 'market-1' })
     vi.mocked(api.fleaMarkets.publish).mockResolvedValue(undefined as never)
     vi.mocked(api.marketTables.create).mockResolvedValue({ id: 'table-1' })
-    vi.mocked(api.images.upload).mockResolvedValue({ id: 'img-1' } as never)
+    vi.mocked(api.images.add).mockResolvedValue({ id: 'img-1' } as never)
   })
 
   it('full success: geocode → create → tables → images → publish', async () => {
@@ -58,7 +58,7 @@ describe('useCreateMarket', () => {
     expect(geo.geocode).toHaveBeenCalledWith('Storgatan 1, 111 22 Stockholm, Sweden')
     expect(api.fleaMarkets.create).toHaveBeenCalled()
     expect(api.marketTables.create).toHaveBeenCalledTimes(1)
-    expect(api.images.upload).toHaveBeenCalledTimes(1)
+    expect(api.images.add).toHaveBeenCalledTimes(1)
     expect(api.fleaMarkets.publish).toHaveBeenCalledWith('market-1')
     expect(result.current.error).toBeNull()
     expect(result.current.isSubmitting).toBe(false)
@@ -83,7 +83,7 @@ describe('useCreateMarket', () => {
   })
 
   it('returns id but sets error on image upload failure', async () => {
-    vi.mocked(api.images.upload).mockRejectedValue(new Error('Storage error'))
+    vi.mocked(api.images.add).mockRejectedValue(new Error('Storage error'))
 
     const { result } = renderHook(() => useCreateMarket())
 
@@ -134,7 +134,7 @@ describe('useCreateMarket', () => {
     })
 
     expect(api.marketTables.create).not.toHaveBeenCalled()
-    expect(api.images.upload).not.toHaveBeenCalled()
+    expect(api.images.add).not.toHaveBeenCalled()
     expect(api.fleaMarkets.publish).toHaveBeenCalled()
   })
 

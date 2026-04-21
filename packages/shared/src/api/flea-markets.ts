@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,
   FleaMarketNearBy,
-  FleaMarketImage,
   SearchResult,
   MarketTable,
   CreateFleaMarketPayload,
@@ -205,59 +204,6 @@ export function createFleaMarketsApi(supabase: SupabaseClient) {
 
         if (error) throw error
         return { fleaMarkets: data ?? [] } as SearchResult
-      },
-    },
-
-    images: {
-      upload: async (fleaMarketId: string, file: File) => {
-        const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-        const path = `${fleaMarketId}/${crypto.randomUUID()}.${ext}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('flea-market-images')
-          .upload(path, file)
-        if (uploadError) throw uploadError
-
-        const { data: existing } = await supabase
-          .from('flea_market_images')
-          .select('sort_order')
-          .eq('flea_market_id', fleaMarketId)
-          .order('sort_order', { ascending: false })
-          .limit(1)
-
-        const nextOrder = ((existing?.[0]?.sort_order ?? -1) as number) + 1
-
-        const { data, error } = await supabase
-          .from('flea_market_images')
-          .insert({
-            flea_market_id: fleaMarketId,
-            storage_path: path,
-            sort_order: nextOrder,
-          })
-          .select('id, storage_path, sort_order')
-          .single()
-        if (error) throw error
-        return data as FleaMarketImage
-      },
-
-      delete: async (imageId: string, storagePath: string) => {
-        const { error: storageErr } = await supabase.storage
-          .from('flea-market-images')
-          .remove([storagePath])
-        if (storageErr) throw storageErr
-
-        const { error } = await supabase
-          .from('flea_market_images')
-          .delete()
-          .eq('id', imageId)
-        if (error) throw error
-      },
-
-      getPublicUrl: (storagePath: string) => {
-        const { data } = supabase.storage
-          .from('flea-market-images')
-          .getPublicUrl(storagePath)
-        return data.publicUrl
       },
     },
 

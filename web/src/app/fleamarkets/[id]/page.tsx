@@ -76,7 +76,7 @@ export default function FleaMarketDetailsPage() {
                   }`}
                 >
                   <Image
-                    src={api.images.getPublicUrl(img.storage_path)}
+                    src={api.images.publicUrl(img.storage_path)}
                     alt={market.name}
                     fill
                     sizes={market.flea_market_images.length === 1 ? '100vw' : '(min-width: 640px) 33vw, 50vw'}

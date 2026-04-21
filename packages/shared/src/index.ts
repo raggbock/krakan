@@ -1,6 +1,8 @@
 // API
 export { createApi } from './api'
-export type { Api } from './api'
+export type { Api, CreateApiOptions } from './api'
+export { createImageService } from './api/images'
+export type { ImageService, ImageServiceDeps } from './api/images'
 
 // Types
 export * from './types'

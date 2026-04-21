@@ -124,7 +124,7 @@ export function useCreateMarket() {
           prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
         )
         try {
-          await api.images.upload(id, input.images[i])
+          await api.images.add(id, input.images[i])
           setImageStatuses((prev) =>
             prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
           )

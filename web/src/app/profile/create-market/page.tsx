@@ -16,7 +16,6 @@ import {
   clearDraft,
 } from '@/hooks/use-draft-autosave'
 import { ImageUploadList } from '@/components/image-upload-list'
-import { compressImages } from '@/lib/compress-image'
 import { features } from '@/lib/feature-flags'
 import type { AddressValue } from '@/components/address-picker'
 
@@ -92,8 +91,9 @@ export default function CreateMarketPage() {
     const files = Array.from(e.target.files ?? [])
     e.target.value = ''
     if (files.length === 0) return
-    const compressed = await compressImages(files)
-    const combined = [...images, ...compressed].slice(0, 6)
+    // Compression happens inside api.images.add — previews show the original
+    // file the user picked.
+    const combined = [...images, ...files].slice(0, 6)
     setCombinedImages(combined)
   }
 
