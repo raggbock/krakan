@@ -29,8 +29,10 @@ export default function EditMarketPage() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [publishedAt, setPublishedAt] = useState<string | null>(null)
 
   // Market info
   const [name, setName] = useState('')
@@ -92,6 +94,7 @@ export default function EditMarketPage() {
         longitude: market.longitude ?? null,
       })
       setIsPermanent(market.is_permanent)
+      setPublishedAt(market.published_at ?? null)
 
       if (market.opening_hour_rules?.length) {
         setRules(
@@ -185,6 +188,20 @@ export default function EditMarketPage() {
 
   function removeNewTable(idx: number) {
     setNewTables((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  async function handlePublish() {
+    if (!user) return
+    setPublishing(true)
+    setError('')
+    setSuccess('')
+    try {
+      await api.fleaMarkets.publish(id)
+      router.push(`/fleamarkets/${id}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Kunde inte publicera loppisen')
+      setPublishing(false)
+    }
   }
 
   // --- Submit ---
@@ -606,6 +623,34 @@ export default function EditMarketPage() {
           </div>
         </section>
 
+        {/* === Publish (drafts only) === */}
+        {!publishedAt && (
+          <section className="rounded-xl border border-mustard/30 bg-mustard/5 p-5 space-y-3">
+            <div>
+              <h3 className="font-display font-bold text-espresso text-lg">
+                Redo att publicera?
+              </h3>
+              <p className="text-sm text-espresso/65 mt-1">
+                Din loppis är ett utkast och syns bara för dig. Publicera för att
+                den ska synas för besökare.
+              </p>
+            </div>
+            <button
+              onClick={handlePublish}
+              disabled={
+                publishing ||
+                saving ||
+                !name.trim() ||
+                !address.street.trim() ||
+                !address.city.trim()
+              }
+              className="w-full h-11 rounded-xl bg-forest text-white font-semibold text-sm hover:bg-forest/90 transition-colors disabled:opacity-40 shadow-sm"
+            >
+              {publishing ? 'Publicerar...' : 'Publicera loppisen'}
+            </button>
+          </section>
+        )}
+
         {/* === Save button === */}
         <div className="flex gap-3 pt-2">
           <Link
@@ -616,7 +661,7 @@ export default function EditMarketPage() {
           </Link>
           <button
             onClick={handleSubmit}
-            disabled={saving || !name.trim() || !address.street.trim() || !address.city.trim()}
+            disabled={saving || publishing || !name.trim() || !address.street.trim() || !address.city.trim()}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {saving ? 'Sparar...' : 'Spara ändringar'}
