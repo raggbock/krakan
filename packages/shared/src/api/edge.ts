@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createEndpointsApi } from './endpoints'
 
 /**
  * Thin wrapper around supabase.functions.invoke that:
@@ -34,7 +35,9 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
 }
 
 export function createEdgeApi(supabase: SupabaseClient) {
+  const edge = createEdgeClient(supabase)
   return {
-    edge: createEdgeClient(supabase),
+    edge,
+    endpoints: createEndpointsApi(edge),
   }
 }

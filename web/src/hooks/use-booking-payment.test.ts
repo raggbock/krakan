@@ -20,8 +20,8 @@ vi.mock('@/lib/api', () => ({
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
     },
-    edge: {
-      invoke: (...args: unknown[]) => mockInvoke(...args),
+    endpoints: {
+      bookingCreate: (...args: unknown[]) => mockInvoke(...args),
     },
   },
 }))
@@ -152,7 +152,7 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(mockInvoke).toHaveBeenCalledWith('booking-create', {
+    expect(mockInvoke).toHaveBeenCalledWith({
       marketTableId: 'table-1',
       fleaMarketId: 'market-1',
       bookingDate: '2026-12-25',
@@ -171,7 +171,7 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(mockInvoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith(expect.objectContaining({
       message: undefined,
     }))
   })

@@ -5,6 +5,11 @@ export { createImageService } from './api/images'
 export type { ImageService, ImageServiceDeps } from './api/images'
 export { createEdgeClient } from './api/edge'
 export type { EdgeClient } from './api/edge'
+export { createEndpointsApi } from './api/endpoints'
+export type { EndpointsApi } from './api/endpoints'
+
+// Contracts
+export { BookingCreateInput, BookingCreateOutput } from './contracts/booking-create'
 
 // Types
 export * from './types'
