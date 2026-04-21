@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import type { RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
+import { compressImages } from '@/lib/compress-image'
 import type { AddressValue } from '@/components/address-picker'
 
 const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
@@ -131,18 +132,19 @@ export default function EditMarketPage() {
   }
 
   // --- Images ---
-  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
+    e.target.value = ''
     if (files.length === 0) return
     const totalImages = existingImages.length - deletedImageIds.length + newImages.length
     const remaining = 6 - totalImages
     const toAdd = files.slice(0, remaining)
     if (toAdd.length === 0) return
-    const combined = [...newImages, ...toAdd]
+    const compressed = await compressImages(toAdd)
+    const combined = [...newImages, ...compressed]
     newImagePreviews.forEach(URL.revokeObjectURL)
     setNewImages(combined)
     setNewImagePreviews(combined.map((f) => URL.createObjectURL(f)))
-    e.target.value = ''
   }
 
   function removeExistingImage(img: FleaMarketImage) {

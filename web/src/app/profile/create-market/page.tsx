@@ -15,6 +15,7 @@ import {
   loadDraft,
   clearDraft,
 } from '@/hooks/use-draft-autosave'
+import { compressImages } from '@/lib/compress-image'
 import { features } from '@/lib/feature-flags'
 import type { AddressValue } from '@/components/address-picker'
 
@@ -80,12 +81,13 @@ export default function CreateMarketPage() {
   // Opening hours — rule-based
   const [rules, setRules] = useState<RuleDraft[]>([])
   const [exceptions, setExceptions] = useState<ExceptionDraft[]>([])
-  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
-    if (files.length === 0) return
-    const combined = [...images, ...files].slice(0, 6)
-    setCombinedImages(combined)
     e.target.value = ''
+    if (files.length === 0) return
+    const compressed = await compressImages(files)
+    const combined = [...images, ...compressed].slice(0, 6)
+    setCombinedImages(combined)
   }
 
   function setCombinedImages(files: File[]) {
