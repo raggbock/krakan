@@ -43,6 +43,23 @@ export type { LatLng, GeoService, GeoOptions } from './geo'
 export { appError, isAppError } from './errors'
 export type { AppError, ErrorCode } from './errors'
 
+// Market mutation saga
+export { runMarketMutation, collectMarketEvents } from './market-mutation'
+export type {
+  MarketPlan,
+  MarketEvent,
+  MarketPhase,
+  MarketDeps,
+  MarketMutationApi,
+  MarketMutationGeo,
+  MarketPlanTableDraft,
+  MarketPlanRuleDraft,
+  MarketPlanExceptionDraft,
+  MarketPlanAddress,
+  MarketCreateFields,
+  MarketUpdateFields,
+} from './market-mutation'
+
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
 export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'

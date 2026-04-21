@@ -6,13 +6,16 @@ vi.mock('@/lib/api', () => ({
   api: {
     fleaMarkets: {
       create: vi.fn().mockResolvedValue({ id: 'market-1' }),
+      update: vi.fn().mockResolvedValue(undefined),
       publish: vi.fn().mockResolvedValue(undefined),
     },
     marketTables: {
       create: vi.fn().mockResolvedValue({ id: 'table-1' }),
+      delete: vi.fn().mockResolvedValue(undefined),
     },
     images: {
-      add: vi.fn().mockResolvedValue({ id: 'img-1' }),
+      add: vi.fn().mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 }),
+      remove: vi.fn().mockResolvedValue(undefined),
     },
   },
   geo: {
@@ -109,7 +112,8 @@ describe('useCreateMarket', () => {
     })
 
     expect(outcome).toBeNull()
-    expect(result.current.error).toBe('Kunde inte hitta adressen. Välj plats på kartan istället.')
+    // geocode.not_found → Swedish message from the shared catalog
+    expect(result.current.error).toMatch(/kunde inte hitta den adressen/i)
   })
 
   it('returns null on market creation failure', async () => {
@@ -123,7 +127,8 @@ describe('useCreateMarket', () => {
     })
 
     expect(outcome).toBeNull()
-    expect(result.current.error).toBe('Forbidden')
+    // Unknown errors now surface the generic Swedish "unknown" message.
+    expect(result.current.error).toMatch(/något gick fel/i)
   })
 
   it('skips tables and images when input has none', async () => {

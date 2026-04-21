@@ -6,6 +6,8 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketDetails, FleaMarketImage, MarketTable } from '@/lib/api'
+import { runMarketMutation, type MarketPlan } from '@fyndstigen/shared'
+import { messageFor } from '@/lib/messages.sv'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
@@ -214,77 +216,83 @@ export default function EditMarketPage() {
     setSaving(true)
     setError('')
     setSuccess('')
+    setImageStatuses(
+      newImages.map((f) => ({ name: f.name, state: 'pending' as const })),
+    )
+
+    const plan: MarketPlan = {
+      market: {
+        update: {
+          id,
+          patch: {
+            name: name.trim(),
+            description: description.trim(),
+            address: {
+              street: address.street.trim(),
+              zipCode: address.zipCode.trim(),
+              city: address.city.trim(),
+              country: 'Sweden',
+              coordinates:
+                address.latitude && address.longitude
+                  ? { latitude: address.latitude, longitude: address.longitude }
+                  : undefined,
+            },
+            isPermanent,
+            alreadyPublished: publishedAt !== null,
+          },
+        },
+      },
+      images: {
+        add: newImages,
+        remove: deletedImageIds.map((d) => ({ id: d.id, storage_path: d.path, sort_order: 0 })),
+      },
+      tables: {
+        add: newTables.map((t) => ({
+          label: t.label,
+          description: t.description,
+          priceSek: t.priceSek,
+          sizeDescription: t.sizeDescription,
+        })),
+        remove: deletedTableIds,
+      },
+      opening: { rules, exceptions },
+    }
+
+    let failedMsg: string | null = null
+    let anyItemError = false
 
     try {
-      // Use map coordinates if available, otherwise geocode
-      let latitude: number
-      let longitude: number
-      if (address.latitude && address.longitude) {
-        latitude = address.latitude
-        longitude = address.longitude
-      } else {
-        const coords = await geo.geocode(`${address.street.trim()}, ${address.zipCode.trim()} ${address.city.trim()}, Sweden`)
-        latitude = coords.lat
-        longitude = coords.lng
-      }
-
-      // Update market
-      await api.fleaMarkets.update(id, {
-        name: name.trim(),
-        description: description.trim(),
-        address: {
-          street: address.street.trim(),
-          zipCode: address.zipCode.trim(),
-          city: address.city.trim(),
-          country: 'Sweden',
-          location: { latitude, longitude },
-        },
-        isPermanent,
-        openingHours: rules,
-        openingHourExceptions: exceptions,
-      })
-
-      // Delete removed images
-      for (const img of deletedImageIds) {
-        await api.images.remove({ id: img.id, storage_path: img.path, sort_order: 0 })
-      }
-
-      // Upload new images — publish per-file status so the UI can show
-      // which file is in flight.
-      setImageStatuses(
-        newImages.map((f) => ({ name: f.name, state: 'pending' as const })),
-      )
-      for (let i = 0; i < newImages.length; i++) {
-        setImageStatuses((prev) =>
-          prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
-        )
-        try {
-          await api.images.add(id, newImages[i])
-          setImageStatuses((prev) =>
-            prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
-          )
-        } catch (e) {
-          setImageStatuses((prev) =>
-            prev.map((s, idx) => (idx === i ? { ...s, state: 'error' } : s)),
-          )
-          throw e
+      for await (const ev of runMarketMutation(plan, { api, geo })) {
+        if ('type' in ev) {
+          if (ev.type === 'failed') failedMsg = messageFor(ev.error)
+          continue
         }
+        if (
+          ev.phase === 'saving_images' &&
+          (ev.status === 'item_ok' || ev.status === 'item_error') &&
+          ev.kind === 'add'
+        ) {
+          if (ev.status === 'item_ok') {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'done' } : s)),
+            )
+          } else {
+            setImageStatuses((prev) =>
+              prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'error' } : s)),
+            )
+            anyItemError = true
+          }
+        }
+        if (ev.phase === 'saving_tables' && ev.status === 'item_error') anyItemError = true
       }
 
-      // Delete removed tables
-      for (const tableId of deletedTableIds) {
-        await api.marketTables.delete(tableId)
+      if (failedMsg) {
+        setError(failedMsg)
+        return
       }
-
-      // Create new tables
-      for (const table of newTables) {
-        await api.marketTables.create({
-          fleaMarketId: id,
-          label: table.label,
-          description: table.description || undefined,
-          priceSek: table.priceSek,
-          sizeDescription: table.sizeDescription || undefined,
-        })
+      if (anyItemError) {
+        setError('Vissa ändringar kunde inte sparas. Kontrollera och försök igen.')
+        return
       }
 
       setSuccess('Loppisen har uppdaterats!')
@@ -299,8 +307,6 @@ export default function EditMarketPage() {
       // Reload to get fresh data
       setLoading(true)
       await loadMarket()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Något gick fel')
     } finally {
       setSaving(false)
     }
