@@ -8,6 +8,7 @@ import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
 import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
 import { CookieConsent } from '@/components/cookie-consent'
+import { CookieSettingsLink } from '@/components/cookie-settings-link'
 import Link from 'next/link'
 
 const fraunces = Fraunces({
@@ -142,6 +143,7 @@ export default function RootLayout({
                     <Link href="/integritetspolicy" className="hover:text-espresso transition-colors">
                       Integritetspolicy
                     </Link>
+                    <CookieSettingsLink />
                     <a
                       href="mailto:hej@fyndstigen.se"
                       className="hover:text-espresso transition-colors"

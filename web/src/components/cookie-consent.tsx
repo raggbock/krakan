@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 const CONSENT_KEY = 'fyndstigen-cookie-consent'
+const REOPEN_EVENT = 'fyndstigen-cookie-reopen'
 
 export type ConsentStatus = 'accepted' | 'declined' | null
 
@@ -14,21 +15,33 @@ export function getConsentStatus(): ConsentStatus {
   return null
 }
 
+export function openCookieSettings() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(REOPEN_EVENT))
+  }
+}
+
 export function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (getConsentStatus()) return
+    const onReopen = () => setVisible(true)
+    window.addEventListener(REOPEN_EVENT, onReopen)
+    if (getConsentStatus()) return () => window.removeEventListener(REOPEN_EVENT, onReopen)
     // Defer the banner past LCP so it doesn't become the largest paint.
     const w = window as Window & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
     }
     const show = () => setVisible(true)
+    let timeoutId: number | undefined
     if (typeof w.requestIdleCallback === 'function') {
       w.requestIdleCallback(show, { timeout: 2000 })
     } else {
-      const id = window.setTimeout(show, 1500)
-      return () => window.clearTimeout(id)
+      timeoutId = window.setTimeout(show, 1500)
+    }
+    return () => {
+      window.removeEventListener(REOPEN_EVENT, onReopen)
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
     }
   }, [])
 

@@ -77,8 +77,9 @@ export default function PrivacyPolicyPage() {
           <p>Vi delar uppgifter med följande tjänster för att Fyndstigen ska fungera:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
             <li><strong>Supabase</strong> (Frankfurt, EU) — databas och inloggning</li>
-            <li><strong>Stripe</strong> (EU/US) — betalningshantering. Stripe är självständigt personuppgiftsansvarig för betaldata. <a href="https://stripe.com/privacy" className="text-rust" target="_blank" rel="noopener noreferrer">Stripes integritetspolicy</a></li>
+            <li><strong>Stripe</strong> (EU/US) — betalningshantering aktiveras när Fyndstigen öppnar bordsbokning med betalning. Stripe är självständigt personuppgiftsansvarig för betaldata. <a href="https://stripe.com/privacy" className="text-rust" target="_blank" rel="noopener noreferrer">Stripes integritetspolicy</a></li>
             <li><strong>PostHog</strong> (Frankfurt, EU) — webbanalys, endast med ditt samtycke</li>
+            <li><strong>Sentry</strong> (Frankfurt, EU) — felrapportering från webbläsaren. PII (IP, cookies) skickas bara om du accepterat cookies.</li>
             <li><strong>Cloudflare</strong> (global, EU-avtal) — hosting och CDN</li>
           </ul>
           <p className="mt-2">Vi säljer aldrig dina personuppgifter till tredje part.</p>
@@ -93,7 +94,7 @@ export default function PrivacyPolicyPage() {
             <li><strong>Betalcookies</strong> (Stripe) — sätts vid betalning för bedrägeriförebyggande.</li>
           </ul>
           <p className="mt-2">
-            Du kan ändra ditt val genom att rensa webbläsarens localStorage och ladda om sidan.
+            Du kan ändra ditt val när som helst via länken <strong>&quot;Cookie-inställningar&quot;</strong> längst ner på sidan.
           </p>
         </section>
 
