@@ -3,31 +3,20 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Polyline,
-  useMapEvents,
-} from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 import { api, geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { usePostHog } from 'posthog-js/react'
-import { checkOpeningHours, type OpeningHourRule, type OpeningHourException, type Stop } from '@fyndstigen/shared'
-import { inactiveMarkerIcon, numberedMarkerIcon, startPointIcon } from '@/lib/map-markers'
+import type { OpeningHourRule, OpeningHourException, Stop } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
+import { RouteFormFields } from './route-builder/route-form-fields'
+import { StopList, type RouteStop } from './route-builder/stop-list'
+import { RouteMap } from './route-builder/route-map'
+import { SaveRouteButton } from './route-builder/save-route-button'
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]
   opening_hour_exceptions?: OpeningHourException[]
-}
-
-type RouteStop = {
-  market: MarketWithHours
-  index: number
 }
 
 export default function RouteBuilder() {
@@ -43,14 +32,8 @@ export default function RouteBuilder() {
   const [name, setName] = useState('')
   const [plannedDate, setPlannedDate] = useState('')
   const [useGps, setUseGps] = useState(true)
-  const [customStart, setCustomStart] = useState<{
-    lat: number
-    lng: number
-  } | null>(null)
-  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(
-    null,
-  )
-  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [customStart, setCustomStart] = useState<{ lat: number; lng: number } | null>(null)
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
 
   // Load markets
   useEffect(() => {
@@ -64,8 +47,7 @@ export default function RouteBuilder() {
   useEffect(() => {
     if (useGps && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => {},
       )
     }
@@ -80,20 +62,13 @@ export default function RouteBuilder() {
     if (isInRoute(market.id)) {
       setStops((prev) => prev.filter((s) => s.market.id !== market.id))
     } else {
-      setStops((prev) => [
-        ...prev,
-        { market, index: prev.length },
-      ])
+      setStops((prev) => [...prev, { market, index: prev.length }])
       posthog?.capture('route_market_added', {
         flea_market_id: market.id,
         market_name: market.name,
         market_city: market.city,
       })
     }
-  }
-
-  function removeStop(marketId: string) {
-    setStops((prev) => prev.filter((s) => s.market.id !== marketId))
   }
 
   function handleOptimize() {
@@ -104,11 +79,7 @@ export default function RouteBuilder() {
       lng: s.market.longitude,
     }))
     const startPoint =
-      !useGps && customStart
-        ? customStart
-        : userPos
-          ? userPos
-          : undefined
+      !useGps && customStart ? customStart : userPos ? userPos : undefined
     const optimized = geo.optimizeStops(asStops, startPoint)
     setStops(
       optimized.map((opt, i) => ({
@@ -116,24 +87,6 @@ export default function RouteBuilder() {
         index: i,
       })),
     )
-  }
-
-  function handleDragStart(idx: number) {
-    setDragIdx(idx)
-  }
-
-  function handleDragOver(e: React.DragEvent, idx: number) {
-    e.preventDefault()
-    if (dragIdx === null || dragIdx === idx) return
-    const newStops = [...stops]
-    const [moved] = newStops.splice(dragIdx, 1)
-    newStops.splice(idx, 0, moved)
-    setStops(newStops)
-    setDragIdx(idx)
-  }
-
-  function handleDragEnd() {
-    setDragIdx(null)
   }
 
   async function handleSave() {
@@ -164,12 +117,6 @@ export default function RouteBuilder() {
     }
   }
 
-  // Polyline coordinates
-  const polylinePositions: [number, number][] = stops.map((s) => [
-    s.market.latitude,
-    s.market.longitude,
-  ])
-
   return (
     <div className="flex flex-col lg:flex-row" style={{ height: 'calc(100dvh - 64px)' }}>
       {/* Sidebar */}
@@ -197,170 +144,33 @@ export default function RouteBuilder() {
             Klicka på loppisar i kartan eller sök nedan.
           </p>
 
-          {/* Route name */}
-          <div className="mt-6">
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-              Namn på rundan
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="T.ex. Söndagsrundan Södermalm"
-              className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-            />
-          </div>
+          <RouteFormFields
+            name={name}
+            onNameChange={setName}
+            plannedDate={plannedDate}
+            onPlannedDateChange={setPlannedDate}
+            useGps={useGps}
+            onUseGpsChange={setUseGps}
+          />
 
-          {/* Planned date */}
-          <div className="mt-4">
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-              Planerat datum (valfritt)
-            </label>
-            <input
-              type="date"
-              value={plannedDate}
-              onChange={(e) => setPlannedDate(e.target.value)}
-              className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-            />
-          </div>
+          <StopList
+            stops={stops}
+            plannedDate={plannedDate}
+            onReorder={setStops}
+            onRemove={(marketId) =>
+              setStops((prev) => prev.filter((s) => s.market.id !== marketId))
+            }
+            onOptimize={handleOptimize}
+            canOptimize={stops.length >= 2}
+          />
 
-          {/* Start point toggle */}
-          <div className="mt-4">
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
-              Startpunkt
-            </label>
-            <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
-              <button
-                onClick={() => setUseGps(true)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-              >
-                Min position (GPS)
-              </button>
-              <button
-                onClick={() => setUseGps(false)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-              >
-                Välj på kartan
-              </button>
-            </div>
-          </div>
-
-          {/* Stops list */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display font-bold">
-                Stopp ({stops.length})
-              </h2>
-              {stops.length >= 2 && (
-                <button
-                  onClick={handleOptimize}
-                  className="text-xs font-semibold text-rust hover:text-rust-light transition-colors"
-                >
-                  Optimera rutt
-                </button>
-              )}
-            </div>
-
-            {stops.length === 0 ? (
-              <div className="text-center py-8">
-                <FyndstigenLogo
-                  size={36}
-                  className="text-espresso/10 mx-auto mb-2"
-                />
-                <p className="text-xs text-espresso/30">
-                  Klicka på en markör i kartan för att lägga till stopp.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {stops.map((stop, i) => {
-                  const oh = plannedDate
-                    ? checkOpeningHours(
-                        stop.market.opening_hour_rules ?? [],
-                        stop.market.opening_hour_exceptions ?? [],
-                        plannedDate,
-                      )
-                    : null
-
-                  return (
-                    <div
-                      key={stop.market.id}
-                      draggable
-                      onDragStart={() => handleDragStart(i)}
-                      onDragOver={(e) => handleDragOver(e, i)}
-                      onDragEnd={handleDragEnd}
-                      className={`flex items-center gap-3 bg-parchment rounded-xl p-3 cursor-grab active:cursor-grabbing transition-all ${dragIdx === i ? 'opacity-50 scale-95' : ''}`}
-                    >
-                      {/* Number badge */}
-                      <div className="w-7 h-7 rounded-full bg-rust text-white flex items-center justify-center text-xs font-bold shrink-0">
-                        {i + 1}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {stop.market.name}
-                        </p>
-                        <p className="text-xs text-espresso/60 truncate">
-                          {stop.market.city}
-                        </p>
-                      </div>
-
-                      {/* Opening hours warning */}
-                      {oh && !oh.isOpen && (
-                        <span
-                          className="text-error text-xs font-medium shrink-0"
-                          title="Stängt denna dag"
-                        >
-                          Stängt
-                        </span>
-                      )}
-                      {oh && oh.isOpen && oh.hours.length > 0 && (
-                        <span className="text-forest text-xs font-medium shrink-0 tabular-nums">
-                          {oh.hours.map((h) => `${h.open_time}–${h.close_time}`).join(', ')}
-                        </span>
-                      )}
-
-                      {/* Remove button */}
-                      <button
-                        onClick={() => removeStop(stop.market.id)}
-                        className="text-espresso/20 hover:text-error transition-colors shrink-0"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 14 14"
-                          fill="none"
-                        >
-                          <path
-                            d="M4 4L10 10M10 4L4 10"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Save button */}
-          {saveError && (
-            <div className="text-sm text-error bg-error/8 border border-error/15 rounded-xl px-4 py-3 mt-4">
-              {saveError}
-            </div>
-          )}
           {user ? (
-            <button
-              onClick={handleSave}
-              disabled={saving || !name.trim() || stops.length === 0}
-              className="w-full h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 mt-6 shadow-sm"
-            >
-              {saving ? 'Sparar...' : 'Spara loppisrunda'}
-            </button>
+            <SaveRouteButton
+              disabled={!name.trim() || stops.length === 0}
+              saving={saving}
+              error={saveError}
+              onSave={handleSave}
+            />
           ) : (
             <div className="mt-6 vintage-card p-4 text-center">
               <p className="text-sm text-espresso/65">
@@ -381,95 +191,16 @@ export default function RouteBuilder() {
             <FyndstigenLogo size={40} className="text-rust animate-bob" />
           </div>
         )}
-        <MapContainer
-          center={[59.27, 15.21]}
-          zoom={11}
-          className="h-full w-full"
-          style={{ minHeight: 0 }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {/* Custom start point click handler */}
-          {!useGps && <MapClickHandler onMapClick={setCustomStart} />}
-
-          {/* Custom start marker */}
-          {!useGps && customStart && (
-            <Marker
-              position={[customStart.lat, customStart.lng]}
-              icon={startPointIcon}
-            >
-              <Popup>
-                <span className="text-sm font-medium">Startpunkt</span>
-              </Popup>
-            </Marker>
-          )}
-
-          {/* Market markers */}
-          {markets.map((market) => {
-            const stopIndex = stops.findIndex(
-              (s) => s.market.id === market.id,
-            )
-            const inRoute = stopIndex >= 0
-
-            return (
-              <Marker
-                key={market.id}
-                position={[market.latitude, market.longitude]}
-                icon={inRoute ? numberedMarkerIcon(stopIndex + 1) : inactiveMarkerIcon}
-                eventHandlers={{
-                  click: () => toggleMarket(market),
-                }}
-              >
-                <Popup>
-                  <div className="min-w-[180px] p-1">
-                    <p className="font-display font-bold text-sm">
-                      {market.name}
-                    </p>
-                    <p className="text-xs text-espresso/65 mt-1">
-                      {market.city}
-                    </p>
-                    <button
-                      onClick={() => toggleMarket(market)}
-                      className={`mt-2 text-xs font-semibold ${inRoute ? 'text-error' : 'text-rust'}`}
-                    >
-                      {inRoute ? 'Ta bort från rundan' : 'Lägg till i rundan'}
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          })}
-
-          {/* Route polyline */}
-          {polylinePositions.length >= 2 && (
-            <Polyline
-              positions={polylinePositions}
-              pathOptions={{
-                color: '#C45B35',
-                weight: 3,
-                opacity: 0.7,
-                dashArray: '8, 8',
-              }}
-            />
-          )}
-        </MapContainer>
+        <RouteMap
+          markets={markets}
+          stops={stops}
+          onToggleMarket={toggleMarket}
+          isInRoute={isInRoute}
+          useGps={useGps}
+          customStart={customStart}
+          onCustomStartChange={setCustomStart}
+        />
       </div>
     </div>
   )
-}
-
-function MapClickHandler({
-  onMapClick,
-}: {
-  onMapClick: (pos: { lat: number; lng: number }) => void
-}) {
-  useMapEvents({
-    click(e) {
-      onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng })
-    },
-  })
-  return null
 }
