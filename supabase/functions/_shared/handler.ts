@@ -5,8 +5,17 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Known error types for proper HTTP status codes
 export class HttpError extends Error {
-  constructor(public statusCode: number, message: string) {
+  /**
+   * Optional structured body. When set, the handler serialises this object
+   * as the response body instead of wrapping `message` in `{ error: ... }`.
+   * Used by `defineEndpoint` to return AppError-shaped payloads that the
+   * client can parse without double-decoding.
+   */
+  body?: unknown
+
+  constructor(public statusCode: number, message: string, body?: unknown) {
     super(message)
+    this.body = body
   }
 }
 
@@ -63,8 +72,11 @@ export function createHandler(fn: HandlerFn) {
       return new Response(JSON.stringify(result), { headers })
     } catch (error) {
       const statusCode = error instanceof HttpError ? error.statusCode : 400
-      const message = error instanceof Error ? error.message : 'Unknown error'
-      return new Response(JSON.stringify({ error: message }), { status: statusCode, headers })
+      const body =
+        error instanceof HttpError && error.body !== undefined
+          ? error.body
+          : { error: error instanceof Error ? error.message : 'Unknown error' }
+      return new Response(JSON.stringify(body), { status: statusCode, headers })
     }
   })
 }

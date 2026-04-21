@@ -55,20 +55,17 @@ export function defineEndpoint<I, O>(config: EndpointConfig<I, O>): void {
 }
 
 /**
- * Internal: thrown when input validation fails. Rendered by the
- * base handler as HTTP 400 with an AppError-shaped JSON body.
- *
- * We extend HttpError so existing error handling in createHandler picks up
- * the 400 status, and override the message so the client receives the
- * structured AppError JSON as the `error` field (string). The web-side
- * EdgeClient will see `{ error: "..." }` — to preserve structure we
- * stringify the AppError so callers can JSON.parse if they need detail.
+ * Internal: thrown when input validation fails. Rendered by the base
+ * handler as HTTP 400 with a structured AppError body
+ * (`{ code: 'input.invalid', detail: { issues } }`) via
+ * `HttpError.body`, so the client can read `error.code` directly
+ * without double JSON-parsing.
  */
 class InputInvalidError extends HttpError {
   constructor(issues: unknown) {
-    super(
-      400,
-      JSON.stringify({ code: 'input.invalid', detail: { issues } }),
-    )
+    super(400, 'Input validation failed', {
+      code: 'input.invalid',
+      detail: { issues },
+    })
   }
 }
