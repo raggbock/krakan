@@ -79,15 +79,12 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
       is_free: isFree,
     })
     try {
-      const data = await api.edge.invoke<{ clientSecret?: string; bookingId: string }>(
-        'booking-create',
-        {
-          marketTableId: selectedTable.id,
-          fleaMarketId: marketId,
-          bookingDate: date,
-          message: message || undefined,
-        },
-      )
+      const data = await api.endpoints.bookingCreate({
+        marketTableId: selectedTable.id,
+        fleaMarketId: marketId,
+        bookingDate: date,
+        message: message || undefined,
+      })
 
       if (data.clientSecret) {
         if (!stripe || !elements) throw new Error('Stripe not loaded')

@@ -23,8 +23,8 @@ vi.mock('@/lib/api', () => ({
     bookings: {
       availableDates: vi.fn().mockResolvedValue([]),
     },
-    edge: {
-      invoke: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
+    endpoints: {
+      bookingCreate: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
     },
   },
 }))
@@ -63,7 +63,7 @@ describe('useBooking', () => {
     vi.clearAllMocks()
     vi.mocked(api.bookings.availableDates).mockResolvedValue([])
     mockConfirmCardPayment.mockResolvedValue({ error: null })
-    vi.mocked(api.edge.invoke).mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
+    vi.mocked(api.endpoints.bookingCreate).mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
   })
 
   it('starts with empty state', () => {
@@ -170,7 +170,7 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     // Verify edge function was called
-    expect(api.edge.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+    expect(api.endpoints.bookingCreate).toHaveBeenCalledWith(expect.objectContaining({
       marketTableId: 'table-1',
       fleaMarketId: 'market-1',
       bookingDate: '2026-12-01',
@@ -205,7 +205,7 @@ describe('useBooking', () => {
   })
 
   it('submit sets error when edge function fails', async () => {
-    vi.mocked(api.edge.invoke).mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
+    vi.mocked(api.endpoints.bookingCreate).mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -240,7 +240,7 @@ describe('useBooking', () => {
   })
 
   it('submit skips Stripe for free table', async () => {
-    vi.mocked(api.edge.invoke).mockResolvedValue({ bookingId: 'booking-free' })
+    vi.mocked(api.endpoints.bookingCreate).mockResolvedValue({ bookingId: 'booking-free' })
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
@@ -253,7 +253,7 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     // Edge function called with free table
-    expect(api.edge.invoke).toHaveBeenCalledWith('booking-create', expect.objectContaining({
+    expect(api.endpoints.bookingCreate).toHaveBeenCalledWith(expect.objectContaining({
       marketTableId: 'table-free',
     }))
 
