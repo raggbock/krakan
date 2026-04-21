@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import { api, geo } from '@/lib/api'
-import { GeocodeError } from '@fyndstigen/shared'
+import {
+  runMarketMutation,
+  type MarketEvent,
+  type MarketPlan,
+} from '@fyndstigen/shared'
+import { messageFor } from '@/lib/messages.sv'
 
 type TableDraft = {
   label: string
@@ -47,6 +52,23 @@ export type ImageUploadStatus = {
   state: 'pending' | 'uploading' | 'done' | 'error'
 }
 
+function progressFor(ev: MarketEvent): Progress | null {
+  if (!('phase' in ev)) return null
+  if (ev.status !== 'start') return null
+  switch (ev.phase) {
+    case 'geocoding':
+      return 'geocoding'
+    case 'saving_market':
+      return 'creating'
+    case 'publishing':
+      return 'publishing'
+    case 'saving_tables':
+      return 'tables'
+    case 'saving_images':
+      return 'images'
+  }
+}
+
 export function useCreateMarket() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,101 +79,106 @@ export function useCreateMarket() {
     setIsSubmitting(true)
     setError(null)
     setProgress('geocoding')
-    setImageStatuses(
-      input.images.map((f) => ({ name: f.name, state: 'pending' as const })),
-    )
+    setImageStatuses(input.images.map((f) => ({ name: f.name, state: 'pending' as const })))
+
+    const plan: MarketPlan = {
+      market: {
+        create: {
+          name: input.name,
+          description: input.description,
+          address: {
+            street: input.street,
+            zipCode: input.zipCode,
+            city: input.city,
+            country: 'Sweden',
+            coordinates: input.coordinates,
+          },
+          isPermanent: input.isPermanent,
+          organizerId: input.organizerId,
+          autoAcceptBookings: input.autoAcceptBookings,
+        },
+      },
+      images: { add: input.images, remove: [] },
+      tables: {
+        add: input.tables.map((t) => ({
+          label: t.label,
+          description: t.description,
+          priceSek: t.priceSek,
+          sizeDescription: t.sizeDescription,
+        })),
+        remove: [],
+      },
+      opening: { rules: input.openingHours, exceptions: input.openingHourExceptions },
+    }
+
+    let marketId: string | null = null
+    let failedMsg: string | null = null
+    let anyImageFailed = false
+    let anyTableFailed = false
+    let firstFailedTableLabel: string | null = null
 
     try {
-      // Use pre-computed coordinates from map picker, or fall back to geocoding
-      let latitude: number
-      let longitude: number
-      if (input.coordinates) {
-        latitude = input.coordinates.latitude
-        longitude = input.coordinates.longitude
-      } else {
-        const coords = await geo.geocode(
-          `${input.street.trim()}, ${input.zipCode.trim()} ${input.city.trim()}, Sweden`,
-        )
-        latitude = coords.lat
-        longitude = coords.lng
-      }
+      for await (const ev of runMarketMutation(plan, { api, geo })) {
+        const next = progressFor(ev)
+        if (next) setProgress(next)
 
-      // Create market
-      setProgress('creating')
-      const { id } = await api.fleaMarkets.create({
-        name: input.name.trim(),
-        description: input.description.trim(),
-        address: {
-          street: input.street.trim(),
-          zipCode: input.zipCode.trim(),
-          city: input.city.trim(),
-          country: 'Sweden',
-          location: { latitude, longitude },
-        },
-        isPermanent: input.isPermanent,
-        organizerId: input.organizerId,
-        autoAcceptBookings: input.autoAcceptBookings,
-        openingHours: input.openingHours,
-        openingHourExceptions: input.openingHourExceptions,
-      })
+        if ('type' in ev) {
+          if (ev.type === 'complete') marketId = ev.marketId
+          if (ev.type === 'failed') failedMsg = messageFor(ev.error)
+          continue
+        }
 
-      // Publish first so the market is visible on the map
-      setProgress('publishing')
-      await api.fleaMarkets.publish(id)
+        // Transition pending image to uploading right before we process its item
+        // result — for a sequential saga this gives the same "one in flight" UX
+        // the old imperative hook had.
+        if (ev.phase === 'saving_images' && (ev.status === 'item_ok' || ev.status === 'item_error')) {
+          if (ev.kind === 'add') {
+            if (ev.status === 'item_ok') {
+              setImageStatuses((prev) =>
+                prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'done' } : s)),
+              )
+            } else {
+              setImageStatuses((prev) =>
+                prev.map((s, idx) => (idx === ev.index ? { ...s, state: 'error' } : s)),
+              )
+              anyImageFailed = true
+            }
+          }
+        }
 
-      // Create tables
-      setProgress('tables')
-      for (const table of input.tables) {
-        try {
-          await api.marketTables.create({
-            fleaMarketId: id,
-            label: table.label,
-            description: table.description || undefined,
-            priceSek: table.priceSek,
-            sizeDescription: table.sizeDescription || undefined,
-          })
-        } catch {
-          setError(`Kunde inte skapa bord "${table.label}". Loppisen publicerades men vissa bord sparades inte.`)
-          return { id }
+        if (ev.phase === 'saving_tables' && ev.status === 'item_error' && ev.kind === 'add') {
+          anyTableFailed = true
+          if (!firstFailedTableLabel) {
+            const t = input.tables[ev.index]
+            firstFailedTableLabel = t?.label ?? null
+          }
         }
       }
-
-      // Upload images
-      setProgress('images')
-      let anyImageFailed = false
-      for (let i = 0; i < input.images.length; i++) {
-        setImageStatuses((prev) =>
-          prev.map((s, idx) => (idx === i ? { ...s, state: 'uploading' } : s)),
-        )
-        try {
-          await api.images.add(id, input.images[i])
-          setImageStatuses((prev) =>
-            prev.map((s, idx) => (idx === i ? { ...s, state: 'done' } : s)),
-          )
-        } catch {
-          setImageStatuses((prev) =>
-            prev.map((s, idx) => (idx === i ? { ...s, state: 'error' } : s)),
-          )
-          anyImageFailed = true
-        }
-      }
-      if (anyImageFailed) {
-        setError('Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.')
-        return { id }
-      }
-
-      return { id }
-    } catch (err) {
-      if (err instanceof GeocodeError) {
-        setError('Kunde inte hitta adressen. Välj plats på kartan istället.')
-      } else {
-        setError(err instanceof Error ? err.message : 'Något gick fel')
-      }
-      return null
     } finally {
       setIsSubmitting(false)
       setProgress('idle')
     }
+
+    if (failedMsg) {
+      setError(failedMsg)
+      return null
+    }
+
+    // Partial-success messages (preserve the old hook's user-visible wording).
+    if (marketId && anyTableFailed) {
+      setError(
+        `Kunde inte skapa bord "${firstFailedTableLabel ?? ''}". Loppisen publicerades men vissa bord sparades inte.`,
+      )
+      return { id: marketId }
+    }
+    if (marketId && anyImageFailed) {
+      setError(
+        'Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.',
+      )
+      return { id: marketId }
+    }
+
+    return marketId ? { id: marketId } : null
   }
 
   return { submit, isSubmitting, error, progress, imageStatuses }
