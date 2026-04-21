@@ -7,8 +7,9 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function AuthPage() {
   const router = useRouter()
-  const { user, signIn, signUp, signInWithGoogle } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const { user, signIn, signUp, signInWithGoogle, resetPasswordForEmail } = useAuth()
+  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
+  const [resetSent, setResetSent] = useState(false)
 
   useEffect(() => {
     if (user) router.push('/')
@@ -18,6 +19,7 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [confirmationSent, setConfirmationSent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -27,15 +29,46 @@ export default function AuthPage() {
     try {
       if (mode === 'signin') {
         await signIn(email, password)
+        router.push('/')
+      } else if (mode === 'signup') {
+        const { needsEmailConfirmation } = await signUp(email, password)
+        if (needsEmailConfirmation) {
+          setConfirmationSent(true)
+        } else {
+          router.push('/')
+        }
       } else {
-        await signUp(email, password)
+        await resetPasswordForEmail(email)
+        setResetSent(true)
       }
-      router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Något gick fel')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (confirmationSent || resetSent) {
+    return (
+      <div className="max-w-md mx-auto px-6 py-16 sm:py-24">
+        <div className="vintage-card p-8 sm:p-10 animate-fade-up text-center">
+          <div className="flex justify-center mb-6">
+            <FyndstigenLogo size={52} className="text-rust" />
+          </div>
+          <h1 className="font-display text-2xl font-bold">Kolla din mejl</h1>
+          <p className="text-sm text-espresso/65 mt-3">
+            {confirmationSent ? (
+              <>Vi har skickat en bekräftelselänk till <strong>{email}</strong>. Klicka på länken för att aktivera ditt konto.</>
+            ) : (
+              <>Vi har skickat en återställningslänk till <strong>{email}</strong>. Klicka på länken för att välja ett nytt lösenord.</>
+            )}
+          </p>
+          <p className="text-xs text-espresso/45 mt-6">
+            Hittar du den inte? Kolla i skräpposten.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -47,30 +80,34 @@ export default function AuthPage() {
         </div>
 
         <h1 className="font-display text-2xl font-bold text-center">
-          {mode === 'signin' ? 'Välkommen tillbaka' : 'Skapa konto'}
+          {mode === 'signin' ? 'Välkommen tillbaka' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'}
         </h1>
         <p className="text-sm text-espresso/65 text-center mt-2 max-w-xs mx-auto">
           {mode === 'signin'
             ? 'Logga in för att hantera dina loppisar och fynd.'
-            : 'Börja publicera dina loppisar och nå fler besökare.'}
+            : mode === 'signup'
+              ? 'Börja publicera dina loppisar och nå fler besökare.'
+              : 'Skriv in din e-post så skickar vi en länk för att välja nytt lösenord.'}
         </p>
 
         {/* Mode toggle */}
-        <div className="flex gap-1 mt-8 mb-6 bg-cream-warm rounded-xl p-1">
-          {(['signin', 'signup'] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                mode === m
-                  ? 'bg-card text-espresso shadow-sm'
-                  : 'text-espresso/60 hover:text-espresso/60'
-              }`}
-            >
-              {m === 'signin' ? 'Logga in' : 'Skapa konto'}
-            </button>
-          ))}
-        </div>
+        {mode !== 'forgot' && (
+          <div className="flex gap-1 mt-8 mb-6 bg-cream-warm rounded-xl p-1">
+            {(['signin', 'signup'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  mode === m
+                    ? 'bg-card text-espresso shadow-sm'
+                    : 'text-espresso/60 hover:text-espresso/60'
+                }`}
+              >
+                {m === 'signin' ? 'Logga in' : 'Skapa konto'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -87,20 +124,33 @@ export default function AuthPage() {
               className="w-full h-12 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/25"
             />
           </div>
-          <div>
-            <label className="text-sm font-semibold block mb-2 text-espresso/70">
-              Lösenord
-            </label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minst 6 tecken"
-              className="w-full h-12 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/25"
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-semibold text-espresso/70">
+                  Lösenord
+                </label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={() => { setMode('forgot'); setError('') }}
+                    className="text-xs font-semibold text-rust hover:text-rust-light transition-colors"
+                  >
+                    Glömt lösenord?
+                  </button>
+                )}
+              </div>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minst 6 tecken"
+                className="w-full h-12 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/25"
+              />
+            </div>
+          )}
 
           {error && (
             <div className="text-sm text-error bg-error/8 border border-error/15 rounded-xl px-4 py-3">
@@ -117,10 +167,24 @@ export default function AuthPage() {
               ? 'Vänta...'
               : mode === 'signin'
                 ? 'Logga in'
-                : 'Skapa konto'}
+                : mode === 'signup'
+                  ? 'Skapa konto'
+                  : 'Skicka återställningslänk'}
           </button>
+
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              onClick={() => { setMode('signin'); setError('') }}
+              className="text-xs font-semibold text-espresso/60 hover:text-espresso transition-colors -mt-2"
+            >
+              ← Tillbaka till inloggning
+            </button>
+          )}
         </form>
 
+        {mode !== 'forgot' && (
+        <>
         {/* Divider */}
         <div className="flex items-center gap-4 my-6">
           <div className="flex-1 h-px bg-cream-warm" />
@@ -151,6 +215,8 @@ export default function AuthPage() {
           </svg>
           {googleLoading ? 'Omdirigerar...' : 'Fortsätt med Google'}
         </button>
+        </>
+        )}
       </div>
 
       <p className="text-center text-xs text-espresso/30 mt-6">

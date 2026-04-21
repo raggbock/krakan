@@ -6,8 +6,11 @@ function initClient(): SupabaseClient {
   if (url && key) {
     return createClient(url, key)
   }
-  // During SSG prerendering, env vars may not be available.
-  // Return a dummy client that will fail at runtime but not at build time.
+  // Allow build-time SSG to proceed with a placeholder, but fail loudly
+  // in the browser where missing env vars indicate a real misconfiguration.
+  if (typeof window !== 'undefined') {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
   return createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder')
 }
 

@@ -23,6 +23,7 @@ export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
     async signUp(_email, _password) {
       currentUser = { id: 'test-user', email: _email }
       listeners.forEach((cb) => cb(currentUser))
+      return { needsEmailConfirmation: false }
     },
     async signInWithGoogle() {
       currentUser = { id: 'test-user', email: 'google@test.com' }
@@ -32,6 +33,8 @@ export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
       currentUser = null
       listeners.forEach((cb) => cb(null))
     },
+    async resetPasswordForEmail() {},
+    async updatePassword() {},
   }
 }
 

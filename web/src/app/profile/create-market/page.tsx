@@ -9,6 +9,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import { useCreateMarket, type RuleDraft, type ExceptionDraft } from '@/hooks/use-create-market'
 import { useStripeConnect } from '@/hooks/use-stripe-connect'
+import { features } from '@/lib/feature-flags'
 import type { AddressValue } from '@/components/address-picker'
 
 const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
@@ -26,7 +27,10 @@ export default function CreateMarketPage() {
 
   const [step, setStep] = useState<1 | 2>(1)
   const { submit: createMarket, isSubmitting: saving, error, progress } = useCreateMarket()
-  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(user?.id)
+  const { onboardingComplete: stripeReady, loading: stripeLoading } = useStripeConnect(
+    user?.id,
+    features.payments,
+  )
 
   // Step 1: Market info
   const [name, setName] = useState('')
@@ -72,7 +76,7 @@ export default function CreateMarketPage() {
   // Step 2: Tables
   const [tables, setTables] = useState<TableDraft[]>([])
   const hasAnyPaidTable = tables.some((t) => t.priceSek > 0)
-  const needsStripe = hasAnyPaidTable
+  const needsStripe = features.payments && hasAnyPaidTable
   const [tableLabel, setTableLabel] = useState('')
   const [tableDesc, setTableDesc] = useState('')
   const [tablePrice, setTablePrice] = useState('')
@@ -82,13 +86,14 @@ export default function CreateMarketPage() {
   const [batchCount, setBatchCount] = useState('')
 
   function addTable() {
-    if (!tableLabel || !tablePrice) return
+    if (!tableLabel) return
+    if (features.payments && !tablePrice) return
     setTables((prev) => [
       ...prev,
       {
         label: tableLabel,
         description: tableDesc,
-        priceSek: parseInt(tablePrice, 10) || 0,
+        priceSek: features.payments ? parseInt(tablePrice, 10) || 0 : 0,
         sizeDescription: tableSize,
       },
     ])
@@ -104,13 +109,14 @@ export default function CreateMarketPage() {
 
   function addBatchTables() {
     const count = parseInt(batchCount, 10)
-    const price = parseInt(tablePrice, 10)
-    if (!batchPrefix || !count || !price || count < 1 || count > 50) return
+    const price = features.payments ? parseInt(tablePrice, 10) : 0
+    if (!batchPrefix || !count || count < 1 || count > 50) return
+    if (features.payments && !price) return
     const startNum = tables.length + 1
     const newTables: TableDraft[] = Array.from({ length: count }, (_, i) => ({
       label: `${batchPrefix} ${startNum + i}`,
       description: tableDesc,
-      priceSek: price,
+      priceSek: price || 0,
       sizeDescription: tableSize,
     }))
     setTables((prev) => [...prev, ...newTables])
@@ -359,7 +365,7 @@ export default function CreateMarketPage() {
 
             {batchMode ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-3">
+                <div className={`grid gap-3 ${features.payments ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <input
                     type="text"
                     value={batchPrefix}
@@ -376,13 +382,15 @@ export default function CreateMarketPage() {
                     max="50"
                     className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
                   />
-                  <input
-                    type="number"
-                    value={tablePrice}
-                    onChange={(e) => setTablePrice(e.target.value)}
-                    placeholder="Pris/st (kr)"
-                    className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-                  />
+                  {features.payments && (
+                    <input
+                      type="number"
+                      value={tablePrice}
+                      onChange={(e) => setTablePrice(e.target.value)}
+                      placeholder="Pris/st (kr)"
+                      className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+                    />
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <input
@@ -402,7 +410,7 @@ export default function CreateMarketPage() {
                 </div>
                 <button
                   onClick={addBatchTables}
-                  disabled={!batchPrefix || !batchCount || !tablePrice}
+                  disabled={!batchPrefix || !batchCount || (features.payments && !tablePrice)}
                   className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
                 >
                   + Lägg till {batchCount || '...'} bord
@@ -410,7 +418,7 @@ export default function CreateMarketPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid gap-3 ${features.payments ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   <input
                     type="text"
                     value={tableLabel}
@@ -418,13 +426,15 @@ export default function CreateMarketPage() {
                     placeholder="Namn, t.ex. Bord 1"
                     className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
                   />
-                  <input
-                    type="number"
-                    value={tablePrice}
-                    onChange={(e) => setTablePrice(e.target.value)}
-                    placeholder="Pris (kr)"
-                    className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-                  />
+                  {features.payments && (
+                    <input
+                      type="number"
+                      value={tablePrice}
+                      onChange={(e) => setTablePrice(e.target.value)}
+                      placeholder="Pris (kr)"
+                      className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+                    />
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <input
@@ -444,7 +454,7 @@ export default function CreateMarketPage() {
                 </div>
                 <button
                   onClick={addTable}
-                  disabled={!tableLabel || !tablePrice}
+                  disabled={!tableLabel || (features.payments && !tablePrice)}
                   className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
                 >
                   + Lägg till

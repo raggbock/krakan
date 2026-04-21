@@ -12,19 +12,22 @@ type ConnectState = {
   refreshOnboarding: () => Promise<void>
 }
 
-export function useStripeConnect(userId: string | undefined): ConnectState {
+export function useStripeConnect(
+  userId: string | undefined,
+  enabled: boolean = true,
+): ConnectState {
   const [connected, setConnected] = useState(false)
   const [onboardingComplete, setOnboardingComplete] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!userId) {
+    if (!enabled || !userId) {
       setLoading(false)
       return
     }
     checkStatus()
-  }, [userId])
+  }, [userId, enabled])
 
   async function checkStatus() {
     try {

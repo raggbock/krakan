@@ -8,6 +8,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarketsByOrganizer } from '@/hooks/use-markets'
 import { useRoutesByUser } from '@/hooks/use-routes'
+import { usePendingBookingsCount } from '@/hooks/use-pending-bookings-count'
 import { StripeConnectButton } from '@/components/stripe-connect-button'
 import { features } from '@/lib/feature-flags'
 
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const { user, signOut, loading: authLoading } = useAuth()
   const { markets: myMarkets, loading: marketsLoading } = useMarketsByOrganizer(user?.id)
   const { routes: myRoutes, loading: routesLoading } = useRoutesByUser(user?.id)
+  const { count: pendingCount } = usePendingBookingsCount(user?.id)
   const loading = authLoading || marketsLoading || routesLoading
 
   useEffect(() => {
@@ -72,6 +74,11 @@ export default function ProfilePage() {
               <line x1="12" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             Bokningar
+            {pendingCount > 0 && (
+              <span className="ml-0.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-rust text-white text-[10px] font-bold">
+                {pendingCount}
+              </span>
+            )}
           </Link>
           <Link
             href={`/arrangorer/${user?.id}`}

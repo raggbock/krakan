@@ -18,18 +18,22 @@ type AuthState = {
     email: string,
     password: string,
     metadata?: Record<string, string>,
-  ) => Promise<void>
+  ) => Promise<{ needsEmailConfirmation: boolean }>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  resetPasswordForEmail: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   signIn: async () => {},
-  signUp: async () => {},
+  signUp: async () => ({ needsEmailConfirmation: false }),
   signInWithGoogle: async () => {},
   signOut: async () => {},
+  resetPasswordForEmail: async () => {},
+  updatePassword: async () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -55,7 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     metadata?: Record<string, string>,
   ) {
-    await auth.signUp(email, password, metadata)
+    const redirectTo =
+      typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined
+    return auth.signUp(email, password, metadata, redirectTo)
   }
 
   async function signInWithGoogle() {
@@ -66,8 +72,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await auth.signOut()
   }
 
+  async function resetPasswordForEmail(email: string) {
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/reset-password`
+        : ''
+    await auth.resetPasswordForEmail(email, redirectTo)
+  }
+
+  async function updatePassword(password: string) {
+    await auth.updatePassword(password)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signOut, resetPasswordForEmail, updatePassword }}>
       {children}
     </AuthContext.Provider>
   )

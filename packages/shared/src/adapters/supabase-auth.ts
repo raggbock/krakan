@@ -25,13 +25,17 @@ export function createSupabaseAuth(supabase: SupabaseClient): AuthPort {
       if (error) throw error
     },
 
-    async signUp(email, password, metadata) {
-      const { error } = await supabase.auth.signUp({
+    async signUp(email, password, metadata, emailRedirectTo) {
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: metadata ? { data: metadata } : undefined,
+        options: {
+          ...(metadata ? { data: metadata } : {}),
+          ...(emailRedirectTo ? { emailRedirectTo } : {}),
+        },
       })
       if (error) throw error
+      return { needsEmailConfirmation: !data.session }
     },
 
     async signInWithGoogle(redirectTo?: string) {
@@ -46,6 +50,16 @@ export function createSupabaseAuth(supabase: SupabaseClient): AuthPort {
 
     async signOut() {
       await supabase.auth.signOut()
+    },
+
+    async resetPasswordForEmail(email, redirectTo) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+      if (error) throw error
+    },
+
+    async updatePassword(password) {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
     },
   }
 }
