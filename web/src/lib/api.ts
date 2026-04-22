@@ -2,6 +2,11 @@ import { createApi, createGeo, createSupabaseAuth, createBookingService } from '
 import { supabase } from './supabase'
 import { compressImage } from './compress-image'
 
+// Legacy `api.*` surface. Most features still reach the backend through here.
+// For FleaMarket reads (markets + marketTables), prefer the Deps container:
+//   const { markets } = useDeps(); markets.list(...)
+// New hook migrations should extend `Deps` (see packages/shared/src/deps.ts)
+// rather than adding methods to `api.*`. See RFC #36 for the migration plan.
 export const api = createApi(supabase, { compressImage })
 export const geo = createGeo(supabase)
 export const auth = createSupabaseAuth(supabase)
