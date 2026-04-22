@@ -6,3 +6,5 @@ export type { FleaMarketRepository, SearchRepository, MarketTableRepository } fr
 export type { BookingRepository, LegacyBookingRepository } from './bookings'
 export type { RouteRepository } from './routes'
 export type { ProfileRepository, OrganizerRepository } from './profiles'
+export type { PaymentGateway, PaymentResult } from './payment'
+export type { Telemetry, TelemetryEvent, BookingInitiated, BookingCompleted } from './telemetry'
