@@ -13,7 +13,8 @@
     "zod": "^4.3.6"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "supabase:generate-types": "echo 'Run mcp__supabase__generate_typescript_types via Claude Code MCP, or: supabase gen types typescript --project-id <ref> > src/types/supabase.generated.ts'"
   },
   "devDependencies": {
     "typescript": "^5",
