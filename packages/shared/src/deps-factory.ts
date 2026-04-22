@@ -3,12 +3,10 @@ import type { Deps } from './deps'
 import type { FleaMarket, OpeningHourRule } from './types'
 import {
   createInMemoryFleaMarkets,
-  createInMemorySearch,
   createInMemoryMarketTables,
 } from './adapters/in-memory/flea-markets'
 import {
   createSupabaseFleaMarkets,
-  createSupabaseSearch,
   createSupabaseMarketTables,
 } from './adapters/supabase/flea-markets'
 
@@ -24,9 +22,8 @@ type StoredMarket = FleaMarket & {
  */
 export function makeInMemoryDeps(seed: StoredMarket[] = []): Deps {
   const fleaMarkets = createInMemoryFleaMarkets(seed)
-  const search = createInMemorySearch({ fleaMarkets })
   const marketTables = createInMemoryMarketTables()
-  return { markets: fleaMarkets, search, marketTables }
+  return { markets: fleaMarkets, marketTables }
 }
 
 /**
@@ -36,7 +33,6 @@ export function makeInMemoryDeps(seed: StoredMarket[] = []): Deps {
 export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
   return {
     markets: createSupabaseFleaMarkets(supabase),
-    search: createSupabaseSearch(supabase),
     marketTables: createSupabaseMarketTables(supabase),
   }
 }

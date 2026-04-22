@@ -21,10 +21,9 @@ const seedMarket = {
 } as FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRule[] }
 
 describe('makeInMemoryDeps', () => {
-  it('returns a Deps object with markets, search, and marketTables', () => {
+  it('returns a Deps object with markets and marketTables', () => {
     const deps = makeInMemoryDeps()
     expect(typeof deps.markets.list).toBe('function')
-    expect(typeof deps.search.query).toBe('function')
     expect(typeof deps.marketTables.list).toBe('function')
   })
 
@@ -49,16 +48,4 @@ describe('makeInMemoryDeps', () => {
     expect(empty).toHaveLength(0)
   })
 
-  it('search.query finds market by name', async () => {
-    const deps = makeInMemoryDeps([seedMarket])
-    const result = await deps.search.query('testloppis')
-    expect(result.fleaMarkets).toHaveLength(1)
-    expect(result.fleaMarkets[0].name).toBe('Testloppis')
-  })
-
-  it('search.query returns empty for no match', async () => {
-    const deps = makeInMemoryDeps([seedMarket])
-    const result = await deps.search.query('ingenting')
-    expect(result.fleaMarkets).toHaveLength(0)
-  })
 })

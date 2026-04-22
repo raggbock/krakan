@@ -2,11 +2,9 @@
 
 import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { FleaMarket } from '@/lib/api'
-import { useDeps } from '@/providers/deps-provider'
+import { api, type FleaMarket } from '@/lib/api'
 
 export function useSearch(debounceMs = 300) {
-  const { search: searchRepo } = useDeps()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -23,7 +21,7 @@ export function useSearch(debounceMs = 300) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['search', debouncedQuery],
-    queryFn: () => searchRepo.query(debouncedQuery),
+    queryFn: () => api.search.query(debouncedQuery),
     enabled: !!debouncedQuery.trim(),
     staleTime: 60_000,
   })

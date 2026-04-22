@@ -2,11 +2,11 @@ import React from 'react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { makeInMemoryDeps } from '@fyndstigen/shared'
-import { DepsProvider } from '@/providers/deps-provider'
+import { DepsProvider, useDeps } from '@/providers/deps-provider'
 import { useMarkets, useMarketsByOrganizer } from './use-markets'
 import { useMarketDetails } from './use-market-details'
+import { useRoute, useRoutesByUser } from './use-routes'
 
-// Seed data shared across tests
 const SEED_MARKET = {
   id: 'm1',
   name: 'Loppis A',
@@ -24,6 +24,22 @@ const SEED_MARKET = {
   longitude: 18.0,
   auto_accept_bookings: false,
 } as const
+
+// Routes haven't been migrated to DepsProvider yet — they still go through
+// `api.routes.*`. Keep the mock-based tests so route hooks stay covered.
+vi.mock('@/lib/api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/api')>('@/lib/api')
+  return {
+    ...actual,
+    api: {
+      ...actual.api,
+      routes: {
+        get: vi.fn().mockResolvedValue({ id: 'r1', name: 'Rundan', stops: [] }),
+        listByUser: vi.fn().mockResolvedValue([{ id: 'r1', name: 'Rundan', stopCount: 3 }]),
+      },
+    },
+  }
+})
 
 function createWrapper(deps = makeInMemoryDeps([SEED_MARKET])) {
   const queryClient = new QueryClient({
@@ -99,34 +115,55 @@ describe('useMarketDetails — via DepsProvider + makeInMemoryDeps', () => {
   })
 })
 
-describe('DepsProvider stability', () => {
-  it('useDeps() returns the same Deps reference across renders', async () => {
-    const deps = makeInMemoryDeps([SEED_MARKET])
-    let capturedDeps: ReturnType<typeof makeInMemoryDeps>[] = []
+describe('useRoute — still on api.* (not migrated)', () => {
+  it('fetches route by id', async () => {
+    const { result } = renderHook(() => useRoute('r1'), {
+      wrapper: createWrapper(),
+    })
 
-    const { result, rerender } = renderHook(
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.route?.name).toBe('Rundan')
+  })
+
+  it('skips when no id', async () => {
+    const { result } = renderHook(() => useRoute(undefined), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.route).toBeNull())
+  })
+})
+
+describe('useRoutesByUser — still on api.* (not migrated)', () => {
+  it('fetches routes for user', async () => {
+    const { result } = renderHook(() => useRoutesByUser('user-1'), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.routes).toHaveLength(1)
+    expect(result.current.routes[0].name).toBe('Rundan')
+  })
+})
+
+describe('DepsProvider identity', () => {
+  it('useDeps() returns the SAME reference across re-renders when deps prop is stable', () => {
+    const deps = makeInMemoryDeps([SEED_MARKET])
+    const seen: unknown[] = []
+
+    const { rerender } = renderHook(
       () => {
-        const { DepsContext } = require('@/providers/deps-provider')
-        // Just fetch markets twice — if deps reference is unstable the
-        // query would get a different queryFn context.
-        return result?.current
+        seen.push(useDeps())
       },
       { wrapper: createWrapper(deps) },
     )
 
-    // The real stability assertion: same `markets` reference is returned
-    // by two separate calls to useMarkets (same wrapper, same deps instance)
-    const { result: r1 } = renderHook(() => useMarkets(), {
-      wrapper: createWrapper(deps),
-    })
-    const { result: r2 } = renderHook(() => useMarkets(), {
-      wrapper: createWrapper(deps),
-    })
+    rerender()
+    rerender()
 
-    await waitFor(() => expect(r1.current.loading).toBe(false))
-    await waitFor(() => expect(r2.current.loading).toBe(false))
-
-    // Both hooks resolved the same data from the same in-memory store
-    expect(r1.current.markets[0].id).toBe(r2.current.markets[0].id)
+    expect(seen.length).toBeGreaterThanOrEqual(3)
+    expect(seen[0]).toBe(deps)
+    expect(seen[1]).toBe(deps)
+    expect(seen[2]).toBe(deps)
   })
 })

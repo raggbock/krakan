@@ -1,10 +1,16 @@
 'use client'
 
-import { createContext, useContext, useRef } from 'react'
+import { createContext, useContext } from 'react'
 import type { Deps } from '@fyndstigen/shared'
 
 const DepsContext = createContext<Deps | null>(null)
 
+/**
+ * DepsProvider expects a stable `deps` prop (construct once at app bootstrap).
+ * Context identity tracks the prop — if callers re-create the object on every
+ * render, consumers will see a new reference; that's a caller bug, not this
+ * provider's concern.
+ */
 export function DepsProvider({
   deps,
   children,
@@ -12,16 +18,7 @@ export function DepsProvider({
   deps: Deps
   children: React.ReactNode
 }) {
-  // deps is expected to be stable (constructed once at app bootstrap).
-  // We wrap in a ref so that even if a parent re-renders and re-creates the
-  // Deps object reference, the context value stays the same object.
-  const stableRef = useRef<Deps>(deps)
-
-  return (
-    <DepsContext.Provider value={stableRef.current}>
-      {children}
-    </DepsContext.Provider>
-  )
+  return <DepsContext.Provider value={deps}>{children}</DepsContext.Provider>
 }
 
 export function useDeps(): Deps {
