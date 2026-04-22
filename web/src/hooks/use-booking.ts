@@ -73,7 +73,8 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const isFree = isFreePriced(price)
   const { commission, total: totalPrice } = bookingService.calculateTotal(price)
 
-  const canSubmit = !!selectedTable && !!date && dateValidation.valid && !!userId && !isSubmitting
+  const canSubmit =
+    !!selectedTable && !!date && dateValidation.valid && !!userId && !isSubmitting && !isDone
 
   const submit = useCallback(async () => {
     if (!canSubmit || !selectedTable) return
