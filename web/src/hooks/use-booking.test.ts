@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
+import { isAppError } from '@fyndstigen/shared'
 
 // Mock PostHog
 const mockCapture = vi.fn()
@@ -208,7 +209,8 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(result.current.submitError).toBe('Card declined')
+    expect(isAppError(result.current.submitError)).toBe(true)
+    expect(result.current.submitError?.code).toBe('unknown')
     expect(result.current.isDone).toBe(false)
   })
 
@@ -225,7 +227,7 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(result.current.submitError).toBeTruthy()
+    expect(isAppError(result.current.submitError)).toBe(true)
     expect(result.current.isDone).toBe(false)
   })
 
@@ -299,5 +301,146 @@ describe('useBooking', () => {
     expect(result.current.date).toBe('')
     expect(result.current.message).toBe('')
     expect(result.current.isDone).toBe(false)
+  })
+
+  // ── New computed-property tests ─────────────────────────────────────────
+
+  it('dateConflict is false when no date is set', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+    expect(result.current.dateConflict).toBe(false)
+  })
+
+  it('dateConflict is false for a date not in bookedDates', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+
+    expect(result.current.dateConflict).toBe(false)
+  })
+
+  it('dateConflict is true when selected date is in bookedDates', async () => {
+    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+
+    expect(result.current.dateConflict).toBe(true)
+  })
+
+  it('dateConflict reverts to false after changing to unbooked date', async () => {
+    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+    expect(result.current.dateConflict).toBe(true)
+
+    act(() => { result.current.setDate('2026-12-15') })
+    expect(result.current.dateConflict).toBe(false)
+  })
+
+  it('validationError is null when no date is set', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+    expect(result.current.validationError).toBeNull()
+  })
+
+  it('validationError is null for a valid future date', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+
+    expect(result.current.validationError).toBeNull()
+  })
+
+  it('validationError contains Swedish message for past date', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.setDate('2020-01-01') })
+
+    expect(result.current.validationError).toBeTruthy()
+    expect(result.current.validationError).toContain('förflutna')
+  })
+
+  it('validationError contains Swedish message for already-booked date', async () => {
+    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+
+    expect(result.current.validationError).toBeTruthy()
+    expect(result.current.validationError).toContain('bokat')
+  })
+
+  it('canSubmit is false when date is already booked', async () => {
+    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
+
+    act(() => { result.current.setDate('2026-12-01') })
+
+    expect(result.current.canSubmit).toBe(false)
+  })
+
+  it('canSubmit is false when date is in the past', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2020-01-01')
+    })
+
+    expect(result.current.canSubmit).toBe(false)
+  })
+
+  it('commission and totalPrice update when table changes', () => {
+    const expensiveTable = { ...mockTable, id: 'table-2', price_sek: 500 }
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => { result.current.selectTable(mockTable) })
+    // 200 * 0.12 = 24 commission, total 224
+    expect(result.current.commission).toBe(24)
+    expect(result.current.totalPrice).toBe(224)
+
+    act(() => { result.current.selectTable(expensiveTable) })
+    // 500 * 0.12 = 60 commission, total 560
+    expect(result.current.commission).toBe(60)
+    expect(result.current.totalPrice).toBe(560)
+  })
+
+  it('submitError is an AppError, not a plain string', async () => {
+    vi.mocked(api.endpoints.bookingCreate).mockRejectedValue(new Error('network failure'))
+
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(isAppError(result.current.submitError)).toBe(true)
+    expect(typeof result.current.submitError).not.toBe('string')
+    expect(result.current.submitError).toHaveProperty('code')
+  })
+
+  it('submitError is null initially', () => {
+    const { result } = renderHook(() => useBooking('market-1', 'user-1'))
+    expect(result.current.submitError).toBeNull()
   })
 })

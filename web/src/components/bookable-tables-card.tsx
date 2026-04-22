@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import { stripePromise } from '@/lib/stripe'
 import { useFlag } from '@/lib/flags'
+import { messageFor } from '@/lib/messages.sv'
 
 function BookableTablesInner({
   fleaMarketId,
@@ -79,9 +80,9 @@ function BookableTablesInner({
                           onChange={(e) => booking.setDate(e.target.value)}
                           className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
                         />
-                        {booking.date && booking.dateValidation.error && (
+                        {booking.validationError && (
                           <p className="text-xs text-error mt-1">
-                            {booking.dateValidation.error}
+                            {booking.validationError}
                           </p>
                         )}
                       </div>
@@ -139,7 +140,7 @@ function BookableTablesInner({
                         )}
                       </div>
                       {booking.submitError && (
-                        <p className="text-xs text-error">{booking.submitError}</p>
+                        <p className="text-xs text-error">{messageFor(booking.submitError)}</p>
                       )}
                     </div>
                   )}
