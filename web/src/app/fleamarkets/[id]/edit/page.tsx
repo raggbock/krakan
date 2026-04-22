@@ -441,7 +441,10 @@ export default function EditMarketPage() {
         </section>
 
         {/* === SECTION: Opening Hours === */}
-        <section className="vintage-card p-6 animate-fade-up delay-1">
+        <section
+          id="opening-hours"
+          className="vintage-card p-6 animate-fade-up delay-1 scroll-mt-20"
+        >
           <h2 className="font-display font-bold text-lg mb-4">Öppettider</h2>
           <OpeningHoursEditor rules={rules} setRules={setRules} exceptions={exceptions} setExceptions={setExceptions} />
         </section>
