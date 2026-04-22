@@ -52,14 +52,28 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
       // Empty patch → illegal / already-terminal transition; return current unchanged.
       if (Object.keys(patch).length === 0) return current
 
-      // UPDATE — two round-trips, same as original edge code.
+      // UPDATE with optimistic concurrency guard. If another writer changed
+      // status between our SELECT and this UPDATE, the row won't match and
+      // we return the current DB state — matches the pre-RFC edge behavior
+      // where `.eq('status', 'pending')` gated mutations on the money path.
       const { data: updated, error: updateErr } = await admin
         .from('bookings')
         .update(patch)
         .eq('id', id)
+        .eq('status', current.status)
         .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
-        .single()
-      if (updateErr || !updated) throw new Error(`Failed to update booking ${id}`)
+        .maybeSingle()
+      if (updateErr) throw new Error(`Failed to update booking ${id}`)
+      if (!updated) {
+        // Lost the race. Re-fetch so the caller sees current truth.
+        const { data: refetched } = await admin
+          .from('bookings')
+          .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+          .eq('id', id)
+          .single()
+        if (!refetched) throw new Error(`Booking ${id} disappeared after lost update`)
+        return refetched as Booking
+      }
 
       return updated as Booking
     },
