@@ -1,6 +1,6 @@
 import { createHandler, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
+import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
 createHandler(async ({ user, admin, body }) => {
   const { bookingId } = body as { bookingId: string }

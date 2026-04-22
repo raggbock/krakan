@@ -1,0 +1,7 @@
+{
+  // Minimum Deno version: 1.40 (sloppy-imports stable from 1.40+; Supabase Edge Runtime is 1.45+)
+  "unstable": ["sloppy-imports"],
+  "imports": {
+    "@fyndstigen/shared/": "../../packages/shared/src/"
+  }
+}

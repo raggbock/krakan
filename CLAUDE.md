@@ -17,7 +17,7 @@ supabase/migrations — PostgreSQL migrations
 - **Manual capture** — card authorized at booking, captured on organizer approval
 - **12% platform commission** as Stripe application fee
 - **Edge function middleware** (`supabase/functions/_shared/handler.ts`) — auth, CORS, error handling
-- **`@fyndstigen/shared` is the canonical source** for all domain logic (commission, booking outcomes, validation). `supabase/functions/_shared/pricing.ts` is a manual mirror for Deno — keep them in sync.
+- **`@fyndstigen/shared` is the canonical source** for all domain logic (commission, booking outcomes, validation). Edge functions import directly from `@fyndstigen/shared/booking` and `@fyndstigen/shared/booking-lifecycle` via `supabase/functions/deno.json` (import map + sloppy-imports). No manual mirrors.
 - **Free bookings** skip Stripe entirely — no PaymentIntent created
 - **Auto-accept** markets confirm bookings instantly (free) or on payment (paid)
 
@@ -29,7 +29,7 @@ All commands must use explicit `node` paths — `npx` is broken in this monorepo
 # Tests — web (hooks, components)
 cd web && node ../node_modules/vitest/vitest.mjs run
 
-# Tests — shared (domain logic, 271 tests)
+# Tests — shared (domain logic)
 cd packages/shared && node ../../node_modules/vitest/vitest.mjs run
 
 # Type check
@@ -54,7 +54,8 @@ node node_modules/wrangler/bin/wrangler.js deploy --config web/wrangler.staging.
 
 - `SETUP-CHECKLIST.txt` — Manual setup steps for Stripe, Supabase, Cloudflare
 - `packages/shared/src/booking.ts` — Canonical booking/payment logic
-- `supabase/functions/_shared/pricing.ts` — Mirror of booking.ts for Deno edge functions
+- `packages/shared/src/booking-lifecycle.ts` — Canonical booking lifecycle reducer
+- `supabase/functions/deno.json` — Deno import map (maps `@fyndstigen/shared/` → `../../packages/shared/src/`)
 - `web/src/hooks/use-booking.ts` — Main booking hook (free + paid flows)
 - `web/src/components/bookable-tables-card.tsx` — Booking UI component
 

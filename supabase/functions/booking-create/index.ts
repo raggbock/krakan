@@ -2,8 +2,8 @@ import { z } from 'https://esm.sh/zod@4.3.6'
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '../_shared/pricing.ts'
-import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
+import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fyndstigen/shared/booking'
+import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
 // Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
 // Kept duplicated (not imported) because this file runs on Deno via esm.sh and
