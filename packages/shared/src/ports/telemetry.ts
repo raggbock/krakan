@@ -8,7 +8,7 @@ export interface Telemetry {
   capture(event: TelemetryEvent): void
 }
 
-export type TelemetryEvent = BookingInitiated | BookingCompleted
+export type TelemetryEvent = BookingInitiated
 
 export type BookingInitiated = {
   name: 'booking_initiated'
@@ -17,15 +17,6 @@ export type BookingInitiated = {
     market_name: string
     table_label: string
     price_sek: number
-    is_free: boolean
-  }
-}
-
-export type BookingCompleted = {
-  name: 'booking_completed'
-  properties: {
-    flea_market_id: string
-    booking_id: string
     is_free: boolean
   }
 }

@@ -7,7 +7,10 @@ import { api, bookingService, MarketTable } from '@/lib/api'
 import { isFreePriced, toAppError } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
-import { createStripePaymentGateway } from '@/lib/adapters/stripe-payment-gateway'
+import {
+  createNoOpPaymentGateway,
+  createStripePaymentGateway,
+} from '@/lib/adapters/stripe-payment-gateway'
 import { createPostHogTelemetry } from '@/lib/adapters/posthog-telemetry'
 
 type BookingHook = {
@@ -78,30 +81,16 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     setSubmitError(null)
 
     try {
-      // Build payment gateway lazily — only if Stripe is loaded and we have a card element.
-      // For free tables, the gateway is never called (no clientSecret returned).
-      const payment = (() => {
-        if (!stripe || !elements) {
-          // Stripe not loaded — provide a no-op gateway. If a clientSecret
-          // comes back from the edge, we throw below.
-          return {
-            confirmCardPayment: async (clientSecret: string) => {
-              if (clientSecret) throw new Error('Stripe not loaded')
-              return { status: 'succeeded' as const }
-            },
-          }
-        }
-        const cardElement = elements.getElement(CardElement) as StripeCardElement | null
-        if (!cardElement) {
-          return {
-            confirmCardPayment: async (clientSecret: string) => {
-              if (clientSecret) throw new Error('Card element not found')
-              return { status: 'succeeded' as const }
-            },
-          }
-        }
-        return createStripePaymentGateway(stripe, cardElement)
-      })()
+      // Build payment gateway lazily. For free tables no clientSecret comes
+      // back, so the no-op path is the correct gateway. For paid tables with
+      // Stripe unloaded or missing a CardElement, we still return a no-op
+      // gateway that throws iff actually invoked — matches pre-RFC behavior.
+      const cardElement =
+        stripe && elements ? (elements.getElement(CardElement) as StripeCardElement | null) : null
+      const payment =
+        stripe && cardElement
+          ? createStripePaymentGateway(stripe, cardElement)
+          : createNoOpPaymentGateway(!stripe || !elements ? 'Stripe not loaded' : 'Card element not found')
 
       const telemetry = createPostHogTelemetry(posthog)
 

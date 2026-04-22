@@ -1,16 +1,12 @@
 /**
  * PaymentGateway port — abstracts card payment confirmation.
  *
- * Models the Stripe Elements `confirmCardPayment` contract faithfully.
- * Card errors surface synchronously in the returned result (not thrown) so
- * callers can display them to the user without a try/catch.
+ * Today this only collapses `confirmCardPayment` into `{ status, error? }`
+ * with a single error string. It does NOT yet discriminate card_error vs
+ * requires_action vs authentication_required — add an `errorCode` field
+ * (and matching adapter mapping) before wiring 3DS / SCA flows.
  */
 export interface PaymentGateway {
-  /**
-   * Confirm a card payment using the client secret returned by the edge function.
-   * Returns `{ status: 'succeeded' }` on success, or `{ status: 'failed', error }` on failure.
-   * Never throws — errors come back in the result object for UX parity with Stripe Elements.
-   */
   confirmCardPayment(clientSecret: string): Promise<PaymentResult>
 }
 

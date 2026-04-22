@@ -24,3 +24,18 @@ export function createStripePaymentGateway(
     },
   }
 }
+
+/**
+ * No-op gateway used when Stripe isn't available (free bookings, or paid
+ * bookings where Stripe.js hasn't loaded yet). Succeeds silently if never
+ * called with a clientSecret; throws `reason` if invoked — free bookings
+ * don't return a clientSecret, so this path is only reached as a regression.
+ */
+export function createNoOpPaymentGateway(reason: string): PaymentGateway {
+  return {
+    async confirmCardPayment(clientSecret: string): Promise<PaymentResult> {
+      if (clientSecret) throw new Error(reason)
+      return { status: 'succeeded' }
+    },
+  }
+}
