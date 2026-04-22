@@ -1,30 +1,15 @@
-import { z } from 'https://esm.sh/zod@4.3.6'
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fyndstigen/shared/booking'
 import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
-
-// Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
-// Kept duplicated because we still pull zod via esm.sh here; see RFC #39 for
-// the plan to consume contracts from @fyndstigen/shared directly.
-const Input = z.object({
-  marketTableId: z.string().min(1),
-  fleaMarketId: z.string().min(1),
-  bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD'),
-  message: z.string().optional(),
-})
-
-const Output = z.object({
-  bookingId: z.string().min(1),
-  clientSecret: z.string().optional(),
-})
+import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create'
 
 defineEndpoint({
   name: 'booking-create',
-  input: Input,
-  output: Output,
+  input: BookingCreateInput,
+  output: BookingCreateOutput,
   handler: async ({ user, admin }, { marketTableId, fleaMarketId, bookingDate, message }) => {
     // Get market table for price
     const { data: table, error: tableErr } = await admin
@@ -130,6 +115,3 @@ defineEndpoint({
       : { bookingId: booking.id }
   },
 })
-
-// TODO: add a Deno test for this endpoint once a Deno test runner is wired up
-// in the monorepo (out of scope for RFC #15).

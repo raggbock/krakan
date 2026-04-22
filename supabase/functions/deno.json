@@ -3,6 +3,7 @@
   // Supabase Edge Runtime ships Deno 1.45+.
   "unstable": ["sloppy-imports"],
   "imports": {
-    "@fyndstigen/shared/": "../../packages/shared/src/"
+    "@fyndstigen/shared/": "../../packages/shared/src/",
+    "zod": "https://esm.sh/zod@4.3.6"
   }
 }
