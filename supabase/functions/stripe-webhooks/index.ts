@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { getSupabaseAdmin } from '../_shared/auth.ts'
-import { applyBookingEvent, type BookingEvent } from '../_shared/booking-lifecycle.ts'
+import { applyBookingEvent, type BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
 // Apply a lifecycle event to a booking identified by its Stripe PaymentIntent.
 // Returns a Response on DB error, undefined on success / not-found (idempotent).

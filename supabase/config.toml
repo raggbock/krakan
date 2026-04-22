@@ -9,6 +9,7 @@ project_id = "yqeegfhwbjnlrdurstxp"
 
 [functions.booking-create]
 verify_jwt = false
+import_map = "./functions/deno.json"
 
 [functions.organizer-stats]
 verify_jwt = false
@@ -33,6 +34,8 @@ verify_jwt = false
 
 [functions.stripe-payment-capture]
 verify_jwt = false
+import_map = "./functions/deno.json"
 
 [functions.stripe-webhooks]
 verify_jwt = false
+import_map = "./functions/deno.json"
