@@ -15,7 +15,10 @@ describe('createInMemoryBookings', () => {
     await repo.create(basePayload)
     const bookings = await repo.listByUser('user-1')
     expect(bookings).toHaveLength(1)
-    expect(bookings[0].booked_by ?? bookings[0]).toBeDefined()
+    expect(bookings[0].booked_by).toBe('user-1')
+    expect(bookings[0].market_table_id).toBe('mt-1')
+    expect(bookings[0].booking_date).toBe('2026-06-01')
+    expect(bookings[0].status).toBe('pending')
   })
 
   it('listByUser only returns that user\'s bookings', async () => {
