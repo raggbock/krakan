@@ -1,5 +1,6 @@
-// Shared enum / union types used by both DB rows and domain views.
-// Kept in a separate file to avoid circular imports.
+// Central home for enum-like string unions shared by both the DB-row and
+// domain-view layers. Importing here keeps db.ts and domain.ts from depending
+// on each other (triangulation, not a cycle).
 
 export type RuleType = 'weekly' | 'biweekly' | 'date'
 

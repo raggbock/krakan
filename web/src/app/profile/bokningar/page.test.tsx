@@ -144,7 +144,7 @@ describe('BookingsPage', () => {
 
   it('shows pending bookings with action buttons', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking] as any)
+    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Väntar på svar')).toBeInTheDocument()
@@ -155,7 +155,7 @@ describe('BookingsPage', () => {
 
   it('shows confirmed bookings without action buttons', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockConfirmedBooking] as any)
+    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockConfirmedBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Bekräftade')).toBeInTheDocument()
@@ -166,7 +166,7 @@ describe('BookingsPage', () => {
 
   it('shows booker name and booking details', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking] as any)
+    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Erik Nilsson')).toBeInTheDocument()
@@ -177,7 +177,7 @@ describe('BookingsPage', () => {
 
   it('approve calls stripe-payment-capture', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking] as any)
+    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
     render(<BookingsPage />)
 
     const approveBtn = await screen.findByRole('button', { name: 'Godkänn' })
@@ -193,7 +193,7 @@ describe('BookingsPage', () => {
 
   it('deny calls stripe-payment-cancel', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking] as any)
+    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
     render(<BookingsPage />)
 
     const denyBtn = await screen.findByRole('button', { name: 'Neka' })
@@ -212,7 +212,7 @@ describe('BookingsPage', () => {
     vi.mocked(api.bookings.listByMarket).mockResolvedValue([
       mockBooking,
       mockConfirmedBooking,
-    ] as any)
+    ])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('(reserverat)')).toBeInTheDocument()
