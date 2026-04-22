@@ -50,7 +50,6 @@ const defaultBooking = {
   selectTable: vi.fn(),
   setDate: vi.fn(),
   setMessage: vi.fn(),
-  dateValidation: { valid: false },
   commission: 0,
   totalPrice: 0,
   isFree: false,

@@ -8,8 +8,6 @@ import { isFreePriced, toAppError } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 
-type DateValidation = { valid: boolean; error?: string }
-
 type BookingHook = {
   selectedTable: MarketTable | null
   date: string
@@ -18,9 +16,6 @@ type BookingHook = {
   selectTable: (table: MarketTable | null) => void
   setDate: (date: string) => void
   setMessage: (msg: string) => void
-  dateValidation: DateValidation
-  /** True if the selected date is already in bookedDates */
-  dateConflict: boolean
   /** Swedish user-facing validation message, or null when date is valid/empty */
   validationError: string | null
   commission: number
@@ -61,7 +56,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
   }, [selectedTableId])
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
-  const dateValidation = useMemo<DateValidation>(() => {
+  const dateValidation = useMemo(() => {
     if (!date) return { valid: false }
     return bookingService.validateDate(date, bookedDates, today, openingHours)
   }, [date, bookedDates, today, openingHours])
@@ -130,7 +125,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
   return {
     selectedTable, date, message, bookedDates,
     selectTable: setSelectedTable, setDate, setMessage,
-    dateValidation, dateConflict, validationError,
+    validationError,
     commission, totalPrice, isFree, canSubmit,
     submit, isSubmitting, isDone, submitError, reset,
   }

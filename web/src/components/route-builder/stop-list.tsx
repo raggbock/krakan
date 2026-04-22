@@ -10,15 +10,15 @@ type MarketWithHours = FleaMarketNearBy & {
   opening_hour_exceptions?: OpeningHourException[]
 }
 
-export type RouteStop = {
+export type RouteBuilderStop = {
   market: MarketWithHours
   index: number
 }
 
 type Props = {
-  stops: RouteStop[]
+  stops: RouteBuilderStop[]
   plannedDate: string
-  onReorder: (stops: RouteStop[]) => void
+  onReorder: (stops: RouteBuilderStop[]) => void
   onRemove: (marketId: string) => void
   onOptimize: () => void
   canOptimize: boolean
@@ -51,7 +51,7 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
         <h2 className="font-display font-bold">
           Stopp ({stops.length})
         </h2>
-        {canOptimize && stops.length >= 2 && (
+        {canOptimize && (
           <button
             onClick={onOptimize}
             className="text-xs font-semibold text-rust hover:text-rust-light transition-colors"
@@ -124,6 +124,7 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
                 {/* Remove button */}
                 <button
                   onClick={() => onRemove(stop.market.id)}
+                  aria-label="Ta bort stopp"
                   className="text-espresso/20 hover:text-error transition-colors shrink-0"
                 >
                   <svg

@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { StopList, type RouteStop } from './stop-list'
+import { StopList, type RouteBuilderStop } from './stop-list'
 
 vi.mock('@fyndstigen/shared', () => ({
   checkOpeningHours: vi.fn(() => null),
@@ -10,7 +10,7 @@ vi.mock('../fyndstigen-logo', () => ({
   FyndstigenLogo: () => <svg data-testid="fyndstigen-logo" />,
 }))
 
-function makeStop(id: string, name: string, index: number): RouteStop {
+function makeStop(id: string, name: string, index: number): RouteBuilderStop {
   return {
     market: {
       id,
@@ -60,7 +60,7 @@ describe('StopList', () => {
     render(<StopList {...defaultProps} stops={stops} onRemove={onRemove} />)
 
     // Two remove buttons — click the first one (Loppis A = id 'a')
-    const removeButtons = screen.getAllByRole('button', { name: '' })
+    const removeButtons = screen.getAllByRole('button', { name: 'Ta bort stopp' })
     fireEvent.click(removeButtons[0])
     expect(onRemove).toHaveBeenCalledWith('a')
   })
@@ -102,7 +102,7 @@ describe('StopList', () => {
     fireEvent.dragOver(items[2], { preventDefault: () => {} })
 
     expect(onReorder).toHaveBeenCalled()
-    const reordered = onReorder.mock.calls[0][0] as RouteStop[]
+    const reordered = onReorder.mock.calls[0][0] as RouteBuilderStop[]
     // After moving A from 0 to 2: [B, C, A]
     expect(reordered.map((s) => s.market.id)).toEqual(['b', 'c', 'a'])
   })

@@ -11,7 +11,7 @@ import type { OpeningHourRule, OpeningHourException, Stop } from '@fyndstigen/sh
 import { runRouteMutation } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { RouteFormFields } from './route-builder/route-form-fields'
-import { StopList, type RouteStop } from './route-builder/stop-list'
+import { StopList, type RouteBuilderStop } from './route-builder/stop-list'
 import { RouteMap } from './route-builder/route-map'
 import { SaveRouteButton } from './route-builder/save-route-button'
 
@@ -26,7 +26,7 @@ export default function RouteBuilder() {
   const posthog = usePostHog()
 
   const [markets, setMarkets] = useState<MarketWithHours[]>([])
-  const [stops, setStops] = useState<RouteStop[]>([])
+  const [stops, setStops] = useState<RouteBuilderStop[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
