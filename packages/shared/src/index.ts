@@ -46,7 +46,7 @@ export {
   createSupabaseProfiles,
   createSupabaseOrganizers,
 } from './adapters'
-export { createInMemoryAuth, createInMemoryServerData } from './adapters/in-memory'
+export { createInMemoryAuth, createInMemoryServerData, createInMemoryStack } from './adapters/in-memory'
 export { createInMemoryFleaMarkets, createInMemorySearch, createInMemoryMarketTables } from './adapters/in-memory/flea-markets'
 export { createInMemoryBookings } from './adapters/in-memory/bookings'
 export { createInMemoryRoutes } from './adapters/in-memory/routes'

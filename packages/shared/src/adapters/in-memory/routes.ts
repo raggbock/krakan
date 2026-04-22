@@ -139,7 +139,13 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
         })) as RouteSummary[]
     },
 
+    /**
+     * @stub Returns empty array — not implemented for in-memory use.
+     * Seam tests that call this will get a silent false-negative.
+     * Provide real data via seed and a custom implementation if you need to assert against results.
+     */
     async listPopular(_params): Promise<PopularRoute[]> {
+      console.warn('[in-memory] listPopular() is a stub and always returns []. Seed the repo if you need results.')
       return []
     },
   }
