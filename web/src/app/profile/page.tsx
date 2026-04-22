@@ -153,39 +153,61 @@ export default function ProfilePage() {
 
         {myMarkets.length > 0 ? (
           <div className="space-y-3 mt-4">
-            {myMarkets.map((market) => (
-              <Link
-                key={market.id}
-                href={`/fleamarkets/${market.id}`}
-                className="group flex items-center justify-between bg-parchment rounded-xl p-4 hover:bg-cream-warm transition-colors duration-200"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-cream-warm knit-bg flex items-center justify-center">
-                    <span className="font-display text-xs font-bold text-espresso/20">
-                      {getInitials(market.name)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium group-hover:text-rust transition-colors">
-                      {market.name}
-                    </span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-espresso/60">
-                        {market.city}
-                      </span>
-                      {!market.published_at && (
-                        <span className="text-xs text-mustard font-medium">
-                          Utkast
+            {myMarkets.map((market) => {
+              const isHidden = !!market.published_at && market.isVisible === false
+              return (
+                <div key={market.id}>
+                  <Link
+                    href={`/fleamarkets/${market.id}`}
+                    className={`group flex items-center justify-between bg-parchment p-4 hover:bg-cream-warm transition-colors duration-200 ${isHidden ? 'rounded-t-xl' : 'rounded-xl'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-cream-warm knit-bg flex items-center justify-center">
+                        <span className="font-display text-xs font-bold text-espresso/20">
+                          {getInitials(market.name)}
                         </span>
-                      )}
+                      </div>
+                      <div>
+                        <span className="font-medium group-hover:text-rust transition-colors">
+                          {market.name}
+                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-espresso/60">
+                            {market.city}
+                          </span>
+                          {!market.published_at && (
+                            <span className="text-xs text-mustard font-medium">
+                              Utkast
+                            </span>
+                          )}
+                          {isHidden && (
+                            <span className="text-xs text-lavender font-medium">
+                              Gömd
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                    <span className="text-espresso/20 group-hover:text-rust/40 transition-colors">
+                      &rarr;
+                    </span>
+                  </Link>
+                  {isHidden && (
+                    <div className="px-4 pb-3 -mt-1 bg-parchment rounded-b-xl border-t border-espresso/5">
+                      <p className="text-xs italic text-espresso/60 mb-1">
+                        Tillfällig loppis utan framtida öppningsdagar. Lägg till nya datum för att synas igen.
+                      </p>
+                      <Link
+                        href={`/fleamarkets/${market.id}/edit#opening-hours`}
+                        className="text-xs font-semibold text-rust hover:text-rust-light transition-colors"
+                      >
+                        + Lägg till datum
+                      </Link>
+                    </div>
+                  )}
                 </div>
-                <span className="text-espresso/20 group-hover:text-rust/40 transition-colors">
-                  &rarr;
-                </span>
-              </Link>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className="text-center py-8">

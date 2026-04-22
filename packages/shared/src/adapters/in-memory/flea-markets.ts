@@ -149,9 +149,9 @@ export function createInMemoryFleaMarkets(
     },
 
     async listByOrganizer(organizerId) {
-      return Array.from(store.values()).filter(
-        (m) => m.organizer_id === organizerId && !m.is_deleted,
-      ) as FleaMarket[]
+      return Array.from(store.values())
+        .filter((m) => m.organizer_id === organizerId && !m.is_deleted)
+        .map((m) => ({ ...m, isVisible: isMarketVisible(m) })) as FleaMarket[]
     },
   }
 }

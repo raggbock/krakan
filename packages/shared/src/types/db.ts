@@ -26,6 +26,8 @@ export type FleaMarketRow = {
   organizer_id: string
   auto_accept_bookings: boolean
   created_at: string
+  /** Set by listByOrganizer — true if the market appears in public listings. */
+  isVisible?: boolean
 }
 
 // --- Opening Hours ---

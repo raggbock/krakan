@@ -175,6 +175,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
     },
 
     async listByOrganizer(organizerId) {
+      // Fetch all non-deleted markets for this organizer
       const { data, error } = await supabase
         .from('flea_markets')
         .select('*')
@@ -183,7 +184,21 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return (data ?? []) as FleaMarket[]
+      const markets = data ?? []
+      if (markets.length === 0) return []
+
+      // Determine which of these are publicly visible using the existing view.
+      // Two queries total (independent of N) — avoids N+1 RPC calls.
+      const ids = markets.map((m) => m.id)
+      const { data: visibleData, error: visibleError } = await supabase
+        .from('visible_flea_markets')
+        .select('id')
+        .in('id', ids)
+
+      if (visibleError) throw visibleError
+      const visibleIds = new Set((visibleData ?? []).map((r: { id: string }) => r.id))
+
+      return markets.map((m) => ({ ...m, isVisible: visibleIds.has(m.id) })) as FleaMarket[]
     },
   }
 }
