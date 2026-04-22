@@ -1,5 +1,8 @@
 import { createHandler, NotFoundError, ForbiddenError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
+import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
 createHandler(async ({ user, admin, body }) => {
   const { bookingId, newStatus } = body as {
@@ -7,12 +10,10 @@ createHandler(async ({ user, admin, body }) => {
     newStatus: 'denied' | 'cancelled'
   }
 
-  const { data: booking, error: bookingErr } = await admin
-    .from('bookings')
-    .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by')
-    .eq('id', bookingId)
-    .single()
-  if (bookingErr || !booking) throw new NotFoundError('Booking not found')
+  // SELECT — same first query as original edge
+  const repo = createSupabaseBookingRepo(admin)
+  const booking = await repo.findById(bookingId)
+  if (!booking) throw new NotFoundError('Booking not found')
   if (booking.status !== 'pending') throw new Error('Booking is not pending')
 
   // Authorization: organizer can deny, booker can cancel
@@ -24,20 +25,19 @@ createHandler(async ({ user, admin, body }) => {
     throw new Error('Invalid status')
   }
 
+  // Stripe cancel before DB write — same ordering as original
   if (booking.stripe_payment_intent_id) {
-    await stripe.paymentIntents.cancel(booking.stripe_payment_intent_id)
+    const gateway = createStripeBookingGateway(stripe)
+    await gateway.cancel(booking.stripe_payment_intent_id)
   }
 
-  const newPaymentStatus = booking.stripe_payment_intent_id ? 'cancelled' : 'free'
+  // Translate newStatus → BookingEvent and apply via repo
+  const event: BookingEvent = newStatus === 'denied'
+    ? { type: 'organizer.deny' }
+    : { type: 'user.cancel' }
 
-  const { data: updated, error: updateErr } = await admin
-    .from('bookings')
-    .update({ status: newStatus, payment_status: newPaymentStatus })
-    .eq('id', bookingId)
-    .eq('status', 'pending')
-    .select('id')
-    .single()
-  if (updateErr || !updated) throw new Error('Booking was already updated by another action')
+  const updated = await repo.applyEvent(bookingId, event)
+  if (updated.status !== newStatus) throw new Error('Booking was already updated by another action')
 
   return { success: true }
 })

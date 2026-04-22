@@ -4,6 +4,7 @@ import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fyndstigen/shared/booking'
 import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
 
 // Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
 // Kept duplicated because we still pull zod via esm.sh here; see RFC #39 for
@@ -75,34 +76,30 @@ defineEndpoint({
     // Calculate amounts
     const { priceSek, commissionSek, commissionRate } = calculateStripeAmounts(table.price_sek)
 
-    // Create PaymentIntent if needed
+    // Create PaymentIntent via gateway (owns fee math + idempotency key composition)
     let paymentIntentId: string | null = null
     let clientSecret: string | null = null
 
     if (outcome.needsStripe && stripeAccountId) {
-      const { totalOre, applicationFeeOre } = calculateStripeAmounts(table.price_sek)
+      const gateway = createStripeBookingGateway(stripe)
       const idempotencyKey = `${user.id}-${marketTableId}-${bookingDate}-${Date.now()}`
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: totalOre,
-        currency: 'sek',
-        capture_method: outcome.captureMethod!,
-        application_fee_amount: applicationFeeOre,
-        transfer_data: { destination: stripeAccountId },
+      const pi = await gateway.createPaymentIntentWithFees({
+        priceSek: table.price_sek,
+        stripeAccountId,
+        captureMethod: outcome.captureMethod!,
+        idempotencyKey,
         metadata: {
           market_table_id: marketTableId,
           flea_market_id: fleaMarketId,
           booked_by: user.id,
           booking_date: bookingDate,
         },
-      }, { idempotencyKey })
-      paymentIntentId = paymentIntent.id
-      clientSecret = paymentIntent.client_secret
+      })
+      paymentIntentId = pi.id
+      clientSecret = pi.clientSecret
     }
 
     // Derive status/payment_status/expires_at via the lifecycle reducer.
-    // `resolveBookingOutcome` above still drives the pre-insert decisions
-    // (does Stripe need to be called, with what capture_method) but the
-    // row-shape for the initial insert now comes from applyBookingEvent.
     const lifecyclePatch = applyBookingEvent(
       { status: 'pending', stripe_payment_intent_id: paymentIntentId },
       { type: 'created', autoAccept: market.auto_accept_bookings, paid: !isFreePriced(table.price_sek) },
