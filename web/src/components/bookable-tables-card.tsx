@@ -5,6 +5,7 @@ import { Elements, CardElement } from '@stripe/react-stripe-js'
 import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
+import type { OpeningHoursContext } from '@fyndstigen/shared'
 import { stripePromise } from '@/lib/stripe'
 import { useFlag } from '@/lib/flags'
 import { messageFor } from '@/lib/messages.sv'
@@ -12,12 +13,14 @@ import { messageFor } from '@/lib/messages.sv'
 function BookableTablesInner({
   fleaMarketId,
   tables,
+  openingHours,
 }: {
   fleaMarketId: string
   tables: MarketTable[]
+  openingHours?: OpeningHoursContext
 }) {
   const { user } = useAuth()
-  const booking = useBooking(fleaMarketId, user?.id)
+  const booking = useBooking(fleaMarketId, user?.id, openingHours)
 
   return (
     <div className="vintage-card p-6 animate-fade-up delay-4">
@@ -157,9 +160,11 @@ function BookableTablesInner({
 export function BookableTablesCard({
   fleaMarketId,
   tables,
+  openingHours,
 }: {
   fleaMarketId: string
   tables: MarketTable[]
+  openingHours?: OpeningHoursContext
 }) {
   const paymentsEnabled = useFlag('payments')
   // When payments are off, only show free tables
@@ -171,13 +176,13 @@ export function BookableTablesCard({
 
   if (!stripePromise) {
     return (
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} openingHours={openingHours} />
     )
   }
 
   return (
     <Elements stripe={stripePromise}>
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} openingHours={openingHours} />
     </Elements>
   )
 }

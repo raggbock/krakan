@@ -12,6 +12,8 @@ export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string
     'Du har redan en bokning för det här bordet. Kolla dina bokningar under ditt konto.',
   'booking.table_unavailable': () =>
     'Det här bordet är tyvärr inte längre tillgängligt. Välj ett annat bord eller försök igen senare.',
+  'booking.market_closed': () =>
+    'Marknaden är stängd det valda datumet.',
   'stripe.not_onboarded': () =>
     'Arrangören har inte slutfört sin betalningsregistrering än. Försök igen om en stund eller kontakta arrangören.',
   'stripe.capture_failed': () =>

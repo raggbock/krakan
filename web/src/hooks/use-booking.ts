@@ -5,7 +5,7 @@ import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, bookingService, MarketTable } from '@/lib/api'
 import { isFreePriced, toAppError } from '@fyndstigen/shared'
-import type { AppError } from '@fyndstigen/shared'
+import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 
 type DateValidation = { valid: boolean; error?: string }
@@ -35,7 +35,7 @@ type BookingHook = {
   reset: () => void
 }
 
-export function useBooking(marketId: string, userId: string | undefined): BookingHook {
+export function useBooking(marketId: string, userId: string | undefined, openingHours?: OpeningHoursContext): BookingHook {
   const posthog = usePostHog()
   const stripe = useStripe()
   const elements = useElements()
@@ -63,8 +63,8 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const dateValidation = useMemo<DateValidation>(() => {
     if (!date) return { valid: false }
-    return bookingService.validateDate(date, bookedDates, today)
-  }, [date, bookedDates, today])
+    return bookingService.validateDate(date, bookedDates, today, openingHours)
+  }, [date, bookedDates, today, openingHours])
 
   const dateConflict = date ? bookedDates.includes(date) : false
   const validationError = date && dateValidation.error ? dateValidation.error : null

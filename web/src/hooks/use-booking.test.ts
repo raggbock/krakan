@@ -45,6 +45,22 @@ vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
 })
 
 import { api } from '@/lib/api'
+import type { OpeningHoursContext } from '@fyndstigen/shared'
+
+// Saturday-only market (day_of_week: 6)
+const saturdayOnlyHours: OpeningHoursContext = {
+  rules: [
+    {
+      id: 'r1',
+      type: 'weekly' as const,
+      day_of_week: 6,
+      anchor_date: null,
+      open_time: '09:00',
+      close_time: '15:00',
+    },
+  ],
+  exceptions: [],
+}
 
 const mockTable = {
   id: 'table-1',
@@ -442,5 +458,50 @@ describe('useBooking', () => {
   it('submitError is null initially', () => {
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
     expect(result.current.submitError).toBeNull()
+  })
+
+  // ── Opening hours context ───────────────────────────────────────────────
+
+  it('canSubmit is false when selected date is a closed day (opening hours context)', () => {
+    // 2026-12-01 is a Tuesday — closed in a Saturday-only market
+    const { result } = renderHook(() =>
+      useBooking('market-1', 'user-1', saturdayOnlyHours),
+    )
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01') // Tuesday
+    })
+
+    expect(result.current.canSubmit).toBe(false)
+    expect(result.current.dateValidation.valid).toBe(false)
+  })
+
+  it('validationError surfaces market-closed message on a closed day', () => {
+    // 2026-12-01 is a Tuesday — closed in a Saturday-only market
+    const { result } = renderHook(() =>
+      useBooking('market-1', 'user-1', saturdayOnlyHours),
+    )
+
+    act(() => {
+      result.current.setDate('2026-12-01') // Tuesday
+    })
+
+    expect(result.current.validationError).toBeTruthy()
+    expect(result.current.validationError).toContain('stängd')
+  })
+
+  it('canSubmit is true on an open day with opening hours context', async () => {
+    // 2026-12-05 is a Saturday — open in a Saturday-only market
+    const { result } = renderHook(() =>
+      useBooking('market-1', 'user-1', saturdayOnlyHours),
+    )
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-05') // Saturday
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
   })
 })
