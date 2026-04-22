@@ -76,6 +76,8 @@ export type {
   MarketPlanAddress,
   MarketCreateFields,
   MarketUpdateFields,
+  RuleDraft,
+  ExceptionDraft,
 } from './market-mutation'
 
 // Route mutation saga

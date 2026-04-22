@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { RuleDraft, ExceptionDraft } from '@/hooks/use-create-market'
+import type { RuleDraft, ExceptionDraft } from '@fyndstigen/shared'
 
 export const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
 
