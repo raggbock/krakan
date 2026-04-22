@@ -1,14 +1,16 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, FleaMarketDetails, MarketTable } from '@/lib/api'
+import type { FleaMarketDetails, MarketTable } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys'
+import { useDeps } from '@/providers/deps-provider'
 
 export function useMarketDetails(id: string | undefined) {
+  const { markets, marketTables } = useDeps()
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.markets.details(id!),
     queryFn: () =>
-      Promise.all([api.fleaMarkets.details(id!), api.marketTables.list(id!)]).then(
+      Promise.all([markets.details(id!), marketTables.list(id!)]).then(
         ([market, tables]) => ({ market, tables }),
       ),
     enabled: !!id,

@@ -2,6 +2,13 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { makeSupabaseDeps } from '@fyndstigen/shared'
+import { supabase } from '@/lib/supabase'
+import { DepsProvider } from './deps-provider'
+
+// Construct Deps once at module scope so the reference is stable across renders.
+// This mirrors how `supabase` itself is constructed — one instance per app.
+const appDeps = makeSupabaseDeps(supabase)
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -17,8 +24,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <DepsProvider deps={appDeps}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </DepsProvider>
   )
 }

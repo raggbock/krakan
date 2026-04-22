@@ -91,6 +91,10 @@ export type {
   RouteUpdateFields,
 } from './route-mutation'
 
+// Deps container
+export type { Deps } from './deps'
+export { makeInMemoryDeps, makeSupabaseDeps } from './deps-factory'
+
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
 export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'
