@@ -1,30 +1,15 @@
-import { z } from 'https://esm.sh/zod@4.3.6'
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '../_shared/pricing.ts'
-import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
-
-// Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
-// Kept duplicated (not imported) because this file runs on Deno via esm.sh and
-// cannot resolve the workspace package. Keep the two in sync — same rule as
-// _shared/pricing.ts mirroring packages/shared/src/booking.ts.
-const Input = z.object({
-  marketTableId: z.string().min(1),
-  fleaMarketId: z.string().min(1),
-  bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD'),
-  message: z.string().optional(),
-})
-
-const Output = z.object({
-  bookingId: z.string().min(1),
-  clientSecret: z.string().optional(),
-})
+import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fyndstigen/shared/booking'
+import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
+import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create'
 
 defineEndpoint({
   name: 'booking-create',
-  input: Input,
-  output: Output,
+  input: BookingCreateInput,
+  output: BookingCreateOutput,
   handler: async ({ user, admin }, { marketTableId, fleaMarketId, bookingDate, message }) => {
     // Get market table for price
     const { data: table, error: tableErr } = await admin
@@ -76,34 +61,30 @@ defineEndpoint({
     // Calculate amounts
     const { priceSek, commissionSek, commissionRate } = calculateStripeAmounts(table.price_sek)
 
-    // Create PaymentIntent if needed
+    // Create PaymentIntent via gateway (owns fee math + idempotency key composition)
     let paymentIntentId: string | null = null
     let clientSecret: string | null = null
 
     if (outcome.needsStripe && stripeAccountId) {
-      const { totalOre, applicationFeeOre } = calculateStripeAmounts(table.price_sek)
+      const gateway = createStripeBookingGateway(stripe)
       const idempotencyKey = `${user.id}-${marketTableId}-${bookingDate}-${Date.now()}`
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: totalOre,
-        currency: 'sek',
-        capture_method: outcome.captureMethod!,
-        application_fee_amount: applicationFeeOre,
-        transfer_data: { destination: stripeAccountId },
+      const pi = await gateway.createPaymentIntentWithFees({
+        priceSek: table.price_sek,
+        stripeAccountId,
+        captureMethod: outcome.captureMethod!,
+        idempotencyKey,
         metadata: {
           market_table_id: marketTableId,
           flea_market_id: fleaMarketId,
           booked_by: user.id,
           booking_date: bookingDate,
         },
-      }, { idempotencyKey })
-      paymentIntentId = paymentIntent.id
-      clientSecret = paymentIntent.client_secret
+      })
+      paymentIntentId = pi.id
+      clientSecret = pi.clientSecret
     }
 
     // Derive status/payment_status/expires_at via the lifecycle reducer.
-    // `resolveBookingOutcome` above still drives the pre-insert decisions
-    // (does Stripe need to be called, with what capture_method) but the
-    // row-shape for the initial insert now comes from applyBookingEvent.
     const lifecyclePatch = applyBookingEvent(
       { status: 'pending', stripe_payment_intent_id: paymentIntentId },
       { type: 'created', autoAccept: market.auto_accept_bookings, paid: !isFreePriced(table.price_sek) },
@@ -134,6 +115,3 @@ defineEndpoint({
       : { bookingId: booking.id }
   },
 })
-
-// TODO: add a Deno test for this endpoint once a Deno test runner is wired up
-// in the monorepo (out of scope for RFC #15).

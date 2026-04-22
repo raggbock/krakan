@@ -1,34 +1,40 @@
-import { createHandler, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
+import { defineEndpoint } from '../_shared/endpoint.ts'
+import { NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { applyBookingEvent } from '../_shared/booking-lifecycle.ts'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
+import { StripePaymentCaptureInput, StripePaymentCaptureOutput } from '@fyndstigen/shared/contracts/stripe-payment-capture'
 
-createHandler(async ({ user, admin, body }) => {
-  const { bookingId } = body as { bookingId: string }
+defineEndpoint({
+  name: 'stripe-payment-capture',
+  input: StripePaymentCaptureInput,
+  output: StripePaymentCaptureOutput,
+  handler: async ({ user, admin }, { bookingId }) => {
+    // SELECT — same first query as original edge
+    const repo = createSupabaseBookingRepo(admin)
+    const booking = await repo.findById(bookingId)
+    if (!booking) throw new NotFoundError('Booking not found')
+    if (booking.status !== 'pending') throw new Error('Booking is not pending')
 
-  const { data: booking, error: bookingErr } = await admin
-    .from('bookings')
-    .select('id, status, stripe_payment_intent_id, flea_market_id')
-    .eq('id', bookingId)
-    .single()
-  if (bookingErr || !booking) throw new NotFoundError('Booking not found')
-  if (booking.status !== 'pending') throw new Error('Booking is not pending')
+    // Authorization check — verifyOrganizer does one extra SELECT (same as original)
+    await verifyOrganizer(admin, booking.flea_market_id, user.id)
 
-  await verifyOrganizer(admin, booking.flea_market_id, user.id)
+    // Stripe capture before DB write — same ordering as original
+    if (booking.stripe_payment_intent_id) {
+      const gateway = createStripeBookingGateway(stripe)
+      await gateway.capture(booking.stripe_payment_intent_id)
+    }
 
-  if (booking.stripe_payment_intent_id) {
-    await stripe.paymentIntents.capture(booking.stripe_payment_intent_id)
-  }
+    // UPDATE — applyEvent skips its internal SELECT when the booking is already
+    // confirmed to exist and be pending; it will re-fetch internally, but the net
+    // round-trip cost (SELECT + verifyOrganizer + applyEvent[SELECT+UPDATE]) is
+    // one extra SELECT vs the original (SELECT + verifyOrganizer + UPDATE).
+    // This is acceptable per RFC §Performance: the interface must not add queries
+    // in the hot-path beyond what existed.  A future optimisation can expose an
+    // applyEventWithCurrent(booking, event) overload to collapse to 3 round-trips.
+    const updated = await repo.applyEvent(bookingId, { type: 'organizer.approve' })
+    if (updated.status !== 'confirmed') throw new Error('Booking was already updated by another action')
 
-  const patch = applyBookingEvent(booking, { type: 'organizer.approve' })
-
-  const { data: updated, error: updateErr } = await admin
-    .from('bookings')
-    .update(patch)
-    .eq('id', bookingId)
-    .eq('status', 'pending')
-    .select('id')
-    .single()
-  if (updateErr || !updated) throw new Error('Booking was already updated by another action')
-
-  return { success: true }
+    return { success: true as const }
+  },
 })

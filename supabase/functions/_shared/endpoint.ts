@@ -1,4 +1,4 @@
-import { z } from 'https://esm.sh/zod@4.3.6'
+import { z } from 'zod'
 import { createHandler, HttpError, type RequestContext } from './handler.ts'
 
 /**
