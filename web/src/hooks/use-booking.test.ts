@@ -140,16 +140,16 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
   })
 
-  it('dateValidation shows error for past dates', () => {
+  it('validationError shows error for past dates', () => {
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
     act(() => { result.current.setDate('2020-01-01') })
 
-    expect(result.current.dateValidation.valid).toBe(false)
-    expect(result.current.dateValidation.error).toContain('förflutna')
+    expect(result.current.canSubmit).toBe(false)
+    expect(result.current.validationError).toContain('förflutna')
   })
 
-  it('dateValidation shows error for booked dates', async () => {
+  it('validationError shows error for booked dates', async () => {
     vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
@@ -159,8 +159,8 @@ describe('useBooking', () => {
 
     act(() => { result.current.setDate('2026-12-01') })
 
-    expect(result.current.dateValidation.valid).toBe(false)
-    expect(result.current.dateValidation.error).toContain('bokat')
+    expect(result.current.canSubmit).toBe(false)
+    expect(result.current.validationError).toContain('bokat')
   })
 
   it('computes commission and totalPrice', () => {
@@ -321,20 +321,20 @@ describe('useBooking', () => {
 
   // ── New computed-property tests ─────────────────────────────────────────
 
-  it('dateConflict is false when no date is set', () => {
+  it('validationError is null when no date is set (no conflict)', () => {
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
-    expect(result.current.dateConflict).toBe(false)
+    expect(result.current.validationError).toBeNull()
   })
 
-  it('dateConflict is false for a date not in bookedDates', () => {
+  it('validationError is null for a date not in bookedDates', () => {
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
 
     act(() => { result.current.setDate('2026-12-01') })
 
-    expect(result.current.dateConflict).toBe(false)
+    expect(result.current.validationError).toBeNull()
   })
 
-  it('dateConflict is true when selected date is in bookedDates', async () => {
+  it('validationError contains "bokat" when selected date is already booked', async () => {
     vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
@@ -344,10 +344,10 @@ describe('useBooking', () => {
 
     act(() => { result.current.setDate('2026-12-01') })
 
-    expect(result.current.dateConflict).toBe(true)
+    expect(result.current.validationError).toContain('bokat')
   })
 
-  it('dateConflict reverts to false after changing to unbooked date', async () => {
+  it('validationError clears after changing to an unbooked date', async () => {
     vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
 
     const { result } = renderHook(() => useBooking('market-1', 'user-1'))
@@ -356,10 +356,10 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
 
     act(() => { result.current.setDate('2026-12-01') })
-    expect(result.current.dateConflict).toBe(true)
+    expect(result.current.validationError).toContain('bokat')
 
     act(() => { result.current.setDate('2026-12-15') })
-    expect(result.current.dateConflict).toBe(false)
+    expect(result.current.validationError).toBeNull()
   })
 
   it('validationError is null when no date is set', () => {
@@ -474,7 +474,7 @@ describe('useBooking', () => {
     })
 
     expect(result.current.canSubmit).toBe(false)
-    expect(result.current.dateValidation.valid).toBe(false)
+    expect(result.current.validationError).toBeTruthy()
   })
 
   it('validationError surfaces market-closed message on a closed day', () => {
