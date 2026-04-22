@@ -57,7 +57,7 @@ export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Errors
-export { appError, isAppError } from './errors'
+export { appError, isAppError, toAppError } from './errors'
 export type { AppError, ErrorCode } from './errors'
 
 // Market mutation saga

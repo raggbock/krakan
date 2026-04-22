@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { appError, isAppError, type AppError, type ErrorCode } from './errors'
+import { appError, isAppError, toAppError, type AppError, type ErrorCode } from './errors'
 
 describe('appError', () => {
   it('constructs an AppError with just a code', () => {
@@ -27,6 +27,9 @@ describe('appError', () => {
       'booking.table_unavailable',
       'stripe.not_onboarded',
       'stripe.capture_failed',
+      'stripe.card_declined',
+      'stripe.authentication_required',
+      'stripe.network_error',
       'geocode.not_found',
       'auth.required',
       'input.invalid',
@@ -50,6 +53,9 @@ describe('isAppError', () => {
       'booking.table_unavailable',
       'stripe.not_onboarded',
       'stripe.capture_failed',
+      'stripe.card_declined',
+      'stripe.authentication_required',
+      'stripe.network_error',
       'geocode.not_found',
       'auth.required',
       'input.invalid',
@@ -102,5 +108,56 @@ describe('isAppError', () => {
 
   it('returns false for arrays', () => {
     expect(isAppError(['booking.duplicate'])).toBe(false)
+  })
+})
+
+describe('toAppError', () => {
+  it('passes through an existing AppError unchanged', () => {
+    const original = appError('booking.duplicate')
+    expect(toAppError(original)).toBe(original)
+  })
+
+  it('passes through an AppError with detail unchanged', () => {
+    const original = appError('stripe.capture_failed', { reason: 'timeout' })
+    expect(toAppError(original)).toBe(original)
+  })
+
+  it.each([
+    ['Your card_declined by issuer', 'stripe.card_declined'],
+    ['Error: card_declined', 'stripe.card_declined'],
+    ['authentication_required for this payment', 'stripe.authentication_required'],
+    ['3DS verification required', 'stripe.authentication_required'],
+    ['3ds challenge needed', 'stripe.authentication_required'],
+    ['capture_failed due to dispute', 'stripe.capture_failed'],
+    ['Not authenticated', 'auth.required'],
+    ['not authenticated — session expired', 'auth.required'],
+    ['Failed to fetch', 'stripe.network_error'],
+    ['failed to fetch resource', 'stripe.network_error'],
+    ['Network Error occurred', 'stripe.network_error'],
+    ['network error: timeout', 'stripe.network_error'],
+    ['ERR_NETWORK', 'stripe.network_error'],
+  ] as const)('maps message "%s" → code %s', (message, expectedCode) => {
+    const err = new Error(message)
+    expect(toAppError(err).code).toBe(expectedCode)
+  })
+
+  it('falls back to unknown for an unrecognised Error message', () => {
+    expect(toAppError(new Error('Something totally unexpected')).code).toBe('unknown')
+  })
+
+  it('falls back to unknown for a plain string', () => {
+    expect(toAppError('card_declined').code).toBe('unknown')
+  })
+
+  it('falls back to unknown for null', () => {
+    expect(toAppError(null).code).toBe('unknown')
+  })
+
+  it('falls back to unknown for undefined', () => {
+    expect(toAppError(undefined).code).toBe('unknown')
+  })
+
+  it('falls back to unknown for a plain object', () => {
+    expect(toAppError({ message: 'card_declined' }).code).toBe('unknown')
   })
 })
