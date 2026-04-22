@@ -66,16 +66,22 @@ export function createImageService(deps: ImageServiceDeps): ImageService {
     },
 
     async remove(image: FleaMarketImage): Promise<void> {
-      const { error: storageErr } = await supabase.storage
-        .from(BUCKET)
-        .remove([image.storage_path])
-      if (storageErr) throw storageErr
-
+      // DB-first: delete the row before touching storage. If the DB delete
+      // fails the blob is still intact — safe failure with no broken image.
       const { error } = await supabase
         .from('flea_market_images')
         .delete()
         .eq('id', image.id)
       if (error) throw error
+
+      // Storage removal is best-effort. If it fails the DB row is already gone
+      // (source of truth is correct) and the orphaned blob can be swept later.
+      const { error: storageErr } = await supabase.storage
+        .from(BUCKET)
+        .remove([image.storage_path])
+      if (storageErr) {
+        console.warn('[ImageService] orphaned storage blob:', image.storage_path, storageErr)
+      }
     },
 
     publicUrl(storagePath: string): string {

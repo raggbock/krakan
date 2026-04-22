@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { createImageService } from './images'
 
 // -----------------------------------------------------------------------------
@@ -152,18 +152,71 @@ describe('createImageService', () => {
     expect(stub.spies.uploadSpy.mock.calls[0][1]).toBe(compressed)
   })
 
-  it('remove(): deletes both the storage blob and the DB row', async () => {
-    const stub = createStubSupabase()
-    const svc = createImageService({ supabase: stub.supabase })
+  describe('remove()', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
 
-    const created = await svc.add('market-1', fakeFile())
+    it('happy path: deletes DB row first then removes storage blob', async () => {
+      const stub = createStubSupabase()
+      const svc = createImageService({ supabase: stub.supabase })
 
-    await svc.remove(created)
+      const created = await svc.add('market-1', fakeFile())
 
-    expect(stub.spies.removeSpy).toHaveBeenCalledWith([created.storage_path])
-    expect(stub.spies.deleteSpy).toHaveBeenCalledWith(created.id)
-    expect(stub.rows).toHaveLength(0)
-    expect(stub.uploads.has(created.storage_path)).toBe(false)
+      await svc.remove(created)
+
+      // Both deleted
+      expect(stub.spies.deleteSpy).toHaveBeenCalledWith(created.id)
+      expect(stub.spies.removeSpy).toHaveBeenCalledWith([created.storage_path])
+      expect(stub.rows).toHaveLength(0)
+      expect(stub.uploads.has(created.storage_path)).toBe(false)
+
+      // DB delete must have been called before storage remove
+      const deleteOrder = stub.spies.deleteSpy.mock.invocationCallOrder[0]
+      const removeOrder = stub.spies.removeSpy.mock.invocationCallOrder[0]
+      expect(deleteOrder).toBeLessThan(removeOrder)
+    })
+
+    it('DB delete fails: throws and storage remove is never called', async () => {
+      const dbError = new Error('RLS denied')
+      const stub = createStubSupabase({ deleteError: dbError })
+      const svc = createImageService({ supabase: stub.supabase })
+
+      // Seed a row directly so we have something to try to delete
+      const created = await svc.add('market-1', fakeFile())
+      stub.spies.removeSpy.mockClear()
+
+      await expect(svc.remove(created)).rejects.toThrow('RLS denied')
+
+      // Storage must not have been touched
+      expect(stub.spies.removeSpy).not.toHaveBeenCalled()
+      // The blob is still in storage
+      expect(stub.uploads.has(created.storage_path)).toBe(true)
+    })
+
+    it('storage remove fails: DB row is deleted, no throw, warning is logged', async () => {
+      const storageError = new Error('network timeout')
+      const stub = createStubSupabase({ removeError: storageError })
+      const svc = createImageService({ supabase: stub.supabase })
+
+      const created = await svc.add('market-1', fakeFile())
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      // Should not throw despite storage failure
+      await expect(svc.remove(created)).resolves.toBeUndefined()
+
+      // DB row was removed
+      expect(stub.rows).toHaveLength(0)
+      expect(stub.spies.deleteSpy).toHaveBeenCalledWith(created.id)
+
+      // Warning was logged with expected marker and path
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[ImageService] orphaned storage blob:',
+        created.storage_path,
+        storageError,
+      )
+    })
   })
 
   it('publicUrl: delegates to supabase storage getPublicUrl', () => {
