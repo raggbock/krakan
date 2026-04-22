@@ -8,6 +8,7 @@ import { MESSAGES, messageFor } from './messages.sv'
 const ALL_CODES = [
   'booking.duplicate',
   'booking.table_unavailable',
+  'booking.market_closed',
   'stripe.not_onboarded',
   'stripe.capture_failed',
   'stripe.card_declined',

@@ -5,6 +5,7 @@ import {
   isValidStatusTransition,
   generateBatchLabels,
 } from '@fyndstigen/shared'
+import type { OpeningHoursContext } from '@fyndstigen/shared'
 
 describe('calculateCommission', () => {
   it('calculates 12% commission', () => {
@@ -87,6 +88,76 @@ describe('validateBookingDate', () => {
     // so it's rejected — the important thing is it IS rejected
     const result = validateBookingDate('2026-02-30', [], today)
     expect(result.valid).toBe(false)
+  })
+
+  describe('with opening hours context', () => {
+    // 2026-04-10 is a Friday (day 5)
+    const saturdayOnlyContext: OpeningHoursContext = {
+      rules: [
+        {
+          id: 'r1',
+          type: 'weekly',
+          day_of_week: 6, // Saturday
+          anchor_date: null,
+          open_time: '09:00',
+          close_time: '15:00',
+        },
+      ],
+      exceptions: [],
+    }
+
+    it('rejects a date when market is closed (Friday vs Saturday-only market)', () => {
+      // 2026-04-10 is a Friday
+      const result = validateBookingDate('2026-04-10', [], today, saturdayOnlyContext)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe('Marknaden är stängd det valda datumet')
+    })
+
+    it('accepts a date when market is open (Saturday)', () => {
+      // 2026-04-11 is a Saturday
+      const result = validateBookingDate('2026-04-11', [], today, saturdayOnlyContext)
+      expect(result.valid).toBe(true)
+    })
+
+    it('rejects a date that is an exception (closed day)', () => {
+      const exceptionContext: OpeningHoursContext = {
+        rules: [
+          {
+            id: 'r1',
+            type: 'weekly',
+            day_of_week: 6,
+            anchor_date: null,
+            open_time: '09:00',
+            close_time: '15:00',
+          },
+        ],
+        exceptions: [{ id: 'e1', date: '2026-04-11', reason: 'Stängt för helgdag' }],
+      }
+      // 2026-04-11 is a Saturday but it is an exception (closed)
+      const result = validateBookingDate('2026-04-11', [], today, exceptionContext)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe('Marknaden är stängd det valda datumet')
+    })
+
+    it('preserves existing past-date check before opening-hours check', () => {
+      // Past date should fail before opening-hours is even checked
+      const result = validateBookingDate('2026-04-05', [], today, saturdayOnlyContext)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe('Kan inte boka i det förflutna')
+    })
+
+    it('preserves existing already-booked check before opening-hours check', () => {
+      // 2026-04-11 is Saturday (open), but it is already booked
+      const result = validateBookingDate('2026-04-11', ['2026-04-11'], today, saturdayOnlyContext)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe('Redan bokat detta datum')
+    })
+
+    it('without opening hours context preserves old behaviour (open day)', () => {
+      // No context → passes even on a closed day
+      const result = validateBookingDate('2026-04-10', [], today)
+      expect(result.valid).toBe(true)
+    })
   })
 })
 

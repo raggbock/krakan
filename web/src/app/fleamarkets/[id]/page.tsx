@@ -146,7 +146,13 @@ export default function FleaMarketDetailsPage() {
         )}
 
         {tables.length > 0 && (
-          <BookableTablesCard fleaMarketId={id} tables={tables} />
+          <BookableTablesCard
+            fleaMarketId={id}
+            tables={tables}
+            openingHours={market.opening_hour_rules.length > 0 || market.opening_hour_exceptions.length > 0
+              ? { rules: market.opening_hour_rules, exceptions: market.opening_hour_exceptions }
+              : undefined}
+          />
         )}
       </div>
 

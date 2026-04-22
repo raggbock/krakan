@@ -9,6 +9,7 @@
 export type ErrorCode =
   | 'booking.duplicate'
   | 'booking.table_unavailable'
+  | 'booking.market_closed'
   | 'stripe.not_onboarded'
   | 'stripe.capture_failed'
   | 'stripe.card_declined'
@@ -22,6 +23,7 @@ export type ErrorCode =
 const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'booking.duplicate',
   'booking.table_unavailable',
+  'booking.market_closed',
   'stripe.not_onboarded',
   'stripe.capture_failed',
   'stripe.card_declined',

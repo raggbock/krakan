@@ -15,10 +15,12 @@ import type { Api } from './api'
 import type { Booking } from './types'
 import type { BookingEvent, BookingPatch } from './booking-lifecycle'
 import { calculateCommission, validateBookingDate } from './booking'
+import type { OpeningHoursContext } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
 
 // Re-exported so callers need only this import surface.
 export type { BookingEvent, BookingPatch }
+export type { OpeningHoursContext }
 
 export type DateValidation = { valid: boolean; error?: string }
 
@@ -40,8 +42,10 @@ export type BookingService = {
    * Validate a booking date against already-booked dates.
    * `today` is injected to keep the function deterministic and testable;
    * if omitted it defaults to the current local date (YYYY-MM-DD).
+   * When `openingHours` is supplied, also validates that the date falls on an
+   * open day according to the market's rules and exceptions.
    */
-  validateDate(date: string, bookedDates: string[], today?: string): DateValidation
+  validateDate(date: string, bookedDates: string[], today?: string, openingHours?: OpeningHoursContext): DateValidation
 
   /** Return dates already booked (pending or confirmed) for the given table. */
   getBookedDates(tableId: string): Promise<string[]>
@@ -68,11 +72,12 @@ export function createBookingService(deps: { api: Api }): BookingService {
       return { price: priceSek, commission, total: priceSek + commission }
     },
 
-    validateDate(date, bookedDates, today) {
+    validateDate(date, bookedDates, today, openingHours) {
       return validateBookingDate(
         date,
         bookedDates,
         today ?? new Date().toISOString().slice(0, 10),
+        openingHours,
       )
     },
 

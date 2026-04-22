@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createBookingService } from './booking-service'
+import type { OpeningHoursContext } from './booking-service'
 import type { Api } from './api'
 import type { Booking } from './types'
 
@@ -71,6 +72,47 @@ describe('BookingService.validateDate', () => {
   it('accepts a valid future date', () => {
     const svc = createBookingService({ api: makeApi() })
     expect(svc.validateDate('2026-12-01', [], '2026-04-21')).toEqual({ valid: true })
+  })
+
+  it('rejects a closed day when opening hours context is provided', () => {
+    // 2026-12-01 is a Tuesday (day 2); market only opens on Saturdays
+    const openingHours: OpeningHoursContext = {
+      rules: [
+        {
+          id: 'r1',
+          type: 'weekly',
+          day_of_week: 6,
+          anchor_date: null,
+          open_time: '09:00',
+          close_time: '15:00',
+        },
+      ],
+      exceptions: [],
+    }
+    const svc = createBookingService({ api: makeApi() })
+    const result = svc.validateDate('2026-12-01', [], '2026-04-21', openingHours)
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/stängd/)
+  })
+
+  it('accepts an open day when opening hours context is provided', () => {
+    // 2026-12-05 is a Saturday
+    const openingHours: OpeningHoursContext = {
+      rules: [
+        {
+          id: 'r1',
+          type: 'weekly',
+          day_of_week: 6,
+          anchor_date: null,
+          open_time: '09:00',
+          close_time: '15:00',
+        },
+      ],
+      exceptions: [],
+    }
+    const svc = createBookingService({ api: makeApi() })
+    const result = svc.validateDate('2026-12-05', [], '2026-04-21', openingHours)
+    expect(result.valid).toBe(true)
   })
 })
 

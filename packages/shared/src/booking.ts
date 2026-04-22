@@ -1,4 +1,10 @@
-import type { BookingStatus } from './types'
+import type { BookingStatus, OpeningHourRule, OpeningHourException } from './types'
+import { checkOpeningHours } from './opening-hours'
+
+export type OpeningHoursContext = {
+  rules: OpeningHourRule[]
+  exceptions: OpeningHourException[]
+}
 
 export const COMMISSION_RATE = 0.12
 
@@ -23,6 +29,7 @@ export function validateBookingDate(
   dateStr: string,
   bookedDates: string[],
   today: string,
+  openingHours?: OpeningHoursContext,
 ): { valid: boolean; error?: string } {
   if (!dateStr) return { valid: false, error: 'Datum krävs' }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return { valid: false, error: 'Ogiltigt datumformat' }
@@ -31,6 +38,11 @@ export function validateBookingDate(
   if (isNaN(date.getTime())) return { valid: false, error: 'Ogiltigt datum' }
   if (dateStr < today) return { valid: false, error: 'Kan inte boka i det förflutna' }
   if (bookedDates.includes(dateStr)) return { valid: false, error: 'Redan bokat detta datum' }
+
+  if (openingHours) {
+    const result = checkOpeningHours(openingHours.rules, openingHours.exceptions, dateStr)
+    if (!result.isOpen) return { valid: false, error: 'Marknaden är stängd det valda datumet' }
+  }
 
   return { valid: true }
 }
