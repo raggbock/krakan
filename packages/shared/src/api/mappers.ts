@@ -91,7 +91,7 @@ export function mapFleaMarketDetails(row: FleaMarketDetailsRow): FleaMarketDetai
 // --- Booking mappers ---
 
 export type BookingRow = Record<string, unknown> & {
-  market_tables: MarketTableJoin
+  market_tables?: MarketTableJoin | null
   flea_markets?: { name: string; city: string } | null
   profiles?: ProfileJoin
 }

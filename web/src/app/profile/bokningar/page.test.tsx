@@ -36,7 +36,7 @@ const mockUser = { id: 'u1', email: 'organizer@test.se' }
 
 const mockMarket = { id: 'fm1', name: 'Sommarlopppis', organizer_id: 'u1' }
 
-// mockBooking uses the BookingView (camelCase) shape produced by mapBookingViewForOrganizer
+// mockBooking uses the BookingView (camelCase) shape produced by mapBookingView
 const mockBooking = {
   id: 'b1',
   table: { id: 't1', label: 'Bord A', description: null, sizeDescription: null },

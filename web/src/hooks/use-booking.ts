@@ -61,7 +61,6 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     return bookingService.validateDate(date, bookedDates, today, openingHours)
   }, [date, bookedDates, today, openingHours])
 
-  const dateConflict = date ? bookedDates.includes(date) : false
   const validationError = date && dateValidation.error ? dateValidation.error : null
 
   const price = selectedTable?.price_sek ?? 0
