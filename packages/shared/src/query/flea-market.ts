@@ -54,6 +54,11 @@ export const FleaMarketQuery = {
     ` as const,
 
     mapRow(row: FleaMarketDetailsRow): FleaMarketDetails {
+      // Nested rows are narrowed to the fields the domain actually uses.
+      // Columns like flea_market_id / created_at on the joined rows are
+      // intentionally dropped — the domain doesn't read them, and keeping the
+      // mapping explicit makes a regression visible if someone starts relying
+      // on a passthrough field.
       const { profiles, opening_hour_rules, opening_hour_exceptions, flea_market_images, ...rest } = row
       return {
         ...rest,
