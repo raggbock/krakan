@@ -1,5 +1,13 @@
 import type { AuthPort, AuthUser } from '../ports/auth'
 import type { ServerDataPort } from '../ports/server'
+import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../ports/flea-markets'
+import type { BookingRepository } from '../ports/bookings'
+import type { RouteRepository } from '../ports/routes'
+import type { ProfileRepository, OrganizerRepository } from '../ports/profiles'
+import { createInMemoryFleaMarkets, createInMemorySearch, createInMemoryMarketTables } from './in-memory/flea-markets'
+import { createInMemoryBookings } from './in-memory/bookings'
+import { createInMemoryRoutes } from './in-memory/routes'
+import { createInMemoryProfiles, createInMemoryOrganizers } from './in-memory/profiles'
 
 export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
   let currentUser: AuthUser | null = initialUser ?? null
@@ -86,4 +94,34 @@ export function createInMemoryServerData(seed?: {
       return routes.map((r) => ({ id: r.id, updatedAt: r.updatedAt }))
     },
   }
+}
+
+/**
+ * createInMemoryStack — wires all in-memory repositories together into a
+ * single coherent stack. Use this in hook seam-tests and integration tests
+ * instead of wiring each repo by hand.
+ *
+ * The `profiles` repo is injected into `fleaMarkets` so that `details()`
+ * can resolve `organizerName` from the shared profiles store.
+ * The `fleaMarkets` repo is injected into `search` so queries run against
+ * the real in-memory store rather than a private Map snapshot.
+ */
+export function createInMemoryStack(): {
+  fleaMarkets: FleaMarketRepository
+  search: SearchRepository
+  marketTables: MarketTableRepository
+  bookings: BookingRepository
+  routes: RouteRepository
+  profiles: ProfileRepository
+  organizers: OrganizerRepository
+} {
+  const profiles = createInMemoryProfiles()
+  const organizers = createInMemoryOrganizers()
+  const fleaMarkets = createInMemoryFleaMarkets([], { profiles })
+  const search = createInMemorySearch({ fleaMarkets })
+  const marketTables = createInMemoryMarketTables()
+  const bookings = createInMemoryBookings()
+  const routes = createInMemoryRoutes()
+
+  return { fleaMarkets, search, marketTables, bookings, routes, profiles, organizers }
 }
