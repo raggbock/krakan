@@ -8,6 +8,7 @@ import type { FleaMarketNearBy } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { usePostHog } from 'posthog-js/react'
 import type { OpeningHourRule, OpeningHourException, Stop } from '@fyndstigen/shared'
+import { runRouteMutation } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { RouteFormFields } from './route-builder/route-form-fields'
 import { StopList, type RouteStop } from './route-builder/stop-list'
@@ -92,29 +93,46 @@ export default function RouteBuilder() {
   async function handleSave() {
     if (!user || !name.trim() || stops.length === 0) return
     setSaving(true)
-    try {
-      const startLat = !useGps && customStart ? customStart.lat : userPos?.lat
-      const startLng = !useGps && customStart ? customStart.lng : userPos?.lng
+    setSaveError('')
 
-      const { id } = await api.routes.create({
-        name: name.trim(),
-        createdBy: user.id,
-        startLatitude: startLat,
-        startLongitude: startLng,
-        plannedDate: plannedDate || undefined,
-        stops: stops.map((s) => ({ fleaMarketId: s.market.id })),
-      })
-      posthog?.capture('route_saved', {
-        route_id: id,
-        stop_count: stops.length,
-        market_ids: stops.map((s) => s.market.id),
-      })
-      router.push(`/rundor/${id}`)
-    } catch {
-      setSaveError('Kunde inte spara rundan. Försök igen.')
-    } finally {
-      setSaving(false)
+    const startLat = !useGps && customStart ? customStart.lat : userPos?.lat
+    const startLng = !useGps && customStart ? customStart.lng : userPos?.lng
+
+    const plan = {
+      route: {
+        create: {
+          name: name.trim(),
+          createdBy: user.id,
+          startLatitude: startLat,
+          startLongitude: startLng,
+          plannedDate: plannedDate || undefined,
+        },
+      },
+      stops: {
+        add: stops.map((s) => ({ fleaMarketId: s.market.id })),
+        remove: [] as string[],
+      },
     }
+
+    for await (const ev of runRouteMutation(plan, { api })) {
+      if ('type' in ev) {
+        if (ev.type === 'complete') {
+          posthog?.capture('route_saved', {
+            route_id: ev.routeId,
+            stop_count: stops.length,
+            market_ids: stops.map((s) => s.market.id),
+          })
+          router.push(`/rundor/${ev.routeId}`)
+        } else {
+          // ev.type === 'failed'
+          setSaveError('Kunde inte spara rundan. Försök igen.')
+          setSaving(false)
+        }
+        return
+      }
+    }
+
+    setSaving(false)
   }
 
   return (

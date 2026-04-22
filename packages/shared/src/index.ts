@@ -77,6 +77,19 @@ export type {
   MarketUpdateFields,
 } from './market-mutation'
 
+// Route mutation saga
+export { runRouteMutation, collectRouteEvents } from './route-mutation'
+export type {
+  RoutePlan,
+  RouteEvent,
+  RoutePhase,
+  RouteDeps,
+  RouteMutationApi,
+  StopDraft,
+  RouteCreateFields,
+  RouteUpdateFields,
+} from './route-mutation'
+
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
 export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'
