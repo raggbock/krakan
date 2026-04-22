@@ -6,9 +6,8 @@ import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fy
 import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
 // Input/output contracts — mirror of packages/shared/src/contracts/booking-create.ts.
-// Kept duplicated (not imported) because this file runs on Deno via esm.sh and
-// cannot resolve the workspace package. Keep the two in sync — same rule as
-// _shared/pricing.ts mirroring packages/shared/src/booking.ts.
+// Kept duplicated because we still pull zod via esm.sh here; see RFC #39 for
+// the plan to consume contracts from @fyndstigen/shared directly.
 const Input = z.object({
   marketTableId: z.string().min(1),
   fleaMarketId: z.string().min(1),
