@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
-import type { BookingStatus, CreateBookingPayload, BookingWithDetails } from '../../types'
+import type { BookingStatus, CreateBookingPayload } from '../../types'
 import {
-  mapBookingForUser,
+  mapBookingViewForUser,
   mapBookingViewForOrganizer,
   type BookingRow,
 } from '../../api/mappers'
@@ -43,7 +43,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
         .eq('booked_by', userId)
         .order('booking_date', { ascending: false })
       if (error) throw error
-      return (data ?? []).map((b) => mapBookingForUser(b as BookingRow)) as BookingWithDetails[]
+      return (data ?? []).map((b) => mapBookingViewForUser(b as BookingRow))
     },
 
     async listByMarket(fleaMarketId) {
