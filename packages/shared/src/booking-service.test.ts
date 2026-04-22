@@ -3,10 +3,35 @@ import { createBookingService } from './booking-service'
 import type { OpeningHoursContext } from './booking-service'
 import type { Api } from './api'
 import type { Booking } from './types'
+import type { PaymentGateway, PaymentResult } from './ports/payment'
+import type { Telemetry, TelemetryEvent } from './ports/telemetry'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** In-memory PaymentGateway for contract tests. */
+function makePaymentGateway(result: PaymentResult = { status: 'succeeded' }): PaymentGateway & { calls: string[] } {
+  const calls: string[] = []
+  return {
+    calls,
+    async confirmCardPayment(clientSecret: string): Promise<PaymentResult> {
+      calls.push(clientSecret)
+      return result
+    },
+  }
+}
+
+/** In-memory Telemetry for contract tests. */
+function makeTelemetry(): Telemetry & { events: TelemetryEvent[] } {
+  const events: TelemetryEvent[] = []
+  return {
+    events,
+    capture(event: TelemetryEvent) {
+      events.push(event)
+    },
+  }
+}
 
 function makeApi(overrides: Partial<Api> = {}): Api {
   return {
@@ -232,5 +257,101 @@ describe('BookingService.applyEvent', () => {
     const patch = svc.applyEvent(booking, { type: 'user.cancel' })
     expect(patch).toMatchObject({ status: 'cancelled', payment_status: 'free' })
     expect(patch.cancelled_at).toBeDefined()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// book() — four-branch contract tests
+// ---------------------------------------------------------------------------
+
+const BASE_BOOK_PARAMS = {
+  marketTableId: 'tbl-1',
+  fleaMarketId: 'mkt-1',
+  bookingDate: '2026-12-01',
+  tableLabel: 'Bord A',
+}
+
+describe('BookingService.book — free auto-accept', () => {
+  it('calls edge endpoint, skips payment gateway, emits telemetry', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-auto' })
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway()
+    const telemetry = makeTelemetry()
+
+    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment, telemetry })
+
+    expect(result).toEqual({ bookingId: 'b-free-auto' })
+    expect(bookingCreate).toHaveBeenCalledWith(expect.objectContaining({ marketTableId: 'tbl-1' }))
+    expect(payment.calls).toHaveLength(0)
+    expect(telemetry.events).toHaveLength(1)
+    expect(telemetry.events[0].name).toBe('booking_initiated')
+    expect(telemetry.events[0].properties).toMatchObject({ is_free: true, price_sek: 0 })
+  })
+})
+
+describe('BookingService.book — free manual-accept', () => {
+  it('calls edge endpoint without clientSecret, skips payment gateway', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-manual' })
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway()
+    const telemetry = makeTelemetry()
+
+    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment, telemetry })
+
+    expect(result).toEqual({ bookingId: 'b-free-manual' })
+    expect(payment.calls).toHaveLength(0)
+  })
+})
+
+describe('BookingService.book — paid auto-accept', () => {
+  it('calls edge endpoint, confirms payment via gateway', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-auto', clientSecret: 'pi_auto_secret' })
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway({ status: 'succeeded' })
+    const telemetry = makeTelemetry()
+
+    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry })
+
+    expect(result).toEqual({ bookingId: 'b-paid-auto' })
+    expect(payment.calls).toEqual(['pi_auto_secret'])
+    expect(telemetry.events[0].properties).toMatchObject({ is_free: false, price_sek: 200 })
+  })
+
+  it('throws when payment gateway returns failed', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-fail', clientSecret: 'pi_fail' })
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway({ status: 'failed', error: 'Kortet nekades' })
+    const telemetry = makeTelemetry()
+
+    await expect(
+      svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry }),
+    ).rejects.toThrow('Kortet nekades')
+  })
+})
+
+describe('BookingService.book — paid manual-accept', () => {
+  it('calls edge endpoint, confirms payment via gateway (manual capture)', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-manual', clientSecret: 'pi_manual_secret' })
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway({ status: 'succeeded' })
+    const telemetry = makeTelemetry()
+
+    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 500 }, { payment, telemetry })
+
+    expect(result).toEqual({ bookingId: 'b-paid-manual' })
+    expect(payment.calls).toEqual(['pi_manual_secret'])
+    expect(telemetry.events[0].name).toBe('booking_initiated')
+  })
+
+  it('does not confirm payment when edge function throws', async () => {
+    const bookingCreate = vi.fn().mockRejectedValue(new Error('Stripe not configured'))
+    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const payment = makePaymentGateway()
+    const telemetry = makeTelemetry()
+
+    await expect(
+      svc.book({ ...BASE_BOOK_PARAMS, priceSek: 500 }, { payment, telemetry }),
+    ).rejects.toThrow('Stripe not configured')
+    expect(payment.calls).toHaveLength(0)
   })
 })

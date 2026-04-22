@@ -7,6 +7,8 @@ import { api, bookingService, MarketTable } from '@/lib/api'
 import { isFreePriced, toAppError } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
+import { createStripePaymentGateway } from '@/lib/adapters/stripe-payment-gateway'
+import { createPostHogTelemetry } from '@/lib/adapters/posthog-telemetry'
 
 type BookingHook = {
   selectedTable: MarketTable | null
@@ -74,31 +76,46 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     if (!canSubmit || !selectedTable) return
     setIsSubmitting(true)
     setSubmitError(null)
-    posthog?.capture('booking_initiated', {
-      flea_market_id: marketId,
-      market_name: selectedTable.label,
-      table_label: selectedTable.label,
-      price_sek: selectedTable.price_sek,
-      is_free: isFree,
-    })
+
     try {
-      const data = await bookingService.createWithPayment({
-        marketTableId: selectedTable.id,
-        fleaMarketId: marketId,
-        bookingDate: date,
-        message: message || undefined,
-      })
-
-      if (data.clientSecret) {
-        if (!stripe || !elements) throw new Error('Stripe not loaded')
+      // Build payment gateway lazily — only if Stripe is loaded and we have a card element.
+      // For free tables, the gateway is never called (no clientSecret returned).
+      const payment = (() => {
+        if (!stripe || !elements) {
+          // Stripe not loaded — provide a no-op gateway. If a clientSecret
+          // comes back from the edge, we throw below.
+          return {
+            confirmCardPayment: async (clientSecret: string) => {
+              if (clientSecret) throw new Error('Stripe not loaded')
+              return { status: 'succeeded' as const }
+            },
+          }
+        }
         const cardElement = elements.getElement(CardElement) as StripeCardElement | null
-        if (!cardElement) throw new Error('Card element not found')
+        if (!cardElement) {
+          return {
+            confirmCardPayment: async (clientSecret: string) => {
+              if (clientSecret) throw new Error('Card element not found')
+              return { status: 'succeeded' as const }
+            },
+          }
+        }
+        return createStripePaymentGateway(stripe, cardElement)
+      })()
 
-        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret, {
-          payment_method: { card: cardElement },
-        })
-        if (confirmError) throw new Error(confirmError.message)
-      }
+      const telemetry = createPostHogTelemetry(posthog)
+
+      await bookingService.book(
+        {
+          marketTableId: selectedTable.id,
+          fleaMarketId: marketId,
+          bookingDate: date,
+          message: message || undefined,
+          tableLabel: selectedTable.label,
+          priceSek: selectedTable.price_sek,
+        },
+        { payment, telemetry },
+      )
 
       setIsDone(true)
       setSelectedTable(null)
@@ -109,7 +126,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     } finally {
       setIsSubmitting(false)
     }
-  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message, posthog, isFree])
+  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message, posthog])
 
   function reset() {
     setSelectedTable(null)
