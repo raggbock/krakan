@@ -131,8 +131,6 @@ export default function RouteBuilder() {
         return
       }
     }
-
-    setSaving(false)
   }
 
   return (

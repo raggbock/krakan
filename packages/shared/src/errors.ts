@@ -72,7 +72,13 @@ export function toAppError(err: unknown): AppError {
   if (err instanceof Error) {
     const msg = err.message
     if (msg.includes('card_declined')) return appError('stripe.card_declined')
-    if (msg.includes('authentication_required') || /3ds/i.test(msg))
+    // Match "3ds" as a word (case-insensitive) or explicit "3d secure" variants,
+    // but not "3dsmax" or arbitrary substrings that happen to contain those letters.
+    if (
+      msg.includes('authentication_required') ||
+      /\b3ds\b/i.test(msg) ||
+      /\b3d[_ -]?secure\b/i.test(msg)
+    )
       return appError('stripe.authentication_required')
     if (msg.includes('capture_failed')) return appError('stripe.capture_failed')
     if (/not authenticated/i.test(msg)) return appError('auth.required')

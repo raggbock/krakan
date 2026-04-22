@@ -192,10 +192,8 @@ export function createSupabaseSearch(supabase: SupabaseClient): SearchRepository
   return {
     async query(query) {
       const { data, error } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('*')
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
         .ilike('name', `%${query.replace(/[%_\\]/g, '\\$&')}%`)
         .limit(20)
 

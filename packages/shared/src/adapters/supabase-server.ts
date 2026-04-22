@@ -88,11 +88,9 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       if (!profile) return null
 
       const { count } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('id', { count: 'exact', head: true })
         .eq('organizer_id', id)
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
 
       const name = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Arrangör'
       return {
