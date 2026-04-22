@@ -6,17 +6,14 @@
  * .select() shape. Keeping them here means column renames surface as
  * TypeScript errors in the mappers, not as runtime crashes in components.
  *
- * Mapper functions exist in two generations:
- *   - Legacy:  mapBookingForUser / mapBookingForOrganizer → BookingWithDetails (snake_case)
- *   - Current: mapBookingViewForUser / mapBookingViewForOrganizer → BookingView (camelCase)
- *
- * New consumers should use the *View variants. The legacy variants are kept
- * for back-compat until all callers are migrated (issue #9 follow-up).
+ * Booking mapper: mapBookingView(row) → BookingView (camelCase)
+ *   - Fills booker when row.profiles is present, otherwise null
+ *   - Fills market when row.flea_markets is present, otherwise null
+ *   - Fills table when row.market_tables is present, otherwise null
  */
 
 import type {
   FleaMarketDetails,
-  BookingWithDetails,
   RouteWithStops,
   RouteSummary,
   RouteStop,
@@ -99,34 +96,20 @@ export type BookingRow = Record<string, unknown> & {
   profiles?: ProfileJoin
 }
 
-export function mapBookingForUser(row: BookingRow): BookingWithDetails {
-  const { market_tables, flea_markets, ...rest } = row
-  return {
-    ...rest,
-    market_table: market_tables,
-    flea_market: flea_markets ?? null,
-    booker: null,
-  } as BookingWithDetails
-}
-
-export function mapBookingForOrganizer(row: BookingRow): BookingWithDetails {
-  const { market_tables, profiles, ...rest } = row
-  return {
-    ...rest,
-    market_table: market_tables,
-    flea_market: null,
-    booker: profiles ?? null,
-  } as BookingWithDetails
-}
-
-// --- BookingView mappers (current generation, camelCase output) ---
+// --- BookingView mapper ---
 
 /**
- * Maps a Supabase booking row (with market_tables + flea_markets join) to
- * a BookingView. Use this at the api boundary for components that have been
- * migrated off the snake_case aliases.
+ * Maps a Supabase booking row to a BookingView (camelCase domain type).
+ *
+ * Detects joined relations at runtime:
+ *   - Fills table  when row.market_tables is present, otherwise null
+ *   - Fills market when row.flea_markets  is present, otherwise null
+ *   - Fills booker when row.profiles      is present, otherwise null
+ *
+ * This single function covers both the user (flea_markets join, no profiles)
+ * and organizer (profiles join, no flea_markets) query shapes.
  */
-export function mapBookingViewForUser(row: BookingRow): BookingView {
+export function mapBookingView(row: BookingRow): BookingView {
   const r = row as Record<string, unknown>
   return {
     id: r.id as string,
@@ -145,43 +128,6 @@ export function mapBookingViewForUser(row: BookingRow): BookingView {
           city: row.flea_markets.city,
         }
       : null,
-    booker: null,
-    date: r.booking_date as string,
-    status: r.status as BookingView['status'],
-    price: {
-      baseSek: r.price_sek as number,
-      commissionSek: r.commission_sek as number,
-      commissionRate: r.commission_rate as number,
-    },
-    message: r.message as string | null,
-    organizerNote: r.organizer_note as string | null,
-    payment: {
-      status: (r.payment_status as BookingView['payment']['status']) ?? null,
-      intentId: (r.stripe_payment_intent_id as string | null) ?? null,
-      expiresAt: (r.expires_at as string | null) ?? null,
-    },
-    createdAt: r.created_at as string,
-  }
-}
-
-/**
- * Maps a Supabase booking row (with market_tables + profiles join) to a
- * BookingView for organizer dashboard use. Use this at the api boundary for
- * components that have been migrated off the snake_case aliases.
- */
-export function mapBookingViewForOrganizer(row: BookingRow): BookingView {
-  const r = row as Record<string, unknown>
-  return {
-    id: r.id as string,
-    table: row.market_tables
-      ? {
-          id: r.market_table_id as string,
-          label: row.market_tables.label,
-          description: row.market_tables.description,
-          sizeDescription: row.market_tables.size_description,
-        }
-      : null,
-    market: null,
     booker: row.profiles
       ? {
           id: r.booked_by as string,
