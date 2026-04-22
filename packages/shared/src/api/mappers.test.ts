@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   formatName,
-  mapBookingViewForUser,
-  mapBookingViewForOrganizer,
+  mapBookingView,
   mapRouteSummary,
   type BookingRow,
   type RouteSummaryRow,
@@ -59,18 +58,18 @@ describe('formatName', () => {
 })
 
 // ---------------------------------------------------------------------------
-// mapBookingViewForUser — round-trip tests
+// mapBookingView — core field mapping
 // ---------------------------------------------------------------------------
 
-describe('mapBookingViewForUser', () => {
+describe('mapBookingView — core fields', () => {
   it('maps core id field', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     expect(view.id).toBe('b1')
   })
 
   it('maps table sub-object from market_tables join', () => {
     const row = makeBookingRow()
-    const view = mapBookingViewForUser(row)
+    const view = mapBookingView(row)
     // table.id comes from market_table_id (the FK), not the joined row's id
     expect(view.table?.id).toBe(row.market_table_id)
     expect(view.table?.label).toBe('Bord A')
@@ -78,58 +77,39 @@ describe('mapBookingViewForUser', () => {
     expect(view.table?.sizeDescription).toBe('180x60 cm')
   })
 
-  it('maps market sub-object from flea_markets join', () => {
-    const row = makeBookingRow()
-    const view = mapBookingViewForUser(row)
-    expect(view.market?.id).toBe(row.flea_market_id)
-    expect(view.market?.name).toBe('Sommarlopppis')
-    expect(view.market?.city).toBe('Stockholm')
-  })
-
-  it('sets booker to null (user view does not join profiles)', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
-    expect(view.booker).toBeNull()
-  })
-
   it('maps date to booking_date', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     expect(view.date).toBe('2026-05-01')
   })
 
   it('maps price sub-object', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     expect(view.price.baseSek).toBe(200)
     expect(view.price.commissionSek).toBe(24)
     expect(view.price.commissionRate).toBe(0.12)
   })
 
   it('maps payment sub-object', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     expect(view.payment.status).toBe('requires_capture')
     expect(view.payment.intentId).toBe('pi_test')
     expect(view.payment.expiresAt).toBe('2026-04-22T12:00:00Z')
   })
 
   it('maps message and organizerNote', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     expect(view.message).toBe('Säljer böcker')
     expect(view.organizerNote).toBeNull()
   })
 
   it('sets table to null when market_tables join is absent', () => {
     const row = makeBookingRow({ market_tables: null })
-    const view = mapBookingViewForUser(row)
+    const view = mapBookingView(row)
     expect(view.table).toBeNull()
   })
 
-  it('sets market to null when flea_markets join is absent', () => {
-    const row = makeBookingRow({ flea_markets: null })
-    const view = mapBookingViewForUser(row)
-    expect(view.market).toBeNull()
-  })
-
   it('does NOT expose raw DB column names on the view', () => {
-    const view = mapBookingViewForUser(makeBookingRow()) as unknown as Record<string, unknown>
+    const view = mapBookingView(makeBookingRow()) as unknown as Record<string, unknown>
     // These snake_case FK columns must NOT appear on the domain view
     expect(view).not.toHaveProperty('market_table_id')
     expect(view).not.toHaveProperty('flea_market_id')
@@ -146,54 +126,86 @@ describe('mapBookingViewForUser', () => {
 })
 
 // ---------------------------------------------------------------------------
-// mapBookingViewForOrganizer — round-trip tests
+// mapBookingView — per-shape cases (runtime join detection)
 // ---------------------------------------------------------------------------
 
-describe('mapBookingViewForOrganizer', () => {
-  it('maps booker sub-object from profiles join', () => {
+describe('mapBookingView — only-market-join shape (user query: flea_markets, no profiles)', () => {
+  it('fills market from flea_markets join', () => {
+    const row = makeBookingRow({ flea_markets: { name: 'Sommarlopppis', city: 'Stockholm' }, profiles: undefined })
+    const view = mapBookingView(row)
+    expect(view.market?.id).toBe(row.flea_market_id)
+    expect(view.market?.name).toBe('Sommarlopppis')
+    expect(view.market?.city).toBe('Stockholm')
+  })
+
+  it('sets booker to null when profiles join is absent', () => {
+    const row = makeBookingRow({ profiles: undefined })
+    const view = mapBookingView(row)
+    expect(view.booker).toBeNull()
+  })
+})
+
+describe('mapBookingView — only-booker-join shape (organizer query: profiles, no flea_markets)', () => {
+  it('fills booker from profiles join', () => {
     const row = makeBookingRow({
+      flea_markets: null,
       profiles: { first_name: 'Erik', last_name: 'Nilsson' },
     })
-    const view = mapBookingViewForOrganizer(row)
+    const view = mapBookingView(row)
     expect(view.booker?.id).toBe(row.booked_by)
     expect(view.booker?.firstName).toBe('Erik')
     expect(view.booker?.lastName).toBe('Nilsson')
   })
 
-  it('sets market to null (organizer view does not join flea_markets)', () => {
+  it('sets market to null when flea_markets join is absent', () => {
     const row = makeBookingRow({
+      flea_markets: null,
       profiles: { first_name: 'Erik', last_name: 'Nilsson' },
     })
-    const view = mapBookingViewForOrganizer(row)
+    const view = mapBookingView(row)
     expect(view.market).toBeNull()
   })
 
   it('sets booker to null when profiles join absent', () => {
-    const row = makeBookingRow({ profiles: undefined })
-    const view = mapBookingViewForOrganizer(row)
+    const row = makeBookingRow({ flea_markets: null, profiles: undefined })
+    const view = mapBookingView(row)
     expect(view.booker).toBeNull()
   })
 
   it('maps table sub-object correctly', () => {
     const row = makeBookingRow({
+      flea_markets: null,
       profiles: { first_name: 'Erik', last_name: 'Nilsson' },
     })
-    const view = mapBookingViewForOrganizer(row)
+    const view = mapBookingView(row)
     expect(view.table?.label).toBe('Bord A')
     expect(view.table?.id).toBe(row.market_table_id)
   })
 
   it('does NOT expose raw DB column names on the view', () => {
     const row = makeBookingRow({
+      flea_markets: null,
       profiles: { first_name: 'Erik', last_name: 'Nilsson' },
     })
-    const view = mapBookingViewForOrganizer(row) as unknown as Record<string, unknown>
+    const view = mapBookingView(row) as unknown as Record<string, unknown>
     expect(view).not.toHaveProperty('market_table_id')
     expect(view).not.toHaveProperty('flea_market_id')
     expect(view).not.toHaveProperty('booked_by')
     expect(view).not.toHaveProperty('booking_date')
     expect(view).not.toHaveProperty('stripe_payment_intent_id')
     expect(view).not.toHaveProperty('payment_status')
+  })
+})
+
+describe('mapBookingView — both-joined shape (market + booker present)', () => {
+  it('fills both market and booker when both joins are present', () => {
+    const row = makeBookingRow({
+      flea_markets: { name: 'Sommarlopppis', city: 'Stockholm' },
+      profiles: { first_name: 'Anna', last_name: 'Svensson' },
+    })
+    const view = mapBookingView(row)
+    expect(view.market?.name).toBe('Sommarlopppis')
+    expect(view.booker?.firstName).toBe('Anna')
   })
 })
 
@@ -226,7 +238,7 @@ describe('mapRouteSummary', () => {
 
 describe('BookingView type contract', () => {
   it('satisfies the BookingView interface', () => {
-    const view = mapBookingViewForUser(makeBookingRow())
+    const view = mapBookingView(makeBookingRow())
     // Type assertion — if BookingView changes, this will fail to compile
     const _typed: BookingView = view
     expect(_typed.id).toBeDefined()

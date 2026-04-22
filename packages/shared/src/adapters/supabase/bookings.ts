@@ -2,8 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
 import type { BookingStatus, CreateBookingPayload } from '../../types'
 import {
-  mapBookingViewForUser,
-  mapBookingViewForOrganizer,
+  mapBookingView,
   type BookingRow,
 } from '../../api/mappers'
 import type { BookingView } from '../../types/domain'
@@ -43,7 +42,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
         .eq('booked_by', userId)
         .order('booking_date', { ascending: false })
       if (error) throw error
-      return (data ?? []).map((b) => mapBookingViewForUser(b as BookingRow))
+      return (data ?? []).map((b) => mapBookingView(b as BookingRow))
     },
 
     async listByMarket(fleaMarketId) {
@@ -58,7 +57,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
         .in('status', ['pending', 'confirmed'])
         .order('booking_date')
       if (error) throw error
-      return (data ?? []).map((b) => mapBookingViewForOrganizer(b as BookingRow)) as BookingView[]
+      return (data ?? []).map((b) => mapBookingView(b as BookingRow)) as BookingView[]
     },
 
     async updateStatus(id, newStatus, note) {
