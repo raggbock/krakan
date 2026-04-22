@@ -21,10 +21,8 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
       const to = from + pageSize - 1
 
       const { data, count, error } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('*', { count: 'exact' })
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .range(from, to)
 

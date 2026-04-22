@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { createInMemoryFleaMarkets, createInMemoryMarketTables } from './flea-markets'
-import type { FleaMarket } from '../../types'
+import type { FleaMarket, OpeningHourRule } from '../../types'
 
-function makeMarket(overrides: Partial<FleaMarket & { is_deleted: boolean }> = {}): FleaMarket & { is_deleted: boolean } {
+type SeedMarket = FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRule[] }
+
+function makeMarket(overrides: Partial<SeedMarket> = {}): SeedMarket {
   return {
     id: 'fm-test',
     name: 'Testloppis',
@@ -21,15 +23,15 @@ function makeMarket(overrides: Partial<FleaMarket & { is_deleted: boolean }> = {
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     ...overrides,
-  } as FleaMarket & { is_deleted: boolean }
+  }
 }
 
 describe('createInMemoryFleaMarkets', () => {
   it('list returns only published, non-deleted markets', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-1', published_at: '2026-01-01T00:00:00Z' }),
-      makeMarket({ id: 'fm-2', published_at: null }),
-      makeMarket({ id: 'fm-3', published_at: '2026-01-01T00:00:00Z', is_deleted: true }),
+      makeMarket({ id: 'fm-1', published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
+      makeMarket({ id: 'fm-2', published_at: null, is_permanent: true }),
+      makeMarket({ id: 'fm-3', published_at: '2026-01-01T00:00:00Z', is_deleted: true, is_permanent: true }),
     ])
     const { items, count } = await repo.list()
     expect(items).toHaveLength(1)
@@ -39,7 +41,7 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('list with pagination returns the right page', async () => {
     const markets = Array.from({ length: 5 }, (_, i) =>
-      makeMarket({ id: `fm-${i + 1}`, published_at: '2026-01-01T00:00:00Z' }),
+      makeMarket({ id: `fm-${i + 1}`, published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
     )
     const repo = createInMemoryFleaMarkets(markets)
     const page1 = await repo.list({ page: 1, pageSize: 2 })
@@ -74,7 +76,7 @@ describe('createInMemoryFleaMarkets', () => {
   })
 
   it('publish/unpublish toggles visibility in list', async () => {
-    const repo = createInMemoryFleaMarkets([makeMarket({ id: 'fm-pub', published_at: null })])
+    const repo = createInMemoryFleaMarkets([makeMarket({ id: 'fm-pub', published_at: null, is_permanent: true })])
     const before = await repo.list()
     expect(before.count).toBe(0)
 
@@ -89,7 +91,7 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('soft-delete excludes market from list', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-del', published_at: '2026-01-01T00:00:00Z' }),
+      makeMarket({ id: 'fm-del', published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
     ])
     const before = await repo.list()
     expect(before.count).toBe(1)
@@ -101,13 +103,85 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('listByOrganizer filters by organizerId and excludes deleted', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-a', organizer_id: 'org-1' }),
-      makeMarket({ id: 'fm-b', organizer_id: 'org-2' }),
-      makeMarket({ id: 'fm-c', organizer_id: 'org-1', is_deleted: true }),
+      makeMarket({ id: 'fm-a', organizer_id: 'org-1', is_permanent: true }),
+      makeMarket({ id: 'fm-b', organizer_id: 'org-2', is_permanent: true }),
+      makeMarket({ id: 'fm-c', organizer_id: 'org-1', is_deleted: true, is_permanent: true }),
     ])
     const result = await repo.listByOrganizer('org-1')
     expect(result).toHaveLength(1)
     expect(result[0].id).toBe('fm-a')
+  })
+
+  it('list excludes expired temporary market (no future date rules)', async () => {
+    const today = new Date().toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const repo = createInMemoryFleaMarkets([
+      // Published temporary market with only a past date rule — should be hidden
+      makeMarket({
+        id: 'fm-expired',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: false,
+        opening_hour_rules: [
+          { id: 'r-1', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+        ],
+      }),
+      // Published temporary market with no rules at all — should be hidden
+      makeMarket({
+        id: 'fm-norules',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: false,
+        opening_hour_rules: [],
+      }),
+      // Published temporary market with a future date rule — should be visible
+      makeMarket({
+        id: 'fm-future',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: false,
+        opening_hour_rules: [
+          { id: 'r-2', type: 'date', anchor_date: today, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+        ],
+      }),
+    ])
+    const { items, count } = await repo.list()
+    expect(count).toBe(1)
+    expect(items[0].id).toBe('fm-future')
+  })
+
+  it('list includes published permanent market regardless of rules', async () => {
+    const repo = createInMemoryFleaMarkets([
+      makeMarket({
+        id: 'fm-perm',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: true,
+        opening_hour_rules: [],
+      }),
+    ])
+    const { items, count } = await repo.list()
+    expect(count).toBe(1)
+    expect(items[0].id).toBe('fm-perm')
+  })
+
+  it('listByOrganizer includes expired temporary market (organizer still sees it)', async () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const repo = createInMemoryFleaMarkets([
+      makeMarket({
+        id: 'fm-expired-org',
+        organizer_id: 'org-1',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: false,
+        opening_hour_rules: [
+          { id: 'r-3', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+        ],
+      }),
+    ])
+    // list() should hide it
+    const { count: publicCount } = await repo.list()
+    expect(publicCount).toBe(0)
+
+    // listByOrganizer() should still show it
+    const orgMarkets = await repo.listByOrganizer('org-1')
+    expect(orgMarkets).toHaveLength(1)
+    expect(orgMarkets[0].id).toBe('fm-expired-org')
   })
 })
 

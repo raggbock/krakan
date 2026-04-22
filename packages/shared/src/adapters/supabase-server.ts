@@ -105,10 +105,8 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
 
     async listPublishedMarketIds() {
       const { data } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('id, updated_at')
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
       return (data ?? []).map((m) => ({ id: m.id, updatedAt: m.updated_at }))
     },
 
@@ -123,10 +121,8 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
 
     async listCitiesWithMarkets() {
       const { data } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('city, updated_at')
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
       const byCity = new Map<string, { count: number; latest: string }>()
       for (const row of data ?? []) {
         if (!row.city) continue
@@ -148,11 +144,9 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     async listMarketsInCity(cityNames) {
       if (cityNames.length === 0) return []
       const { data } = await supabase
-        .from('flea_markets')
+        .from('visible_flea_markets')
         .select('id, name, description, street, is_permanent, city, flea_market_images(storage_path, sort_order)')
         .in('city', cityNames)
-        .not('published_at', 'is', null)
-        .eq('is_deleted', false)
         .order('updated_at', { ascending: false })
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
       return (data ?? []).map((m) => {

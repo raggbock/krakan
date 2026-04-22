@@ -25,15 +25,11 @@ async function getStats() {
 
   const [marketsRes, citiesRes, tablesRes] = await Promise.all([
     supabase
-      .from('flea_markets')
-      .select('id', { count: 'exact', head: true })
-      .not('published_at', 'is', null)
-      .eq('is_deleted', false),
+      .from('visible_flea_markets')
+      .select('id', { count: 'exact', head: true }),
     supabase
-      .from('flea_markets')
-      .select('city')
-      .not('published_at', 'is', null)
-      .eq('is_deleted', false),
+      .from('visible_flea_markets')
+      .select('city'),
     supabase
       .from('market_tables')
       .select('id', { count: 'exact', head: true }),
