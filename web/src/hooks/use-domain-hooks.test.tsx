@@ -26,20 +26,17 @@ const SEED_MARKET = {
 } as const
 
 // Routes haven't been migrated to DepsProvider yet — they still go through
-// `api.routes.*`. Keep the mock-based tests so route hooks stay covered.
-vi.mock('@/lib/api', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/api')>('@/lib/api')
-  return {
-    ...actual,
-    api: {
-      ...actual.api,
-      routes: {
-        get: vi.fn().mockResolvedValue({ id: 'r1', name: 'Rundan', stops: [] }),
-        listByUser: vi.fn().mockResolvedValue([{ id: 'r1', name: 'Rundan', stopCount: 3 }]),
-      },
+// `api.routes.*`. Mock the whole api module (stubbing supabase env vars isn't
+// worth it for this suite) and provide only what useRoute / useRoutesByUser
+// read.
+vi.mock('@/lib/api', () => ({
+  api: {
+    routes: {
+      get: vi.fn().mockResolvedValue({ id: 'r1', name: 'Rundan', stops: [] }),
+      listByUser: vi.fn().mockResolvedValue([{ id: 'r1', name: 'Rundan', stopCount: 3 }]),
     },
-  }
-})
+  },
+}))
 
 function createWrapper(deps = makeInMemoryDeps([SEED_MARKET])) {
   const queryClient = new QueryClient({
