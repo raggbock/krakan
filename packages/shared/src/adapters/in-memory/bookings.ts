@@ -1,5 +1,5 @@
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
-import type { BookingStatus, CreateBookingPayload, BookingWithDetails } from '../../types'
+import type { BookingStatus, CreateBookingPayload } from '../../types'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'
 
@@ -51,15 +51,30 @@ export function createInMemoryBookings(seed: StoredBooking[] = []): BookingRepos
       return { id }
     },
 
-    async listByUser(userId: string): Promise<BookingWithDetails[]> {
+    async listByUser(userId: string): Promise<BookingView[]> {
       return Array.from(store.values())
         .filter((b) => b.booked_by === userId)
-        .map((b) => ({
-          ...b,
-          market_table: null,
-          flea_market: null,
+        .map((b): BookingView => ({
+          id: b.id,
+          table: null,
+          market: null,
           booker: null,
-        })) as BookingWithDetails[]
+          date: b.booking_date,
+          status: b.status,
+          price: {
+            baseSek: b.price_sek,
+            commissionSek: b.commission_sek,
+            commissionRate: b.commission_rate,
+          },
+          message: b.message,
+          organizerNote: b.organizer_note,
+          payment: {
+            status: b.payment_status as BookingView['payment']['status'],
+            intentId: b.stripe_payment_intent_id,
+            expiresAt: b.expires_at,
+          },
+          createdAt: b.created_at,
+        }))
     },
 
     async listByMarket(fleaMarketId: string): Promise<BookingView[]> {

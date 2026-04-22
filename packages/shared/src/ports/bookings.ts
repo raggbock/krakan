@@ -1,4 +1,4 @@
-import type { CreateBookingPayload, BookingWithDetails } from '../types'
+import type { CreateBookingPayload } from '../types'
 import type { BookingView } from '../types/domain'
 
 /**
@@ -19,7 +19,7 @@ export interface LegacyBookingRepository {
 }
 
 export interface BookingRepository extends LegacyBookingRepository {
-  listByUser(userId: string): Promise<BookingWithDetails[]>
+  listByUser(userId: string): Promise<BookingView[]>
   listByMarket(fleaMarketId: string): Promise<BookingView[]>
   updateStatus(
     id: string,
