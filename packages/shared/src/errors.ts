@@ -11,6 +11,9 @@ export type ErrorCode =
   | 'booking.table_unavailable'
   | 'stripe.not_onboarded'
   | 'stripe.capture_failed'
+  | 'stripe.card_declined'
+  | 'stripe.authentication_required'
+  | 'stripe.network_error'
   | 'geocode.not_found'
   | 'auth.required'
   | 'input.invalid'
@@ -21,6 +24,9 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'booking.table_unavailable',
   'stripe.not_onboarded',
   'stripe.capture_failed',
+  'stripe.card_declined',
+  'stripe.authentication_required',
+  'stripe.network_error',
   'geocode.not_found',
   'auth.required',
   'input.invalid',
@@ -48,4 +54,34 @@ export function isAppError(e: unknown): e is AppError {
   if (e === null || typeof e !== 'object') return false
   const code = (e as { code?: unknown }).code
   return typeof code === 'string' && ERROR_CODES.has(code)
+}
+
+/**
+ * Convert any thrown value to an AppError.
+ *
+ * - If already an AppError → returned as-is.
+ * - If an Error with a recognisable message → mapped to a specific code.
+ * - Otherwise → appError('unknown').
+ *
+ * Pattern matching is intentionally straightforward: substring checks on
+ * `err.message` so the same helper works for both Stripe SDK errors and
+ * errors surfaced from our own edge functions.
+ */
+export function toAppError(err: unknown): AppError {
+  if (isAppError(err)) return err
+  if (err instanceof Error) {
+    const msg = err.message
+    if (msg.includes('card_declined')) return appError('stripe.card_declined')
+    if (msg.includes('authentication_required') || /3ds/i.test(msg))
+      return appError('stripe.authentication_required')
+    if (msg.includes('capture_failed')) return appError('stripe.capture_failed')
+    if (/not authenticated/i.test(msg)) return appError('auth.required')
+    if (
+      /failed to fetch/i.test(msg) ||
+      /network error/i.test(msg) ||
+      msg.includes('ERR_NETWORK')
+    )
+      return appError('stripe.network_error')
+  }
+  return appError('unknown')
 }

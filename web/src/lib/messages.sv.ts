@@ -16,6 +16,12 @@ export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string
     'Arrangören har inte slutfört sin betalningsregistrering än. Försök igen om en stund eller kontakta arrangören.',
   'stripe.capture_failed': () =>
     'Betalningen kunde inte genomföras. Kontrollera ditt kort eller prova ett annat betalningssätt.',
+  'stripe.card_declined': () =>
+    'Kortet nekades. Kontrollera kortuppgifterna eller prova ett annat kort.',
+  'stripe.authentication_required': () =>
+    'Din bank kräver extra verifiering. Godkänn betalningen i din bankapp och försök sedan igen.',
+  'stripe.network_error': () =>
+    'Nätverksfel vid betalning. Kontrollera din anslutning och försök igen.',
   'geocode.not_found': () =>
     'Vi kunde inte hitta den adressen på kartan. Kontrollera stavningen och försök igen.',
   'auth.required': () => 'Du behöver logga in för att fortsätta.',

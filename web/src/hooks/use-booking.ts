@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, bookingService, MarketTable } from '@/lib/api'
-import { isFreePriced, isAppError, appError } from '@fyndstigen/shared'
+import { isFreePriced, toAppError } from '@fyndstigen/shared'
 import type { AppError } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 
@@ -111,7 +111,7 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
       setDate('')
       setMessage('')
     } catch (err) {
-      setSubmitError(isAppError(err) ? err : appError('unknown'))
+      setSubmitError(toAppError(err))
     } finally {
       setIsSubmitting(false)
     }
