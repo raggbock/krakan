@@ -183,6 +183,33 @@ describe('createInMemoryFleaMarkets', () => {
     expect(orgMarkets).toHaveLength(1)
     expect(orgMarkets[0].id).toBe('fm-expired-org')
   })
+
+  it('listByOrganizer sets isVisible=false for expired temporary market', async () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const repo = createInMemoryFleaMarkets([
+      makeMarket({
+        id: 'fm-hidden',
+        organizer_id: 'org-1',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: false,
+        opening_hour_rules: [
+          { id: 'r-h', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+        ],
+      }),
+      makeMarket({
+        id: 'fm-permanent',
+        organizer_id: 'org-1',
+        published_at: '2026-01-01T00:00:00Z',
+        is_permanent: true,
+        opening_hour_rules: [],
+      }),
+    ])
+    const result = await repo.listByOrganizer('org-1')
+    const hidden = result.find((m) => m.id === 'fm-hidden')
+    const permanent = result.find((m) => m.id === 'fm-permanent')
+    expect(hidden?.isVisible).toBe(false)
+    expect(permanent?.isVisible).toBe(true)
+  })
 })
 
 describe('createInMemoryMarketTables', () => {
