@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, bookingService, MarketTable } from '@/lib/api'
-import { isFreePriced } from '@fyndstigen/shared'
+import { isFreePriced, isAppError, appError } from '@fyndstigen/shared'
+import type { AppError } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 
 type DateValidation = { valid: boolean; error?: string }
@@ -18,6 +19,10 @@ type BookingHook = {
   setDate: (date: string) => void
   setMessage: (msg: string) => void
   dateValidation: DateValidation
+  /** True if the selected date is already in bookedDates */
+  dateConflict: boolean
+  /** Swedish user-facing validation message, or null when date is valid/empty */
+  validationError: string | null
   commission: number
   totalPrice: number
   isFree: boolean
@@ -25,7 +30,8 @@ type BookingHook = {
   submit: () => Promise<void>
   isSubmitting: boolean
   isDone: boolean
-  submitError: string | null
+  /** Typed AppError on submit failure; use messageFor() to render */
+  submitError: AppError | null
   reset: () => void
 }
 
@@ -38,7 +44,7 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDone, setIsDone] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<AppError | null>(null)
   const [bookedDates, setBookedDates] = useState<string[]>([])
 
   const fetchIdRef = useRef(0)
@@ -59,6 +65,9 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
     if (!date) return { valid: false }
     return bookingService.validateDate(date, bookedDates, today)
   }, [date, bookedDates, today])
+
+  const dateConflict = date ? bookedDates.includes(date) : false
+  const validationError = date && dateValidation.error ? dateValidation.error : null
 
   const price = selectedTable?.price_sek ?? 0
   const isFree = isFreePriced(price)
@@ -101,7 +110,7 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
       setDate('')
       setMessage('')
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Något gick fel. Försök igen.')
+      setSubmitError(isAppError(err) ? err : appError('unknown'))
     } finally {
       setIsSubmitting(false)
     }
@@ -120,7 +129,8 @@ export function useBooking(marketId: string, userId: string | undefined): Bookin
   return {
     selectedTable, date, message, bookedDates,
     selectTable: setSelectedTable, setDate, setMessage,
-    dateValidation, commission, totalPrice, isFree, canSubmit,
+    dateValidation, dateConflict, validationError,
+    commission, totalPrice, isFree, canSubmit,
     submit, isSubmitting, isDone, submitError, reset,
   }
 }

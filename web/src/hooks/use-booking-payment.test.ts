@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
+import { isAppError } from '@fyndstigen/shared'
 
 vi.mock('posthog-js/react', () => ({
   usePostHog: () => ({ capture: vi.fn() }),
@@ -92,7 +93,8 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(result.current.submitError).toBe('Your card was declined. Please try a different card.')
+    expect(isAppError(result.current.submitError)).toBe(true)
+    expect(result.current.submitError?.code).toBe('unknown')
     expect(result.current.isDone).toBe(false)
     expect(result.current.isSubmitting).toBe(false)
   })
@@ -110,7 +112,8 @@ describe('useBooking — payment edge cases', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    expect(result.current.submitError).toBe('Network request failed')
+    expect(isAppError(result.current.submitError)).toBe(true)
+    expect(result.current.submitError?.code).toBe('unknown')
     expect(result.current.isDone).toBe(false)
   })
 
