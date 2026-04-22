@@ -19,8 +19,9 @@ import type { OpeningHoursContext } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
 
 // Re-exported so callers need only this import surface.
+// OpeningHoursContext stays canonical in ./booking.ts — re-exported from the
+// package root in ./index.ts. Don't re-export it a second time here.
 export type { BookingEvent, BookingPatch }
-export type { OpeningHoursContext }
 
 export type DateValidation = { valid: boolean; error?: string }
 

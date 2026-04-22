@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -17,6 +18,17 @@ export default function FleaMarketDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { market, tables, loading } = useMarketDetails(id)
+
+  // Markets with zero rules AND zero exceptions get `undefined` here so
+  // validateBookingDate treats them as "no hours configured — allow any
+  // day". Passing empty arrays would be interpreted as "always closed".
+  const openingHours = useMemo(() => {
+    if (!market) return undefined
+    const rules = market.opening_hour_rules ?? []
+    const exceptions = market.opening_hour_exceptions ?? []
+    if (rules.length === 0 && exceptions.length === 0) return undefined
+    return { rules, exceptions }
+  }, [market])
 
   if (loading) {
     return (
@@ -149,9 +161,7 @@ export default function FleaMarketDetailsPage() {
           <BookableTablesCard
             fleaMarketId={id}
             tables={tables}
-            openingHours={market.opening_hour_rules.length > 0 || market.opening_hour_exceptions.length > 0
-              ? { rules: market.opening_hour_rules, exceptions: market.opening_hour_exceptions }
-              : undefined}
+            openingHours={openingHours}
           />
         )}
       </div>

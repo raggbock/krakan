@@ -12,9 +12,12 @@ const basePayload = {
 describe('createInMemoryBookings', () => {
   it('create-then-listByUser returns what was stored', async () => {
     const repo = createInMemoryBookings()
-    await repo.create(basePayload)
+    const { id } = await repo.create(basePayload)
     const bookings = await repo.listByUser('user-1')
     expect(bookings).toHaveLength(1)
+    // Ownership is implicit: listByUser filters by user id. Assert the id
+    // round-trips so this test also guards against accidental join drops.
+    expect(bookings[0].id).toBe(id)
     // BookingView fields (camelCase)
     expect(bookings[0].booker).toBeNull()
     expect(bookings[0].table).toBeNull()
