@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '../helpers/test'
 
 test.describe('Public-page smoke', () => {
   test('landing renders hero and primary CTA', async ({ page }) => {
