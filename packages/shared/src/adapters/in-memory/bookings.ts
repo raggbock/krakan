@@ -109,8 +109,10 @@ export function createInMemoryBookings(seed: StoredBooking[] = []): BookingRepos
 
     async updateStatus(id, newStatus, note) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Booking ${id} not found`)
       if (!isValidStatusTransition(existing.status, newStatus)) {
+        // eslint-disable-next-line no-restricted-syntax -- in-memory test double: invalid transition is a test-setup error, not a user-facing error
         throw new Error(`Kan inte ändra status från ${existing.status} till ${newStatus}`)
       }
       store.set(id, {

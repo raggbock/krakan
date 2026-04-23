@@ -19,6 +19,7 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
     async invoke<TOut>(name: string, body?: unknown): Promise<TOut> {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
+        // eslint-disable-next-line no-restricted-syntax -- programming guard: adapter-level auth check before the request is sent; callers should ensure auth state upstream
         throw new Error('Not authenticated')
       }
 

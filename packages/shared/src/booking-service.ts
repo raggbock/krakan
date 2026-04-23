@@ -17,6 +17,7 @@ import type { BookingEvent, BookingPatch } from './booking-lifecycle'
 import { calculateCommission, validateBookingDate, isFreePriced } from './booking'
 import type { OpeningHoursContext, BookingDateValidation } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
+import { toAppError } from './errors'
 import type { PaymentGateway } from './ports/payment'
 import type { Telemetry } from './ports/telemetry'
 
@@ -130,34 +131,7 @@ export function createBookingService(deps: { api: Api }): BookingService {
       if (data.clientSecret) {
         const result = await payment.confirmCardPayment(data.clientSecret)
         if (result.status === 'failed') {
-          throw new Error(result.error)
-        }
-      }
-
-      return { bookingId: data.bookingId }
-    },
-
-    async book(params, { payment, telemetry }) {
-      const { tableLabel, priceSek, ...createParams } = params
-      const isFree = isFreePriced(priceSek)
-
-      telemetry.capture({
-        name: 'booking_initiated',
-        properties: {
-          flea_market_id: params.fleaMarketId,
-          market_name: tableLabel,
-          table_label: tableLabel,
-          price_sek: priceSek,
-          is_free: isFree,
-        },
-      })
-
-      const data = await api.endpoints['booking.create'].invoke(createParams)
-
-      if (data.clientSecret) {
-        const result = await payment.confirmCardPayment(data.clientSecret)
-        if (result.status === 'failed') {
-          throw new Error(result.error)
+          throw toAppError(new Error(result.error))
         }
       }
 

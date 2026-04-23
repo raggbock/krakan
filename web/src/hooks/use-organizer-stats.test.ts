@@ -170,7 +170,7 @@ describe('useOrganizerStats', () => {
     const { result } = renderHook(() => useOrganizerStats('org-1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    expect(result.current.error).toBe('Du måste vara inloggad')
+    expect(result.current.error).toBe('Du behöver logga in för att fortsätta.')
     expect(result.current.markets).toEqual([])
   })
 

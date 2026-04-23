@@ -44,6 +44,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
         .eq('id', id)
         .single()
+      // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: missing booking after explicit lookup is a data integrity failure, not a user-facing error
       if (fetchErr || !booking) throw new Error(`Booking ${id} not found`)
 
       const current = booking as Booking
@@ -63,6 +64,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         .eq('status', current.status)
         .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
         .maybeSingle()
+      // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: update error is a data integrity failure surfaced from Supabase, not a user-facing error
       if (updateErr) throw new Error(`Failed to update booking ${id}`)
       if (!updated) {
         // Lost the race. Re-fetch so the caller sees current truth.
@@ -71,6 +73,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
           .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
           .eq('id', id)
           .single()
+        // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: booking disappeared between concurrent operations; indicates a data integrity issue
         if (!refetched) throw new Error(`Booking ${id} disappeared after lost update`)
         return refetched as Booking
       }

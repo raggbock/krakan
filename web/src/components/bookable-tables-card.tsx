@@ -6,9 +6,9 @@ import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
+import { messageFor } from '@fyndstigen/shared'
 import { stripePromise } from '@/lib/stripe'
 import { useFlag } from '@/lib/flags'
-import { messageFor } from '@/lib/messages.sv'
 
 function BookableTablesInner({
   fleaMarketId,

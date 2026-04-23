@@ -60,7 +60,7 @@ export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Errors
 export { appError, isAppError, toAppError, messageFor, interpolate } from './errors'
-export type { AppError, ErrorCode } from './errors'
+export type { AppError, ErrorCode, ErrorParams, ParamsFor } from './errors'
 
 // Market mutation saga
 export { runMarketMutation, collectMarketEvents } from './market-mutation'

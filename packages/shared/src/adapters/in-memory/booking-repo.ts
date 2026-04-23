@@ -47,6 +47,7 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
 
     async applyEvent(id, event) {
       const current = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!current) throw new Error(`Booking ${id} not found`)
 
       const patch = applyBookingEvent(current, event)

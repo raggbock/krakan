@@ -7,12 +7,14 @@ export function createInMemoryProfiles(seed: UserProfile[] = []): ProfileReposit
   return {
     async get(userId: string): Promise<UserProfile> {
       const p = store.get(userId)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!p) throw new Error(`Profile ${userId} not found`)
       return { ...p }
     },
 
     async update(userId: string, updates: Partial<UserProfile>): Promise<void> {
       const existing = store.get(userId)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Profile ${userId} not found`)
       store.set(userId, { ...existing, ...updates })
     },
@@ -26,12 +28,14 @@ export function createInMemoryOrganizers(seed: OrganizerProfile[] = []): Organiz
   return {
     async get(userId: string): Promise<OrganizerProfile> {
       const p = profileStore.get(userId)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!p) throw new Error(`OrganizerProfile ${userId} not found`)
       return { ...p }
     },
 
     async update(userId, updates) {
       const existing = profileStore.get(userId)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`OrganizerProfile ${userId} not found`)
       profileStore.set(userId, { ...existing, ...updates })
     },

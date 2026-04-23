@@ -24,6 +24,7 @@ export function DepsProvider({
 export function useDeps(): Deps {
   const ctx = useContext(DepsContext)
   if (!ctx) {
+    // eslint-disable-next-line no-restricted-syntax -- programming invariant: hook misuse that should never reach users
     throw new Error('useDeps() must be called inside <DepsProvider>')
   }
   return ctx

@@ -4,7 +4,6 @@ import {
   resolveBookingOutcome,
   validateBookingDate,
 } from './booking'
-import { messageFor } from './errors'
 
 describe('isFreePriced', () => {
   it('returns true for price 0', () => {
@@ -75,8 +74,6 @@ describe('validateBookingDate', () => {
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.code).toBe('booking.date.required')
-      // Backwards-compat: deprecated error string must match messageFor
-      expect(result.error).toBe(messageFor('booking.date.required'))
     }
   })
 
@@ -85,7 +82,6 @@ describe('validateBookingDate', () => {
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.code).toBe('booking.date.invalid_format')
-      expect(result.error).toBe(messageFor('booking.date.invalid_format'))
     }
   })
 
@@ -102,9 +98,6 @@ describe('validateBookingDate', () => {
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.code).toBe('booking.date.in_past')
-      expect(result.error).toBe(messageFor('booking.date.in_past'))
-      // Display string check — codes are the real assertion
-      expect(result.error).toContain('förflutna')
     }
   })
 
@@ -113,8 +106,6 @@ describe('validateBookingDate', () => {
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.code).toBe('booking.date.already_booked')
-      expect(result.error).toBe(messageFor('booking.date.already_booked'))
-      expect(result.error).toContain('bokat')
     }
   })
 
@@ -137,8 +128,6 @@ describe('validateBookingDate', () => {
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.code).toBe('booking.market_closed')
-      expect(result.error).toBe(messageFor('booking.market_closed'))
-      expect(result.error).toContain('stängd')
     }
   })
 

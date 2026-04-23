@@ -47,6 +47,7 @@ function EditProfilePageInner() {
     setUpgradeLoading(true)
     try {
       const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-checkout')
+      // eslint-disable-next-line no-restricted-syntax -- internal guard: unexpected missing URL from edge function, caught immediately above
       if (!data?.url) throw new Error('Failed to create checkout')
       window.location.href = data.url
     } catch {
@@ -58,6 +59,7 @@ function EditProfilePageInner() {
     setUpgradeLoading(true)
     try {
       const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-portal')
+      // eslint-disable-next-line no-restricted-syntax -- internal guard: unexpected missing URL from edge function, caught immediately above
       if (!data?.url) throw new Error('Failed to create portal session')
       window.location.href = data.url
     } catch {

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, bookingService, MarketTable } from '@/lib/api'
-import { isFreePriced, toAppError } from '@fyndstigen/shared'
+import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 import {
@@ -66,7 +66,10 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     return bookingService.validateDate(date, bookedDates, today, openingHours)
   }, [date, bookedDates, today, openingHours])
 
-  const validationError = date && dateValidation.error ? dateValidation.error : null
+  const validationError =
+    date && !dateValidation.valid
+      ? messageFor(dateValidation.code, dateValidation.params)
+      : null
 
   const price = selectedTable?.price_sek ?? 0
   const isFree = isFreePriced(price)

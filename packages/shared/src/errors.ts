@@ -42,6 +42,7 @@ export type ErrorCode =
   | 'geocode.not_found'
   // --- Auth / generic ---
   | 'auth.required'
+  | 'auth.forbidden'
   | 'input.invalid'
   | 'unknown'
 
@@ -82,11 +83,33 @@ export type AppError = {
 }
 
 /**
+ * Typed params per ErrorCode.
+ *
+ * Today no codes use template placeholders, so the map is empty.
+ * Add entries here as templated catalog entries arrive, e.g.:
+ *   'booking.date.conflict': { date: string }
+ *
+ * Codes NOT listed here accept Record<string, string | number> | undefined
+ * (the historic loose signature is preserved via the conditional type).
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type ErrorParams = {
+  // Empty today — no codes template params. Grows as templated catalog entries arrive.
+}
+
+/**
+ * Resolve the expected params type for a given ErrorCode.
+ * Codes in ErrorParams are tightly typed; all others accept any plain record.
+ */
+export type ParamsFor<C extends ErrorCode> =
+  C extends keyof ErrorParams ? ErrorParams[C] : Record<string, string | number> | undefined
+
+/**
  * Construct an AppError. Detail is optional and should be a plain object
  * of structured data that message templates may interpolate.
  */
-export function appError(code: ErrorCode, detail?: Record<string, unknown>): AppError {
-  return detail === undefined ? { code } : { code, detail }
+export function appError<C extends ErrorCode>(code: C, detail?: ParamsFor<C>): AppError {
+  return detail === undefined ? { code } : { code, detail: detail as Record<string, unknown> }
 }
 
 /**
@@ -165,11 +188,11 @@ export function interpolate(template: string, params?: Record<string, string | n
 import { MESSAGES_SV } from './errors/messages.sv'
 
 /**
- * Return a Swedish user-facing message for an ErrorCode.
+ * Return a Swedish user-facing message for an ErrorCode or AppError.
  *
- * @param code    - An ErrorCode value.
- * @param params  - Optional interpolation params for `{placeholder}` in the template.
- * @param _locale - Reserved for future English support. Defaults to 'sv'. Do not pass yet.
+ * Two call forms are supported:
+ *   messageFor(code, params?, locale?)   — preferred in domain / edge code
+ *   messageFor(appError)                 — convenience overload for UI code
  *
  * Falls back to the 'unknown' message if `code` is not in the catalog at
  * runtime (defensive against stale wire data that bypasses the type system).
@@ -177,12 +200,23 @@ import { MESSAGES_SV } from './errors/messages.sv'
  * Performance: pure synchronous map lookup + string.replace. No async, no
  * regex compilation per call.
  */
+export function messageFor(err: AppError): string
 export function messageFor(
   code: ErrorCode,
+  params?: Record<string, string | number>,
+  _locale?: 'sv',
+): string
+export function messageFor(
+  codeOrErr: ErrorCode | AppError,
   params?: Record<string, string | number>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _locale?: 'sv',
 ): string {
-  const template = MESSAGES_SV[code] ?? MESSAGES_SV['unknown']
+  if (typeof codeOrErr === 'object') {
+    // AppError overload — delegate to code form, ignoring detail for now
+    // (detail is untyped blob; params are string|number map for interpolation)
+    return messageFor(codeOrErr.code)
+  }
+  const template = MESSAGES_SV[codeOrErr] ?? MESSAGES_SV['unknown']
   return interpolate(template, params)
 }

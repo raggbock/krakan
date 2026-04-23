@@ -58,6 +58,7 @@ export function createInMemoryFleaMarkets(
 
     async details(id) {
       const m = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!m) throw new Error(`FleaMarket ${id} not found`)
       let organizerName = ''
       if (deps?.profiles) {
@@ -114,6 +115,7 @@ export function createInMemoryFleaMarkets(
 
     async update(id, payload) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, {
         ...existing,
@@ -132,18 +134,21 @@ export function createInMemoryFleaMarkets(
 
     async delete(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, is_deleted: true })
     },
 
     async publish(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, published_at: new Date().toISOString() })
     },
 
     async unpublish(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, published_at: null })
     },
@@ -208,6 +213,7 @@ export function createInMemoryMarketTables(seed: MarketTable[] = []): MarketTabl
 
     async update(id, updates) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`MarketTable ${id} not found`)
       store.set(id, { ...existing, ...updates })
     },

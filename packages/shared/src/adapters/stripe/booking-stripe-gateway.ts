@@ -40,6 +40,7 @@ export function createStripeBookingGateway(stripe: StripeClient): BookingStripeG
         },
         { idempotencyKey: args.idempotencyKey },
       )
+      // eslint-disable-next-line no-restricted-syntax -- programming invariant: Stripe PaymentIntent must have client_secret; missing it indicates an upstream Stripe API change
       if (!pi.client_secret) throw new Error('PaymentIntent missing client_secret')
       return { id: pi.id, clientSecret: pi.client_secret }
     },

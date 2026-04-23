@@ -34,6 +34,7 @@ export function createStripePaymentGateway(
 export function createNoOpPaymentGateway(reason: string): PaymentGateway {
   return {
     async confirmCardPayment(clientSecret: string): Promise<PaymentResult> {
+      // eslint-disable-next-line no-restricted-syntax -- programming guard: no-op gateway should never receive a clientSecret; indicates a regression
       if (clientSecret) throw new Error(reason)
       return { status: 'succeeded' }
     },

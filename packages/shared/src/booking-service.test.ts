@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createBookingService } from './booking-service'
 import type { OpeningHoursContext } from './booking-service'
+import { isAppError } from './errors'
 import type { Api } from './api'
 import type { Booking } from './types'
 import type { PaymentGateway, PaymentResult } from './ports/payment'
@@ -84,14 +85,14 @@ describe('BookingService.validateDate', () => {
     const svc = createBookingService({ api: makeApi() })
     const result = svc.validateDate('2020-01-01', [], '2026-04-21')
     expect(result.valid).toBe(false)
-    expect(result.error).toMatch(/förflutna/)
+    if (!result.valid) expect(result.code).toBe('booking.date.in_past')
   })
 
   it('rejects an already-booked date', () => {
     const svc = createBookingService({ api: makeApi() })
     const result = svc.validateDate('2026-12-01', ['2026-12-01'], '2026-04-21')
     expect(result.valid).toBe(false)
-    expect(result.error).toMatch(/bokat/)
+    if (!result.valid) expect(result.code).toBe('booking.date.already_booked')
   })
 
   it('accepts a valid future date', () => {
@@ -117,7 +118,7 @@ describe('BookingService.validateDate', () => {
     const svc = createBookingService({ api: makeApi() })
     const result = svc.validateDate('2026-12-01', [], '2026-04-21', openingHours)
     expect(result.valid).toBe(false)
-    expect(result.error).toMatch(/stängd/)
+    if (!result.valid) expect(result.code).toBe('booking.market_closed')
   })
 
   it('accepts an open day when opening hours context is provided', () => {
@@ -335,15 +336,21 @@ describe('BookingService.book — paid auto-accept', () => {
     expect(telemetry.events[0].properties).toMatchObject({ is_free: false, price_sek: 200 })
   })
 
-  it('throws when payment gateway returns failed', async () => {
+  it('throws an AppError when payment gateway returns failed', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-fail', clientSecret: 'pi_fail' })
     const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
-    const payment = makePaymentGateway({ status: 'failed', error: 'Kortet nekades' })
+    // 'card_declined' in the error string maps via toAppError → stripe.card_declined
+    const payment = makePaymentGateway({ status: 'failed', error: 'card_declined' })
     const telemetry = makeTelemetry()
 
-    await expect(
-      svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry }),
-    ).rejects.toThrow('Kortet nekades')
+    let thrown: unknown
+    try {
+      await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry })
+    } catch (e) {
+      thrown = e
+    }
+    expect(isAppError(thrown)).toBe(true)
+    if (isAppError(thrown)) expect(thrown.code).toBe('stripe.card_declined')
   })
 })
 
