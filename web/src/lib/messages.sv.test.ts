@@ -6,9 +6,19 @@ import { MESSAGES, messageFor } from './messages.sv'
 // ErrorCode is added to the union, TypeScript will flag this array as
 // incomplete — forcing the test (and therefore the catalog) to be updated.
 const ALL_CODES = [
+  'booking.date.required',
+  'booking.date.invalid_format',
+  'booking.date.invalid',
+  'booking.date.in_past',
+  'booking.date.already_booked',
+  'booking.market_closed',
+  'booking.market_not_found',
+  'booking.table_not_found',
+  'booking.not_found',
   'booking.duplicate',
   'booking.table_unavailable',
-  'booking.market_closed',
+  'booking.not_pending',
+  'booking.stripe_not_setup',
   'stripe.not_onboarded',
   'stripe.capture_failed',
   'stripe.card_declined',

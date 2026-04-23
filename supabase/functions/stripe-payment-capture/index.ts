@@ -1,6 +1,7 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
-import { NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
+import { HttpError, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
+import { appError } from '@fyndstigen/shared/errors'
 import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
 import { StripePaymentCaptureInput, StripePaymentCaptureOutput } from '@fyndstigen/shared/contracts/stripe-payment-capture'
@@ -13,8 +14,8 @@ defineEndpoint({
     // SELECT — same first query as original edge
     const repo = createSupabaseBookingRepo(admin)
     const booking = await repo.findById(bookingId)
-    if (!booking) throw new NotFoundError('Booking not found')
-    if (booking.status !== 'pending') throw new Error('Booking is not pending')
+    if (!booking) throw new NotFoundError('Booking not found', appError('booking.not_found'))
+    if (booking.status !== 'pending') throw new HttpError(409, 'Booking is not pending', appError('booking.not_pending'))
 
     // Authorization check — verifyOrganizer does one extra SELECT (same as original)
     await verifyOrganizer(admin, booking.flea_market_id, user.id)

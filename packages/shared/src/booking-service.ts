@@ -15,7 +15,7 @@ import type { Api } from './api'
 import type { Booking } from './types'
 import type { BookingEvent, BookingPatch } from './booking-lifecycle'
 import { calculateCommission, validateBookingDate, isFreePriced } from './booking'
-import type { OpeningHoursContext } from './booking'
+import type { OpeningHoursContext, BookingDateValidation } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
 import type { PaymentGateway } from './ports/payment'
 import type { Telemetry } from './ports/telemetry'
@@ -25,7 +25,8 @@ import type { Telemetry } from './ports/telemetry'
 // package root in ./index.ts. Don't re-export it a second time here.
 export type { BookingEvent, BookingPatch }
 
-export type DateValidation = { valid: boolean; error?: string }
+/** @deprecated Use BookingDateValidation from './booking' directly. */
+export type DateValidation = BookingDateValidation
 
 export type CreateBookingParams = {
   marketTableId: string
@@ -55,7 +56,7 @@ export type BookingService = {
    * When `openingHours` is supplied, also validates that the date falls on an
    * open day according to the market's rules and exceptions.
    */
-  validateDate(date: string, bookedDates: string[], today?: string, openingHours?: OpeningHoursContext): DateValidation
+  validateDate(date: string, bookedDates: string[], today?: string, openingHours?: OpeningHoursContext): BookingDateValidation
 
   /** Return dates already booked (pending or confirmed) for the given table. */
   getBookedDates(tableId: string): Promise<string[]>

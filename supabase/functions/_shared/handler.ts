@@ -20,7 +20,7 @@ export class HttpError extends Error {
 }
 
 export class NotFoundError extends HttpError {
-  constructor(message: string) { super(404, message) }
+  constructor(message: string, body?: unknown) { super(404, message, body) }
 }
 
 export class UnauthorizedError extends HttpError {

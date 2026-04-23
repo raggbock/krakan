@@ -30,7 +30,7 @@ export { applyBookingEvent } from './booking-lifecycle'
 export type { BookingEvent, BookingPatch } from './booking-lifecycle'
 export { createBookingService } from './booking-service'
 export type { BookingService, CreateBookingParams, BookRequestParams, DateValidation } from './booking-service'
-export type { OpeningHoursContext } from './booking'
+export type { OpeningHoursContext, BookingDateValidation } from './booking'
 
 // Ports
 export * from './ports'
@@ -59,7 +59,7 @@ export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Errors
-export { appError, isAppError, toAppError } from './errors'
+export { appError, isAppError, toAppError, messageFor, interpolate } from './errors'
 export type { AppError, ErrorCode } from './errors'
 
 // Market mutation saga

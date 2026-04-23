@@ -5,6 +5,7 @@ import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fy
 import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
 import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create'
+import { appError } from '@fyndstigen/shared/errors'
 
 defineEndpoint({
   name: 'booking-create',
@@ -17,7 +18,7 @@ defineEndpoint({
       .select('price_sek, flea_market_id')
       .eq('id', marketTableId)
       .single()
-    if (tableErr || !table) throw new NotFoundError('Table not found')
+    if (tableErr || !table) throw new NotFoundError('Table not found', appError('booking.table_not_found'))
     if (table.flea_market_id !== fleaMarketId) throw new Error('Table does not belong to market')
 
     // Get market for auto_accept and organizer — must be published and not deleted
@@ -28,7 +29,7 @@ defineEndpoint({
       .not('published_at', 'is', null)
       .eq('is_deleted', false)
       .single()
-    if (!market) throw new NotFoundError('Market not found or not published')
+    if (!market) throw new NotFoundError('Market not found or not published', appError('booking.market_not_found'))
 
     // Resolve what kind of booking this is
     const outcome = resolveBookingOutcome(table.price_sek, market.auto_accept_bookings)
@@ -42,7 +43,7 @@ defineEndpoint({
         .eq('organizer_id', market.organizer_id)
         .single()
       if (!stripeAccount?.onboarding_complete) {
-        throw new Error('Organizer has not completed Stripe setup')
+        throw new HttpError(422, 'Organizer has not completed Stripe setup', appError('booking.stripe_not_setup'))
       }
       stripeAccountId = stripeAccount.stripe_account_id
     }
@@ -56,7 +57,7 @@ defineEndpoint({
       .eq('booking_date', bookingDate)
       .in('status', ['pending', 'confirmed'])
       .single()
-    if (existingBooking) throw new HttpError(400, 'Du har redan en bokning för detta bord och datum')
+    if (existingBooking) throw new HttpError(409, 'Du har redan en bokning för detta bord och datum', appError('booking.duplicate'))
 
     // Calculate amounts
     const { priceSek, commissionSek, commissionRate } = calculateStripeAmounts(table.price_sek)
