@@ -1,17 +1,21 @@
 'use client'
 
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Polyline,
-  useMapEvents,
-} from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+/**
+ * Route-builder map wrapper.
+ *
+ * Uses the children escape hatch on <FyndstigenMap> for two reasons:
+ * 1. MapClickHandler — requires useMapEvents() which must be a child of
+ *    MapContainer. The click-to-set-custom-start behaviour is unique to
+ *    this view and does not belong in the shared FyndstigenMap prop API.
+ * 2. The start-point marker needs special popup text and is rendered via
+ *    the children slot as a plain <Marker> rather than polluting MapMarker
+ *    with a 'custom-start' semantic.
+ */
+
+import { useMapEvents, Marker, Popup } from 'react-leaflet'
 import type { FleaMarketNearBy } from '@/lib/api'
-import { inactiveMarkerIcon, numberedMarkerIcon, startPointIcon } from '@/lib/map-markers'
 import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
+import { FyndstigenMap, startPointIcon, type MapMarker } from '../fyndstigen-map'
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]
@@ -48,24 +52,52 @@ export function RouteMap({
   customStart,
   onCustomStartChange,
 }: Props) {
+  const markers: MapMarker[] = markets.map((market) => {
+    const stopIndex = stops.findIndex((s) => s.market.id === market.id)
+    const inRoute = stopIndex >= 0
+
+    return {
+      id: market.id,
+      coord: [market.latitude, market.longitude],
+      icon: inRoute ? 'stop' : 'inactive',
+      stopNumber: inRoute ? stopIndex + 1 : undefined,
+      popup: (
+        <div className="min-w-[180px] p-1">
+          <p className="font-display font-bold text-sm">{market.name}</p>
+          <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+          <button
+            onClick={() => onToggleMarket(market)}
+            className={`mt-2 text-xs font-semibold ${inRoute ? 'text-error' : 'text-rust'}`}
+          >
+            {inRoute ? 'Ta bort från rundan' : 'Lägg till i rundan'}
+          </button>
+        </div>
+      ),
+    }
+  })
+
   const polylinePositions: [number, number][] = stops.map((s) => [
     s.market.latitude,
     s.market.longitude,
   ])
 
   return (
-    <MapContainer
+    <FyndstigenMap
+      markers={markers}
+      route={
+        polylinePositions.length >= 2
+          ? { coords: polylinePositions, style: 'dashed' }
+          : undefined
+      }
+      fit="none"
       center={[59.27, 15.21]}
       zoom={11}
-      className="h-full w-full"
-      style={{ minHeight: 0 }}
+      onMarkerClick={(id) => {
+        const market = markets.find((m) => m.id === id)
+        if (market) onToggleMarket(market)
+      }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-      {/* Custom start point click handler */}
+      {/* Custom start-point click handler — needs useMapEvents inside MapContainer */}
       {!useGps && <MapClickHandler onMapClick={onCustomStartChange} />}
 
       {/* Custom start marker */}
@@ -79,49 +111,6 @@ export function RouteMap({
           </Popup>
         </Marker>
       )}
-
-      {/* Market markers */}
-      {markets.map((market) => {
-        const stopIndex = stops.findIndex((s) => s.market.id === market.id)
-        const inRoute = stopIndex >= 0
-
-        return (
-          <Marker
-            key={market.id}
-            position={[market.latitude, market.longitude]}
-            icon={inRoute ? numberedMarkerIcon(stopIndex + 1) : inactiveMarkerIcon}
-            eventHandlers={{
-              click: () => onToggleMarket(market),
-            }}
-          >
-            <Popup>
-              <div className="min-w-[180px] p-1">
-                <p className="font-display font-bold text-sm">{market.name}</p>
-                <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
-                <button
-                  onClick={() => onToggleMarket(market)}
-                  className={`mt-2 text-xs font-semibold ${inRoute ? 'text-error' : 'text-rust'}`}
-                >
-                  {inRoute ? 'Ta bort från rundan' : 'Lägg till i rundan'}
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        )
-      })}
-
-      {/* Route polyline */}
-      {polylinePositions.length >= 2 && (
-        <Polyline
-          positions={polylinePositions}
-          pathOptions={{
-            color: '#C45B35',
-            weight: 3,
-            opacity: 0.7,
-            dashArray: '8, 8',
-          }}
-        />
-      )}
-    </MapContainer>
+    </FyndstigenMap>
   )
 }

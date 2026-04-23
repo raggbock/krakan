@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { markerIcon } from '@/lib/map-markers'
+import { markerIcon } from '@/components/fyndstigen-map'
 
 export type AddressValue = {
   street: string
