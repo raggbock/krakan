@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import { useStripeConnect } from '@/hooks/use-stripe-connect'
 import {
   useDraftAutosave,
@@ -19,8 +17,9 @@ import { useFlag } from '@/lib/flags'
 import { useMarketForm } from '@/hooks/market-form'
 import type { RuleDraft, ExceptionDraft } from '@fyndstigen/shared'
 import type { AddressValue } from '@/components/address-picker'
-
-const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
+import { MarketBasicInfoSection } from '@/components/market-form/MarketBasicInfoSection'
+import { OpeningHoursSection } from '@/components/market-form/OpeningHoursSection'
+import { MarketTableAddForm } from '@/components/market-form/MarketTableAddForm'
 
 type TableDraft = {
   label: string
@@ -66,8 +65,7 @@ export default function CreateMarketPage() {
   const form = useMarketForm({ mode: 'create', organizerId: user?.id })
   const { fields, openingHours, images, tables, submit, status } = form
 
-  // Step 2 table form state (add-form inputs only; drafts live in tables hook)
-  const [tableLabel, setTableLabel] = useState('')
+  // Step 2 batch-mode state (only for batch add — single add is handled by MarketTableAddForm)
   const [tableDesc, setTableDesc] = useState('')
   const [tablePrice, setTablePrice] = useState('')
   const [tableSize, setTableSize] = useState('')
@@ -138,21 +136,6 @@ export default function CreateMarketPage() {
     openingHours.reset([], [])
     tables.resetNew()
     setRestoredAgeLabel(null)
-  }
-
-  function addTable() {
-    if (!tableLabel) return
-    if (paymentsEnabled && !tablePrice) return
-    tables.addBatch([{
-      label: tableLabel,
-      description: tableDesc,
-      priceSek: paymentsEnabled ? parseInt(tablePrice, 10) || 0 : 0,
-      sizeDescription: tableSize,
-    }])
-    setTableLabel('')
-    setTableDesc('')
-    setTablePrice('')
-    setTableSize('')
   }
 
   function addBatchTables() {
@@ -259,51 +242,25 @@ export default function CreateMarketPage() {
 
       {step === 1 && (
         <div className="space-y-5 animate-fade-up">
-          <div>
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Namn *</label>
-            <input
-              type="text"
-              value={fields.name}
-              onChange={(e) => fields.setName(e.target.value)}
-              placeholder="T.ex. Södermalms Loppis"
-              className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Beskrivning</label>
-            <textarea
-              value={fields.description}
-              onChange={(e) => fields.setDescription(e.target.value)}
-              rows={3}
-              placeholder="Berätta om din loppis..."
-              className="w-full rounded-xl bg-card px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
-            />
-          </div>
-          <AddressPicker value={fields.address} onChange={fields.setAddress} />
-          <div>
-            <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Typ</label>
-            <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
-              <button
-                onClick={() => fields.setIsPermanent(true)}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${fields.isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-              >
-                Permanent
-              </button>
-              <button
-                onClick={() => fields.setIsPermanent(false)}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${!fields.isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-              >
-                Tillfällig
-              </button>
-            </div>
-          </div>
+          <MarketBasicInfoSection
+            name={fields.name}
+            setName={fields.setName}
+            description={fields.description}
+            setDescription={fields.setDescription}
+            address={fields.address}
+            setAddress={fields.setAddress}
+            isPermanent={fields.isPermanent}
+            setIsPermanent={fields.setIsPermanent}
+            showPlaceholders
+          />
           <div>
             <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Öppettider</label>
-            <OpeningHoursEditor
+            <OpeningHoursSection
               rules={openingHours.rules}
               setRules={openingHours.setRules}
               exceptions={openingHours.exceptions}
               setExceptions={openingHours.setExceptions}
+              variant="bare"
             />
           </div>
           <div>
@@ -415,25 +372,10 @@ export default function CreateMarketPage() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className={`grid gap-3 ${paymentsEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  <input type="text" value={tableLabel} onChange={(e) => setTableLabel(e.target.value)} placeholder="Namn, t.ex. Bord 1" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                  {paymentsEnabled && (
-                    <input type="number" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} placeholder="Pris (kr)" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={tableSize} onChange={(e) => setTableSize(e.target.value)} placeholder="Storlek, t.ex. 2x1 meter" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                  <input type="text" value={tableDesc} onChange={(e) => setTableDesc(e.target.value)} placeholder="Beskrivning" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                </div>
-                <button
-                  onClick={addTable}
-                  disabled={!tableLabel || (paymentsEnabled && !tablePrice)}
-                  className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
-                >
-                  + Lägg till
-                </button>
-              </div>
+              <MarketTableAddForm
+                onAdd={(table) => tables.addBatch([table])}
+                showPrice={paymentsEnabled}
+              />
             )}
           </div>
 

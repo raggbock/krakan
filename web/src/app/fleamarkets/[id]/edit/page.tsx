@@ -3,16 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { api } from '@/lib/api'
 import type { FleaMarketDetails, MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { OpeningHoursEditor } from '@/components/opening-hours-editor'
 import { ImageUploadList } from '@/components/image-upload-list'
 import { useMarketForm } from '@/hooks/market-form'
-
-const AddressPicker = dynamic(() => import('@/components/address-picker'), { ssr: false })
+import type { TableDraftResult } from '@/hooks/market-form'
+import { MarketBasicInfoSection } from '@/components/market-form/MarketBasicInfoSection'
+import { OpeningHoursSection } from '@/components/market-form/OpeningHoursSection'
+import { MarketTableAddForm } from '@/components/market-form/MarketTableAddForm'
 
 export default function EditMarketPage() {
   const { id } = useParams<{ id: string }>()
@@ -138,56 +138,27 @@ export default function EditMarketPage() {
         {/* === SECTION: Basic Info === */}
         <section className="vintage-card p-6 animate-fade-up">
           <h2 className="font-display font-bold text-lg mb-4">Information</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Namn *</label>
-              <input
-                type="text"
-                value={fields.name}
-                onChange={(e) => fields.setName(e.target.value)}
-                className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Beskrivning</label>
-              <textarea
-                value={fields.description}
-                onChange={(e) => fields.setDescription(e.target.value)}
-                rows={3}
-                className="w-full rounded-xl bg-parchment px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none"
-              />
-            </div>
-            <AddressPicker value={fields.address} onChange={fields.setAddress} inputBg="bg-parchment" />
-            <div>
-              <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Typ</label>
-              <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
-                <button
-                  onClick={() => fields.setIsPermanent(true)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${fields.isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-                >
-                  Permanent
-                </button>
-                <button
-                  onClick={() => fields.setIsPermanent(false)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${!fields.isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
-                >
-                  Tillfällig
-                </button>
-              </div>
-            </div>
-          </div>
+          <MarketBasicInfoSection
+            name={fields.name}
+            setName={fields.setName}
+            description={fields.description}
+            setDescription={fields.setDescription}
+            address={fields.address}
+            setAddress={fields.setAddress}
+            isPermanent={fields.isPermanent}
+            setIsPermanent={fields.setIsPermanent}
+            inputBg="bg-parchment"
+          />
         </section>
 
         {/* === SECTION: Opening Hours === */}
-        <section id="opening-hours" className="vintage-card p-6 animate-fade-up delay-1 scroll-mt-20">
-          <h2 className="font-display font-bold text-lg mb-4">Öppettider</h2>
-          <OpeningHoursEditor
-            rules={openingHours.rules}
-            setRules={openingHours.setRules}
-            exceptions={openingHours.exceptions}
-            setExceptions={openingHours.setExceptions}
-          />
-        </section>
+        <OpeningHoursSection
+          rules={openingHours.rules}
+          setRules={openingHours.setRules}
+          exceptions={openingHours.exceptions}
+          setExceptions={openingHours.setExceptions}
+          withScrollAnchor
+        />
 
         {/* === SECTION: Images === */}
         <section className="vintage-card p-6 animate-fade-up delay-2">
@@ -318,28 +289,8 @@ export default function EditMarketPage() {
 }
 
 // ---- Sub-component: table section ----
-import type { TableDraftResult } from '@/hooks/market-form'
 
 function TableSection({ tables }: { tables: TableDraftResult }) {
-  const [tableLabel, setTableLabel] = useState('')
-  const [tableDesc, setTableDesc] = useState('')
-  const [tablePrice, setTablePrice] = useState('')
-  const [tableSize, setTableSize] = useState('')
-
-  function addTable() {
-    if (!tableLabel || !tablePrice) return
-    tables.addBatch([{
-      label: tableLabel,
-      description: tableDesc,
-      priceSek: parseInt(tablePrice, 10) || 0,
-      sizeDescription: tableSize,
-    }])
-    setTableLabel('')
-    setTableDesc('')
-    setTablePrice('')
-    setTableSize('')
-  }
-
   return (
     <>
       {tables.existingTables.length > 0 && (
@@ -400,24 +351,10 @@ function TableSection({ tables }: { tables: TableDraftResult }) {
         </div>
       )}
 
-      <div className="bg-parchment rounded-xl p-4 space-y-3">
-        <p className="text-xs font-semibold text-espresso/60">Lägg till nytt bord</p>
-        <div className="grid grid-cols-2 gap-3">
-          <input type="text" value={tableLabel} onChange={(e) => setTableLabel(e.target.value)} placeholder="Namn, t.ex. Bord 1" className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-          <input type="number" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} placeholder="Pris (kr)" className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <input type="text" value={tableSize} onChange={(e) => setTableSize(e.target.value)} placeholder="Storlek, t.ex. 2x1 meter" className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-          <input type="text" value={tableDesc} onChange={(e) => setTableDesc(e.target.value)} placeholder="Beskrivning" className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-        </div>
-        <button
-          onClick={addTable}
-          disabled={!tableLabel || !tablePrice}
-          className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
-        >
-          + Lägg till
-        </button>
-      </div>
+      <MarketTableAddForm
+        onAdd={(table) => tables.addBatch([table])}
+        showPrice
+      />
     </>
   )
 }
