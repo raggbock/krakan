@@ -1,13 +1,15 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { api, RouteWithStops, RouteSummary } from '@/lib/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { RouteWithStops, RouteSummary, CreateRoutePayload, UpdateRoutePayload } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys'
+import { useDeps } from '@/providers/deps-provider'
 
 export function useRoute(id: string | undefined) {
+  const { routes } = useDeps()
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.routes.details(id!),
-    queryFn: () => api.routes.get(id!),
+    queryFn: () => routes.get(id!),
     enabled: !!id,
   })
   return {
@@ -18,9 +20,10 @@ export function useRoute(id: string | undefined) {
 }
 
 export function useRoutesByUser(userId: string | undefined) {
+  const { routes } = useDeps()
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.routes.byUser(userId!),
-    queryFn: () => api.routes.listByUser(userId!),
+    queryFn: () => routes.listByUser(userId!),
     enabled: !!userId,
   })
   return {
@@ -28,4 +31,28 @@ export function useRoutesByUser(userId: string | undefined) {
     loading: isLoading,
     error: error?.message ?? null,
   }
+}
+
+export function useCreateRoute() {
+  const { routes } = useDeps()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateRoutePayload) => routes.create(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.routes.all })
+    },
+  })
+}
+
+export function useUpdateRoute() {
+  const { routes } = useDeps()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateRoutePayload }) =>
+      routes.update(id, payload),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.routes.details(id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.routes.all })
+    },
+  })
 }

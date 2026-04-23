@@ -1,7 +1,7 @@
 import React from 'react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { makeInMemoryDeps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
 import { DepsProvider, useDeps } from '@/providers/deps-provider'
 import { useMarkets, useMarketsByOrganizer } from './use-markets'
 import { useMarketDetails } from './use-market-details'
@@ -25,20 +25,27 @@ const SEED_MARKET = {
   auto_accept_bookings: false,
 } as const
 
-// Routes haven't been migrated to DepsProvider yet — they still go through
-// `api.routes.*`. Mock the whole api module (stubbing supabase env vars isn't
-// worth it for this suite) and provide only what useRoute / useRoutesByUser
-// read.
-vi.mock('@/lib/api', () => ({
-  api: {
-    routes: {
-      get: vi.fn().mockResolvedValue({ id: 'r1', name: 'Rundan', stops: [] }),
-      listByUser: vi.fn().mockResolvedValue([{ id: 'r1', name: 'Rundan', stopCount: 3 }]),
-    },
-  },
-}))
+const SEED_ROUTE = {
+  id: 'r1',
+  name: 'Rundan',
+  description: null,
+  created_by: 'user-1',
+  start_latitude: null,
+  start_longitude: null,
+  planned_date: null,
+  is_published: false,
+  published_at: null,
+  is_deleted: false,
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  stops: [
+    { flea_market_id: 'm1', sort_order: 0 },
+    { flea_market_id: 'm2', sort_order: 1 },
+    { flea_market_id: 'm3', sort_order: 2 },
+  ],
+} as const
 
-function createWrapper(deps = makeInMemoryDeps([SEED_MARKET])) {
+function createWrapper(deps = makeInMemoryDeps([SEED_MARKET], [SEED_ROUTE])) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -112,7 +119,7 @@ describe('useMarketDetails — via DepsProvider + makeInMemoryDeps', () => {
   })
 })
 
-describe('useRoute — still on api.* (not migrated)', () => {
+describe('useRoute — via DepsProvider + makeInMemoryDeps (migrated)', () => {
   it('fetches route by id', async () => {
     const { result } = renderHook(() => useRoute('r1'), {
       wrapper: createWrapper(),
@@ -131,7 +138,7 @@ describe('useRoute — still on api.* (not migrated)', () => {
   })
 })
 
-describe('useRoutesByUser — still on api.* (not migrated)', () => {
+describe('useRoutesByUser — via DepsProvider + makeInMemoryDeps (migrated)', () => {
   it('fetches routes for user', async () => {
     const { result } = renderHook(() => useRoutesByUser('user-1'), {
       wrapper: createWrapper(),
@@ -140,6 +147,15 @@ describe('useRoutesByUser — still on api.* (not migrated)', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.routes).toHaveLength(1)
     expect(result.current.routes[0].name).toBe('Rundan')
+  })
+
+  it('returns empty array for unknown user', async () => {
+    const { result } = renderHook(() => useRoutesByUser('unknown-user'), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.routes).toHaveLength(0)
   })
 })
 
