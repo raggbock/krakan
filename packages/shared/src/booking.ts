@@ -1,5 +1,7 @@
 import type { BookingStatus, OpeningHourRule, OpeningHourException } from './types'
 import { checkOpeningHours } from './opening-hours'
+import type { ErrorCode } from './errors'
+import { messageFor } from './errors'
 
 export type OpeningHoursContext = {
   rules: OpeningHourRule[]
@@ -25,23 +27,43 @@ export function isValidStatusTransition(from: BookingStatus, to: BookingStatus):
   return ALLOWED_TRANSITIONS[from].includes(to)
 }
 
+/**
+ * Result of validateBookingDate.
+ *
+ * On failure, `code` is the canonical ErrorCode and `error` is the
+ * pre-rendered Swedish string for backwards compatibility.
+ *
+ * @deprecated `error` — Delete after all callers migrate to `code`.
+ * TODO: File a follow-up issue to remove the `error` field once use-booking
+ * and booking-service.test are updated to call messageFor(code) directly.
+ */
+export type BookingDateValidation =
+  | { valid: true }
+  | { valid: false; code: ErrorCode; params?: Record<string, string | number>
+      /** @deprecated Use messageFor(code) instead. Delete after all callers migrate. */
+      error: string }
+
 export function validateBookingDate(
   dateStr: string,
   bookedDates: string[],
   today: string,
   openingHours?: OpeningHoursContext,
-): { valid: boolean; error?: string } {
-  if (!dateStr) return { valid: false, error: 'Datum krävs' }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return { valid: false, error: 'Ogiltigt datumformat' }
+): BookingDateValidation {
+  function fail(code: ErrorCode, params?: Record<string, string | number>): BookingDateValidation {
+    return { valid: false, code, params, error: messageFor(code, params) }
+  }
+
+  if (!dateStr) return fail('booking.date.required')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return fail('booking.date.invalid_format')
 
   const date = new Date(dateStr + 'T12:00:00')
-  if (isNaN(date.getTime())) return { valid: false, error: 'Ogiltigt datum' }
-  if (dateStr < today) return { valid: false, error: 'Kan inte boka i det förflutna' }
-  if (bookedDates.includes(dateStr)) return { valid: false, error: 'Redan bokat detta datum' }
+  if (isNaN(date.getTime())) return fail('booking.date.invalid')
+  if (dateStr < today) return fail('booking.date.in_past')
+  if (bookedDates.includes(dateStr)) return fail('booking.date.already_booked')
 
   if (openingHours) {
     const result = checkOpeningHours(openingHours.rules, openingHours.exceptions, dateStr)
-    if (!result.isOpen) return { valid: false, error: 'Marknaden är stängd det valda datumet' }
+    if (!result.isOpen) return fail('booking.market_closed')
   }
 
   return { valid: true }
