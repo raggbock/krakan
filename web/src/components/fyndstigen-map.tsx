@@ -4,24 +4,23 @@
  * <FyndstigenMap> — unified declarative map component.
  *
  * All three map peers (map-view, route-map, route-builder/route-map) are thin
- * wrappers around this component. Leaflet wiring (icons, fit-bounds, polyline,
- * marker keying) lives here once.
+ * wrappers around this component. Leaflet wiring (icons, polyline, marker
+ * keying) lives here once.
  *
  * Performance notes:
- * - L.Marker instances are pooled via a ref keyed by marker id. Only added /
- *   removed markers touch the DOM; moved markers update position in place.
- * - fitBounds is gated behind a useEffect with stable deps (bounds string).
- * - Route polyline is memoised by coords reference.
+ * - Markers are keyed by id, so react-leaflet performs setLatLng updates
+ *   in place instead of remounting when positions change.
+ * - Route polyline pathOptions are memoised by style.
  *
  * Children escape hatch: if you need Leaflet layers that can't be expressed
- * through props (e.g. route-builder's MapClickHandler for custom start points),
+ * through props (e.g. route-builder's MapClickHandler for map-click events),
  * pass them as children. They are rendered inside the MapContainer and have
  * access to useMap() / useMapEvents() as normal react-leaflet components.
  * Do not use this to circumvent the marker / polyline API.
  */
 
-import { useEffect, useRef, useMemo, type ReactNode } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { useMemo, type ReactNode } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -82,7 +81,13 @@ export type MapMarker = {
   popup?: ReactNode
 }
 
-export type RouteStyle = 'solid' | 'dashed'
+/**
+ * Route line styles. Matches the three caller sites on main:
+ * - 'solid'     — weight 4, opacity 0.8 (route-map: OSRM result)
+ * - 'dashed'    — weight 3, opacity 0.7, 8,8 dash (route-builder: planning)
+ * - 'fallback'  — weight 3, opacity 0.5, 8,8 dash (route-map: straight-line fallback)
+ */
+export type RouteStyle = 'solid' | 'dashed' | 'fallback'
 
 export type FyndstigenMapProps = {
   markers: MapMarker[]
@@ -90,14 +95,6 @@ export type FyndstigenMapProps = {
     coords: [number, number][]
     style?: RouteStyle
   }
-  /**
-   * How to fit the viewport after mount / when markers/route change.
-   * - 'markers' — fit to marker coords only
-   * - 'route'   — fit to route coords only
-   * - 'all'     — fit to both
-   * - 'none'    — don't auto-fit (use center + zoom)
-   */
-  fit?: 'markers' | 'route' | 'all' | 'none'
   center?: [number, number]
   zoom?: number
   onMarkerClick?: (id: string) => void
@@ -107,29 +104,6 @@ export type FyndstigenMapProps = {
    */
   children?: ReactNode
   className?: string
-}
-
-// ---------------------------------------------------------------------------
-// Internal: FitBounds controller
-// ---------------------------------------------------------------------------
-
-type FitBoundsProps = {
-  bounds: L.LatLngBoundsLiteral | null
-}
-
-function FitBoundsController({ bounds }: FitBoundsProps) {
-  const map = useMap()
-  const prevKey = useRef<string>('')
-
-  useEffect(() => {
-    if (!bounds || bounds.length === 0) return
-    const key = JSON.stringify(bounds)
-    if (key === prevKey.current) return
-    prevKey.current = key
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
-  }, [map, bounds])
-
-  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -154,11 +128,15 @@ function resolveIcon(marker: MapMarker): L.Icon {
 // Internal: polyline path options
 // ---------------------------------------------------------------------------
 
-function polylineOptions(style: RouteStyle, solid: boolean): L.PathOptions {
-  if (solid) {
-    return { color: '#C45B35', weight: 4, opacity: 0.8 }
+function polylineOptions(style: RouteStyle): L.PathOptions {
+  switch (style) {
+    case 'solid':
+      return { color: '#C45B35', weight: 4, opacity: 0.8 }
+    case 'dashed':
+      return { color: '#C45B35', weight: 3, opacity: 0.7, dashArray: '8, 8' }
+    case 'fallback':
+      return { color: '#C45B35', weight: 3, opacity: 0.5, dashArray: '8, 8' }
   }
-  return { color: '#C45B35', weight: 3, opacity: style === 'dashed' ? 0.7 : 0.5, dashArray: '8, 8' }
 }
 
 // ---------------------------------------------------------------------------
@@ -171,34 +149,17 @@ const DEFAULT_ZOOM = 11
 export function FyndstigenMap({
   markers,
   route,
-  fit = 'none',
   center,
   zoom,
   onMarkerClick,
   children,
   className,
 }: FyndstigenMapProps) {
-  // Compute fitBounds target
-  const fitBounds = useMemo<L.LatLngBoundsLiteral | null>(() => {
-    if (fit === 'none') return null
-
-    const points: [number, number][] = []
-    if (fit === 'markers' || fit === 'all') {
-      points.push(...markers.map((m) => m.coord))
-    }
-    if ((fit === 'route' || fit === 'all') && route?.coords) {
-      points.push(...route.coords)
-    }
-    if (points.length < 2) return null
-    return points as L.LatLngBoundsLiteral
-  }, [fit, markers, route?.coords])
-
   // Polyline options — memoised on style so we don't recreate options object
-  const routePathOptions = useMemo(() => {
-    if (!route) return null
-    const isSolid = route.style === 'solid'
-    return polylineOptions(route.style ?? 'dashed', isSolid)
-  }, [route?.style])
+  const routePathOptions = useMemo(
+    () => (route ? polylineOptions(route.style ?? 'dashed') : null),
+    [route?.style],
+  )
 
   const mapCenter = center ?? DEFAULT_CENTER
   const mapZoom = zoom ?? DEFAULT_ZOOM
@@ -214,8 +175,6 @@ export function FyndstigenMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-
-      {fitBounds && <FitBoundsController bounds={fitBounds} />}
 
       {markers.map((marker) => (
         <Marker

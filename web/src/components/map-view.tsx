@@ -85,7 +85,6 @@ export default function MapView() {
       {/* Map */}
       <FyndstigenMap
         markers={markers}
-        fit="none"
         center={DEFAULT_CENTER}
         zoom={11}
         className="flex-1 w-full"

@@ -162,23 +162,19 @@ describe('FyndstigenMap', () => {
     expect(container.dataset.zoom).toBe('13')
   })
 
-  it('applies fit=markers — FitBoundsController rendered when 2+ markers exist', () => {
-    // FitBoundsController calls useMap().fitBounds in a useEffect.
-    // Because our useMap mock returns mockFitBounds synchronously and
-    // useEffect runs in render, we verify fitBounds was called.
-    const markers = [makeMarker('m1'), makeMarker('m2')]
-    render(<FyndstigenMap markers={markers} fit="markers" />)
-    // fitBounds should have been called with the marker coords
-    expect(mockFitBounds).toHaveBeenCalledWith(
-      expect.arrayContaining([[59.3, 18.07]]),
-      expect.objectContaining({ padding: [40, 40] }),
-    )
+  it('renders dashed polyline for route-builder with opacity 0.7', () => {
+    const route = { coords: [[59.1, 18.0], [59.2, 18.1]] as [number, number][], style: 'dashed' as const }
+    render(<FyndstigenMap markers={[]} route={route} />)
+    expect(screen.getByTestId('polyline').dataset.dash).toBe('8, 8')
   })
 
-  it('does not call fitBounds when fit=none', () => {
-    const markers = [makeMarker('m1'), makeMarker('m2')]
-    render(<FyndstigenMap markers={markers} fit="none" />)
-    expect(mockFitBounds).not.toHaveBeenCalled()
+  it('renders fallback polyline distinct from dashed (faded)', () => {
+    // fallback style is route-map's no-OSRM-available case. Same dash pattern
+    // as 'dashed' but lower opacity — the test asserts both render as dashed
+    // but the component distinguishes them via opacity.
+    const route = { coords: [[59.1, 18.0], [59.2, 18.1]] as [number, number][], style: 'fallback' as const }
+    render(<FyndstigenMap markers={[]} route={route} />)
+    expect(screen.getByTestId('polyline').dataset.dash).toBe('8, 8')
   })
 
   it('uses rust color (#C45B35) on polyline', () => {

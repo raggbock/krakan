@@ -3,19 +3,16 @@
 /**
  * Route-builder map wrapper.
  *
- * Uses the children escape hatch on <FyndstigenMap> for two reasons:
- * 1. MapClickHandler — requires useMapEvents() which must be a child of
- *    MapContainer. The click-to-set-custom-start behaviour is unique to
- *    this view and does not belong in the shared FyndstigenMap prop API.
- * 2. The start-point marker needs special popup text and is rendered via
- *    the children slot as a plain <Marker> rather than polluting MapMarker
- *    with a 'custom-start' semantic.
+ * Uses the children escape hatch on <FyndstigenMap> only for MapClickHandler —
+ * `useMapEvents()` must be a child of MapContainer and the click-to-set-
+ * custom-start behaviour is unique to this view. The start-point marker is
+ * just a `MapMarker` with `icon: 'start'` — no Leaflet primitive leaks.
  */
 
-import { useMapEvents, Marker, Popup } from 'react-leaflet'
+import { useMapEvents } from 'react-leaflet'
 import type { FleaMarketNearBy } from '@/lib/api'
 import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
-import { FyndstigenMap, startPointIcon, type MapMarker } from '../fyndstigen-map'
+import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]
@@ -81,36 +78,37 @@ export function RouteMap({
     s.market.longitude,
   ])
 
+  const allMarkers: MapMarker[] =
+    !useGps && customStart
+      ? [
+          ...markers,
+          {
+            id: '__custom-start',
+            coord: [customStart.lat, customStart.lng],
+            icon: 'start',
+            popup: <span className="text-sm font-medium">Startpunkt</span>,
+          },
+        ]
+      : markers
+
   return (
     <FyndstigenMap
-      markers={markers}
+      markers={allMarkers}
       route={
         polylinePositions.length >= 2
           ? { coords: polylinePositions, style: 'dashed' }
           : undefined
       }
-      fit="none"
       center={[59.27, 15.21]}
       zoom={11}
       onMarkerClick={(id) => {
+        if (id === '__custom-start') return
         const market = markets.find((m) => m.id === id)
         if (market) onToggleMarket(market)
       }}
     >
       {/* Custom start-point click handler — needs useMapEvents inside MapContainer */}
       {!useGps && <MapClickHandler onMapClick={onCustomStartChange} />}
-
-      {/* Custom start marker */}
-      {!useGps && customStart && (
-        <Marker
-          position={[customStart.lat, customStart.lng]}
-          icon={startPointIcon}
-        >
-          <Popup>
-            <span className="text-sm font-medium">Startpunkt</span>
-          </Popup>
-        </Marker>
-      )}
     </FyndstigenMap>
   )
 }

@@ -58,10 +58,11 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
     }))
 
   // Use road geometry when available, fall back to straight dashed lines
+  // with the faded 'fallback' style so the user visually distinguishes them.
   const route = positions.length >= 2
     ? {
         coords: roadGeometry ?? positions,
-        style: (roadGeometry ? 'solid' : 'dashed') as 'solid' | 'dashed',
+        style: (roadGeometry ? 'solid' : 'fallback') as 'solid' | 'fallback',
       }
     : undefined
 
@@ -77,7 +78,6 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
     <FyndstigenMap
       markers={markers}
       route={route}
-      fit="none"
       center={center}
       zoom={10}
     />
