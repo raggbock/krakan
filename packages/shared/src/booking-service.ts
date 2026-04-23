@@ -39,6 +39,8 @@ export type CreateBookingParams = {
 export type BookRequestParams = CreateBookingParams & {
   /** Label shown to the user (e.g. table.label) — used for telemetry only. */
   tableLabel: string
+  /** Market display name — used for telemetry only. */
+  marketName: string
   /** Price in SEK for the table — used for branching and telemetry. */
   priceSek: number
 }
@@ -112,14 +114,14 @@ export function createBookingService(deps: { api: Api }): BookingService {
     },
 
     async book(params, { payment, telemetry }) {
-      const { tableLabel, priceSek, ...createParams } = params
+      const { tableLabel, marketName, priceSek, ...createParams } = params
       const isFree = isFreePriced(priceSek)
 
       telemetry.capture({
         name: 'booking_initiated',
         properties: {
           flea_market_id: params.fleaMarketId,
-          market_name: tableLabel,
+          market_name: marketName,
           table_label: tableLabel,
           price_sek: priceSek,
           is_free: isFree,

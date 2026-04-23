@@ -288,6 +288,7 @@ const BASE_BOOK_PARAMS = {
   fleaMarketId: 'mkt-1',
   bookingDate: '2026-12-01',
   tableLabel: 'Bord A',
+  marketName: 'Söders Loppis',
 }
 
 describe('BookingService.book — free auto-accept', () => {
@@ -304,7 +305,12 @@ describe('BookingService.book — free auto-accept', () => {
     expect(payment.calls).toHaveLength(0)
     expect(telemetry.events).toHaveLength(1)
     expect(telemetry.events[0].name).toBe('booking_initiated')
-    expect(telemetry.events[0].properties).toMatchObject({ is_free: true, price_sek: 0 })
+    expect(telemetry.events[0].properties).toMatchObject({
+      is_free: true,
+      price_sek: 0,
+      market_name: 'Söders Loppis',
+      table_label: 'Bord A',
+    })
   })
 })
 

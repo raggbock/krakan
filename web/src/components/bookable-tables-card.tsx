@@ -12,15 +12,17 @@ import { useFlag } from '@/lib/flags'
 
 function BookableTablesInner({
   fleaMarketId,
+  fleaMarketName,
   tables,
   openingHours,
 }: {
   fleaMarketId: string
+  fleaMarketName: string
   tables: MarketTable[]
   openingHours?: OpeningHoursContext
 }) {
   const { user } = useAuth()
-  const booking = useBooking(fleaMarketId, user?.id, openingHours)
+  const booking = useBooking(fleaMarketId, fleaMarketName, user?.id, openingHours)
 
   return (
     <div className="vintage-card p-6 animate-fade-up delay-4">
@@ -159,10 +161,12 @@ function BookableTablesInner({
 
 export function BookableTablesCard({
   fleaMarketId,
+  fleaMarketName,
   tables,
   openingHours,
 }: {
   fleaMarketId: string
+  fleaMarketName: string
   tables: MarketTable[]
   openingHours?: OpeningHoursContext
 }) {
@@ -176,13 +180,13 @@ export function BookableTablesCard({
 
   if (!stripePromise) {
     return (
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} openingHours={openingHours} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} fleaMarketName={fleaMarketName} tables={visibleTables} openingHours={openingHours} />
     )
   }
 
   return (
     <Elements stripe={stripePromise}>
-      <BookableTablesInner fleaMarketId={fleaMarketId} tables={visibleTables} openingHours={openingHours} />
+      <BookableTablesInner fleaMarketId={fleaMarketId} fleaMarketName={fleaMarketName} tables={visibleTables} openingHours={openingHours} />
     </Elements>
   )
 }

@@ -160,6 +160,7 @@ export default function FleaMarketDetailsPage() {
         {tables.length > 0 && (
           <BookableTablesCard
             fleaMarketId={id}
+            fleaMarketName={market.name}
             tables={tables}
             openingHours={openingHours}
           />

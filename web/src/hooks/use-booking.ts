@@ -35,7 +35,12 @@ type BookingHook = {
   reset: () => void
 }
 
-export function useBooking(marketId: string, userId: string | undefined, openingHours?: OpeningHoursContext): BookingHook {
+export function useBooking(
+  marketId: string,
+  marketName: string,
+  userId: string | undefined,
+  openingHours?: OpeningHoursContext,
+): BookingHook {
   const posthog = usePostHog()
   const stripe = useStripe()
   const elements = useElements()
@@ -104,6 +109,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
           bookingDate: date,
           message: message || undefined,
           tableLabel: selectedTable.label,
+          marketName,
           priceSek: selectedTable.price_sek,
         },
         { payment, telemetry },
@@ -118,7 +124,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     } finally {
       setIsSubmitting(false)
     }
-  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message, posthog])
+  }, [canSubmit, selectedTable, stripe, elements, marketId, marketName, date, message, posthog])
 
   function reset() {
     setSelectedTable(null)
