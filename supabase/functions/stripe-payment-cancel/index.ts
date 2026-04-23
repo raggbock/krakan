@@ -1,43 +1,47 @@
-import { createHandler, NotFoundError, ForbiddenError, verifyOrganizer } from '../_shared/handler.ts'
+import { defineEndpoint } from '../_shared/endpoint.ts'
+import { HttpError, ForbiddenError, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
+import { appError } from '@fyndstigen/shared/errors'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
+import { StripePaymentCancelInput, StripePaymentCancelOutput } from '@fyndstigen/shared/contracts/stripe-payment-cancel'
+import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
-createHandler(async ({ user, admin, body }) => {
-  const { bookingId, newStatus } = body as {
-    bookingId: string
-    newStatus: 'denied' | 'cancelled'
-  }
+defineEndpoint({
+  name: 'stripe-payment-cancel',
+  input: StripePaymentCancelInput,
+  output: StripePaymentCancelOutput,
+  handler: async ({ user, admin }, { bookingId, newStatus }) => {
+    const repo = createSupabaseBookingRepo(admin)
+    const booking = await repo.findById(bookingId)
+    if (!booking) throw new NotFoundError('Booking not found', appError('booking.not_found'))
+    if (booking.status !== 'pending') throw new HttpError(409, 'Booking is not pending', appError('booking.not_pending'))
 
-  const { data: booking, error: bookingErr } = await admin
-    .from('bookings')
-    .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by')
-    .eq('id', bookingId)
-    .single()
-  if (bookingErr || !booking) throw new NotFoundError('Booking not found')
-  if (booking.status !== 'pending') throw new Error('Booking is not pending')
+    // Authorization: organizer can deny, booker can cancel
+    if (newStatus === 'denied') {
+      await verifyOrganizer(admin, booking.flea_market_id, user.id)
+    } else if (newStatus === 'cancelled') {
+      if (booking.booked_by !== user.id) throw new ForbiddenError()
+    } else {
+      throw new HttpError(400, 'Invalid status', appError('booking.invalid_status'))
+    }
 
-  // Authorization: organizer can deny, booker can cancel
-  if (newStatus === 'denied') {
-    await verifyOrganizer(admin, booking.flea_market_id, user.id)
-  } else if (newStatus === 'cancelled') {
-    if (booking.booked_by !== user.id) throw new ForbiddenError()
-  } else {
-    throw new Error('Invalid status')
-  }
+    // Stripe cancel before DB write — same ordering as original
+    if (booking.stripe_payment_intent_id) {
+      const gateway = createStripeBookingGateway(stripe)
+      await gateway.cancel(booking.stripe_payment_intent_id)
+    }
 
-  if (booking.stripe_payment_intent_id) {
-    await stripe.paymentIntents.cancel(booking.stripe_payment_intent_id)
-  }
+    // Translate newStatus → BookingEvent and apply via repo
+    const event: BookingEvent = newStatus === 'denied'
+      ? { type: 'organizer.deny' }
+      : { type: 'user.cancel' }
 
-  const newPaymentStatus = booking.stripe_payment_intent_id ? 'cancelled' : 'free'
+    const updated = await repo.applyEvent(bookingId, event)
+    if (updated.status !== newStatus) {
+      throw new HttpError(409, 'Booking was already updated by another action', appError('booking.concurrent_update'))
+    }
 
-  const { data: updated, error: updateErr } = await admin
-    .from('bookings')
-    .update({ status: newStatus, payment_status: newPaymentStatus })
-    .eq('id', bookingId)
-    .eq('status', 'pending')
-    .select('id')
-    .single()
-  if (updateErr || !updated) throw new Error('Booking was already updated by another action')
-
-  return { success: true }
+    return { success: true as const }
+  },
 })

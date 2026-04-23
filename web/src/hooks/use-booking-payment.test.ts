@@ -23,7 +23,7 @@ vi.mock('@/lib/api', async () => {
       availableDates: vi.fn().mockResolvedValue([]),
     },
     endpoints: {
-      bookingCreate: (...args: unknown[]) => mockInvoke(...args),
+      'booking.create': { invoke: (...args: unknown[]) => mockInvoke(...args) },
     },
     edge: {
       invoke: vi.fn().mockResolvedValue({}),

@@ -32,9 +32,7 @@ export function useStripeConnect(
   async function checkStatus() {
     try {
       setLoading(true)
-      const data = await api.edge.invoke<{ connected: boolean; onboarding_complete: boolean }>(
-        'stripe-connect-status',
-      )
+      const data = await api.endpoints['stripe.connect.status'].invoke({})
       setConnected(data.connected)
       setOnboardingComplete(data.onboarding_complete)
     } catch {
@@ -47,7 +45,7 @@ export function useStripeConnect(
   async function startOnboarding() {
     try {
       setError(null)
-      const data = await api.edge.invoke<{ url: string }>('stripe-connect-create')
+      const data = await api.endpoints['stripe.connect.create'].invoke({})
       window.location.href = data.url
     } catch {
       setError('Kunde inte starta Stripe-koppling')
@@ -57,7 +55,7 @@ export function useStripeConnect(
   async function refreshOnboarding() {
     try {
       setError(null)
-      const data = await api.edge.invoke<{ url: string }>('stripe-connect-refresh')
+      const data = await api.endpoints['stripe.connect.refresh'].invoke({})
       window.location.href = data.url
     } catch {
       setError('Kunde inte generera ny Stripe-länk')
