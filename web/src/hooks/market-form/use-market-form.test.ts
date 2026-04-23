@@ -161,4 +161,82 @@ describe('useMarketForm — edit mode', () => {
     expect(api.fleaMarkets.create).not.toHaveBeenCalled()
     expect(result.current.status.success).toBe('Loppisen har uppdaterats!')
   })
+
+  it('reseed: re-renders with new initial re-seeds all sub-hooks', () => {
+    const initialA = {
+      id: 'mkt-a',
+      name: 'Loppis A',
+      description: 'Beskriving A',
+      street: 'Gatan 1',
+      zip_code: '111 00',
+      city: 'Stockholm',
+      latitude: 59.33,
+      longitude: 18.07,
+      is_permanent: true,
+      auto_accept_bookings: false,
+      published_at: '2025-01-01',
+      organizer_id: 'u-1',
+      organizerName: 'Testaren',
+      opening_hour_rules: [
+        { type: 'weekly', day_of_week: 6, anchor_date: null, open_time: '10:00', close_time: '16:00' },
+      ],
+      opening_hour_exceptions: [],
+      flea_market_images: [
+        { id: 'img-a1', storage_path: 'a/1.jpg', sort_order: 0 },
+      ],
+      market_tables: [
+        { id: 't-a1', label: 'Bord A1', description: '', price_sek: 100, size_description: '2x1m' },
+      ],
+    } as any
+
+    const initialB = {
+      id: 'mkt-b',
+      name: 'Loppis B',
+      description: 'Beskriving B',
+      street: 'Vägen 2',
+      zip_code: '222 00',
+      city: 'Göteborg',
+      latitude: 57.70,
+      longitude: 11.97,
+      is_permanent: false,
+      auto_accept_bookings: true,
+      published_at: '2025-06-01',
+      organizer_id: 'u-2',
+      organizerName: 'Testaren 2',
+      opening_hour_rules: [
+        { type: 'weekly', day_of_week: 0, anchor_date: null, open_time: '09:00', close_time: '15:00' },
+        { type: 'weekly', day_of_week: 1, anchor_date: null, open_time: '09:00', close_time: '15:00' },
+      ],
+      opening_hour_exceptions: [],
+      flea_market_images: [
+        { id: 'img-b1', storage_path: 'b/1.jpg', sort_order: 0 },
+        { id: 'img-b2', storage_path: 'b/2.jpg', sort_order: 1 },
+      ],
+      market_tables: [
+        { id: 't-b1', label: 'Bord B1', description: '', price_sek: 200, size_description: '3x1m' },
+        { id: 't-b2', label: 'Bord B2', description: '', price_sek: 150, size_description: '2x2m' },
+      ],
+    } as any
+
+    const { result, rerender } = renderHook(
+      ({ initial }: { initial: any }) => useMarketForm({ mode: 'edit', initial }),
+      { initialProps: { initial: initialA } },
+    )
+
+    // Verify initial A is seeded
+    expect(result.current.fields.name).toBe('Loppis A')
+    expect(result.current.openingHours.rules).toHaveLength(1)
+    expect(result.current.tables.existingTables).toHaveLength(1)
+    expect(result.current.images.existingImages).toHaveLength(1)
+
+    // Rerender with initialB — the reseed effect should fire
+    act(() => {
+      rerender({ initial: initialB })
+    })
+
+    expect(result.current.fields.name).toBe('Loppis B')
+    expect(result.current.openingHours.rules).toHaveLength(2)
+    expect(result.current.tables.existingTables).toHaveLength(2)
+    expect(result.current.images.existingImages).toHaveLength(2)
+  })
 })
