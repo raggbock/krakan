@@ -46,7 +46,10 @@ jobs:
           deno-version: "1.45.5"
 
       - name: Deno check edge functions
-        run: deno check --config=supabase/functions/deno.json supabase/functions/**/*.ts
+        shell: bash
+        # Use `find` instead of bash `**` so nested subdirs under
+        # supabase/functions/<name>/ also get checked.
+        run: find supabase/functions -name '*.ts' -print0 | xargs -0 deno check --config=supabase/functions/deno.json
 
   # Verify no edge function imports a non-allow-listed @fyndstigen/shared subpath.
   check-edge-imports:

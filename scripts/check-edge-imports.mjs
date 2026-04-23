@@ -35,7 +35,6 @@ const ALLOWED_SUBPATHS = new Set([
   'booking',                                       // pure commission/outcome logic
   'booking-lifecycle',                             // pure event-sourced reducer
   'contracts/booking-create',                      // zod schema
-  'contracts/booking-update',                      // zod schema
   'contracts/organizer-stats',                     // zod schema
   'contracts/stripe-connect-create',               // zod schema
   'contracts/stripe-connect-refresh',              // zod schema
@@ -47,8 +46,19 @@ const ALLOWED_SUBPATHS = new Set([
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
 ]);
 
-/** Regex that matches any @fyndstigen/shared import */
-const IMPORT_RE = /from\s+['"]@fyndstigen\/shared\/([^'"]+)['"]/g;
+/**
+ * Patterns that match any @fyndstigen/shared reference we need to police.
+ *
+ * - SUBPATH_RE: imports/re-exports with a subpath. Covers:
+ *     import … from '@fyndstigen/shared/x'
+ *     export … from '@fyndstigen/shared/x'
+ *     import('@fyndstigen/shared/x')
+ *     import '@fyndstigen/shared/x'  (side-effect)
+ * - BARE_RE: imports of the barrel itself (no subpath). These are always
+ *   a violation in edge code — the barrel may pull in non-edge-safe deps.
+ */
+const SUBPATH_RE = /['"]@fyndstigen\/shared\/([^'"]+)['"]/g;
+const BARE_RE = /['"]@fyndstigen\/shared['"]/g;
 
 /** Recursively collect .ts files, skipping _shared helper dir */
 function collectTs(dir) {
@@ -72,13 +82,25 @@ for (const file of files) {
   const src = readFileSync(file, 'utf8');
   const lines = src.split('\n');
   lines.forEach((line, idx) => {
+    const rel = relative(repoRoot, file).replace(/\\/g, '/');
+
+    // Bare barrel import — always a violation in edge code.
+    BARE_RE.lastIndex = 0;
+    if (BARE_RE.test(line)) {
+      console.error(
+        `DISALLOWED EDGE IMPORT  ${rel}:${idx + 1}\n` +
+        `  Bare "@fyndstigen/shared" (no subpath) is never allowed in edge code.\n` +
+        `  Import a specific subpath from scripts/check-edge-imports.mjs' allow-list instead.\n`
+      );
+      violations++;
+    }
+
+    // Subpath imports / re-exports / dynamic imports / side-effect imports.
+    SUBPATH_RE.lastIndex = 0;
     let match;
-    // Reset lastIndex for each line
-    IMPORT_RE.lastIndex = 0;
-    while ((match = IMPORT_RE.exec(line)) !== null) {
+    while ((match = SUBPATH_RE.exec(line)) !== null) {
       const subpath = match[1];
       if (!ALLOWED_SUBPATHS.has(subpath)) {
-        const rel = relative(repoRoot, file).replace(/\\/g, '/');
         console.error(
           `DISALLOWED EDGE IMPORT  ${rel}:${idx + 1}\n` +
           `  "@fyndstigen/shared/${subpath}" is not on the allow-list.\n` +
