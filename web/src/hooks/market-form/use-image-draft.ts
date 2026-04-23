@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FleaMarketImage } from '@/lib/api'
 
 export type ImageDraftExisting = FleaMarketImage & { _deleted?: boolean }
@@ -97,6 +97,17 @@ export function useImageDraft(initialImages: FleaMarketImage[] = []): ImageDraft
       prev.forEach(URL.revokeObjectURL)
       return []
     })
+  }, [])
+
+  // Revoke any outstanding blob URLs on unmount so we don't leak when the
+  // user navigates away with images selected but not submitted.
+  useEffect(() => {
+    return () => {
+      setNewPreviews((prev) => {
+        prev.forEach(URL.revokeObjectURL)
+        return prev
+      })
+    }
   }, [])
 
   const serialize = useCallback(

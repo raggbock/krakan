@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import type { FleaMarketDetails, MarketTable } from '@/lib/api'
 import { useMarketFields } from './use-market-fields'
 import { useOpeningHoursDraft } from './use-opening-hours-draft'
@@ -53,6 +54,32 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
     images,
     tables,
   })
+
+  // Re-seed sub-hooks when `initial` changes (e.g. edit page reloads after save).
+  // Skip the first run — useState(initial) already handled the initial mount.
+  const prevInitialRef = useRef(initial)
+  useEffect(() => {
+    if (!initial) return
+    if (prevInitialRef.current === initial) return
+    prevInitialRef.current = initial
+
+    fields.reset(initial)
+    openingHours.reset(
+      initial.opening_hour_rules?.map((r) => ({
+        type: r.type as 'weekly' | 'biweekly' | 'date',
+        dayOfWeek: r.day_of_week,
+        anchorDate: r.anchor_date,
+        openTime: r.open_time,
+        closeTime: r.close_time,
+      })) ?? [],
+      initial.opening_hour_exceptions?.map((ex) => ({
+        date: ex.date,
+        reason: ex.reason,
+      })) ?? [],
+    )
+    images.reset(initial.flea_market_images ?? [])
+    tables.reset(initial.market_tables ?? [])
+  }, [initial, fields, openingHours, images, tables])
 
   return {
     fields,
