@@ -6,6 +6,8 @@ import {
   runMarketMutation,
   type MarketEvent,
   type MarketPlan,
+  type RuleDraft as SharedRuleDraft,
+  type ExceptionDraft as SharedExceptionDraft,
 } from '@fyndstigen/shared'
 import { messageFor } from '@/lib/messages.sv'
 
@@ -16,18 +18,9 @@ type TableDraft = {
   sizeDescription: string
 }
 
-export type RuleDraft = {
-  type: 'weekly' | 'biweekly' | 'date'
-  dayOfWeek: number | null
-  anchorDate: string | null
-  openTime: string
-  closeTime: string
-}
-
-export type ExceptionDraft = {
-  date: string
-  reason: string | null
-}
+// Re-exported from @fyndstigen/shared — the canonical source is now market-mutation.ts
+export type RuleDraft = SharedRuleDraft
+export type ExceptionDraft = SharedExceptionDraft
 
 export type CreateMarketInput = {
   name: string
