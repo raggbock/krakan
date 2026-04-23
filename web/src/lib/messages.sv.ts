@@ -62,6 +62,7 @@ export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string
 
   // --- Auth / generic ---
   'auth.required': () => 'Du behöver logga in för att fortsätta.',
+  'auth.forbidden': () => 'Du har inte behörighet att göra det här.',
   'input.invalid': () =>
     'Några av uppgifterna ser inte rätt ut. Kontrollera fälten och försök igen.',
   unknown: () => 'Något gick fel. Försök igen om en liten stund.',

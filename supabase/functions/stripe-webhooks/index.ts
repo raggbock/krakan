@@ -1,29 +1,11 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { getSupabaseAdmin } from '../_shared/auth.ts'
-import { applyBookingEvent, type BookingEvent } from '../_shared/booking-lifecycle.ts'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
+import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
 
-// Apply a lifecycle event to a booking identified by its Stripe PaymentIntent.
-// Returns a Response on DB error, undefined on success / not-found (idempotent).
-async function applyEventByPaymentIntent(
-  admin: ReturnType<typeof getSupabaseAdmin>,
-  paymentIntentId: string,
-  build: (booking: { status: 'pending' | 'confirmed' | 'denied' | 'cancelled'; flea_market_id: string }) => Promise<BookingEvent> | BookingEvent,
-): Promise<Response | undefined> {
-  const { data: booking } = await admin
-    .from('bookings')
-    .select('id, status, stripe_payment_intent_id, flea_market_id')
-    .eq('stripe_payment_intent_id', paymentIntentId)
-    .single()
-  if (!booking) return
-
-  const event = await build(booking)
-  const patch = applyBookingEvent(booking, event)
-  if (Object.keys(patch).length === 0) return
-
-  const { error } = await admin.from('bookings').update(patch).eq('id', booking.id)
-  if (error) return new Response('DB error', { status: 500 })
-}
+// Verify webhook signature, route to BookingRepo.applyEvent.
+// Non-booking events (account.updated, checkout, subscription) stay inline.
 
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
 
@@ -59,29 +41,45 @@ serve(async (req) => {
 
     case 'payment_intent.canceled': {
       const pi = event.data.object
-      const errResp = await applyEventByPaymentIntent(admin, pi.id, () => ({ type: 'stripe.payment_intent.canceled' }))
-      if (errResp) return errResp
+      const repo = createSupabaseBookingRepo(admin)
+      const booking = await repo.findByPaymentIntent(pi.id)
+      if (!booking) break
+      const bookingEvent: BookingEvent = { type: 'stripe.payment_intent.canceled' }
+      const { error } = await applyEventRaw(admin, booking.id, bookingEvent)
+      if (error) return new Response('DB error', { status: 500 })
       break
     }
 
     case 'payment_intent.payment_failed': {
       const pi = event.data.object
-      const errResp = await applyEventByPaymentIntent(admin, pi.id, () => ({ type: 'stripe.payment_intent.failed' }))
-      if (errResp) return errResp
+      const repo = createSupabaseBookingRepo(admin)
+      const booking = await repo.findByPaymentIntent(pi.id)
+      if (!booking) break
+      const bookingEvent: BookingEvent = { type: 'stripe.payment_intent.failed' }
+      const { error } = await applyEventRaw(admin, booking.id, bookingEvent)
+      if (error) return new Response('DB error', { status: 500 })
       break
     }
 
     case 'payment_intent.succeeded': {
       const pi = event.data.object
-      const errResp = await applyEventByPaymentIntent(admin, pi.id, async (booking) => {
-        const { data: market } = await admin
-          .from('flea_markets')
-          .select('auto_accept_bookings')
-          .eq('id', booking.flea_market_id)
-          .single()
-        return { type: 'stripe.payment_intent.succeeded', autoAccept: !!market?.auto_accept_bookings }
-      })
-      if (errResp) return errResp
+      const repo = createSupabaseBookingRepo(admin)
+      const booking = await repo.findByPaymentIntent(pi.id)
+      if (!booking) break
+
+      // Fetch market to learn auto_accept — same query as original webhook handler
+      const { data: market } = await admin
+        .from('flea_markets')
+        .select('auto_accept_bookings')
+        .eq('id', booking.flea_market_id)
+        .single()
+
+      const bookingEvent: BookingEvent = {
+        type: 'stripe.payment_intent.succeeded',
+        autoAccept: !!market?.auto_accept_bookings,
+      }
+      const { error } = await applyEventRaw(admin, booking.id, bookingEvent)
+      if (error) return new Response('DB error', { status: 500 })
       break
     }
 
@@ -149,3 +147,23 @@ serve(async (req) => {
     headers: { 'Content-Type': 'application/json' },
   })
 })
+
+// ---------------------------------------------------------------------------
+// Internal helper: applies a lifecycle event using the raw Supabase admin
+// client.  We use repo.applyEvent but surface DB errors as a return value
+// (not a thrown exception) to preserve the original webhook error-response
+// shape (return new Response('DB error', { status: 500 })).
+// ---------------------------------------------------------------------------
+async function applyEventRaw(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  bookingId: string,
+  event: BookingEvent,
+): Promise<{ error: unknown }> {
+  try {
+    const repo = createSupabaseBookingRepo(admin)
+    await repo.applyEvent(bookingId, event)
+    return { error: null }
+  } catch (err) {
+    return { error: err }
+  }
+}

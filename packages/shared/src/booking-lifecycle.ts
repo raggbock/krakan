@@ -6,9 +6,8 @@
  * webhook, organizer action) into a BookingEvent and feed it through
  * `applyBookingEvent` to compute the database patch.
  *
- * This file has a Deno mirror at
- * supabase/functions/_shared/booking-lifecycle.ts — keep them in sync
- * (same rule as packages/shared/src/booking.ts ↔ _shared/pricing.ts).
+ * Deno edge functions import this file directly via the import map in
+ * supabase/functions/deno.json — no mirror needed.
  */
 
 import type { Booking, BookingStatus, PaymentStatus } from './types'

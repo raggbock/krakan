@@ -9,7 +9,7 @@ defineEndpoint({
   output: OrganizerStatsOutput,
   handler: async ({ user, admin }, { organizer_id }) => {
     if (user.id !== organizer_id) {
-      throw new ForbiddenError('You can only view your own stats')
+      throw new ForbiddenError('You can only view your own stats', appError('auth.forbidden'))
     }
 
     // Get organizer's flea markets

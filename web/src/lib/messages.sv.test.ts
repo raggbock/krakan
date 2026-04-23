@@ -31,6 +31,7 @@ const ALL_CODES = [
   'organizer.fetch_failed',
   'geocode.not_found',
   'auth.required',
+  'auth.forbidden',
   'input.invalid',
   'unknown',
 ] as const satisfies readonly ErrorCode[]

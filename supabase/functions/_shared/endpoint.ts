@@ -40,9 +40,12 @@ export function defineEndpoint<I, O>(config: EndpointConfig<I, O>): void {
 
     const parsedOutput = config.output.safeParse(result)
     if (!parsedOutput.success) {
-      // Use SUPABASE_ENVIRONMENT (set by the Supabase platform) to distinguish prod vs dev.
-      // Default to 'production' so that an unset env (e.g. new deployment) is safe (warn, not throw).
-      // In local dev / CI set SUPABASE_ENVIRONMENT=development to get loud failures instead.
+      // Contract-drift gate: default to prod-style behavior (warn, don't throw)
+      // so an unset env never causes an outage. Supabase Edge does NOT auto-set
+      // SUPABASE_ENVIRONMENT — it must be explicitly set to 'development' in
+      // local `supabase/.env.local` or CI to opt into loud failures. If nobody
+      // sets it, both prod and CI warn silently — accept this as the safer
+      // default; drift still surfaces as console.error in logs.
       const supabaseEnv = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno
         ?.env.get('SUPABASE_ENVIRONMENT') ?? 'production'
       const isProd = supabaseEnv !== 'development'

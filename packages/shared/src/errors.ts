@@ -71,6 +71,7 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'organizer.fetch_failed',
   'geocode.not_found',
   'auth.required',
+  'auth.forbidden',
   'input.invalid',
   'unknown',
 ])

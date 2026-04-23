@@ -1,5 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { appError, isAppError, toAppError, type AppError, type ErrorCode } from './errors'
+import { appError, isAppError, toAppError, messageFor, interpolate, type AppError, type ErrorCode } from './errors'
+
+const ALL_CODES: ErrorCode[] = [
+  'booking.date.required',
+  'booking.date.invalid_format',
+  'booking.date.invalid',
+  'booking.date.in_past',
+  'booking.date.already_booked',
+  'booking.market_closed',
+  'booking.market_not_found',
+  'booking.table_not_found',
+  'booking.duplicate',
+  'booking.table_unavailable',
+  'booking.not_pending',
+  'booking.stripe_not_setup',
+  'stripe.not_onboarded',
+  'stripe.capture_failed',
+  'stripe.card_declined',
+  'stripe.authentication_required',
+  'stripe.network_error',
+  'geocode.not_found',
+  'auth.required',
+  'auth.forbidden',
+  'input.invalid',
+  'unknown',
+]
 
 describe('appError', () => {
   it('constructs an AppError with just a code', () => {
@@ -22,20 +47,7 @@ describe('appError', () => {
   })
 
   it('accepts all known error codes', () => {
-    const codes: ErrorCode[] = [
-      'booking.duplicate',
-      'booking.table_unavailable',
-      'stripe.not_onboarded',
-      'stripe.capture_failed',
-      'stripe.card_declined',
-      'stripe.authentication_required',
-      'stripe.network_error',
-      'geocode.not_found',
-      'auth.required',
-      'input.invalid',
-      'unknown',
-    ]
-    for (const c of codes) {
+    for (const c of ALL_CODES) {
       expect(appError(c).code).toBe(c)
     }
   })
@@ -48,20 +60,7 @@ describe('isAppError', () => {
   })
 
   it('returns true for every known ErrorCode', () => {
-    const codes: ErrorCode[] = [
-      'booking.duplicate',
-      'booking.table_unavailable',
-      'stripe.not_onboarded',
-      'stripe.capture_failed',
-      'stripe.card_declined',
-      'stripe.authentication_required',
-      'stripe.network_error',
-      'geocode.not_found',
-      'auth.required',
-      'input.invalid',
-      'unknown',
-    ]
-    for (const c of codes) {
+    for (const c of ALL_CODES) {
       expect(isAppError({ code: c })).toBe(true)
     }
   })
@@ -159,5 +158,79 @@ describe('toAppError', () => {
 
   it('falls back to unknown for a plain object', () => {
     expect(toAppError({ message: 'card_declined' }).code).toBe('unknown')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// messageFor
+// ---------------------------------------------------------------------------
+
+describe('messageFor', () => {
+  it('returns a non-empty Swedish string for every ErrorCode', () => {
+    for (const code of ALL_CODES) {
+      const msg = messageFor(code)
+      expect(typeof msg).toBe('string')
+      expect(msg.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('returns Swedish for booking.date.in_past', () => {
+    expect(messageFor('booking.date.in_past')).toBe('Kan inte boka i det förflutna')
+  })
+
+  it('returns Swedish for booking.date.required', () => {
+    expect(messageFor('booking.date.required')).toBe('Datum krävs')
+  })
+
+  it('returns Swedish for booking.date.already_booked', () => {
+    expect(messageFor('booking.date.already_booked')).toBe('Redan bokat detta datum')
+  })
+
+  it('returns Swedish for booking.market_closed', () => {
+    expect(messageFor('booking.market_closed')).toBe('Marknaden är stängd det valda datumet')
+  })
+
+  it('interpolates {param} placeholders when params are provided', () => {
+    // Use unknown cast to test interpolation with a hypothetical param
+    // The current catalog has no templated entries; this tests the mechanism.
+    const result = messageFor('unknown', { foo: 'bar' })
+    // 'unknown' message doesn't have {foo}, so output is unchanged
+    expect(result).toBe('Något gick fel. Försök igen om en liten stund.')
+  })
+
+  it('falls back to unknown message for an unrecognised code at runtime', () => {
+    const bogusCode = 'not.a.real.code' as ErrorCode
+    expect(messageFor(bogusCode)).toBe('Något gick fel. Försök igen om en liten stund.')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// interpolate
+// ---------------------------------------------------------------------------
+
+describe('interpolate', () => {
+  it('returns the template unchanged when no params', () => {
+    expect(interpolate('Hello world')).toBe('Hello world')
+    expect(interpolate('Hello world', undefined)).toBe('Hello world')
+  })
+
+  it('replaces a single placeholder', () => {
+    expect(interpolate('Datum: {date}', { date: '2026-04-22' })).toBe('Datum: 2026-04-22')
+  })
+
+  it('replaces multiple distinct placeholders', () => {
+    expect(interpolate('{a} och {b}', { a: 'ett', b: 'två' })).toBe('ett och två')
+  })
+
+  it('replaces all occurrences of the same placeholder', () => {
+    expect(interpolate('{x} {x} {x}', { x: 'ping' })).toBe('ping ping ping')
+  })
+
+  it('coerces number params to strings', () => {
+    expect(interpolate('Antal: {n}', { n: 42 })).toBe('Antal: 42')
+  })
+
+  it('leaves unknown placeholders intact', () => {
+    expect(interpolate('{known} {unknown}', { known: 'ok' })).toBe('ok {unknown}')
   })
 })
