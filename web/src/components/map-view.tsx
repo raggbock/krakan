@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
-import { markerIcon } from '@/lib/map-markers'
 import { FyndstigenLogo } from './fyndstigen-logo'
+import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
 
-const DEFAULT_CENTER = { lat: 59.33, lng: 18.07 } // Stockholm fallback
+const DEFAULT_CENTER: [number, number] = [59.33, 18.07] // Stockholm fallback
 
 function FlyToLocation({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
@@ -28,13 +27,13 @@ export default function MapView() {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
         setCenter(loc)
-        loadMarkets(loc.lat, loc.lng)
+        loadMarkets(loc[0], loc[1])
       },
       () => {
         // Geolocation denied or unavailable — use default
-        loadMarkets(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng)
+        loadMarkets(DEFAULT_CENTER[0], DEFAULT_CENTER[1])
       },
       { timeout: 5000 },
     )
@@ -46,6 +45,27 @@ export default function MapView() {
         .finally(() => setLoading(false))
     }
   }, [])
+
+  const markers: MapMarker[] = markets.map((market) => ({
+    id: market.id,
+    coord: [market.latitude, market.longitude],
+    icon: 'market',
+    popup: (
+      <div className="min-w-[200px] p-1">
+        <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
+        <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+        {market.description && (
+          <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
+        )}
+        <Link
+          href={`/fleamarkets/${market.id}`}
+          className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+        >
+          Visa loppis &rarr;
+        </Link>
+      </div>
+    ),
+  }))
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>
@@ -63,45 +83,14 @@ export default function MapView() {
       </div>
 
       {/* Map */}
-      <MapContainer
-        center={[DEFAULT_CENTER.lat, DEFAULT_CENTER.lng]}
+      <FyndstigenMap
+        markers={markers}
+        center={DEFAULT_CENTER}
         zoom={11}
         className="flex-1 w-full"
-        style={{ minHeight: '300px' }}
       >
-        <FlyToLocation lat={center.lat} lng={center.lng} />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {markets.map((market) => (
-          <Marker
-            key={market.id}
-            position={[market.latitude, market.longitude]}
-            icon={markerIcon}
-          >
-            <Popup>
-              <div className="min-w-[200px] p-1">
-                <p className="font-display font-bold text-sm text-espresso">
-                  {market.name}
-                </p>
-                <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
-                {market.description && (
-                  <p className="text-xs text-espresso/60 mt-1 line-clamp-2">
-                    {market.description}
-                  </p>
-                )}
-                <Link
-                  href={`/fleamarkets/${market.id}`}
-                  className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
-                >
-                  Visa loppis &rarr;
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+        <FlyToLocation lat={center[0]} lng={center[1]} />
+      </FyndstigenMap>
     </div>
   )
 }
