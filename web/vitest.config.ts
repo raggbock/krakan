@@ -15,6 +15,7 @@ export default defineConfig({
       // main repo's packages/shared, not this worktree's. Aliasing here makes
       // vitest resolve the in-tree source so worktree-local changes are visible
       // to tests. Harmless on main — the alias still points at the same path.
+      '@fyndstigen/shared/deps-factory': path.resolve(__dirname, '../packages/shared/src/deps-factory.ts'),
       '@fyndstigen/shared': path.resolve(__dirname, '../packages/shared/src/index.ts'),
     },
   },

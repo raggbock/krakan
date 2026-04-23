@@ -96,7 +96,8 @@ export type {
 
 // Deps container
 export type { Deps } from './deps'
-export { makeInMemoryDeps, makeSupabaseDeps } from './deps-factory'
+// makeInMemoryDeps + makeSupabaseDeps live at @fyndstigen/shared/deps-factory
+// so tree-shakers can skip Supabase adapter graph when only domain logic is needed.
 
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'

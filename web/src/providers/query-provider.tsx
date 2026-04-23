@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import { makeSupabaseDeps } from '@fyndstigen/shared'
+import { makeSupabaseDeps } from '@fyndstigen/shared/deps-factory'
 import { supabase } from '@/lib/supabase'
 import { DepsProvider } from './deps-provider'
 

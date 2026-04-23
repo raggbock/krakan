@@ -7,7 +7,7 @@ import type {
 } from '../../types'
 import type { RouteRepository } from '../../ports/routes'
 
-type StoredRoute = {
+export type StoredRoute = {
   id: string
   name: string
   description: string | null

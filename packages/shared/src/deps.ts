@@ -1,4 +1,6 @@
 import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-markets'
+import type { RouteRepository } from './ports/routes'
+import type { ProfileRepository } from './ports/profiles'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -8,9 +10,11 @@ import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-m
  * surface would be worse than either leaving the whole hook or doing both.
  * `SearchRepository` stays on the old `api.*` surface until its consumer
  * hook is actually migrated.
- * Add slots as features migrate (bookings, routes, profiles, payment, telemetry).
+ * Add slots as features migrate (bookings, payment, telemetry).
  */
 export type Deps = {
   markets: FleaMarketRepository
   marketTables: MarketTableRepository
+  routes: RouteRepository
+  profiles: ProfileRepository
 }
