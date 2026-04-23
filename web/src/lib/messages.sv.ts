@@ -1,15 +1,13 @@
 import type { AppError, ErrorCode } from '@fyndstigen/shared'
 
 /**
- * Swedish message catalog for AppError codes — web layer.
+ * Swedish message catalog for AppError codes — WEB LAYER (transitional).
  *
- * Every ErrorCode MUST have an entry. The exhaustive `Record<ErrorCode, ...>`
- * type makes it a compile error to add a new code without also adding a
- * message here.
- *
- * Note: Domain-level codes (booking.date.*, booking.market_not_found, etc.)
- * delegate to the shared `messageFor` function. UI-specific overrides can
- * be placed here when the web surface needs a longer/contextual message.
+ * The CANONICAL catalog is `packages/shared/src/errors/messages.sv.ts`.
+ * This file predates the shared catalog and will be collapsed into it in
+ * a follow-up. For now, both exist; new codes should go in the shared
+ * catalog first, and only be added here if the web surface needs a
+ * UI-specific override.
  */
 export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string> = {
   // --- Booking: date validation ---
@@ -20,9 +18,10 @@ export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string
   'booking.date.already_booked': () => 'Redan bokat detta datum',
 
   // --- Booking: business rules ---
-  'booking.market_closed': () => 'Marknaden är stängd det valda datumet.',
-  'booking.market_not_found': () => 'Marknaden hittades inte.',
-  'booking.table_not_found': () => 'Bordet hittades inte.',
+  'booking.market_closed': () => 'Marknaden är stängd det valda datumet',
+  'booking.market_not_found': () => 'Marknaden hittades inte',
+  'booking.table_not_found': () => 'Bordet hittades inte',
+  'booking.not_found': () => 'Bokningen hittades inte',
   'booking.duplicate': () =>
     'Du har redan en bokning för det här bordet. Kolla dina bokningar under ditt konto.',
   'booking.table_unavailable': () =>

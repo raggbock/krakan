@@ -14,7 +14,7 @@ defineEndpoint({
     // SELECT — same first query as original edge
     const repo = createSupabaseBookingRepo(admin)
     const booking = await repo.findById(bookingId)
-    if (!booking) throw new NotFoundError('Booking not found', appError('booking.table_not_found'))
+    if (!booking) throw new NotFoundError('Booking not found', appError('booking.not_found'))
     if (booking.status !== 'pending') throw new HttpError(409, 'Booking is not pending', appError('booking.not_pending'))
 
     // Authorization check — verifyOrganizer does one extra SELECT (same as original)

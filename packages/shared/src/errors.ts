@@ -20,6 +20,7 @@ export type ErrorCode =
   | 'booking.market_closed'
   | 'booking.market_not_found'
   | 'booking.table_not_found'
+  | 'booking.not_found'
   | 'booking.duplicate'
   | 'booking.table_unavailable'
   | 'booking.not_pending'
@@ -46,6 +47,7 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'booking.market_closed',
   'booking.market_not_found',
   'booking.table_not_found',
+  'booking.not_found',
   'booking.duplicate',
   'booking.table_unavailable',
   'booking.not_pending',

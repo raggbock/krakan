@@ -20,6 +20,7 @@ export const MESSAGES_SV: Record<ErrorCode, string> = {
   'booking.market_closed': 'Marknaden är stängd det valda datumet',
   'booking.market_not_found': 'Marknaden hittades inte',
   'booking.table_not_found': 'Bordet hittades inte',
+  'booking.not_found': 'Bokningen hittades inte',
   'booking.duplicate': 'Du har redan en bokning för det här bordet. Kolla dina bokningar under ditt konto.',
   'booking.table_unavailable': 'Det här bordet är tyvärr inte längre tillgängligt. Välj ett annat bord eller försök igen senare.',
   'booking.not_pending': 'Bokningen kan inte uppdateras — den är inte längre väntande.',
