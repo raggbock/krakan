@@ -28,7 +28,7 @@ export class UnauthorizedError extends HttpError {
 }
 
 export class ForbiddenError extends HttpError {
-  constructor(message = 'Not authorized') { super(403, message) }
+  constructor(message = 'Not authorized', body?: unknown) { super(403, message, body) }
 }
 
 export type RequestContext = {

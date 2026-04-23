@@ -42,13 +42,27 @@ export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string
     'Din bank kräver extra verifiering. Godkänn betalningen i din bankapp och försök sedan igen.',
   'stripe.network_error': () =>
     'Nätverksfel vid betalning. Kontrollera din anslutning och försök igen.',
+  'stripe.connect.account_creation_failed': () =>
+    'Det gick inte att skapa Stripe-konto. Försök igen eller kontakta support.',
+  'stripe.connect.no_account': () =>
+    'Inget Stripe-konto hittades. Påbörja kopplingen på nytt.',
 
   // --- Geo ---
   'geocode.not_found': () =>
     'Vi kunde inte hitta den adressen på kartan. Kontrollera stavningen och försök igen.',
 
+  // --- Booking: concurrent/state errors ---
+  'booking.invalid_status': () => 'Ogiltig bokningsstatus angiven.',
+  'booking.concurrent_update': () =>
+    'Bokningen uppdaterades redan av en annan åtgärd. Ladda om sidan och försök igen.',
+
+  // --- Organizer ---
+  'organizer.fetch_failed': () =>
+    'Det gick inte att hämta marknadsdata. Försök igen om en liten stund.',
+
   // --- Auth / generic ---
   'auth.required': () => 'Du behöver logga in för att fortsätta.',
+  'auth.forbidden': () => 'Du har inte behörighet att göra det här.',
   'input.invalid': () =>
     'Några av uppgifterna ser inte rätt ut. Kontrollera fälten och försök igen.',
   unknown: () => 'Något gick fel. Försök igen om en liten stund.',

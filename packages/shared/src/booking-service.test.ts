@@ -43,7 +43,7 @@ function makeApi(overrides: Partial<Api> = {}): Api {
       availableDates: vi.fn().mockResolvedValue([]),
     },
     endpoints: {
-      bookingCreate: vi.fn().mockResolvedValue({ bookingId: 'b-1' }),
+      'booking.create': { invoke: vi.fn().mockResolvedValue({ bookingId: 'b-1' }) },
     },
     edge: {
       invoke: vi.fn().mockResolvedValue({}),
@@ -146,9 +146,9 @@ describe('BookingService.validateDate', () => {
 // ---------------------------------------------------------------------------
 
 describe('BookingService.createWithPayment', () => {
-  it('forwards params to api.endpoints.bookingCreate', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-42', clientSecret: 'pi_sec' })
-    const api = makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] })
+  it('forwards params to api.endpoints[booking.create].invoke', async () => {
+    const invoke = vi.fn().mockResolvedValue({ bookingId: 'b-42', clientSecret: 'pi_sec' })
+    const api = makeApi({ endpoints: { 'booking.create': { invoke } } as unknown as Api['endpoints'] })
     const svc = createBookingService({ api })
 
     const result = await svc.createWithPayment({
@@ -158,7 +158,7 @@ describe('BookingService.createWithPayment', () => {
       message: 'Hej',
     })
 
-    expect(bookingCreate).toHaveBeenCalledWith({
+    expect(invoke).toHaveBeenCalledWith({
       marketTableId: 'tbl-1',
       fleaMarketId: 'mkt-1',
       bookingDate: '2026-12-01',
@@ -168,8 +168,8 @@ describe('BookingService.createWithPayment', () => {
   })
 
   it('propagates the free-booking response (no clientSecret)', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free' })
-    const api = makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] })
+    const invoke = vi.fn().mockResolvedValue({ bookingId: 'b-free' })
+    const api = makeApi({ endpoints: { 'booking.create': { invoke } } as unknown as Api['endpoints'] })
     const svc = createBookingService({ api })
 
     const result = await svc.createWithPayment({
@@ -187,14 +187,20 @@ describe('BookingService.createWithPayment', () => {
 // ---------------------------------------------------------------------------
 
 describe('BookingService.capture', () => {
-  it('invokes stripe-payment-capture with the booking id', async () => {
+  it('invokes stripe.payment.capture endpoint with the booking id', async () => {
     const invoke = vi.fn().mockResolvedValue({ success: true })
-    const api = makeApi({ edge: { invoke } as unknown as Api['edge'] })
+    const api = makeApi({
+      endpoints: {
+        'booking.create': { invoke: vi.fn().mockResolvedValue({ bookingId: 'b-1' }) },
+        'stripe.payment.capture': { invoke },
+        'stripe.payment.cancel': { invoke: vi.fn() },
+      } as unknown as Api['endpoints'],
+    })
     const svc = createBookingService({ api })
 
     await svc.capture('booking-123')
 
-    expect(invoke).toHaveBeenCalledWith('stripe-payment-capture', { bookingId: 'booking-123' })
+    expect(invoke).toHaveBeenCalledWith({ bookingId: 'booking-123' })
   })
 })
 
@@ -203,27 +209,39 @@ describe('BookingService.capture', () => {
 // ---------------------------------------------------------------------------
 
 describe('BookingService.cancel', () => {
-  it('invokes stripe-payment-cancel with newStatus=denied', async () => {
+  it('invokes stripe.payment.cancel endpoint with newStatus=denied', async () => {
     const invoke = vi.fn().mockResolvedValue({ success: true })
-    const api = makeApi({ edge: { invoke } as unknown as Api['edge'] })
+    const api = makeApi({
+      endpoints: {
+        'booking.create': { invoke: vi.fn().mockResolvedValue({ bookingId: 'b-1' }) },
+        'stripe.payment.capture': { invoke: vi.fn() },
+        'stripe.payment.cancel': { invoke },
+      } as unknown as Api['endpoints'],
+    })
     const svc = createBookingService({ api })
 
     await svc.cancel('booking-456', 'denied')
 
-    expect(invoke).toHaveBeenCalledWith('stripe-payment-cancel', {
+    expect(invoke).toHaveBeenCalledWith({
       bookingId: 'booking-456',
       newStatus: 'denied',
     })
   })
 
-  it('invokes stripe-payment-cancel with newStatus=cancelled', async () => {
+  it('invokes stripe.payment.cancel endpoint with newStatus=cancelled', async () => {
     const invoke = vi.fn().mockResolvedValue({ success: true })
-    const api = makeApi({ edge: { invoke } as unknown as Api['edge'] })
+    const api = makeApi({
+      endpoints: {
+        'booking.create': { invoke: vi.fn().mockResolvedValue({ bookingId: 'b-1' }) },
+        'stripe.payment.capture': { invoke: vi.fn() },
+        'stripe.payment.cancel': { invoke },
+      } as unknown as Api['endpoints'],
+    })
     const svc = createBookingService({ api })
 
     await svc.cancel('booking-789', 'cancelled')
 
-    expect(invoke).toHaveBeenCalledWith('stripe-payment-cancel', {
+    expect(invoke).toHaveBeenCalledWith({
       bookingId: 'booking-789',
       newStatus: 'cancelled',
     })
@@ -274,7 +292,7 @@ const BASE_BOOK_PARAMS = {
 describe('BookingService.book — free auto-accept', () => {
   it('calls edge endpoint, skips payment gateway, emits telemetry', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-auto' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway()
     const telemetry = makeTelemetry()
 
@@ -292,7 +310,7 @@ describe('BookingService.book — free auto-accept', () => {
 describe('BookingService.book — free manual-accept', () => {
   it('calls edge endpoint without clientSecret, skips payment gateway', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-manual' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway()
     const telemetry = makeTelemetry()
 
@@ -306,7 +324,7 @@ describe('BookingService.book — free manual-accept', () => {
 describe('BookingService.book — paid auto-accept', () => {
   it('calls edge endpoint, confirms payment via gateway', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-auto', clientSecret: 'pi_auto_secret' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway({ status: 'succeeded' })
     const telemetry = makeTelemetry()
 
@@ -319,7 +337,7 @@ describe('BookingService.book — paid auto-accept', () => {
 
   it('throws when payment gateway returns failed', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-fail', clientSecret: 'pi_fail' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway({ status: 'failed', error: 'Kortet nekades' })
     const telemetry = makeTelemetry()
 
@@ -332,7 +350,7 @@ describe('BookingService.book — paid auto-accept', () => {
 describe('BookingService.book — paid manual-accept', () => {
   it('calls edge endpoint, confirms payment via gateway (manual capture)', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-manual', clientSecret: 'pi_manual_secret' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway({ status: 'succeeded' })
     const telemetry = makeTelemetry()
 
@@ -345,7 +363,7 @@ describe('BookingService.book — paid manual-accept', () => {
 
   it('does not confirm payment when edge function throws', async () => {
     const bookingCreate = vi.fn().mockRejectedValue(new Error('Stripe not configured'))
-    const svc = createBookingService({ api: makeApi({ endpoints: { bookingCreate } as unknown as Api['endpoints'] }) })
+    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway()
     const telemetry = makeTelemetry()
 

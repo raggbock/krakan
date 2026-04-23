@@ -13,7 +13,7 @@ export const auth = createSupabaseAuth(supabase)
 
 /**
  * Booking service facade — single entry point for all booking operations.
- * Prefer this over importing calculateCommission / api.endpoints.bookingCreate directly.
+ * Prefer this over importing calculateCommission / api.endpoints['booking.create'].invoke directly.
  */
 export const bookingService = createBookingService({ api })
 

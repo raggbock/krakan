@@ -116,8 +116,8 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
     supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId }),
-    api.edge
-      .invoke<{ markets: PostHogMarketStats[] }>('organizer-stats', { organizer_id: organizerId })
+    api.endpoints['organizer.stats']
+      .invoke({ organizer_id: organizerId })
       .catch(() => ({ markets: [] as PostHogMarketStats[] })),
   ])
 

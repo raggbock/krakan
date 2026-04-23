@@ -107,7 +107,7 @@ export function createBookingService(deps: { api: Api }): BookingService {
     },
 
     async createWithPayment(params) {
-      return api.endpoints.bookingCreate(params)
+      return api.endpoints['booking.create'].invoke(params)
     },
 
     async book(params, { payment, telemetry }) {
@@ -125,7 +125,34 @@ export function createBookingService(deps: { api: Api }): BookingService {
         },
       })
 
-      const data = await api.endpoints.bookingCreate(createParams)
+      const data = await api.endpoints['booking.create'].invoke(createParams)
+
+      if (data.clientSecret) {
+        const result = await payment.confirmCardPayment(data.clientSecret)
+        if (result.status === 'failed') {
+          throw new Error(result.error)
+        }
+      }
+
+      return { bookingId: data.bookingId }
+    },
+
+    async book(params, { payment, telemetry }) {
+      const { tableLabel, priceSek, ...createParams } = params
+      const isFree = isFreePriced(priceSek)
+
+      telemetry.capture({
+        name: 'booking_initiated',
+        properties: {
+          flea_market_id: params.fleaMarketId,
+          market_name: tableLabel,
+          table_label: tableLabel,
+          price_sek: priceSek,
+          is_free: isFree,
+        },
+      })
+
+      const data = await api.endpoints['booking.create'].invoke(createParams)
 
       if (data.clientSecret) {
         const result = await payment.confirmCardPayment(data.clientSecret)
@@ -138,11 +165,11 @@ export function createBookingService(deps: { api: Api }): BookingService {
     },
 
     async capture(bookingId) {
-      await api.edge.invoke('stripe-payment-capture', { bookingId })
+      await api.endpoints['stripe.payment.capture'].invoke({ bookingId })
     },
 
     async cancel(bookingId, reason) {
-      await api.edge.invoke('stripe-payment-cancel', { bookingId, newStatus: reason })
+      await api.endpoints['stripe.payment.cancel'].invoke({ bookingId, newStatus: reason })
     },
 
     applyEvent(current, event) {

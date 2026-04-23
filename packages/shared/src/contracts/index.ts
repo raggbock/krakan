@@ -1,2 +1,7 @@
 export { BookingCreateInput, BookingCreateOutput } from './booking-create'
 export { StripePaymentCaptureInput, StripePaymentCaptureOutput } from './stripe-payment-capture'
+export { StripePaymentCancelInput, StripePaymentCancelOutput } from './stripe-payment-cancel'
+export { StripeConnectCreateInput, StripeConnectCreateOutput } from './stripe-connect-create'
+export { StripeConnectRefreshInput, StripeConnectRefreshOutput } from './stripe-connect-refresh'
+export { StripeConnectStatusInput, StripeConnectStatusOutput } from './stripe-connect-status'
+export { OrganizerStatsInput, OrganizerStatsOutput, OrganizerStatsMarket } from './organizer-stats'

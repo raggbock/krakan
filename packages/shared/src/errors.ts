@@ -31,6 +31,13 @@ export type ErrorCode =
   | 'stripe.card_declined'
   | 'stripe.authentication_required'
   | 'stripe.network_error'
+  | 'stripe.connect.account_creation_failed'
+  | 'stripe.connect.no_account'
+  // --- Booking: concurrent/state errors ---
+  | 'booking.invalid_status'
+  | 'booking.concurrent_update'
+  // --- Organizer ---
+  | 'organizer.fetch_failed'
   // --- Geo ---
   | 'geocode.not_found'
   // --- Auth / generic ---
@@ -57,8 +64,14 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'stripe.card_declined',
   'stripe.authentication_required',
   'stripe.network_error',
+  'stripe.connect.account_creation_failed',
+  'stripe.connect.no_account',
+  'booking.invalid_status',
+  'booking.concurrent_update',
+  'organizer.fetch_failed',
   'geocode.not_found',
   'auth.required',
+  'auth.forbidden',
   'input.invalid',
   'unknown',
 ])

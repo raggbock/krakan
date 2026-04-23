@@ -21,6 +21,7 @@ const ALL_CODES: ErrorCode[] = [
   'stripe.network_error',
   'geocode.not_found',
   'auth.required',
+  'auth.forbidden',
   'input.invalid',
   'unknown',
 ]

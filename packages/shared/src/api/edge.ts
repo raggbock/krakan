@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createEndpointsApi, createEndpointInvokers } from './endpoints'
+import { createEndpointInvokers } from './endpoints'
 
 /**
  * Thin wrapper around supabase.functions.invoke that:
@@ -38,14 +38,13 @@ export function createEdgeApi(supabase: SupabaseClient) {
   const edge = createEdgeClient(supabase)
   return {
     edge,
-    /** Legacy camelCase invokers — kept for booking-service backward compat */
-    endpoints: createEndpointsApi(edge),
     /**
-     * Typed invokers for the flat ENDPOINTS registry (RFC #39).
+     * Typed invokers for the flat ENDPOINTS registry (RFC #39 / #43).
      *
      * Usage:
-     *   api.endpointInvokers['stripe.payment.capture'].invoke({ bookingId })
+     *   api.endpoints['stripe.payment.capture'].invoke({ bookingId })
+     *   api.endpoints['booking.create'].invoke({ ... })
      */
-    endpointInvokers: createEndpointInvokers(edge),
+    endpoints: createEndpointInvokers(edge),
   }
 }

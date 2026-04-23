@@ -9,10 +9,11 @@ import { createHandler, HttpError, type RequestContext } from './handler.ts'
  *     Invalid input short-circuits with an AppError-shaped payload
  *     ({ error: 'input.invalid', detail: { issues } }) and HTTP 400.
  *   - Runs the typed handler.
- *   - Validates the handler's return value against `config.output`. In
- *     development (DENO_ENV !== 'production') a contract violation throws
- *     so the mismatch is loud during local work / CI; in production we log
- *     and return the value anyway to avoid breaking clients on a schema drift.
+ *   - Validates the handler's return value against `config.output`. When
+ *     SUPABASE_ENVIRONMENT === 'development' a contract violation throws so
+ *     the mismatch is loud during local work / CI; otherwise (including when
+ *     the variable is unset) we log and return the value to avoid breaking
+ *     clients on schema drift. Defaults to production-safe (warn) mode.
  *
  * The return type of `defineEndpoint` is intentionally void — the call
  * registers a Deno HTTP server side-effectfully, matching `serve()` /
@@ -39,9 +40,15 @@ export function defineEndpoint<I, O>(config: EndpointConfig<I, O>): void {
 
     const parsedOutput = config.output.safeParse(result)
     if (!parsedOutput.success) {
-      const env = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno
-        ?.env.get('DENO_ENV')
-      const isProd = env === 'production'
+      // Contract-drift gate: default to prod-style behavior (warn, don't throw)
+      // so an unset env never causes an outage. Supabase Edge does NOT auto-set
+      // SUPABASE_ENVIRONMENT — it must be explicitly set to 'development' in
+      // local `supabase/.env.local` or CI to opt into loud failures. If nobody
+      // sets it, both prod and CI warn silently — accept this as the safer
+      // default; drift still surfaces as console.error in logs.
+      const supabaseEnv = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno
+        ?.env.get('SUPABASE_ENVIRONMENT') ?? 'production'
+      const isProd = supabaseEnv !== 'development'
       const msg = `[endpoint:${config.name}] output contract violation: ${JSON.stringify(parsedOutput.error.issues)}`
       if (isProd) {
         console.error(msg)

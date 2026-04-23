@@ -8,6 +8,26 @@ import {
   StripePaymentCaptureInput,
   StripePaymentCaptureOutput,
 } from '../contracts/stripe-payment-capture'
+import {
+  StripePaymentCancelInput,
+  StripePaymentCancelOutput,
+} from '../contracts/stripe-payment-cancel'
+import {
+  StripeConnectCreateInput,
+  StripeConnectCreateOutput,
+} from '../contracts/stripe-connect-create'
+import {
+  StripeConnectRefreshInput,
+  StripeConnectRefreshOutput,
+} from '../contracts/stripe-connect-refresh'
+import {
+  StripeConnectStatusInput,
+  StripeConnectStatusOutput,
+} from '../contracts/stripe-connect-status'
+import {
+  OrganizerStatsInput,
+  OrganizerStatsOutput,
+} from '../contracts/organizer-stats'
 
 // ---------------------------------------------------------------------------
 // Registry definition helpers
@@ -44,6 +64,31 @@ export const ENDPOINTS = {
     request: StripePaymentCaptureInput,
     response: StripePaymentCaptureOutput,
   }),
+  'stripe.payment.cancel': defineEndpointDef({
+    path: 'stripe-payment-cancel',
+    request: StripePaymentCancelInput,
+    response: StripePaymentCancelOutput,
+  }),
+  'stripe.connect.create': defineEndpointDef({
+    path: 'stripe-connect-create',
+    request: StripeConnectCreateInput,
+    response: StripeConnectCreateOutput,
+  }),
+  'stripe.connect.refresh': defineEndpointDef({
+    path: 'stripe-connect-refresh',
+    request: StripeConnectRefreshInput,
+    response: StripeConnectRefreshOutput,
+  }),
+  'stripe.connect.status': defineEndpointDef({
+    path: 'stripe-connect-status',
+    request: StripeConnectStatusInput,
+    response: StripeConnectStatusOutput,
+  }),
+  'organizer.stats': defineEndpointDef({
+    path: 'organizer-stats',
+    request: OrganizerStatsInput,
+    response: OrganizerStatsOutput,
+  }),
 } as const
 
 export type EndpointKey = keyof typeof ENDPOINTS
@@ -78,55 +123,6 @@ export function createEndpointInvokers(edge: EdgeClient): EndpointInvokers {
       },
     }
     ;(out as Record<string, unknown>)[key] = invoker
-  }
-  return out
-}
-
-// ---------------------------------------------------------------------------
-// Legacy camelCase registry — kept for backward compat with booking-service
-// and existing tests. Do NOT add new entries here; use ENDPOINTS above.
-// ---------------------------------------------------------------------------
-
-const LEGACY_ENDPOINTS = {
-  bookingCreate: {
-    name: 'booking-create',
-    input: BookingCreateInput,
-    output: BookingCreateOutput,
-  },
-} as const
-
-type LegacyRegistry = typeof LEGACY_ENDPOINTS
-
-type EndpointFn<K extends keyof LegacyRegistry> = (
-  input: z.input<LegacyRegistry[K]['input']>,
-) => Promise<z.infer<LegacyRegistry[K]['output']>>
-
-export type EndpointsApi = {
-  [K in keyof LegacyRegistry]: EndpointFn<K>
-}
-
-/**
- * Build the typed invoker object around an `EdgeClient`.
- *
- * Each method:
- *   1. Validates input client-side (fail fast, avoids a round-trip on obvious bugs).
- *   2. Calls `edge.invoke` with the registered edge-function name.
- *   3. Validates the response against the output contract.
- *
- * Validation failures throw a `ZodError` — callers higher up the stack
- * translate to user-facing Swedish messages via the AppError catalog.
- */
-export function createEndpointsApi(edge: EdgeClient): EndpointsApi {
-  const out = {} as EndpointsApi
-  for (const key of Object.keys(LEGACY_ENDPOINTS) as Array<keyof LegacyRegistry>) {
-    const cfg = LEGACY_ENDPOINTS[key]
-    const fn = async (input: unknown) => {
-      const parsedInput = cfg.input.parse(input)
-      const raw = await edge.invoke<unknown>(cfg.name, parsedInput)
-      return cfg.output.parse(raw)
-    }
-    // Cast is safe by construction — each key maps to its matching EndpointFn.
-    ;(out as Record<string, unknown>)[key as string] = fn
   }
   return out
 }
