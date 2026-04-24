@@ -64,6 +64,7 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       marketTables: createInMemoryMarketTables(),
       routes: createInMemoryRoutes([]),
       profiles: createInMemoryProfiles([]),
+      admin: createInMemoryAdmin().repo,
     },
     control: { markets: marketsControl },
   }
