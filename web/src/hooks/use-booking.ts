@@ -72,7 +72,7 @@ export function useBooking(
   }, [date, bookedDates, today, openingHours])
 
   const validationError =
-    date && !dateValidation.valid
+    date && !dateValidation.valid && 'code' in dateValidation
       ? messageFor(dateValidation.code, dateValidation.params)
       : null
 

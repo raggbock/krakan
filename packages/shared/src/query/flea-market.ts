@@ -62,6 +62,15 @@ export const FleaMarketQuery = {
       const { profiles, opening_hour_rules, opening_hour_exceptions, flea_market_images, ...rest } = row
       return {
         ...rest,
+        // DB columns are nullable; the domain type narrows to non-null by coercing
+        // null → '' / 0 at the query boundary. Historical behavior of the adapter.
+        description: rest.description ?? '',
+        street: rest.street ?? '',
+        zip_code: rest.zip_code ?? '',
+        city: rest.city ?? '',
+        country: rest.country ?? '',
+        latitude: rest.latitude ?? 0,
+        longitude: rest.longitude ?? 0,
         organizerName: formatName(profiles),
         opening_hour_rules: opening_hour_rules.map((r) => ({
           id: r.id,
