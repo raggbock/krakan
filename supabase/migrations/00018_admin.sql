@@ -60,3 +60,10 @@ create policy admin_users_select on public.admin_users for select using (public.
 create policy admin_invites_select on public.admin_invites for select using (public.is_admin());
 create policy admin_actions_select on public.admin_actions for select using (public.is_admin());
 -- No insert/update/delete policies — all writes go through edge functions with service-role.
+
+-- Convenience view for the admin UI to show emails without granting direct
+-- access to auth.users (which has RLS off by default).
+create or replace view public.auth_user_email_view with (security_invoker = on) as
+  select id, email from auth.users;
+
+grant select on public.auth_user_email_view to authenticated;
