@@ -99,11 +99,20 @@ defineEndpoint({
 
     // The /takeover route lives on the web origin, not the edge origin.
     // Trust the request's Origin header (sent by the admin UI).
-    const results = await Promise.all(
-      input.marketIds.map((id) =>
-        sendOne(admin, id, origin, resendApiKey).then((r) => ({ marketId: id, ...r })),
-      ),
-    )
+    // Resend is rate-limited to 5 req/s. Process in batches of 4 with a
+    // 1-second pause between batches to stay safely under the limit.
+    const BATCH = 4
+    const results: Array<{ marketId: string } & Awaited<ReturnType<typeof sendOne>>> = []
+    for (let i = 0; i < input.marketIds.length; i += BATCH) {
+      const slice = input.marketIds.slice(i, i + BATCH)
+      const batchResults = await Promise.all(
+        slice.map((id) => sendOne(admin, id, origin, resendApiKey).then((r) => ({ marketId: id, ...r }))),
+      )
+      results.push(...batchResults)
+      if (i + BATCH < input.marketIds.length) {
+        await new Promise((r) => setTimeout(r, 1100))
+      }
+    }
 
     const summary = {
       sent: results.filter((r) => r.status === 'sent').length,
