@@ -7,6 +7,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Browser-visible env needed so `supabase.ts` doesn't throw at module init
+# in the browser during Playwright runs. Smoke tests only check static
+# markup — no real network calls are made. The map profile swaps deps to
+# in-memory via NEXT_PUBLIC_E2E_FAKE and never touches Supabase either.
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder
+
 jobs:
   e2e-smoke:
     runs-on: ubuntu-latest
