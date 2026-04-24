@@ -301,3 +301,12 @@ pg_cron-jobb
 
 
 ========================================================
+
+### Admin bootstrap
+1. Sign in via /auth in the target environment to create your auth.users row.
+2. Fetch your user_id:
+     select id from auth.users where email = 'you@example.com';
+3. Open supabase/migrations/00019_admin_seed_bootstrap.sql, replace the
+   placeholder UUID in seed_uid, commit (or apply once as a remote execute
+   without committing — preferred for prod).
+4. Verify: select is_admin('<your-uid>');  -- should return true

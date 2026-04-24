@@ -86,8 +86,10 @@ defineEndpoint({
     }
 
     // Derive status/payment_status/expires_at via the lifecycle reducer.
+    // The 'created' branch only reads `event`, not `current` — so a minimal
+    // object stands in for the not-yet-persisted Booking row.
     const lifecyclePatch = applyBookingEvent(
-      { status: 'pending', stripe_payment_intent_id: paymentIntentId },
+      { status: 'pending', stripe_payment_intent_id: paymentIntentId } as Parameters<typeof applyBookingEvent>[0],
       { type: 'created', autoAccept: market.auto_accept_bookings, paid: !isFreePriced(table.price_sek) },
     )
 
