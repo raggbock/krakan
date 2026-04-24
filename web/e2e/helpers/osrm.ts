@@ -1,16 +1,28 @@
 import type { Page } from '@playwright/test'
+import { createHash } from 'node:crypto'
 import { readFileSync, existsSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { coordsFromUrl, hashCoords } from './osrm-hash.mjs'
+import { join } from 'node:path'
 
-const HERE = dirname(fileURLToPath(import.meta.url))
-const FIXTURE_DIR = join(HERE, '..', 'fixtures', 'osrm')
+// Playwright compiles this file to CommonJS, so __dirname works here.
+const FIXTURE_DIR = join(__dirname, '..', 'fixtures', 'osrm')
+
+// Must match the hash logic in record-osrm-fixtures.mjs exactly — both
+// produce the same sha1-prefix given the same coord string.
+function hashCoords(coords: string): string {
+  return createHash('sha1').update(coords).digest('hex').slice(0, 16)
+}
+
+function coordsFromUrl(url: string): string {
+  const seg = url.split('/driving/')[1]
+  if (!seg) return ''
+  return seg.split('?')[0]
+}
 
 /**
  * Intercepts requests to the public OSRM routing server and serves a
- * recorded JSON fixture instead. Fails the test loudly if a fixture is
- * missing — run `npm run e2e:fixtures -- "<coords>"` to record one.
+ * recorded JSON fixture instead. Missing fixtures fail loudly with the
+ * exact recording command so they never silently drift from the coords
+ * a test actually requests.
  */
 export async function installOsrmFixtures(page: Page): Promise<void> {
   await page.route('**/router.project-osrm.org/**', async (route) => {
