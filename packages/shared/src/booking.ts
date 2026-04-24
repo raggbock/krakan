@@ -1,5 +1,6 @@
 import type { BookingStatus, OpeningHourRule, OpeningHourException } from './types'
 import { checkOpeningHours } from './opening-hours'
+import type { ErrorCode } from './errors'
 
 export type OpeningHoursContext = {
   rules: OpeningHourRule[]
@@ -9,7 +10,9 @@ export type OpeningHoursContext = {
 export const COMMISSION_RATE = 0.12
 
 export function calculateCommission(priceSek: number, rate = COMMISSION_RATE): number {
+  // eslint-disable-next-line no-restricted-syntax -- programming invariant: negative price is a caller bug, not a user-facing error
   if (priceSek < 0) throw new Error('Price cannot be negative')
+  // eslint-disable-next-line no-restricted-syntax -- programming invariant: invalid rate is a caller bug, not a user-facing error
   if (rate < 0 || rate > 1) throw new Error('Rate must be between 0 and 1')
   return Math.round(priceSek * rate)
 }
@@ -25,23 +28,37 @@ export function isValidStatusTransition(from: BookingStatus, to: BookingStatus):
   return ALLOWED_TRANSITIONS[from].includes(to)
 }
 
+/**
+ * Result of validateBookingDate.
+ *
+ * On failure, `code` is the canonical ErrorCode.
+ * Call `messageFor(code, params)` to get a Swedish user-facing string.
+ */
+export type BookingDateValidation =
+  | { valid: true }
+  | { valid: false; code: ErrorCode; params?: Record<string, string | number> }
+
 export function validateBookingDate(
   dateStr: string,
   bookedDates: string[],
   today: string,
   openingHours?: OpeningHoursContext,
-): { valid: boolean; error?: string } {
-  if (!dateStr) return { valid: false, error: 'Datum krävs' }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return { valid: false, error: 'Ogiltigt datumformat' }
+): BookingDateValidation {
+  function fail(code: ErrorCode, params?: Record<string, string | number>): BookingDateValidation {
+    return { valid: false, code, params }
+  }
+
+  if (!dateStr) return fail('booking.date.required')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return fail('booking.date.invalid_format')
 
   const date = new Date(dateStr + 'T12:00:00')
-  if (isNaN(date.getTime())) return { valid: false, error: 'Ogiltigt datum' }
-  if (dateStr < today) return { valid: false, error: 'Kan inte boka i det förflutna' }
-  if (bookedDates.includes(dateStr)) return { valid: false, error: 'Redan bokat detta datum' }
+  if (isNaN(date.getTime())) return fail('booking.date.invalid')
+  if (dateStr < today) return fail('booking.date.in_past')
+  if (bookedDates.includes(dateStr)) return fail('booking.date.already_booked')
 
   if (openingHours) {
     const result = checkOpeningHours(openingHours.rules, openingHours.exceptions, dateStr)
-    if (!result.isOpen) return { valid: false, error: 'Marknaden är stängd det valda datumet' }
+    if (!result.isOpen) return fail('booking.market_closed')
   }
 
   return { valid: true }
@@ -55,7 +72,9 @@ export function calculateStripeAmounts(priceSek: number) {
 }
 
 export function generateBatchLabels(prefix: string, count: number, startAt = 1): string[] {
+  // eslint-disable-next-line no-restricted-syntax -- programming invariant: out-of-range count is a caller bug, not a user-facing error
   if (count < 1 || count > 100) throw new Error('Count must be 1-100')
+  // eslint-disable-next-line no-restricted-syntax -- programming invariant: empty prefix is a caller bug, not a user-facing error
   if (!prefix.trim()) throw new Error('Prefix is required')
   return Array.from({ length: count }, (_, i) => `${prefix.trim()} ${startAt + i}`)
 }

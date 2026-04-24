@@ -10,10 +10,30 @@ vi.mock('react-leaflet', () => ({
   Popup: ({ children }: any) => <div>{children}</div>,
   Polyline: () => <div data-testid="polyline" />,
   useMapEvents: (_handlers: any) => null,
+  useMap: () => ({ fitBounds: vi.fn() }),
 }))
 
 vi.mock('leaflet/dist/leaflet.css', () => ({}))
-vi.mock('@/lib/map-markers', () => ({
+vi.mock('leaflet', () => ({
+  default: {
+    Icon: class {
+      constructor(public opts: any) {}
+    },
+  },
+}))
+vi.mock('@/components/fyndstigen-map', () => ({
+  FyndstigenMap: ({ children, markers, route }: any) => (
+    <div data-testid="map-container">
+      {markers?.map((m: any) => (
+        <div key={m.id} data-testid="marker">
+          {m.popup}
+        </div>
+      ))}
+      {route && route.coords?.length >= 2 && <div data-testid="polyline" />}
+      {children}
+    </div>
+  ),
+  markerIcon: {},
   inactiveMarkerIcon: {},
   numberedMarkerIcon: (_n: number) => ({}),
   startPointIcon: {},

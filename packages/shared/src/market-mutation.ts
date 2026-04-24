@@ -21,6 +21,23 @@ import type {
 import { GeocodeError } from './geo'
 import { appError, isAppError, type AppError } from './errors'
 
+// ---------- Draft types (owned here; shared with web hooks) ----------
+
+/** A draft rule before it has been persisted to the DB. */
+export type RuleDraft = {
+  type: 'weekly' | 'biweekly' | 'date'
+  dayOfWeek: number | null
+  anchorDate: string | null
+  openTime: string
+  closeTime: string
+}
+
+/** A draft exception (closed day) before it has been persisted to the DB. */
+export type ExceptionDraft = {
+  date: string
+  reason: string | null
+}
+
 // ---------- Plan shape ----------
 
 export type MarketPlanTableDraft = {

@@ -1,42 +1,11 @@
-import type { AppError, ErrorCode } from '@fyndstigen/shared'
-
 /**
- * Swedish message catalog for AppError codes.
+ * Compatibility shim — re-exports from the canonical shared catalog.
  *
- * Every ErrorCode MUST have an entry. The exhaustive `Record<ErrorCode, ...>`
- * type makes it a compile error to add a new code without also adding a
- * message here.
+ * This file exists solely because `web/src/hooks/market-form/use-submit-market.ts`
+ * imports `messageFor` from here and that file is post-#33 canonical (untouchable).
+ * All message logic now lives in `@fyndstigen/shared`.
+ *
+ * Do NOT add new entries here. Consumers outside market-form/ should import
+ * directly from `@fyndstigen/shared`.
  */
-export const MESSAGES: Record<ErrorCode, (detail?: AppError['detail']) => string> = {
-  'booking.duplicate': () =>
-    'Du har redan en bokning för det här bordet. Kolla dina bokningar under ditt konto.',
-  'booking.table_unavailable': () =>
-    'Det här bordet är tyvärr inte längre tillgängligt. Välj ett annat bord eller försök igen senare.',
-  'booking.market_closed': () =>
-    'Marknaden är stängd det valda datumet.',
-  'stripe.not_onboarded': () =>
-    'Arrangören har inte slutfört sin betalningsregistrering än. Försök igen om en stund eller kontakta arrangören.',
-  'stripe.capture_failed': () =>
-    'Betalningen kunde inte genomföras. Kontrollera ditt kort eller prova ett annat betalningssätt.',
-  'stripe.card_declined': () =>
-    'Kortet nekades. Kontrollera kortuppgifterna eller prova ett annat kort.',
-  'stripe.authentication_required': () =>
-    'Din bank kräver extra verifiering. Godkänn betalningen i din bankapp och försök sedan igen.',
-  'stripe.network_error': () =>
-    'Nätverksfel vid betalning. Kontrollera din anslutning och försök igen.',
-  'geocode.not_found': () =>
-    'Vi kunde inte hitta den adressen på kartan. Kontrollera stavningen och försök igen.',
-  'auth.required': () => 'Du behöver logga in för att fortsätta.',
-  'input.invalid': () => 'Några av uppgifterna ser inte rätt ut. Kontrollera fälten och försök igen.',
-  unknown: () => 'Något gick fel. Försök igen om en liten stund.',
-}
-
-/**
- * Look up a Swedish message for an AppError. Falls back to the `unknown`
- * message if the code is not in the catalog (should be impossible given
- * the exhaustive type, but defensive at runtime).
- */
-export function messageFor(err: AppError): string {
-  const template = MESSAGES[err.code] ?? MESSAGES.unknown
-  return template(err.detail)
-}
+export { messageFor } from '@fyndstigen/shared'

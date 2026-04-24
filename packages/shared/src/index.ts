@@ -5,11 +5,12 @@ export { createImageService } from './api/images'
 export type { ImageService, ImageServiceDeps } from './api/images'
 export { createEdgeClient } from './api/edge'
 export type { EdgeClient } from './api/edge'
-export { createEndpointsApi } from './api/endpoints'
-export type { EndpointsApi } from './api/endpoints'
+export { createEndpointInvokers, ENDPOINTS } from './api/endpoints'
+export type { EndpointInvokers, EndpointKey } from './api/endpoints'
 
 // Contracts
 export { BookingCreateInput, BookingCreateOutput } from './contracts/booking-create'
+export { StripePaymentCaptureInput, StripePaymentCaptureOutput } from './contracts/stripe-payment-capture'
 
 // Types
 export * from './types'
@@ -28,8 +29,8 @@ export {
 export { applyBookingEvent } from './booking-lifecycle'
 export type { BookingEvent, BookingPatch } from './booking-lifecycle'
 export { createBookingService } from './booking-service'
-export type { BookingService, CreateBookingParams, DateValidation } from './booking-service'
-export type { OpeningHoursContext } from './booking'
+export type { BookingService, CreateBookingParams, BookRequestParams, DateValidation } from './booking-service'
+export type { OpeningHoursContext, BookingDateValidation } from './booking'
 
 // Ports
 export * from './ports'
@@ -58,8 +59,8 @@ export { createGeo, GeocodeError } from './geo'
 export type { LatLng, GeoService, GeoOptions } from './geo'
 
 // Errors
-export { appError, isAppError, toAppError } from './errors'
-export type { AppError, ErrorCode } from './errors'
+export { appError, isAppError, toAppError, messageFor, interpolate } from './errors'
+export type { AppError, ErrorCode, ErrorParams, ParamsFor } from './errors'
 
 // Market mutation saga
 export { runMarketMutation, collectMarketEvents } from './market-mutation'
@@ -76,6 +77,8 @@ export type {
   MarketPlanAddress,
   MarketCreateFields,
   MarketUpdateFields,
+  RuleDraft,
+  ExceptionDraft,
 } from './market-mutation'
 
 // Route mutation saga
@@ -90,6 +93,11 @@ export type {
   RouteCreateFields,
   RouteUpdateFields,
 } from './route-mutation'
+
+// Deps container
+export type { Deps } from './deps'
+// makeInMemoryDeps + makeSupabaseDeps live at @fyndstigen/shared/deps-factory
+// so tree-shakers can skip Supabase adapter graph when only domain logic is needed.
 
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'

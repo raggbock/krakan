@@ -9,7 +9,7 @@ import type {
   CreateMarketTablePayload,
   SearchResult,
 } from '../../types'
-import { mapFleaMarketDetails, type FleaMarketDetailsRow } from '../../api/mappers'
+import { FleaMarketQuery, type FleaMarketDetailsRow } from '../../query/flea-market'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 
 export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketRepository {
@@ -33,18 +33,12 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
     async details(id) {
       const { data, error } = await supabase
         .from('flea_markets')
-        .select(`
-          *,
-          opening_hour_rules (*),
-          opening_hour_exceptions (*),
-          flea_market_images (*),
-          profiles!flea_markets_organizer_id_fkey (first_name, last_name)
-        `)
+        .select(FleaMarketQuery.details.select)
         .eq('id', id)
         .single()
 
       if (error) throw error
-      return mapFleaMarketDetails(data as FleaMarketDetailsRow)
+      return FleaMarketQuery.details.mapRow(data as FleaMarketDetailsRow)
     },
 
     async nearBy(params) {

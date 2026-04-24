@@ -4,9 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
 import { api, bookingService, MarketTable } from '@/lib/api'
-import { isFreePriced, toAppError } from '@fyndstigen/shared'
+import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
+import {
+  createNoOpPaymentGateway,
+  createStripePaymentGateway,
+} from '@/lib/adapters/stripe-payment-gateway'
+import { createPostHogTelemetry } from '@/lib/adapters/posthog-telemetry'
 
 type BookingHook = {
   selectedTable: MarketTable | null
@@ -30,7 +35,12 @@ type BookingHook = {
   reset: () => void
 }
 
-export function useBooking(marketId: string, userId: string | undefined, openingHours?: OpeningHoursContext): BookingHook {
+export function useBooking(
+  marketId: string,
+  marketName: string,
+  userId: string | undefined,
+  openingHours?: OpeningHoursContext,
+): BookingHook {
   const posthog = usePostHog()
   const stripe = useStripe()
   const elements = useElements()
@@ -61,7 +71,10 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     return bookingService.validateDate(date, bookedDates, today, openingHours)
   }, [date, bookedDates, today, openingHours])
 
-  const validationError = date && dateValidation.error ? dateValidation.error : null
+  const validationError =
+    date && !dateValidation.valid && 'code' in dateValidation
+      ? messageFor(dateValidation.code, dateValidation.params)
+      : null
 
   const price = selectedTable?.price_sek ?? 0
   const isFree = isFreePriced(price)
@@ -74,31 +87,33 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     if (!canSubmit || !selectedTable) return
     setIsSubmitting(true)
     setSubmitError(null)
-    posthog?.capture('booking_initiated', {
-      flea_market_id: marketId,
-      market_name: selectedTable.label,
-      table_label: selectedTable.label,
-      price_sek: selectedTable.price_sek,
-      is_free: isFree,
-    })
+
     try {
-      const data = await bookingService.createWithPayment({
-        marketTableId: selectedTable.id,
-        fleaMarketId: marketId,
-        bookingDate: date,
-        message: message || undefined,
-      })
+      // Build payment gateway lazily. For free tables no clientSecret comes
+      // back, so the no-op path is the correct gateway. For paid tables with
+      // Stripe unloaded or missing a CardElement, we still return a no-op
+      // gateway that throws iff actually invoked — matches pre-RFC behavior.
+      const cardElement =
+        stripe && elements ? (elements.getElement(CardElement) as StripeCardElement | null) : null
+      const payment =
+        stripe && cardElement
+          ? createStripePaymentGateway(stripe, cardElement)
+          : createNoOpPaymentGateway(!stripe || !elements ? 'Stripe not loaded' : 'Card element not found')
 
-      if (data.clientSecret) {
-        if (!stripe || !elements) throw new Error('Stripe not loaded')
-        const cardElement = elements.getElement(CardElement) as StripeCardElement | null
-        if (!cardElement) throw new Error('Card element not found')
+      const telemetry = createPostHogTelemetry(posthog)
 
-        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret, {
-          payment_method: { card: cardElement },
-        })
-        if (confirmError) throw new Error(confirmError.message)
-      }
+      await bookingService.book(
+        {
+          marketTableId: selectedTable.id,
+          fleaMarketId: marketId,
+          bookingDate: date,
+          message: message || undefined,
+          tableLabel: selectedTable.label,
+          marketName,
+          priceSek: selectedTable.price_sek,
+        },
+        { payment, telemetry },
+      )
 
       setIsDone(true)
       setSelectedTable(null)
@@ -109,7 +124,7 @@ export function useBooking(marketId: string, userId: string | undefined, opening
     } finally {
       setIsSubmitting(false)
     }
-  }, [canSubmit, selectedTable, stripe, elements, marketId, date, message, posthog, isFree])
+  }, [canSubmit, selectedTable, stripe, elements, marketId, marketName, date, message, posthog])
 
   function reset() {
     setSelectedTable(null)

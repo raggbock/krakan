@@ -1,12 +1,18 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { useStripeConnect } from './use-stripe-connect'
 
-// Mock api.edge.invoke
-const mockInvoke = vi.fn()
+// Mock api.endpoints invokers
+const mockInvokeStatus = vi.fn()
+const mockInvokeCreate = vi.fn()
+const mockInvokeRefresh = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   api: {
-    edge: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+    endpoints: {
+      'stripe.connect.status': { invoke: (...args: unknown[]) => mockInvokeStatus(...args) },
+      'stripe.connect.create': { invoke: (...args: unknown[]) => mockInvokeCreate(...args) },
+      'stripe.connect.refresh': { invoke: (...args: unknown[]) => mockInvokeRefresh(...args) },
+    },
   },
 }))
 
@@ -19,7 +25,9 @@ Object.defineProperty(window, 'location', {
 describe('useStripeConnect', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockInvoke.mockResolvedValue({ connected: false, onboarding_complete: false })
+    mockInvokeStatus.mockResolvedValue({ connected: false, onboarding_complete: false })
+    mockInvokeCreate.mockResolvedValue({ url: '' })
+    mockInvokeRefresh.mockResolvedValue({ url: '' })
   })
 
   it('returns loading=true initially', () => {
@@ -34,7 +42,7 @@ describe('useStripeConnect', () => {
   })
 
   it('fetches status on mount', async () => {
-    mockInvoke.mockResolvedValue({ connected: true, onboarding_complete: true })
+    mockInvokeStatus.mockResolvedValue({ connected: true, onboarding_complete: true })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -42,11 +50,11 @@ describe('useStripeConnect', () => {
 
     expect(result.current.connected).toBe(true)
     expect(result.current.onboardingComplete).toBe(true)
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-status')
+    expect(mockInvokeStatus).toHaveBeenCalledWith({})
   })
 
   it('handles not connected state', async () => {
-    mockInvoke.mockResolvedValue({ connected: false, onboarding_complete: false })
+    mockInvokeStatus.mockResolvedValue({ connected: false, onboarding_complete: false })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -57,7 +65,7 @@ describe('useStripeConnect', () => {
   })
 
   it('handles partial onboarding (connected but not complete)', async () => {
-    mockInvoke.mockResolvedValue({ connected: true, onboarding_complete: false })
+    mockInvokeStatus.mockResolvedValue({ connected: true, onboarding_complete: false })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -68,7 +76,7 @@ describe('useStripeConnect', () => {
   })
 
   it('sets error on status fetch failure', async () => {
-    mockInvoke.mockRejectedValue(new Error('Network error'))
+    mockInvokeStatus.mockRejectedValue(new Error('Network error'))
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -77,8 +85,8 @@ describe('useStripeConnect', () => {
   })
 
   it('startOnboarding calls create and redirects', async () => {
-    mockInvoke.mockResolvedValueOnce({ connected: false, onboarding_complete: false })
-    mockInvoke.mockResolvedValueOnce({ url: 'https://connect.stripe.com/setup/abc' })
+    mockInvokeStatus.mockResolvedValue({ connected: false, onboarding_complete: false })
+    mockInvokeCreate.mockResolvedValue({ url: 'https://connect.stripe.com/setup/abc' })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -88,13 +96,13 @@ describe('useStripeConnect', () => {
       await result.current.startOnboarding()
     })
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-create')
+    expect(mockInvokeCreate).toHaveBeenCalledWith({})
     expect(window.location.href).toBe('https://connect.stripe.com/setup/abc')
   })
 
   it('refreshOnboarding calls refresh and redirects', async () => {
-    mockInvoke.mockResolvedValueOnce({ connected: true, onboarding_complete: false })
-    mockInvoke.mockResolvedValueOnce({ url: 'https://connect.stripe.com/setup/def' })
+    mockInvokeStatus.mockResolvedValue({ connected: true, onboarding_complete: false })
+    mockInvokeRefresh.mockResolvedValue({ url: 'https://connect.stripe.com/setup/def' })
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 
@@ -104,13 +112,13 @@ describe('useStripeConnect', () => {
       await result.current.refreshOnboarding()
     })
 
-    expect(mockInvoke).toHaveBeenCalledWith('stripe-connect-refresh')
+    expect(mockInvokeRefresh).toHaveBeenCalledWith({})
     expect(window.location.href).toBe('https://connect.stripe.com/setup/def')
   })
 
   it('startOnboarding sets error on failure', async () => {
-    mockInvoke.mockResolvedValueOnce({ connected: false, onboarding_complete: false })
-    mockInvoke.mockRejectedValueOnce(new Error('Failed'))
+    mockInvokeStatus.mockResolvedValue({ connected: false, onboarding_complete: false })
+    mockInvokeCreate.mockRejectedValue(new Error('Failed'))
 
     const { result } = renderHook(() => useStripeConnect('user-1'))
 

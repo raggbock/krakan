@@ -1,4 +1,4 @@
-import type { ImageUploadStatus } from '@/hooks/use-create-market'
+import type { ImageUploadStatus } from '@/hooks/market-form'
 
 export function ImageUploadList({ statuses }: { statuses: ImageUploadStatus[] }) {
   return (

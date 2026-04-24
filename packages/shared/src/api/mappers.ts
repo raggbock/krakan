@@ -13,7 +13,6 @@
  */
 
 import type {
-  FleaMarketDetails,
   RouteWithStops,
   RouteSummary,
   RouteStop,
@@ -72,20 +71,6 @@ type RouteStopJoin = {
 export function formatName(profile: ProfileJoin): string {
   if (!profile) return ''
   return `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-}
-
-// --- Flea Market mappers ---
-
-export type FleaMarketDetailsRow = Record<string, unknown> & {
-  profiles: ProfileJoin
-}
-
-export function mapFleaMarketDetails(row: FleaMarketDetailsRow): FleaMarketDetails {
-  const { profiles, ...rest } = row
-  return {
-    ...rest,
-    organizerName: formatName(profiles),
-  } as FleaMarketDetails
 }
 
 // --- Booking mappers ---

@@ -31,6 +31,40 @@ jobs:
         working-directory: web
         run: npx vitest run
 
+  # Typecheck all Supabase Edge Functions with Deno.
+  # Pin to the Deno version shipped in Supabase Edge Runtime.
+  # Track runtime releases at:
+  # https://github.com/supabase/edge-runtime/releases
+  deno-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: "1.45.5"
+
+      - name: Deno check edge functions
+        shell: bash
+        # Use `find` instead of bash `**` so nested subdirs under
+        # supabase/functions/<name>/ also get checked.
+        run: find supabase/functions -name '*.ts' -print0 | xargs -0 deno check --config=supabase/functions/deno.json
+
+  # Verify no edge function imports a non-allow-listed @fyndstigen/shared subpath.
+  check-edge-imports:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check edge import surface
+        run: node scripts/check-edge-imports.mjs
+
   lighthouse:
     runs-on: ubuntu-latest
     needs: test

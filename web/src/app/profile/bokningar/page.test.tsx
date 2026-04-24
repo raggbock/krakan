@@ -22,6 +22,10 @@ vi.mock('@/lib/api', () => ({
     bookings: { listByMarket: vi.fn() },
     organizers: { stats: vi.fn() },
     edge: { invoke: vi.fn().mockResolvedValue({}) },
+    endpoints: {
+      'stripe.payment.capture': { invoke: vi.fn().mockResolvedValue({ success: true }) },
+      'stripe.payment.cancel': { invoke: vi.fn().mockResolvedValue({ success: true }) },
+    },
   },
 }))
 
@@ -106,6 +110,7 @@ beforeEach(() => {
   vi.mocked(api.bookings.listByMarket).mockResolvedValue([])
   vi.mocked(api.organizers.stats).mockResolvedValue(mockStats as any)
   vi.mocked(api.edge.invoke).mockResolvedValue({} as any)
+  vi.mocked(api.endpoints['stripe.payment.capture'].invoke).mockResolvedValue({ success: true })
 })
 
 describe('BookingsPage', () => {
@@ -175,7 +180,7 @@ describe('BookingsPage', () => {
     })
   })
 
-  it('approve calls stripe-payment-capture', async () => {
+  it('approve calls stripe-payment-capture via api.endpoints', async () => {
     mockAuthLoggedIn()
     vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
     render(<BookingsPage />)
@@ -184,8 +189,7 @@ describe('BookingsPage', () => {
     fireEvent.click(approveBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith(
-        'stripe-payment-capture',
+      expect(vi.mocked(api.endpoints['stripe.payment.capture'].invoke)).toHaveBeenCalledWith(
         { bookingId: 'b1' },
       )
     })
@@ -200,8 +204,7 @@ describe('BookingsPage', () => {
     fireEvent.click(denyBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith(
-        'stripe-payment-cancel',
+      expect(vi.mocked(api.endpoints['stripe.payment.cancel'].invoke)).toHaveBeenCalledWith(
         { bookingId: 'b1', newStatus: 'denied' },
       )
     })

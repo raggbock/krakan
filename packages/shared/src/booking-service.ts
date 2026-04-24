@@ -14,22 +14,35 @@
 import type { Api } from './api'
 import type { Booking } from './types'
 import type { BookingEvent, BookingPatch } from './booking-lifecycle'
-import { calculateCommission, validateBookingDate } from './booking'
-import type { OpeningHoursContext } from './booking'
+import { calculateCommission, validateBookingDate, isFreePriced } from './booking'
+import type { OpeningHoursContext, BookingDateValidation } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
+import { toAppError } from './errors'
+import type { PaymentGateway } from './ports/payment'
+import type { Telemetry } from './ports/telemetry'
 
 // Re-exported so callers need only this import surface.
 // OpeningHoursContext stays canonical in ./booking.ts — re-exported from the
 // package root in ./index.ts. Don't re-export it a second time here.
 export type { BookingEvent, BookingPatch }
 
-export type DateValidation = { valid: boolean; error?: string }
+/** @deprecated Use BookingDateValidation from './booking' directly. */
+export type DateValidation = BookingDateValidation
 
 export type CreateBookingParams = {
   marketTableId: string
   fleaMarketId: string
   bookingDate: string
   message?: string
+}
+
+export type BookRequestParams = CreateBookingParams & {
+  /** Label shown to the user (e.g. table.label) — used for telemetry only. */
+  tableLabel: string
+  /** Market display name — used for telemetry only. */
+  marketName: string
+  /** Price in SEK for the table — used for branching and telemetry. */
+  priceSek: number
 }
 
 export type BookingService = {
@@ -46,13 +59,23 @@ export type BookingService = {
    * When `openingHours` is supplied, also validates that the date falls on an
    * open day according to the market's rules and exceptions.
    */
-  validateDate(date: string, bookedDates: string[], today?: string, openingHours?: OpeningHoursContext): DateValidation
+  validateDate(date: string, bookedDates: string[], today?: string, openingHours?: OpeningHoursContext): BookingDateValidation
 
   /** Return dates already booked (pending or confirmed) for the given table. */
   getBookedDates(tableId: string): Promise<string[]>
 
   /** Create a booking. Returns a Stripe clientSecret when payment is required. */
   createWithPayment(params: CreateBookingParams): Promise<{ clientSecret?: string; bookingId: string }>
+
+  /**
+   * Full client-side booking orchestration:
+   *   1. Emits booking_initiated telemetry
+   *   2. Calls the edge endpoint
+   *   3. If clientSecret present, confirms payment via PaymentGateway
+   *
+   * Throws on network or payment failure so the caller can handle errors.
+   */
+  book(params: BookRequestParams, ports: { payment: PaymentGateway; telemetry: Telemetry }): Promise<{ bookingId: string }>
 
   /** Organizer approves a pending booking — triggers Stripe capture server-side. */
   capture(bookingId: string): Promise<void>
@@ -87,15 +110,42 @@ export function createBookingService(deps: { api: Api }): BookingService {
     },
 
     async createWithPayment(params) {
-      return api.endpoints.bookingCreate(params)
+      return api.endpoints['booking.create'].invoke(params)
+    },
+
+    async book(params, { payment, telemetry }) {
+      const { tableLabel, marketName, priceSek, ...createParams } = params
+      const isFree = isFreePriced(priceSek)
+
+      telemetry.capture({
+        name: 'booking_initiated',
+        properties: {
+          flea_market_id: params.fleaMarketId,
+          market_name: marketName,
+          table_label: tableLabel,
+          price_sek: priceSek,
+          is_free: isFree,
+        },
+      })
+
+      const data = await api.endpoints['booking.create'].invoke(createParams)
+
+      if (data.clientSecret) {
+        const result = await payment.confirmCardPayment(data.clientSecret)
+        if (result.status === 'failed') {
+          throw toAppError(new Error(result.error))
+        }
+      }
+
+      return { bookingId: data.bookingId }
     },
 
     async capture(bookingId) {
-      await api.edge.invoke('stripe-payment-capture', { bookingId })
+      await api.endpoints['stripe.payment.capture'].invoke({ bookingId })
     },
 
     async cancel(bookingId, reason) {
-      await api.edge.invoke('stripe-payment-cancel', { bookingId, newStatus: reason })
+      await api.endpoints['stripe.payment.cancel'].invoke({ bookingId, newStatus: reason })
     },
 
     applyEvent(current, event) {

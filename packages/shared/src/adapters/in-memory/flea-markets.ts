@@ -17,7 +17,7 @@ function nextId() {
   return `fm-${_id++}`
 }
 
-type StoredMarket = FleaMarket & {
+export type StoredMarket = FleaMarket & {
   is_deleted: boolean
   updated_at: string
   /** Opening hour rules stored alongside market for visibility checks */
@@ -39,12 +39,15 @@ function isMarketVisible(m: StoredMarket): boolean {
   )
 }
 
-export function createInMemoryFleaMarkets(
-  seed: StoredMarket[] = [],
+/**
+ * Internal — builds an FleaMarketRepository over a caller-supplied store.
+ * Used by both the standard in-memory factory (private store) and the E2E
+ * factory (store owned by a control handle so tests can mutate at runtime).
+ */
+function buildRepo(
+  store: Map<string, StoredMarket>,
   deps?: { profiles?: ProfileRepository },
 ): FleaMarketRepository {
-  const store = new Map<string, StoredMarket>(seed.map((m) => [m.id, { ...m }]))
-
   return {
     async list(params) {
       const page = params?.page ?? 1
@@ -58,6 +61,7 @@ export function createInMemoryFleaMarkets(
 
     async details(id) {
       const m = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!m) throw new Error(`FleaMarket ${id} not found`)
       let organizerName = ''
       if (deps?.profiles) {
@@ -114,6 +118,7 @@ export function createInMemoryFleaMarkets(
 
     async update(id, payload) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, {
         ...existing,
@@ -132,18 +137,21 @@ export function createInMemoryFleaMarkets(
 
     async delete(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, is_deleted: true })
     },
 
     async publish(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, published_at: new Date().toISOString() })
     },
 
     async unpublish(id) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
       store.set(id, { ...existing, published_at: null })
     },
@@ -154,6 +162,40 @@ export function createInMemoryFleaMarkets(
         .map((m) => ({ ...m, isVisible: isMarketVisible(m) })) as FleaMarket[]
     },
   }
+}
+
+export function createInMemoryFleaMarkets(
+  seed: StoredMarket[] = [],
+  deps?: { profiles?: ProfileRepository },
+): FleaMarketRepository {
+  const store = new Map<string, StoredMarket>(seed.map((m) => [m.id, { ...m }]))
+  return buildRepo(store, deps)
+}
+
+/**
+ * Runtime-controllable in-memory flea-markets — for E2E browser tests that
+ * need to seed/reset the store AFTER the Deps container has been constructed.
+ * Do not use in production paths.
+ */
+export type FleaMarketsControl = {
+  seed(markets: StoredMarket[]): void
+  reset(): void
+}
+
+export function createE2EInMemoryFleaMarkets(
+  deps?: { profiles?: ProfileRepository },
+): { repo: FleaMarketRepository; control: FleaMarketsControl } {
+  const store = new Map<string, StoredMarket>()
+  const control: FleaMarketsControl = {
+    seed(markets) {
+      store.clear()
+      for (const m of markets) store.set(m.id, { ...m })
+    },
+    reset() {
+      store.clear()
+    },
+  }
+  return { repo: buildRepo(store, deps), control }
 }
 
 /**
@@ -208,6 +250,7 @@ export function createInMemoryMarketTables(seed: MarketTable[] = []): MarketTabl
 
     async update(id, updates) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`MarketTable ${id} not found`)
       store.set(id, { ...existing, ...updates })
     },

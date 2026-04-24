@@ -53,9 +53,9 @@ export default function BookingsPage() {
     setUpdatingId(bookingId)
     try {
       if (status === 'confirmed') {
-        await api.edge.invoke('stripe-payment-capture', { bookingId })
+        await api.endpoints['stripe.payment.capture'].invoke({ bookingId })
       } else {
-        await api.edge.invoke('stripe-payment-cancel', { bookingId, newStatus: 'denied' })
+        await api.endpoints['stripe.payment.cancel'].invoke({ bookingId, newStatus: 'denied' })
       }
 
       setBookings((prev) =>

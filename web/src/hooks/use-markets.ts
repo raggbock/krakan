@@ -1,13 +1,15 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, FleaMarket } from '@/lib/api'
+import type { FleaMarket } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys'
+import { useDeps } from '@/providers/deps-provider'
 
 export function useMarkets(params?: { page?: number; pageSize?: number }) {
+  const { markets } = useDeps()
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.markets.list(params),
-    queryFn: () => api.fleaMarkets.list(params),
+    queryFn: () => markets.list(params),
   })
   return {
     markets: data?.items ?? ([] as FleaMarket[]),
@@ -19,9 +21,10 @@ export function useMarkets(params?: { page?: number; pageSize?: number }) {
 }
 
 export function useMarketsByOrganizer(organizerId: string | undefined) {
+  const { markets } = useDeps()
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.markets.byOrganizer(organizerId!),
-    queryFn: () => api.fleaMarkets.listByOrganizer(organizerId!),
+    queryFn: () => markets.listByOrganizer(organizerId!),
     enabled: !!organizerId,
   })
   return {

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createEndpointsApi } from './endpoints'
+import { createEndpointInvokers } from './endpoints'
 
 /**
  * Thin wrapper around supabase.functions.invoke that:
@@ -19,6 +19,7 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
     async invoke<TOut>(name: string, body?: unknown): Promise<TOut> {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
+        // eslint-disable-next-line no-restricted-syntax -- programming guard: adapter-level auth check before the request is sent; callers should ensure auth state upstream
         throw new Error('Not authenticated')
       }
 
@@ -38,6 +39,13 @@ export function createEdgeApi(supabase: SupabaseClient) {
   const edge = createEdgeClient(supabase)
   return {
     edge,
-    endpoints: createEndpointsApi(edge),
+    /**
+     * Typed invokers for the flat ENDPOINTS registry (RFC #39 / #43).
+     *
+     * Usage:
+     *   api.endpoints['stripe.payment.capture'].invoke({ bookingId })
+     *   api.endpoints['booking.create'].invoke({ ... })
+     */
+    endpoints: createEndpointInvokers(edge),
   }
 }

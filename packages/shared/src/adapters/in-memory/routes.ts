@@ -7,7 +7,7 @@ import type {
 } from '../../types'
 import type { RouteRepository } from '../../ports/routes'
 
-type StoredRoute = {
+export type StoredRoute = {
   id: string
   name: string
   description: string | null
@@ -56,6 +56,7 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
 
     async get(id: string): Promise<RouteWithStops> {
       const r = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!r) throw new Error(`Route ${id} not found`)
       return {
         id: r.id,
@@ -81,6 +82,7 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
 
     async update(id: string, payload: UpdateRoutePayload) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
       store.set(id, {
         ...existing,
@@ -99,12 +101,14 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
 
     async delete(id: string) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
       store.set(id, { ...existing, is_deleted: true })
     },
 
     async publish(id: string) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
       store.set(id, {
         ...existing,
@@ -115,6 +119,7 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
 
     async unpublish(id: string) {
       const existing = store.get(id)
+      // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
       store.set(id, { ...existing, is_published: false, published_at: null })
     },

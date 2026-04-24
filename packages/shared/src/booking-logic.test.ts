@@ -6,6 +6,7 @@ import {
   generateBatchLabels,
 } from '@fyndstigen/shared'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
+// Note: .error field was removed from BookingDateValidation — tests assert on .code instead.
 
 describe('calculateCommission', () => {
   it('calculates 12% commission', () => {
@@ -57,7 +58,7 @@ describe('validateBookingDate', () => {
   it('rejects empty date', () => {
     const result = validateBookingDate('', [], today)
     expect(result.valid).toBe(false)
-    expect(result.error).toBe('Datum krävs')
+    if (!result.valid) expect(result.code).toBe('booking.date.required')
   })
 
   it('rejects invalid format', () => {
@@ -69,13 +70,13 @@ describe('validateBookingDate', () => {
   it('rejects past dates', () => {
     const result = validateBookingDate('2026-04-05', [], today)
     expect(result.valid).toBe(false)
-    expect(result.error).toBe('Kan inte boka i det förflutna')
+    if (!result.valid) expect(result.code).toBe('booking.date.in_past')
   })
 
   it('rejects already booked dates', () => {
     const result = validateBookingDate('2026-04-10', ['2026-04-10', '2026-04-12'], today)
     expect(result.valid).toBe(false)
-    expect(result.error).toBe('Redan bokat detta datum')
+    if (!result.valid) expect(result.code).toBe('booking.date.already_booked')
   })
 
   it('accepts date not in booked list', () => {
@@ -110,7 +111,7 @@ describe('validateBookingDate', () => {
       // 2026-04-10 is a Friday
       const result = validateBookingDate('2026-04-10', [], today, saturdayOnlyContext)
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Marknaden är stängd det valda datumet')
+      if (!result.valid) expect(result.code).toBe('booking.market_closed')
     })
 
     it('accepts a date when market is open (Saturday)', () => {
@@ -136,21 +137,21 @@ describe('validateBookingDate', () => {
       // 2026-04-11 is a Saturday but it is an exception (closed)
       const result = validateBookingDate('2026-04-11', [], today, exceptionContext)
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Marknaden är stängd det valda datumet')
+      if (!result.valid) expect(result.code).toBe('booking.market_closed')
     })
 
     it('preserves existing past-date check before opening-hours check', () => {
       // Past date should fail before opening-hours is even checked
       const result = validateBookingDate('2026-04-05', [], today, saturdayOnlyContext)
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Kan inte boka i det förflutna')
+      if (!result.valid) expect(result.code).toBe('booking.date.in_past')
     })
 
     it('preserves existing already-booked check before opening-hours check', () => {
       // 2026-04-11 is Saturday (open), but it is already booked
       const result = validateBookingDate('2026-04-11', ['2026-04-11'], today, saturdayOnlyContext)
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Redan bokat detta datum')
+      if (!result.valid) expect(result.code).toBe('booking.date.already_booked')
     })
 
     it('without opening hours context preserves old behaviour (open day)', () => {

@@ -69,6 +69,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
       if (fetchErr) throw fetchErr
 
       if (!isValidStatusTransition(current.status as BookingStatus, newStatus)) {
+        // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: invalid status transition is a programming error caught before reaching the DB
         throw new Error(`Kan inte ändra status från ${current.status} till ${newStatus}`)
       }
 

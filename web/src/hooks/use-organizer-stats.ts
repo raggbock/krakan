@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { appError, isAppError, messageFor } from '@fyndstigen/shared'
 import { supabase } from '@/lib/supabase'
 
 type RpcBookingRow = {
@@ -68,7 +69,7 @@ export function useOrganizerStats(organizerId: string | undefined): OrganizerDas
 
     fetchAllStats(organizerId)
       .then(setMarkets)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Kunde inte hämta statistik'))
+      .catch((err) => setError(isAppError(err) ? messageFor(err) : err instanceof Error ? err.message : 'Kunde inte hämta statistik'))
       .finally(() => setLoading(false))
   }, [organizerId])
 
@@ -103,7 +104,7 @@ export function useOrganizerStats(organizerId: string | undefined): OrganizerDas
 
 async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.access_token) throw new Error('Du måste vara inloggad')
+  if (!session?.access_token) throw appError('auth.required')
 
   const marketList = await api.fleaMarkets.listByOrganizer(organizerId)
   if (marketList.length === 0) return []
@@ -116,8 +117,8 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
     supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
     supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId }),
-    api.edge
-      .invoke<{ markets: PostHogMarketStats[] }>('organizer-stats', { organizer_id: organizerId })
+    api.endpoints['organizer.stats']
+      .invoke({ organizer_id: organizerId })
       .catch(() => ({ markets: [] as PostHogMarketStats[] })),
   ])
 
