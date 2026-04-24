@@ -87,7 +87,7 @@ export function rowsEqual(a: ImportableMarketRow, b: ImportableMarketRow): boole
 }
 
 export type DryRunReport = {
-  dryRun: true
+  dryRun: boolean
   summary: {
     total: number
     created: number
@@ -95,6 +95,7 @@ export type DryRunReport = {
     unchanged: number
     errors: number
     warnings: number
+    tokensCreated: number
   }
   rows: ImportRowResult[]
 }
@@ -160,6 +161,7 @@ export function buildDryRunReport(
       unchanged,
       errors,
       warnings,
+      tokensCreated: 0,
     },
     rows,
   }

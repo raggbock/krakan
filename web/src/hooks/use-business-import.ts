@@ -7,11 +7,13 @@ import type {
   ImportBusiness,
 } from '@fyndstigen/shared/contracts/admin-business-import'
 
-export function useBusinessImportDryRun() {
-  return useMutation<AdminBusinessImportOutput, Error, ImportBusiness[]>({
-    mutationFn: async (businesses) => {
+type ImportArgs = { businesses: ImportBusiness[]; commit?: boolean }
+
+export function useBusinessImport() {
+  return useMutation<AdminBusinessImportOutput, Error, ImportArgs>({
+    mutationFn: async ({ businesses, commit }) => {
       const { data, error } = await supabase.functions.invoke('admin-business-import', {
-        body: { businesses },
+        body: { businesses, commit: commit ?? false },
       })
       if (error) throw new Error(error.message)
       return data as AdminBusinessImportOutput
