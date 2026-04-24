@@ -1,0 +1,1290 @@
+{
+  "schema": {
+    "name": "fyndstigen-import",
+    "version": "1.0",
+    "inspiration": "schema.org/LocalBusiness",
+    "description": "Importformat för butiker/loppisar på fyndstigen.se.",
+    "geoNote": "geo.precision='locality' = ortscentrum, ~0.5–2 km felmarginal. Kör geocode_locally.py lokalt för att uppgradera till precision='address'.",
+    "geocodedBy": "Nominatim"
+  },
+  "generatedAt": "2026-04-24",
+  "origin": "Sebastian Myrdahl – fyndstigen.se research",
+  "region": "Örebro län, inom ~50 km från Örebro centrum",
+  "scope": "Prio 1 + Prio 2 (exkluderar kedjor, kommunal daglig verksamhet och nedlagda)",
+  "count": 26,
+  "fields": {
+    "slug": "URL-säker identifierare (unik)",
+    "status": "confirmed | unverified | closed",
+    "takeover.shouldSendEmail": "True om vi planerar att skicka takeover-mail",
+    "takeover.priority": "1 (hög) – 3 (låg)",
+    "openingHours.regular": "Lista med {day, opens, closes}. day=monday..sunday, tider i HH:MM (24h)",
+    "openingHours.freeText": "Fri text om tiderna är oregelbundna/säsong",
+    "openingHours.closedMonths": "Lista med månader butiken är stängd"
+  },
+  "businesses": [
+    {
+      "slug": "lilla-grodans-loppis",
+      "name": "Lilla Grodans Loppis",
+      "category": "Privat",
+      "description": "Gårdsloppis med café strax utanför Örebro. Kläder, möbler, leksaker, porslin, film & spel.",
+      "address": {
+        "street": "Bärsta 306",
+        "postalCode": "715 92",
+        "locality": "Stora Mellösa",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.2106135,
+        "lng": 15.4975503,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Stora Mellösa, Örebro kommun, Örebro län, 715 72, Sverige"
+      },
+      "contact": {
+        "phone": "+46735026634",
+        "phoneRaw": "073-502 66 34",
+        "email": "info@lillagrodansloppis.com",
+        "website": "https://lillagrodansloppis.com",
+        "facebook": "https://facebook.com/lillagrodansloppis",
+        "instagram": "https://instagram.com/lillagrodansloppis"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "thursday",
+            "opens": "11:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "15:00"
+          }
+        ],
+        "freeText": "Tors 11–18, sön 11–15 (säsongsöppet)",
+        "closedMonths": [
+          "january",
+          "february",
+          "march"
+        ]
+      },
+      "distanceFromOrebroKm": 30,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Huvudkandidat i Stora Mellösa.",
+      "source": "lillagrodansloppis.com"
+    },
+    {
+      "slug": "kyrkornas-andrahandsbutik-odensbacken",
+      "name": "Kyrkornas andrahandsbutik Odensbacken",
+      "category": "Kyrklig-bistånd",
+      "description": "Second hand-butik i Odensbacken som drivs av Asker-Lännäs församling.",
+      "address": {
+        "street": "Örebrovägen 6",
+        "postalCode": "715 94",
+        "locality": "Odensbacken",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.1622716,
+        "lng": 15.5267407,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Örebrovägen, Odensbacken, Örebro kommun, Örebro län, 715 31, Sverige"
+      },
+      "contact": {
+        "phone": "+4619452002",
+        "phoneRaw": "019-45 20 02",
+        "email": "asker-lannas.forsamling@svenskakyrkan.se",
+        "website": "https://svenskakyrkan.se/askerlannas",
+        "facebook": "https://facebook.com/Kyrkornas-Andrahandsbutik-Odensbacken",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "thursday",
+            "opens": "14:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "13:00"
+          }
+        ],
+        "freeText": "Tors 14–18, lör 10–13"
+      },
+      "distanceFromOrebroKm": 25,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Viktig social mötesplats. Ordf. kontaktbar på 070-219 94 70.",
+      "source": "svenskakyrkan.se"
+    },
+    {
+      "slug": "englahaket",
+      "name": "Englahaket",
+      "category": "Kyrklig-bistånd",
+      "description": "Loppis + kafé i centrala Örebro. Drivs av Teen Challenge och stödjer utsatta.",
+      "address": {
+        "street": "Engelbrektsgatan 25",
+        "postalCode": "702 15",
+        "locality": "Örebro",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.2703129,
+        "lng": 15.2244625,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Pizzeria Milano, 25, Engelbrektsgatan, Wadköping, Örebro, Örebro kommun, Örebro län, 702 13, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": "englahaket@gmail.com",
+        "website": "https://teenchallenge.se/engla",
+        "facebook": "https://facebook.com/englahaket",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Varierande – se Facebook"
+      },
+      "distanceFromOrebroKm": 0,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Öppettider varierar – dubbelkolla via deras Facebook.",
+      "source": "visitorebro.se, teenchallenge.se"
+    },
+    {
+      "slug": "annas-bod",
+      "name": "Annas Bod",
+      "category": "Antik-retro",
+      "description": "Antikt, kuriosa och hemvävt. Porslin, glas och textil i Glanshammar.",
+      "address": {
+        "street": "Ringvägen 24",
+        "postalCode": "703 85",
+        "locality": "Glanshammar",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.3170113,
+        "lng": 15.4057389,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "24, Ringvägen, Glanshammar, Skölv, Glanshammar, Örebro kommun, Örebro län, 703 85, Sverige"
+      },
+      "contact": {
+        "phone": "+4619465801",
+        "phoneRaw": "019-46 58 01",
+        "email": null,
+        "website": "https://annasbod.se",
+        "facebook": "https://facebook.com/Annas-bod-antikt-kuriosa-och-hemvavt",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "wednesday",
+            "opens": "18:00",
+            "closes": "21:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "15:00"
+          }
+        ],
+        "freeText": "Ons 18–21, lör 10–15"
+      },
+      "distanceFromOrebroKm": 20,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "E-post saknas – kontakta via hemsida eller Facebook.",
+      "source": "svenskaloppisar.se"
+    },
+    {
+      "slug": "karins-loppis",
+      "name": "Karins Loppis",
+      "category": "Privat",
+      "description": "120 m² second hand med böcker, elektronik, inredning, kläder och möbler.",
+      "address": {
+        "street": "Östra Promenaden 18",
+        "postalCode": "694 31",
+        "locality": "Hallsberg",
+        "municipality": "Hallsberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.0675895,
+        "lng": 15.125149,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Östra promenaden, Brunnskullen, Hallsberg, Hallsbergs kommun, Örebro län, 694 31, Sverige"
+      },
+      "contact": {
+        "phone": "+4658215506",
+        "phoneRaw": "0582-155 06",
+        "email": "kontakt@karinsloppis.nu",
+        "website": "https://karinsloppis.nu",
+        "facebook": "https://facebook.com/karinsloppis",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "10:00",
+            "closes": "18:00"
+          }
+        ],
+        "freeText": "Alla dagar 10–18"
+      },
+      "distanceFromOrebroKm": 35,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Öppet alla dagar. Extra telefon: 073-201 49 65 / 070-550 54 57.",
+      "source": "karinsloppis.nu"
+    },
+    {
+      "slug": "bra-och-begagnat-hallsberg",
+      "name": "Bra & Begagnat Hallsberg",
+      "category": "Kyrklig-bistånd",
+      "description": "1 500 m² på fyra våningar. Möbler, kläder, husgeråd och böcker. Drivs av Larslundskyrkan.",
+      "address": {
+        "street": "Kvarngatan 2",
+        "postalCode": "694 30",
+        "locality": "Hallsberg",
+        "municipality": "Hallsberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.0699493,
+        "lng": 15.1244495,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Kvarngatan, Brunnskullen, Hallsberg, Hallsbergs kommun, Örebro län, 694 31, Sverige"
+      },
+      "contact": {
+        "phone": "+46702067068",
+        "phoneRaw": "070-206 70 68",
+        "email": "info@brabegagnat.com",
+        "website": "https://brabegagnat.com",
+        "facebook": "https://facebook.com/BraBegagnatSydnarke",
+        "instagram": "https://instagram.com/brabeghallsberg"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "tuesday",
+            "opens": "13:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "13:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "13:00"
+          }
+        ],
+        "freeText": "Tis & tors 13–17, lör 10–13"
+      },
+      "distanceFromOrebroKm": 35,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": null,
+      "source": "brabegagnat.com"
+    },
+    {
+      "slug": "navet-kumla",
+      "name": "Navet (Biståndsföreningen)",
+      "category": "Kyrklig-bistånd",
+      "description": "Biståndsförening med second hand-butik: lampor, porslin, kläder, böcker, möbler.",
+      "address": {
+        "street": "Stenevägen 43",
+        "postalCode": "692 35",
+        "locality": "Kumla",
+        "municipality": "Kumla",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.1239282,
+        "lng": 15.1284477,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Navet, 43, Stenevägen, Kumla, Kumla kommun, Örebro län, 692 35, Sverige"
+      },
+      "contact": {
+        "phone": "+46732013737",
+        "phoneRaw": "073-201 37 37",
+        "email": "info@navetkumla.se",
+        "website": "https://navetkumla.se",
+        "facebook": "https://facebook.com/Biståndsföreningen-Navet",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "14:00"
+          }
+        ],
+        "freeText": "Tis 10–17, ons 10–18, tors–fre 10–17, lör 10–14"
+      },
+      "distanceFromOrebroKm": 20,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "OBS: Det finns rapporter om ev. stängning – verifiera innan utskick.",
+      "source": "navetkumla.se"
+    },
+    {
+      "slug": "gammalt-och-nytt-askersund",
+      "name": "Gammalt & Nytt",
+      "category": "Privat",
+      "description": "Blandat gammalt & nytt i Askersunds hamn – kläder, smycken, möbler, antikt.",
+      "address": {
+        "street": "Askersunds hamn",
+        "postalCode": "696 30",
+        "locality": "Askersund",
+        "municipality": "Askersund",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 58.884598,
+        "lng": 14.9175295,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Askersund, Askersunds kommun, Örebro län, 696 31, Sverige"
+      },
+      "contact": {
+        "phone": "+4627814600",
+        "phoneRaw": "0278-146 00",
+        "email": "info@gammaltnytt.se",
+        "website": "https://gammaltnytt.se",
+        "facebook": "https://facebook.com/Gammalt-Nytt",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Varierande – se Facebook"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": null,
+      "source": "gammaltnytt.se"
+    },
+    {
+      "slug": "vita-krala",
+      "name": "Vita Krala",
+      "category": "Privat",
+      "description": "Restaurang, B&B och gårdsbutik med ekologiska produkter och second hand. STF-anslutet.",
+      "address": {
+        "street": "Haddebo 203",
+        "postalCode": "697 93",
+        "locality": "Hjortkvarn",
+        "municipality": "Askersund",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 58.8969094,
+        "lng": 15.4347619,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Hjortkvarn, Hallsbergs kommun, Örebro län, 697 93, Sverige"
+      },
+      "contact": {
+        "phone": "+4658240182",
+        "phoneRaw": "0582-401 82",
+        "email": "vitakrala@gmail.com",
+        "website": "https://vitakrala.com",
+        "facebook": "https://facebook.com/vitakrala",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Säsongsvarierande. Butik främst 11–17. Restaurang året runt.",
+        "closedMonths": [
+          "november",
+          "december",
+          "january",
+          "february"
+        ]
+      },
+      "distanceFromOrebroKm": 50,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Mobilnr: 076-814 23 00.",
+      "source": "vitakrala.com"
+    },
+    {
+      "slug": "gavan-secondhand-nora",
+      "name": "Gåvan Secondhand",
+      "category": "Kyrklig-bistånd",
+      "description": "Second hand med möbler, kläder, porslin, textil och böcker. Drivs med Bergslagskyrkan.",
+      "address": {
+        "street": "Brunnsgatan 20",
+        "postalCode": "713 32",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5248262,
+        "lng": 15.0318452,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "20, Brunnsgatan, Nora, Nora kommun, Örebro län, 713 32, Sverige"
+      },
+      "contact": {
+        "phone": "+46760235332",
+        "phoneRaw": "076-023 53 32",
+        "email": "info@gavannora.se",
+        "website": "https://gavannora.se",
+        "facebook": "https://facebook.com/Gåvan-Secondhand",
+        "instagram": "https://instagram.com/gavansecondhand"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "14:00"
+          }
+        ],
+        "freeText": "Tors 10–16, lör 10–14"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": "Driftsansvariga: karen@gavannora.se, eduardo@gavannora.se.",
+      "source": "gavannora.se"
+    },
+    {
+      "slug": "lilla-kladskapet-nora",
+      "name": "Lilla Klädskåpet",
+      "category": "Privat",
+      "description": "Second hand-kläder \"nästan som nytt\" för barn, kvinnor och män.",
+      "address": {
+        "street": "Prästgatan 27",
+        "postalCode": "713 31",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5197087,
+        "lng": 15.0280049,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "27, Prästgatan, Nora, Nora kommun, Örebro län, 713 31, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": "lillakladskapet@gmail.com",
+        "website": null,
+        "facebook": null,
+        "instagram": "https://instagram.com/lillakladskapet"
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Se Facebook/Instagram för aktuella tider"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": null,
+      "source": "handlainora.se, visitnora.se"
+    },
+    {
+      "slug": "noraskogs-antik-byggnadsvard",
+      "name": "Noraskogs Antik & Byggnadsvård",
+      "category": "Antik-retro",
+      "description": "Antikt plus traditionella byggnadsvårdsprodukter: linoljefärg, verktyg, tapeter, inredning.",
+      "address": {
+        "street": "Storgatan 14",
+        "postalCode": "713 31",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5193144,
+        "lng": 15.0395652,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "14, Storgatan, Nora, Nora kommun, Örebro län, 713 31, Sverige"
+      },
+      "contact": {
+        "phone": "+46738414344",
+        "phoneRaw": "073-841 43 44",
+        "email": "info@antikochbyggnadsvard.se",
+        "website": "https://antikochbyggnadsvard.se",
+        "facebook": "https://facebook.com/noraskogsantikochbyggnadsvard",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Se hemsida/Facebook"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": true,
+        "priority": 1
+      },
+      "notes": null,
+      "source": "antikochbyggnadsvard.se"
+    },
+    {
+      "slug": "kavalkad-orebro",
+      "name": "Kavalkad Antikt och Kuriosa",
+      "category": "Antik-retro",
+      "description": "Antik och retro från 1950–70-tal. Teakmöbler, Orrefors, lampor. Etablerad sedan >22 år.",
+      "address": {
+        "street": "Olaigatan 13",
+        "postalCode": "702 11",
+        "locality": "Örebro",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.2756221,
+        "lng": 15.2132687,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "13, Olaigatan, Holmen, Örebro, Örebro kommun, Örebro län, 703 61, Sverige"
+      },
+      "contact": {
+        "phone": "+4619121600",
+        "phoneRaw": "019-12 16 00",
+        "email": null,
+        "website": null,
+        "facebook": "https://facebook.com/kavalkadorebro",
+        "instagram": "https://instagram.com/kavalkadorebro"
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Se Facebook"
+      },
+      "distanceFromOrebroKm": 0,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "E-post saknas – kontakt via telefon eller Messenger.",
+      "source": "hitta.se"
+    },
+    {
+      "slug": "orebro-second-hand-aspholmen",
+      "name": "Örebro Second Hand (Aspholmen)",
+      "category": "Privat",
+      "description": "Möbler, böcker, porslin m.m. på Aspholmen.",
+      "address": {
+        "street": "Elementvägen 5",
+        "postalCode": "702 27",
+        "locality": "Örebro",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.2619546,
+        "lng": 15.1810683,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Falcken, 5, Elementvägen, Aspholmen, Örebro, Örebro kommun, Örebro län, 702 27, Sverige"
+      },
+      "contact": {
+        "phone": "+4619322232",
+        "phoneRaw": "019-32 22 32",
+        "email": null,
+        "website": null,
+        "facebook": "https://facebook.com/Örebro-second-hand",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Se Facebook"
+      },
+      "distanceFromOrebroKm": 5,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "hitta.se"
+    },
+    {
+      "slug": "hellas-loppis-glanshammar",
+      "name": "Hella's Loppis",
+      "category": "Privat",
+      "description": "Liten privat loppis i Glanshammar.",
+      "address": {
+        "street": "Sticksjö 512",
+        "postalCode": "705 96",
+        "locality": "Glanshammar",
+        "municipality": "Örebro",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.2998033,
+        "lng": 15.4469777,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "512, Sundsviksvägen, Sticksjö, Glanshammar, Örebro kommun, Örebro län, 705 97, Sverige"
+      },
+      "contact": {
+        "phone": "+46730700658",
+        "phoneRaw": "073-070 06 58",
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Ring för öppettider"
+      },
+      "distanceFromOrebroKm": 20,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "svenskaloppisar.se"
+    },
+    {
+      "slug": "loppis-i-testa-skollersta",
+      "name": "Loppis i Testa",
+      "category": "Privat",
+      "description": "Säsongsloppis på ~100 m², öppet i juli. Husgeråd, prydnadssaker, textil, verktyg.",
+      "address": {
+        "street": "Testa Testatorpet",
+        "postalCode": "697 91",
+        "locality": "Sköllersta",
+        "municipality": "Hallsberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.1376926,
+        "lng": 15.3376959,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Sköllersta, Hallsbergs kommun, Örebro län, 697 74, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": null,
+        "website": "https://loppis.tillbakablick.se",
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "10:00",
+            "closes": "16:00"
+          }
+        ],
+        "freeText": "Öppet i juli, lör–sön"
+      },
+      "distanceFromOrebroKm": 25,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Kontaktformulär på hemsidan. Säsongsloppis (juli).",
+      "source": "loppis.tillbakablick.se"
+    },
+    {
+      "slug": "carlssons-antikt-hallsberg",
+      "name": "Carlssons Antikt, Loppis & Samlarsaker",
+      "category": "Antik-retro",
+      "description": "Antikt, loppis och samlarsaker i Hallsberg.",
+      "address": {
+        "street": "Kapellgatan 1",
+        "postalCode": "694 30",
+        "locality": "Hallsberg",
+        "municipality": "Hallsberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.0665015,
+        "lng": 15.1146243,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Kapellgatan, Brunnskullen, Hallsberg, Hallsbergs kommun, Örebro län, 694 32, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "wednesday",
+            "opens": null,
+            "closes": null
+          },
+          {
+            "day": "thursday",
+            "opens": null,
+            "closes": null
+          }
+        ],
+        "freeText": "Ons & tors, se Facebook"
+      },
+      "distanceFromOrebroKm": 35,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Kontakta via Messenger – ingen publicerad e-post.",
+      "source": "thriftspots.com"
+    },
+    {
+      "slug": "framtid-utan-granser-kumla",
+      "name": "Framtid utan gränser (Kumla secondhand)",
+      "category": "Kyrklig-bistånd",
+      "description": "Ny ideell secondhand-förening i centrala Kumla, som tog över efter Bergslagens Biståndskonkurs.",
+      "address": {
+        "street": "Götgatan",
+        "postalCode": "692 30",
+        "locality": "Kumla",
+        "municipality": "Kumla",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.1290612,
+        "lng": 15.1457264,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Götgatan, Kumla, Kumla kommun, Örebro län, 692 30, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Öppnade nov 2025 – se Facebook"
+      },
+      "distanceFromOrebroKm": 20,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Kontakta via sociala medier.",
+      "source": "sydnarkenytt.se"
+    },
+    {
+      "slug": "askersunds-auktionskammare",
+      "name": "Askersunds Auktionskammare / Hamnmagasinet",
+      "category": "Antik-retro",
+      "description": "Auktionshus och butiksförsäljning av antikt, kuriosa och loppis.",
+      "address": {
+        "street": "Norströmsgatan 1",
+        "postalCode": "696 32",
+        "locality": "Askersund",
+        "municipality": "Askersund",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 58.8785362,
+        "lng": 14.9032025,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Norströmsgatan, Askersund, Askersunds kommun, Örebro län, 696 30, Sverige"
+      },
+      "contact": {
+        "phone": "+46708334463",
+        "phoneRaw": "070-833 44 63",
+        "email": null,
+        "website": "https://askersundsauktionskammare.se",
+        "facebook": null,
+        "instagram": "https://instagram.com/askersundsauktionskammare"
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Se hemsida"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "askersundsauktionskammare.se"
+    },
+    {
+      "slug": "biggans-loppis-karberg",
+      "name": "Biggans Loppis",
+      "category": "Privat",
+      "description": "Privat gårdsloppis i Kårberg/Skyllberg. Kontaktperson Birgitta.",
+      "address": {
+        "street": "Kårberg",
+        "postalCode": "696 93",
+        "locality": "Skyllberg",
+        "municipality": "Askersund",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 58.9429724,
+        "lng": 15.0009824,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Skyllberg, Askersunds kommun, Örebro län, 694 99, Sverige"
+      },
+      "contact": {
+        "phone": "+46739138639",
+        "phoneRaw": "073-913 86 39",
+        "email": null,
+        "website": null,
+        "facebook": "https://facebook.com/search?q=Biggans%20loppis%20K%C3%A5rberg",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "wednesday",
+            "opens": "12:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "09:00",
+            "closes": "14:00"
+          },
+          {
+            "day": "friday",
+            "opens": "12:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "09:00",
+            "closes": "14:00"
+          }
+        ],
+        "freeText": "Ons 12–18, tors 9–14, fre 12–18, lör 9–14 (sommarsäsong)"
+      },
+      "distanceFromOrebroKm": 40,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "loppisar.com"
+    },
+    {
+      "slug": "hyddan-karberg",
+      "name": "Hyddan Kårberg",
+      "category": "Privat",
+      "description": "Loppis/kulturförening i Kårberg. Ring för öppettider.",
+      "address": {
+        "street": "Kårberg",
+        "postalCode": "696 93",
+        "locality": "Skyllberg",
+        "municipality": "Askersund",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 58.9429724,
+        "lng": 15.0009824,
+        "precision": "postalcode",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Skyllberg, Askersunds kommun, Örebro län, 694 99, Sverige"
+      },
+      "contact": {
+        "phone": "+4658291323",
+        "phoneRaw": "0582-913 23",
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Ring för öppettider"
+      },
+      "distanceFromOrebroKm": 40,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Äldre träff – verifiera att butiken fortfarande är öppen.",
+      "source": "svenskaloppisar.se"
+    },
+    {
+      "slug": "aterbruket-andra-chansen",
+      "name": "Återbruket Andra Chansen",
+      "category": "Kommunal",
+      "description": "Återbruk som drivs av LSS-enheten i Lekebergs kommun.",
+      "address": {
+        "street": "Tegelslagaregatan 5",
+        "postalCode": "716 30",
+        "locality": "Fjugesta",
+        "municipality": "Lekeberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.171692,
+        "lng": 14.8805512,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Tegelslagaregatan, Bo, Fjugesta, Lekebergs kommun, Örebro län, 716 30, Sverige"
+      },
+      "contact": {
+        "phone": "+46724515843",
+        "phoneRaw": "072-451 58 43",
+        "email": null,
+        "website": "https://lekeberg.se",
+        "facebook": "https://facebook.com/aterbruketandrachansen",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "14:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "14:00"
+          }
+        ],
+        "freeText": "Mån 10–18, ons 10–14, tors 10–14"
+      },
+      "distanceFromOrebroKm": 25,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Kommunal – kontakta enhetsledare direkt om aktuell takeover-mail.",
+      "source": "lekeberg.se"
+    },
+    {
+      "slug": "loppis-frovi",
+      "name": "Loppis Frövi",
+      "category": "Privat",
+      "description": "Loppis i gamla OK/Q8-lokalen i Frövi.",
+      "address": {
+        "street": "Centralvägen 15",
+        "postalCode": "718 30",
+        "locality": "Frövi",
+        "municipality": "Lindesberg",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.4650861,
+        "lng": 15.3640173,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Centralvägen, Frövi, Lindesbergs kommun, Örebro län, 718 92, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": null,
+        "website": null,
+        "facebook": "https://facebook.com/Secondhandfrovi",
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Enstaka lördagar – se Facebook"
+      },
+      "distanceFromOrebroKm": 40,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "E-post saknas. Aktiv Facebook – kontakt via Messenger.",
+      "source": "facebook.com/Secondhandfrovi"
+    },
+    {
+      "slug": "bla-skapet-nora",
+      "name": "Blå Skåpet",
+      "category": "Antik-retro",
+      "description": "Antikaffär med nostalgi – glas, porslin, smycken, gamla leksaker, textil.",
+      "address": {
+        "street": "Kungsgatan 17",
+        "postalCode": "713 31",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5262358,
+        "lng": 15.0423743,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Kungsgatan, Dalsta, Nora, Nora kommun, Örebro län, 713 31, Sverige"
+      },
+      "contact": {
+        "phone": "+46706216421",
+        "phoneRaw": "070-621 64 21",
+        "email": null,
+        "website": "https://blaskapet.wordpress.com",
+        "facebook": null,
+        "instagram": "https://instagram.com/bla.skapet"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "saturday",
+            "opens": null,
+            "closes": null
+          }
+        ],
+        "freeText": "Mest lördagar – se 'Nytt från Blå skåpet'"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "blaskapet.wordpress.com"
+    },
+    {
+      "slug": "fotocentralen-nora",
+      "name": "Fotocentralen",
+      "category": "Antik-retro",
+      "description": "Foto + loppishörna med vykort, böcker, kameror. Åke Mossberg, \"Mr Nora\".",
+      "address": {
+        "street": "Storgatan 12",
+        "postalCode": "713 31",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5193098,
+        "lng": 15.0392319,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "12, Storgatan, Nora, Nora kommun, Örebro län, 713 31, Sverige"
+      },
+      "contact": {
+        "phone": "+4658710203",
+        "phoneRaw": "0587-102 03",
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Året runt – se hemsida/Facebook"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "confirmed",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "E-post saknas.",
+      "source": "visitnora.se"
+    },
+    {
+      "slug": "lasses-loppis-nora",
+      "name": "Lasses Loppis",
+      "category": "Privat",
+      "description": "Liten loppis i Nora, främst förmiddagar. Fokus på porslin.",
+      "address": {
+        "street": "Borgmästargatan",
+        "postalCode": "713 31",
+        "locality": "Nora",
+        "municipality": "Nora",
+        "region": "Örebro län",
+        "country": "SE"
+      },
+      "geo": {
+        "lat": 59.5185952,
+        "lng": 15.0401868,
+        "precision": "address",
+        "source": "Nominatim / OpenStreetMap",
+        "display_name": "Borgmästargatan, Nora, Nora kommun, Örebro län, 713 31, Sverige"
+      },
+      "contact": {
+        "phone": null,
+        "phoneRaw": null,
+        "email": null,
+        "website": null,
+        "facebook": null,
+        "instagram": null
+      },
+      "openingHours": {
+        "regular": [],
+        "freeText": "Förmiddagar, året runt"
+      },
+      "distanceFromOrebroKm": 45,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": "Varken e-post eller telefon publikt tillgängligt. Kontakt via Nora turistbyrå.",
+      "source": "visitnora.se"
+    }
+  ]
+}
