@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { makeInMemoryDeps } from './deps-factory'
+import { makeInMemoryDeps, createE2EInMemoryDeps } from './deps-factory'
 import type { FleaMarket, OpeningHourRule } from './types'
 
 const seedMarket = {
@@ -106,4 +106,31 @@ describe('makeInMemoryDeps', () => {
     expect(profile.first_name).toBe('Anna')
   })
 
+})
+
+describe('createE2EInMemoryDeps', () => {
+  it('starts empty and grows after control.markets.seed()', async () => {
+    const { deps, control } = createE2EInMemoryDeps()
+    expect((await deps.markets.list()).count).toBe(0)
+
+    control.markets.seed([seedMarket])
+    expect((await deps.markets.list()).count).toBe(1)
+    expect((await deps.markets.details('fm-test-1')).name).toBe('Testloppis')
+  })
+
+  it('control.markets.reset() clears the store', async () => {
+    const { deps, control } = createE2EInMemoryDeps()
+    control.markets.seed([seedMarket])
+    control.markets.reset()
+    expect((await deps.markets.list()).count).toBe(0)
+  })
+
+  it('re-seeding replaces previous data rather than appending', async () => {
+    const { deps, control } = createE2EInMemoryDeps()
+    control.markets.seed([seedMarket])
+    control.markets.seed([{ ...seedMarket, id: 'fm-test-2', name: 'Andra loppis' }])
+    const { items, count } = await deps.markets.list()
+    expect(count).toBe(1)
+    expect(items[0].id).toBe('fm-test-2')
+  })
 })

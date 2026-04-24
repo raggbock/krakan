@@ -5,6 +5,8 @@ import type { StoredRoute } from './adapters/in-memory/routes'
 import {
   createInMemoryFleaMarkets,
   createInMemoryMarketTables,
+  createE2EInMemoryFleaMarkets,
+  type FleaMarketsControl,
 } from './adapters/in-memory/flea-markets'
 import { createInMemoryRoutes } from './adapters/in-memory/routes'
 import { createInMemoryProfiles } from './adapters/in-memory/profiles'
@@ -39,6 +41,28 @@ export function makeInMemoryDeps(
     marketTables,
     routes: createInMemoryRoutes(routes),
     profiles: createInMemoryProfiles(profiles),
+  }
+}
+
+/**
+ * E2E-only Deps with runtime control handles. Tests seed/reset the store
+ * after the Deps container has been constructed and wired into <DepsProvider>.
+ * Do not import from production code paths.
+ */
+export type E2EControl = {
+  markets: FleaMarketsControl
+}
+
+export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
+  const { repo: markets, control: marketsControl } = createE2EInMemoryFleaMarkets()
+  return {
+    deps: {
+      markets,
+      marketTables: createInMemoryMarketTables(),
+      routes: createInMemoryRoutes([]),
+      profiles: createInMemoryProfiles([]),
+    },
+    control: { markets: marketsControl },
   }
 }
 
