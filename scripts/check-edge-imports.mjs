@@ -41,6 +41,10 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/stripe-connect-status',               // zod schema
   'contracts/stripe-payment-cancel',               // zod schema
   'contracts/stripe-payment-capture',              // zod schema
+  'contracts/admin-invite-create',                 // zod schema
+  'contracts/admin-invite-accept',                 // zod schema
+  'contracts/admin-invite-revoke',                 // zod schema
+  'contracts/admin-revoke',                        // zod schema
   'errors',                                        // AppError + error codes
   'adapters/supabase/booking-repo',                // Supabase DB adapter
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
