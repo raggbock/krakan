@@ -22,14 +22,14 @@ Deno.test('rejects non-admin caller', async () => {
 })
 
 Deno.test('happy path inserts invite and sends email', async () => {
-  let insertedRow: { email?: string } | null = null
+  const state: { insertedRow: { email?: string } | null } = { insertedRow: null }
   const admin = {
     rpc: async () => ({ data: true, error: null }),
     from: (table: string) => {
       if (table !== 'admin_invites' && table !== 'admin_actions') throw new Error('unexpected ' + table)
       return {
         insert: (row: Record<string, unknown>) => {
-          if (table === 'admin_invites') insertedRow = row
+          if (table === 'admin_invites') state.insertedRow = row as { email?: string }
           return {
             select: () => ({
               single: async () => ({
@@ -57,6 +57,6 @@ Deno.test('happy path inserts invite and sends email', async () => {
     fetchImpl: fakeFetch,
   })
   assertEquals(inviteId, 'i1')
-  assertEquals(insertedRow?.email, 'x@y.se')
+  assertEquals(state.insertedRow?.email, 'x@y.se')
   assertEquals(fetchCalls[0], 'https://api.resend.com/emails')
 })
