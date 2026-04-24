@@ -15,9 +15,10 @@ function invokeOrThrow<T>(res: { data: T | null; error: { message: string } | nu
 export function createSupabaseAdmin(supabase: SupabaseClient): AdminPort {
   return {
     async listAdmins() {
-      // Two-step query: PostgREST can't infer a FK relationship onto the
-      // auth_user_email_view (it's a view of Supabase-owned auth.users),
-      // so we fetch admins first and then bulk-fetch emails separately.
+      // Two-step: fetch admins, then bulk-fetch emails via a security-
+      // definer RPC (admin_user_emails). The view itself is no longer
+      // grantable to authenticated since migration 00024 — direct SELECT
+      // would leak every email on the platform.
       const { data: admins, error } = await supabase
         .from('admin_users')
         .select('user_id, granted_at, granted_by, notes')
@@ -29,12 +30,10 @@ export function createSupabaseAdmin(supabase: SupabaseClient): AdminPort {
 
       const userIds = rows.map((r) => r.user_id as string)
       const { data: users, error: usersErr } = await supabase
-        .from('auth_user_email_view')
-        .select('id, email')
-        .in('id', userIds)
+        .rpc('admin_user_emails', { user_ids: userIds })
       if (usersErr) throw usersErr
       const emailById = new Map<string, string>(
-        (users ?? []).map((u) => [u.id as string, (u.email as string) ?? '']),
+        ((users ?? []) as Array<{ id: string; email: string }>).map((u) => [u.id, u.email ?? '']),
       )
 
       return rows.map((row) => ({
