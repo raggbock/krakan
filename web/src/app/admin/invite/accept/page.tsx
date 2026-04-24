@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useAcceptInvite } from '@/hooks/use-admin'
 
-export default function AcceptInvitePage() {
+function AcceptInviteInner() {
   const router = useRouter()
   const params = useSearchParams()
   const token = params.get('token') ?? ''
@@ -46,5 +46,13 @@ export default function AcceptInvitePage() {
         <p className="mt-4 text-error">Kunde inte aktivera inviten. Kontakta den som bjöd in dig.</p>
       )}
     </div>
+  )
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={<p className="p-8 text-center text-espresso/65">Laddar…</p>}>
+      <AcceptInviteInner />
+    </Suspense>
   )
 }
