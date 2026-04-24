@@ -1,7 +1,23 @@
 # RFC: True end-to-end-tester för frontend
 
 **Datum:** 2026-04-23
-**Status:** Draft — väntar på review innan implementation-plan skrivs.
+**Status:** Infrastruktur implementerad 2026-04-24. Karta/rutt-sviten blockerad på arkitekturarbete (se §Addendum).
+
+## Addendum 2026-04-24 — map-profilens arkitekturblocker
+
+När infrastrukturen skulle tas i bruk för kart-testerna upptäcktes att kartskiktet **inte går genom Deps-containern**:
+
+- `/map`-sidan (`web/src/components/map-view.tsx`) anropar `geo.nearbyMarkets()` från `@/lib/api`, som är direktbunden till Supabase och inte ersätts av `NEXT_PUBLIC_E2E_FAKE`.
+- In-memory-adapterns `nearBy()` är dessutom en medveten stubb som returnerar `[]`.
+- `/utforska` är en kortgrids-sida utan karta; planens URL var fel.
+- Inget "öppet nu"-filter finns i UI:t att testa.
+
+**Konsekvens:** Infrastrukturen (createE2EInMemoryDeps-control, `window.__E2E__`-bridge, OSRM-interceptor + fixturer, Playwright-projekt-split, CI-jobb) är implementerad och användbar. Kart-testscenarierna i §5 är **pausade** tills något av följande görs:
+
+1. Flytta `geo.nearbyMarkets` in i Deps-containern och implementera en riktig `nearBy()` i in-memory-adaptern. Blir en egen liten RFC.
+2. Komplettera med Playwright `page.route()` som mockar Supabase-RPC-anropet direkt, som en separat kanal bredvid Deps-swappen.
+
+Onboarding-sviten (§3) är inte påverkad av detta och kan implementeras enligt plan.
 
 ## 1. Mål och scope
 
