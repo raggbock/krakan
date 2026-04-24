@@ -15,6 +15,7 @@
     "e2e:smoke": "node ../node_modules/@playwright/test/cli.js test --project=smoke",
     "e2e:map": "cross-env E2E_PROFILE=map node ../node_modules/@playwright/test/cli.js test --project=map",
     "e2e:onboarding": "cross-env E2E_PROFILE=onboarding node ../node_modules/@playwright/test/cli.js test --project=onboarding",
+    "e2e:fixtures": "node e2e/helpers/record-osrm-fixtures.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:staging": "opennextjs-cloudflare build && wrangler deploy --config wrangler.staging.jsonc",
