@@ -336,9 +336,11 @@ function TextField({
   onChange: (v: string) => void
   cols?: number
 }) {
-  const colSpan = cols ? `col-span-${cols}` : ''
+  // gridColumn via inline style — Tailwind JIT can't see dynamic
+  // `col-span-${n}` so the class would never be generated.
+  const style = cols ? { gridColumn: `span ${cols} / span ${cols}` } : undefined
   return (
-    <label className={`block ${colSpan}`}>
+    <label className="block min-w-0" style={style}>
       <span className="text-xs uppercase tracking-wide text-espresso/55">{label}</span>
       <input
         value={value}
