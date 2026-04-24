@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useIsAdmin } from '@/hooks/use-admin'
+import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 const navItems = [
@@ -15,13 +17,27 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { data: isAdmin, isLoading } = useIsAdmin()
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin()
 
-  if (pathname?.startsWith('/admin/invite/accept')) {
+  // Accept-invite page is allowed unauthenticated — it handles its own redirect.
+  const isAcceptPage = pathname?.startsWith('/admin/invite/accept')
+
+  // Redirect unauthenticated users to /auth with a next= back to this path.
+  useEffect(() => {
+    if (isAcceptPage) return
+    if (!authLoading && !user) {
+      const next = encodeURIComponent(pathname ?? '/admin')
+      router.replace(`/auth?next=${next}`)
+    }
+  }, [authLoading, user, pathname, router, isAcceptPage])
+
+  if (isAcceptPage) {
     return <>{children}</>
   }
 
-  if (isLoading) {
+  if (authLoading || adminLoading || !user) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
         <FyndstigenLogo size={40} className="text-rust animate-bob" />
