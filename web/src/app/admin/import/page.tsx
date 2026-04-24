@@ -399,6 +399,14 @@ function BusinessEditor({
         </div>
       </fieldset>
 
+      <fieldset className="border-t border-cream-warm pt-3 space-y-2">
+        <legend className="text-xs uppercase tracking-wide text-espresso/55 px-2">Öppettider</legend>
+        <OpeningHoursEditor
+          value={draft.openingHours ?? {}}
+          onChange={(oh) => setField('openingHours', oh)}
+        />
+      </fieldset>
+
       <fieldset className="border-t border-cream-warm pt-3">
         <legend className="text-xs uppercase tracking-wide text-espresso/55 px-2">Takeover</legend>
         <div className="flex flex-wrap items-end gap-4 text-sm">
@@ -428,6 +436,131 @@ function BusinessEditor({
         </button>
       </footer>
     </form>
+  )
+}
+
+const DAYS: { key: 'monday'|'tuesday'|'wednesday'|'thursday'|'friday'|'saturday'|'sunday'; label: string }[] = [
+  { key: 'monday', label: 'Mån' },
+  { key: 'tuesday', label: 'Tis' },
+  { key: 'wednesday', label: 'Ons' },
+  { key: 'thursday', label: 'Tor' },
+  { key: 'friday', label: 'Fre' },
+  { key: 'saturday', label: 'Lör' },
+  { key: 'sunday', label: 'Sön' },
+]
+
+const MONTHS: { key: string; label: string }[] = [
+  { key: 'january', label: 'Jan' }, { key: 'february', label: 'Feb' },
+  { key: 'march', label: 'Mar' }, { key: 'april', label: 'Apr' },
+  { key: 'may', label: 'Maj' }, { key: 'june', label: 'Jun' },
+  { key: 'july', label: 'Jul' }, { key: 'august', label: 'Aug' },
+  { key: 'september', label: 'Sep' }, { key: 'october', label: 'Okt' },
+  { key: 'november', label: 'Nov' }, { key: 'december', label: 'Dec' },
+]
+
+type OpeningHours = NonNullable<ImportBusiness['openingHours']>
+type DayRow = NonNullable<OpeningHours['regular']>[number]
+
+function OpeningHoursEditor({
+  value,
+  onChange,
+}: {
+  value: OpeningHours
+  onChange: (v: OpeningHours) => void
+}) {
+  const regular = value.regular ?? []
+  const closedMonths = value.closedMonths ?? []
+
+  function toggleDay(day: DayRow['day'], enabled: boolean) {
+    if (enabled) {
+      if (regular.some((r) => r.day === day)) return
+      onChange({ ...value, regular: [...regular, { day, opens: '10:00', closes: '17:00' }] })
+    } else {
+      onChange({ ...value, regular: regular.filter((r) => r.day !== day) })
+    }
+  }
+
+  function updateDay(day: DayRow['day'], field: 'opens' | 'closes', v: string) {
+    onChange({
+      ...value,
+      regular: regular.map((r) => (r.day === day ? { ...r, [field]: v || null } : r)),
+    })
+  }
+
+  function toggleMonth(month: string, enabled: boolean) {
+    const next = enabled
+      ? [...closedMonths, month]
+      : closedMonths.filter((m) => m !== month)
+    onChange({ ...value, closedMonths: next.length ? next : null })
+  }
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="space-y-1">
+        {DAYS.map(({ key, label }) => {
+          const row = regular.find((r) => r.day === key)
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 w-20">
+                <input
+                  type="checkbox"
+                  checked={!!row}
+                  onChange={(e) => toggleDay(key, e.target.checked)}
+                />
+                {label}
+              </label>
+              <input
+                type="time"
+                disabled={!row}
+                value={row?.opens ?? ''}
+                onChange={(e) => updateDay(key, 'opens', e.target.value)}
+                className="px-2 py-1 rounded-md border border-cream-warm disabled:bg-cream-warm/50 disabled:text-espresso/30"
+              />
+              <span className="text-espresso/50">–</span>
+              <input
+                type="time"
+                disabled={!row}
+                value={row?.closes ?? ''}
+                onChange={(e) => updateDay(key, 'closes', e.target.value)}
+                className="px-2 py-1 rounded-md border border-cream-warm disabled:bg-cream-warm/50 disabled:text-espresso/30"
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      <div>
+        <label className="block">
+          <span className="text-xs uppercase tracking-wide text-espresso/55">Fri text (säsong, bokning, etc.)</span>
+          <textarea
+            value={value.freeText ?? ''}
+            onChange={(e) => onChange({ ...value, freeText: e.target.value || null })}
+            rows={2}
+            className="mt-1 w-full px-2 py-1.5 rounded-md border border-cream-warm"
+          />
+        </label>
+      </div>
+
+      <div>
+        <span className="text-xs uppercase tracking-wide text-espresso/55">Stängda månader</span>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {MONTHS.map(({ key, label }) => {
+            const checked = closedMonths.includes(key)
+            return (
+              <label key={key} className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-xs cursor-pointer ${checked ? 'bg-rust text-white border-rust' : 'border-cream-warm hover:bg-cream-warm'}`}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => toggleMonth(key, e.target.checked)}
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            )
+          })}
+        </div>
+      </div>
+    </div>
   )
 }
 
