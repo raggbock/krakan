@@ -10,7 +10,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 const navItems = [
   { href: '/admin', label: 'Översikt' },
   { href: '/admin/settings/admins', label: 'Admins' },
-  { href: '/admin/import', label: 'Import', disabled: true },
+  { href: '/admin/import', label: 'Import' },
   { href: '/admin/takeover', label: 'Takeover', disabled: true },
   { href: '/admin/social', label: 'Social', disabled: true },
 ]
