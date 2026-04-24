@@ -321,7 +321,9 @@ function BusinessCard({
             disabled={busy}
             className="flex-1 bg-emerald-700 text-white px-3 py-2 rounded-md text-sm font-semibold disabled:opacity-50"
           >
-            {busy ? 'Skapar…' : action === 'create' ? 'Skapa denna' : 'Uppdatera denna'}
+            {busy
+              ? (action === 'create' ? 'Skapar…' : 'Uppdaterar…')
+              : (action === 'create' ? 'Skapa denna' : 'Uppdatera denna')}
           </button>
         )}
       </footer>
