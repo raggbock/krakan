@@ -14,8 +14,11 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (pathname.startsWith("/admin/invite/accept")) return NextResponse.next();
 
-    const hasSession = request.cookies.has("sb-access-token") ||
-                       request.cookies.getAll().some(c => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+    // Supabase SSR can chunk the auth token into cookies named
+    // `sb-<ref>-auth-token`, `.0`, `.1`, etc. A broad `sb-*` match picks
+    // up all shapes. Layout's is_admin() remains the authoritative gate;
+    // middleware is just a cheap redirect for obviously-unauth traffic.
+    const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
     if (!hasSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth";
