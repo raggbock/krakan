@@ -6,7 +6,7 @@ import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
   AdminTakeoverSendInput,
   AdminTakeoverSendOutput,
-} from '@fyndstigen/shared/contracts/admin-takeover-send'
+} from '@fyndstigen/shared/contracts/admin-takeover-send.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 function generateToken(): string {
@@ -73,12 +73,14 @@ async function sendOne(
       apiKey: resendApiKey,
     })
   } catch (err) {
-    // Roll back the token row so we don't leave dangling invites.
-    await admin.from('business_owner_tokens').delete().eq('id', inserted.id)
+    // Roll back the token row so we don't leave dangling invites. Surface
+    // delete failures in the reason so admin knows there's an orphan.
+    const { error: delErr } = await admin.from('business_owner_tokens').delete().eq('id', inserted.id)
+    const sendMsg = err instanceof Error ? err.message : 'send_failed'
     return {
       status: 'error',
       email,
-      reason: err instanceof Error ? err.message : 'send_failed',
+      reason: delErr ? `${sendMsg}; rollback misslyckades: ${delErr.message}` : sendMsg,
     }
   }
 

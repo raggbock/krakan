@@ -1,11 +1,11 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, ForbiddenError, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { appError } from '@fyndstigen/shared/errors'
-import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
-import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
-import { StripePaymentCancelInput, StripePaymentCancelOutput } from '@fyndstigen/shared/contracts/stripe-payment-cancel'
-import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
+import { appError } from '@fyndstigen/shared/errors.ts'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo.ts'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway.ts'
+import { StripePaymentCancelInput, StripePaymentCancelOutput } from '@fyndstigen/shared/contracts/stripe-payment-cancel.ts'
+import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle.ts'
 
 defineEndpoint({
   name: 'stripe-payment-cancel',

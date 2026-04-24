@@ -4,7 +4,7 @@ import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
   TakeoverInfoInput,
   TakeoverInfoOutput,
-} from '@fyndstigen/shared/contracts/takeover'
+} from '@fyndstigen/shared/contracts/takeover.ts'
 
 definePublicEndpoint({
   name: 'takeover-info',

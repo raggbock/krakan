@@ -1,8 +1,8 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { getSupabaseAdmin } from '../_shared/auth.ts'
-import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
-import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo.ts'
+import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle.ts'
 
 // Verify webhook signature, route to BookingRepo.applyEvent.
 // Non-booking events (account.updated, checkout, subscription) stay inline.

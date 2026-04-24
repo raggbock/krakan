@@ -3,7 +3,7 @@ import { HttpError } from '../_shared/handler.ts'
 import {
   AdminInviteRevokeInput,
   AdminInviteRevokeOutput,
-} from '@fyndstigen/shared/contracts/admin-invite-revoke'
+} from '@fyndstigen/shared/contracts/admin-invite-revoke.ts'
 
 defineEndpoint({
   name: 'admin-invite-revoke',

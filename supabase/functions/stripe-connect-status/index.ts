@@ -1,5 +1,5 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
-import { StripeConnectStatusInput, StripeConnectStatusOutput } from '@fyndstigen/shared/contracts/stripe-connect-status'
+import { StripeConnectStatusInput, StripeConnectStatusOutput } from '@fyndstigen/shared/contracts/stripe-connect-status.ts'
 
 defineEndpoint({
   name: 'stripe-connect-status',

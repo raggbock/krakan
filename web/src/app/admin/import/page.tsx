@@ -496,6 +496,10 @@ function OpeningHoursEditor({
 
   return (
     <div className="space-y-3 text-sm">
+      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+        ⚠ Öppettider skrivs inte till databasen via importen ännu — redigera
+        manuellt på butikens sida efter att den skapats.
+      </p>
       <div className="space-y-1">
         {DAYS.map(({ key, label }) => {
           const row = regular.find((r) => r.day === key)

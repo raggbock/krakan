@@ -5,7 +5,7 @@ import { adminInviteEmail } from '../_shared/email-templates/admin-invite.ts'
 import {
   AdminInviteCreateInput,
   AdminInviteCreateOutput,
-} from '@fyndstigen/shared/contracts/admin-invite-create'
+} from '@fyndstigen/shared/contracts/admin-invite-create.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 export type HandleInviteCreateDeps = {

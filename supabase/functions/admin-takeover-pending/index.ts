@@ -3,7 +3,7 @@ import { HttpError } from '../_shared/handler.ts'
 import {
   AdminTakeoverPendingInput,
   AdminTakeoverPendingOutput,
-} from '@fyndstigen/shared/contracts/admin-takeover-send'
+} from '@fyndstigen/shared/contracts/admin-takeover-send.ts'
 
 defineEndpoint({
   name: 'admin-takeover-pending',

@@ -8,10 +8,15 @@ export async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-/** 6-digit numeric code, zero-padded. */
+/** 6-digit numeric code, zero-padded. Uses rejection sampling so the
+ *  distribution is exactly uniform across 000000-999999 (plain modulo
+ *  biases the lower ~97% of values). */
 export function generateCode(): string {
   const buf = new Uint32Array(1)
-  crypto.getRandomValues(buf)
+  const maxMultiple = Math.floor(0xFFFFFFFF / 1_000_000) * 1_000_000
+  do {
+    crypto.getRandomValues(buf)
+  } while (buf[0] >= maxMultiple)
   return (buf[0] % 1_000_000).toString().padStart(6, '0')
 }
 

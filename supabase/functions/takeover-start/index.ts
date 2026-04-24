@@ -10,7 +10,7 @@ import {
 import {
   TakeoverStartInput,
   TakeoverStartOutput,
-} from '@fyndstigen/shared/contracts/takeover'
+} from '@fyndstigen/shared/contracts/takeover.ts'
 
 definePublicEndpoint({
   name: 'takeover-start',

@@ -10,7 +10,7 @@ import {
 import {
   TakeoverVerifyInput,
   TakeoverVerifyOutput,
-} from '@fyndstigen/shared/contracts/takeover'
+} from '@fyndstigen/shared/contracts/takeover.ts'
 
 definePublicEndpoint({
   name: 'takeover-verify',
@@ -22,7 +22,7 @@ definePublicEndpoint({
 
     const { data: tokenRow, error } = await admin
       .from('business_owner_tokens')
-      .select('id, flea_market_id, used_at, invalidated_at, expires_at, verification_email, verification_code_hash, verification_code_expires_at, verification_attempts')
+      .select('id, flea_market_id, used_at, invalidated_at, expires_at, verification_email, verification_code_hash, verification_code_expires_at')
       .eq('token_hash', tokenHash)
       .maybeSingle()
     if (error) throw new Error(error.message)
@@ -38,7 +38,16 @@ definePublicEndpoint({
     if (Date.parse(tokenRow.verification_code_expires_at as string) < Date.now()) {
       throw new HttpError(410, 'code_expired')
     }
-    if ((tokenRow.verification_attempts as number) >= MAX_CODE_ATTEMPTS) {
+
+    // Atomic bump-and-check via SQL function. Returns null if the row
+    // was already at/above the cap — closes the TOCTOU window where two
+    // concurrent requests could each pass a stale count check.
+    const { data: newAttempts, error: bumpErr } = await admin.rpc('bump_takeover_attempt', {
+      p_token_id: tokenRow.id,
+      p_max_attempts: MAX_CODE_ATTEMPTS,
+    })
+    if (bumpErr) throw new Error(bumpErr.message)
+    if (newAttempts == null) {
       await admin
         .from('business_owner_tokens')
         .update({ invalidated_at: new Date().toISOString() })
@@ -48,18 +57,10 @@ definePublicEndpoint({
 
     const codeHash = await sha256Hex(input.code)
     const matches = timingSafeEqualHex(codeHash, tokenRow.verification_code_hash as string)
-
-    // Always bump attempts, even on success (audit).
-    await admin
-      .from('business_owner_tokens')
-      .update({ verification_attempts: (tokenRow.verification_attempts as number) + 1 })
-      .eq('id', tokenRow.id)
-
     if (!matches) throw new HttpError(400, 'code_invalid')
 
     // --- Verified. Transfer ownership. ---
 
-    // Get or create the auth user for this email.
     const { data: existing, error: lookupErr } = await admin
       .from('auth_user_email_view')
       .select('id')
@@ -76,7 +77,6 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
-    // Transfer ownership + mark token used.
     const { error: mktErr } = await admin
       .from('flea_markets')
       .update({ organizer_id: userId, is_system_owned: false })
@@ -89,7 +89,6 @@ definePublicEndpoint({
       .eq('id', tokenRow.id)
     if (useErr) throw new Error(useErr.message)
 
-    // Send magic-link so the user can actually sign in.
     const { data: market } = await admin
       .from('flea_markets')
       .select('name')

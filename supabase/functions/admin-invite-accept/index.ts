@@ -3,7 +3,7 @@ import { HttpError } from '../_shared/handler.ts'
 import {
   AdminInviteAcceptInput,
   AdminInviteAcceptOutput,
-} from '@fyndstigen/shared/contracts/admin-invite-accept'
+} from '@fyndstigen/shared/contracts/admin-invite-accept.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 async function hashToken(token: string): Promise<string> {

@@ -107,7 +107,8 @@ for (const file of files) {
     SUBPATH_RE.lastIndex = 0;
     let match;
     while ((match = SUBPATH_RE.exec(line)) !== null) {
-      const subpath = match[1];
+      // Normalize: allow-list entries are without ".ts"; imports may have it.
+      const subpath = match[1].replace(/\.ts$/, '');
       if (!ALLOWED_SUBPATHS.has(subpath)) {
         console.error(
           `DISALLOWED EDGE IMPORT  ${rel}:${idx + 1}\n` +

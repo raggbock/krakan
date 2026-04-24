@@ -1,7 +1,4 @@
 {
-  // sloppy-imports has been available as an unstable flag since Deno 1.40.
-  // Supabase Edge Runtime ships Deno 1.45+.
-  "unstable": ["sloppy-imports"],
   "imports": {
     "@fyndstigen/shared/": "../../packages/shared/src/",
     "zod": "https://esm.sh/zod@4.3.6",

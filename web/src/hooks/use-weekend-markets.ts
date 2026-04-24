@@ -34,10 +34,12 @@ export function useWeekendMarkets() {
     queryKey: ['admin', 'social', 'weekend-markets'],
     queryFn: async (): Promise<{ markets: WeekendMarket[]; weekNo: number }> => {
       const { weekNo } = upcomingWeekend()
-      // Open on Fri(5)/Sat(6)/Sun(0). Query opening_hours + flea_markets.
+      // Open on Fri(5)/Sat(6)/Sun(0). Query opening_hour_rules (weekly type)
+      // joined to flea_markets.
       const { data, error } = await supabase
-        .from('opening_hours')
+        .from('opening_hour_rules')
         .select('day_of_week, open_time, close_time, flea_market_id, flea_markets(id, name, city, is_deleted, status)')
+        .eq('type', 'weekly')
         .in('day_of_week', [0, 5, 6])
       if (error) throw error
 

@@ -1,10 +1,10 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError, verifyOrganizer } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { appError } from '@fyndstigen/shared/errors'
-import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo'
-import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway'
-import { StripePaymentCaptureInput, StripePaymentCaptureOutput } from '@fyndstigen/shared/contracts/stripe-payment-capture'
+import { appError } from '@fyndstigen/shared/errors.ts'
+import { createSupabaseBookingRepo } from '@fyndstigen/shared/adapters/supabase/booking-repo.ts'
+import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway.ts'
+import { StripePaymentCaptureInput, StripePaymentCaptureOutput } from '@fyndstigen/shared/contracts/stripe-payment-capture.ts'
 
 defineEndpoint({
   name: 'stripe-payment-capture',

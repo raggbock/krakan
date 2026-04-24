@@ -1,8 +1,8 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { appError } from '@fyndstigen/shared/errors'
-import { StripeConnectRefreshInput, StripeConnectRefreshOutput } from '@fyndstigen/shared/contracts/stripe-connect-refresh'
+import { appError } from '@fyndstigen/shared/errors.ts'
+import { StripeConnectRefreshInput, StripeConnectRefreshOutput } from '@fyndstigen/shared/contracts/stripe-connect-refresh.ts'
 
 defineEndpoint({
   name: 'stripe-connect-refresh',
