@@ -4,7 +4,7 @@ import { sendEmail, type SendEmailOpts } from './email.ts'
 
 Deno.test('sendEmail posts JSON payload to Resend', async () => {
   const calls: RequestInit[] = []
-  const fakeFetch = async (_url: string | URL, init?: RequestInit) => {
+  const fakeFetch: typeof fetch = async (_url, init) => {
     calls.push(init!)
     return new Response(JSON.stringify({ id: 're_123' }), { status: 200 })
   }
@@ -26,7 +26,7 @@ Deno.test('sendEmail posts JSON payload to Resend', async () => {
 })
 
 Deno.test('sendEmail throws on non-2xx', async () => {
-  const fakeFetch = async () => new Response('fail', { status: 500 })
+  const fakeFetch: typeof fetch = async () => new Response('fail', { status: 500 })
   await assertRejects(
     () =>
       sendEmail({

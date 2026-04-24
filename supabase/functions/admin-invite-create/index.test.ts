@@ -14,7 +14,7 @@ Deno.test('rejects non-admin caller', async () => {
         origin: 'https://fyndstigen.se',
         admin: admin as never,
         resendApiKey: 'k',
-        fetchImpl: async () => new Response('{}', { status: 200 }),
+        fetchImpl: (async () => new Response('{}', { status: 200 })) as typeof fetch,
       }),
     Error,
     'not_admin',
@@ -22,7 +22,7 @@ Deno.test('rejects non-admin caller', async () => {
 })
 
 Deno.test('happy path inserts invite and sends email', async () => {
-  let insertedRow: Record<string, unknown> | null = null
+  let insertedRow: { email?: string } | null = null
   const admin = {
     rpc: async () => ({ data: true, error: null }),
     from: (table: string) => {
@@ -43,7 +43,7 @@ Deno.test('happy path inserts invite and sends email', async () => {
     },
   }
   const fetchCalls: string[] = []
-  const fakeFetch = async (url: string | URL) => {
+  const fakeFetch: typeof fetch = async (url) => {
     fetchCalls.push(String(url))
     return new Response(JSON.stringify({ id: 're_1' }), { status: 200 })
   }
