@@ -1,0 +1,65 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          rm -f package-lock.json web/package-lock.json
+          npm install
+
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        working-directory: web
+        run: npm run e2e:smoke
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-trace
+          path: web/test-results/
+
+  e2e-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          rm -f package-lock.json web/package-lock.json
+          npm install
+
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run map tests
+        working-directory: web
+        run: npm run e2e:map
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-map-trace
+          path: web/test-results/
