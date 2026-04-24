@@ -28,13 +28,18 @@ defineEndpoint({
 
     if (!tokens || tokens.length === 0) return { markets: [] }
 
-    // One market may in theory have multiple active tokens — pick the
-    // most recent (highest priority number, then latest sent_at) per market.
+    // One market may have multiple active tokens — keep the highest-
+    // priority one (lowest 'priority' value = most important); break
+    // ties by most recent sent_at (nulls last).
     const byMarket = new Map<string, { priority: number; sentAt: string | null }>()
     for (const t of tokens) {
       const marketId = t.flea_market_id as string
+      const incoming = { priority: t.priority as number, sentAt: (t.sent_at as string | null) ?? null }
       const prev = byMarket.get(marketId)
-      if (!prev) byMarket.set(marketId, { priority: t.priority as number, sentAt: (t.sent_at as string | null) ?? null })
+      if (!prev || incoming.priority < prev.priority ||
+          (incoming.priority === prev.priority && (incoming.sentAt ?? '') > (prev.sentAt ?? ''))) {
+        byMarket.set(marketId, incoming)
+      }
     }
 
     const marketIds = Array.from(byMarket.keys())

@@ -33,12 +33,13 @@ async function sendOne(
   if (!email) return { status: 'skipped', email: null, reason: 'no_contact_email' }
 
   // Invalidate any existing active tokens for this market.
-  await admin
+  const { error: invErr } = await admin
     .from('business_owner_tokens')
     .update({ invalidated_at: new Date().toISOString() })
     .eq('flea_market_id', marketId)
     .is('used_at', null)
     .is('invalidated_at', null)
+  if (invErr) return { status: 'error', email, reason: `invalidation: ${invErr.message}` }
 
   // Generate fresh token + insert.
   const token = generateToken()
@@ -122,13 +123,14 @@ defineEndpoint({
       errors: results.filter((r) => r.status === 'error').length,
     }
 
-    await admin.from('admin_actions').insert({
+    const { error: auditErr } = await admin.from('admin_actions').insert({
       admin_user_id: user.id,
       action: 'business.takeover.send',
       target_type: 'batch',
       target_id: null,
       payload: summary,
     })
+    if (auditErr) console.error('[admin-takeover-send] audit log failed:', auditErr.message)
 
     return { results, summary }
   },

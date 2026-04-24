@@ -20,7 +20,7 @@ definePublicEndpoint({
     const tokenHash = await sha256Hex(input.token)
     const { data: tokenRow, error } = await admin
       .from('business_owner_tokens')
-      .select('id, flea_market_id, used_at, invalidated_at, expires_at')
+      .select('id, flea_market_id, used_at, invalidated_at, expires_at, sent_to_email')
       .eq('token_hash', tokenHash)
       .maybeSingle()
     if (error) throw new Error(error.message)
@@ -28,6 +28,14 @@ definePublicEndpoint({
     if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
     if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
     if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
+
+    // Bind verification to the email the admin invited. Anyone who held
+    // the token URL could otherwise substitute a different email and
+    // intercept the code (S1 from security review).
+    const submittedEmail = input.email.toLowerCase()
+    const expectedEmail = (tokenRow.sent_to_email as string | null)?.trim().toLowerCase()
+    if (!expectedEmail) throw new HttpError(400, 'token_has_no_recipient')
+    if (submittedEmail !== expectedEmail) throw new HttpError(400, 'email_mismatch')
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')

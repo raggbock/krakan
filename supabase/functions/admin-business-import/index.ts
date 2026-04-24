@@ -93,7 +93,7 @@ defineEndpoint({
       }
     }
 
-    await admin.from('admin_actions').insert({
+    const { error: auditErr } = await admin.from('admin_actions').insert({
       admin_user_id: user.id,
       action: 'business.import.commit',
       target_type: 'batch',
@@ -105,6 +105,7 @@ defineEndpoint({
         errors: report.summary.errors,
       },
     })
+    if (auditErr) console.error('[admin-business-import] audit log failed:', auditErr.message)
 
     return { ...report, dryRun: false, summary: { ...report.summary, tokensCreated: 0 } }
   },

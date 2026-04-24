@@ -175,7 +175,11 @@ export default function AdminImportPage() {
             const action = actionBySlug.get(b.slug) ?? 'error'
             const errors = errorsBySlug.get(b.slug) ?? []
             const warnings = warningsBySlug.get(b.slug) ?? []
-            const isBusy = committingSlug === b.slug || bulkCommitting
+            // Disable the row's commit button whenever ANY mutation is in
+            // flight, not just one targeting this slug — prevents racing
+            // dry-runs from a fast double-click.
+            const anyBusy = !!committingSlug || bulkCommitting || importMut.isPending
+            const isBusy = anyBusy
             const isEditing = editingSlug === b.slug
             const isActionable = action === 'create' || action === 'update'
 

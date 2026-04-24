@@ -89,11 +89,12 @@ definePublicEndpoint({
       .eq('id', tokenRow.id)
     if (useErr) throw new Error(useErr.message)
 
-    const { data: market } = await admin
+    const { data: market, error: marketErr } = await admin
       .from('flea_markets')
       .select('name')
       .eq('id', tokenRow.flea_market_id)
       .single()
+    if (marketErr) console.error('[takeover-verify] market fetch failed:', marketErr.message)
 
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: 'magiclink',
