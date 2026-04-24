@@ -11,7 +11,7 @@ const navItems = [
   { href: '/admin', label: 'Översikt' },
   { href: '/admin/settings/admins', label: 'Admins' },
   { href: '/admin/import', label: 'Import' },
-  { href: '/admin/takeover', label: 'Takeover', disabled: true },
+  { href: '/admin/takeover', label: 'Takeover' },
   { href: '/admin/social', label: 'Social', disabled: true },
 ]
 
