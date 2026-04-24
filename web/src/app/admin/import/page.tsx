@@ -28,6 +28,9 @@ const DAY_LABEL: Record<string, string> = {
   friday: 'Fre', saturday: 'Lör', sunday: 'Sön',
 }
 
+const CATEGORIES = ['Privat', 'Kyrklig-bistånd', 'Antik-retro', 'Kommunal', 'Kedja', 'Evenemang'] as const
+const STATUSES = ['confirmed', 'unverified', 'closed'] as const
+
 export default function AdminImportPage() {
   const importMut = useBusinessImport()
   const [fileName, setFileName] = useState<string | null>(null)
@@ -35,6 +38,7 @@ export default function AdminImportPage() {
   const [businesses, setBusinesses] = useState<ImportBusiness[] | null>(null)
   const [committingSlug, setCommittingSlug] = useState<string | null>(null)
   const [bulkCommitting, setBulkCommitting] = useState(false)
+  const [editingSlug, setEditingSlug] = useState<string | null>(null)
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -42,6 +46,7 @@ export default function AdminImportPage() {
     setFileName(file.name)
     setParseError(null)
     setBusinesses(null)
+    setEditingSlug(null)
     importMut.reset()
 
     try {
@@ -56,6 +61,14 @@ export default function AdminImportPage() {
     }
   }
 
+  async function saveEdit(slug: string, updated: ImportBusiness) {
+    if (!businesses) return
+    const next = businesses.map((b) => (b.slug === slug ? updated : b))
+    setBusinesses(next)
+    setEditingSlug(null)
+    await importMut.mutateAsync({ businesses: next, commit: false })
+  }
+
   async function commitOne(slug: string) {
     if (!businesses) return
     const target = businesses.find((b) => b.slug === slug)
@@ -63,7 +76,6 @@ export default function AdminImportPage() {
     setCommittingSlug(slug)
     try {
       await importMut.mutateAsync({ businesses: [target], commit: true })
-      // Re-fetch dry-run to refresh the combined state for the full list.
       await importMut.mutateAsync({ businesses, commit: false })
     } finally {
       setCommittingSlug(null)
@@ -76,9 +88,7 @@ export default function AdminImportPage() {
     setBulkCommitting(true)
     try {
       await importMut.mutateAsync({ businesses: pending, commit: true })
-      if (businesses) {
-        await importMut.mutateAsync({ businesses, commit: false })
-      }
+      if (businesses) await importMut.mutateAsync({ businesses, commit: false })
     } finally {
       setBulkCommitting(false)
     }
@@ -116,8 +126,9 @@ export default function AdminImportPage() {
       <section>
         <h1 className="font-display text-3xl font-bold">Importera butiker</h1>
         <p className="text-espresso/65 mt-1">
-          Ladda upp en JSON-fil, granska varje butik, och klicka &laquo;Skapa&raquo; per rad
-          eller &laquo;Skapa alla&raquo; när du är nöjd. Inget skrivs förrän du bekräftar.
+          Ladda upp en JSON-fil, granska, redigera om något är fel, och klicka
+          &laquo;Skapa&raquo; per rad eller &laquo;Skapa alla&raquo; när du är nöjd. Inget skrivs
+          förrän du bekräftar.
         </p>
       </section>
 
@@ -140,7 +151,7 @@ export default function AdminImportPage() {
             {pending.length > 0 && (
               <button
                 onClick={() => commitAll(pending)}
-                disabled={bulkCommitting || !!committingSlug}
+                disabled={bulkCommitting || !!committingSlug || !!editingSlug}
                 className="bg-emerald-700 text-white px-4 py-2 rounded-md font-semibold disabled:opacity-50"
               >
                 {bulkCommitting ? 'Skapar…' : `Skapa alla (${pending.length})`}
@@ -165,7 +176,20 @@ export default function AdminImportPage() {
             const errors = errorsBySlug.get(b.slug) ?? []
             const warnings = warningsBySlug.get(b.slug) ?? []
             const isBusy = committingSlug === b.slug || bulkCommitting
+            const isEditing = editingSlug === b.slug
             const isActionable = action === 'create' || action === 'update'
+
+            if (isEditing) {
+              return (
+                <BusinessEditor
+                  key={`${index}-${b.slug}`}
+                  business={b}
+                  onSave={(updated) => saveEdit(b.slug, updated)}
+                  onCancel={() => setEditingSlug(null)}
+                />
+              )
+            }
+
             return (
               <BusinessCard
                 key={`${index}-${b.slug}`}
@@ -174,6 +198,8 @@ export default function AdminImportPage() {
                 errors={errors}
                 warnings={warnings}
                 busy={isBusy}
+                canEdit={action !== 'unchanged' && !committingSlug && !bulkCommitting}
+                onEdit={() => setEditingSlug(b.slug)}
                 onCommit={isActionable ? () => commitOne(b.slug) : undefined}
               />
             )
@@ -190,6 +216,8 @@ function BusinessCard({
   errors,
   warnings,
   busy,
+  canEdit,
+  onEdit,
   onCommit,
 }: {
   business: ImportBusiness
@@ -197,6 +225,8 @@ function BusinessCard({
   errors: string[]
   warnings: string[]
   busy: boolean
+  canEdit: boolean
+  onEdit: () => void
   onCommit?: () => void
 }) {
   const address = [b.address.street, b.address.postalCode, b.address.locality]
@@ -272,18 +302,198 @@ function BusinessCard({
         </ul>
       )}
 
-      {onCommit && (
-        <footer className="pt-2 border-t border-cream-warm">
+      <footer className="pt-2 border-t border-cream-warm flex gap-2">
+        {canEdit && (
+          <button
+            onClick={onEdit}
+            className="flex-1 border border-cream-warm text-espresso px-3 py-2 rounded-md text-sm font-semibold hover:bg-cream-warm"
+          >
+            Redigera
+          </button>
+        )}
+        {onCommit && (
           <button
             onClick={onCommit}
             disabled={busy}
-            className="w-full bg-emerald-700 text-white px-3 py-2 rounded-md text-sm font-semibold disabled:opacity-50"
+            className="flex-1 bg-emerald-700 text-white px-3 py-2 rounded-md text-sm font-semibold disabled:opacity-50"
           >
             {busy ? 'Skapar…' : action === 'create' ? 'Skapa denna' : 'Uppdatera denna'}
           </button>
-        </footer>
-      )}
+        )}
+      </footer>
     </article>
+  )
+}
+
+function BusinessEditor({
+  business,
+  onSave,
+  onCancel,
+}: {
+  business: ImportBusiness
+  onSave: (b: ImportBusiness) => void
+  onCancel: () => void
+}) {
+  const [draft, setDraft] = useState<ImportBusiness>(business)
+
+  function setField<K extends keyof ImportBusiness>(key: K, value: ImportBusiness[K]) {
+    setDraft((d) => ({ ...d, [key]: value }))
+  }
+
+  function setAddr<K extends keyof ImportBusiness['address']>(key: K, value: ImportBusiness['address'][K]) {
+    setDraft((d) => ({ ...d, address: { ...d.address, [key]: value } }))
+  }
+
+  function setContact<K extends keyof NonNullable<ImportBusiness['contact']>>(
+    key: K,
+    value: NonNullable<ImportBusiness['contact']>[K],
+  ) {
+    setDraft((d) => ({ ...d, contact: { ...(d.contact ?? {}), [key]: value } }))
+  }
+
+  function setTakeover<K extends keyof ImportBusiness['takeover']>(key: K, value: ImportBusiness['takeover'][K]) {
+    setDraft((d) => ({ ...d, takeover: { ...d.takeover, [key]: value } }))
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    onSave(draft)
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="border-2 border-rust rounded-md p-4 space-y-3 bg-card">
+      <header>
+        <h3 className="font-display font-bold text-lg">Redigera {business.name}</h3>
+        <p className="text-xs font-mono text-espresso/50">{business.slug}</p>
+      </header>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <Input label="Namn" value={draft.name} onChange={(v) => setField('name', v)} required />
+        <Select label="Kategori" value={draft.category} onChange={(v) => setField('category', v as ImportBusiness['category'])} options={CATEGORIES as unknown as string[]} />
+        <Select label="Status" value={draft.status} onChange={(v) => setField('status', v as ImportBusiness['status'])} options={STATUSES as unknown as string[]} />
+        <Input label="Distans Örebro (km)" type="number" value={draft.distanceFromOrebroKm?.toString() ?? ''} onChange={(v) => setField('distanceFromOrebroKm', v ? Number(v) : null)} />
+      </div>
+
+      <Textarea label="Beskrivning" value={draft.description ?? ''} onChange={(v) => setField('description', v || null)} rows={3} />
+
+      <fieldset className="border-t border-cream-warm pt-3">
+        <legend className="text-xs uppercase tracking-wide text-espresso/55 px-2">Adress</legend>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <Input label="Gata" value={draft.address.street ?? ''} onChange={(v) => setAddr('street', v || null)} />
+          <Input label="Postnr" value={draft.address.postalCode ?? ''} onChange={(v) => setAddr('postalCode', v || null)} />
+          <Input label="Ort" value={draft.address.locality} onChange={(v) => setAddr('locality', v)} required />
+          <Input label="Kommun" value={draft.address.municipality} onChange={(v) => setAddr('municipality', v)} required />
+          <Input label="Län" value={draft.address.region} onChange={(v) => setAddr('region', v)} required />
+          <Input label="Land (ISO)" value={draft.address.country} onChange={(v) => setAddr('country', v)} required />
+        </div>
+      </fieldset>
+
+      <fieldset className="border-t border-cream-warm pt-3">
+        <legend className="text-xs uppercase tracking-wide text-espresso/55 px-2">Kontakt</legend>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <Input label="E-post" type="email" value={draft.contact?.email ?? ''} onChange={(v) => setContact('email', v || null)} />
+          <Input label="Telefon (+46...)" value={draft.contact?.phone ?? ''} onChange={(v) => setContact('phone', v || null)} />
+          <Input label="Webb" value={draft.contact?.website ?? ''} onChange={(v) => setContact('website', v || null)} />
+          <Input label="Facebook" value={draft.contact?.facebook ?? ''} onChange={(v) => setContact('facebook', v || null)} />
+          <Input label="Instagram" value={draft.contact?.instagram ?? ''} onChange={(v) => setContact('instagram', v || null)} />
+        </div>
+      </fieldset>
+
+      <fieldset className="border-t border-cream-warm pt-3">
+        <legend className="text-xs uppercase tracking-wide text-espresso/55 px-2">Takeover</legend>
+        <div className="flex flex-wrap items-end gap-4 text-sm">
+          <label className="inline-flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={draft.takeover.shouldSendEmail}
+              onChange={(e) => setTakeover('shouldSendEmail', e.target.checked)}
+            />
+            Skicka inbjudan
+          </label>
+          <Select
+            label="Prioritet"
+            value={String(draft.takeover.priority)}
+            onChange={(v) => setTakeover('priority', Number(v) as 1 | 2 | 3)}
+            options={['1', '2', '3']}
+          />
+        </div>
+      </fieldset>
+
+      <footer className="flex gap-2 pt-2 border-t border-cream-warm">
+        <button type="button" onClick={onCancel} className="flex-1 border border-cream-warm text-espresso px-3 py-2 rounded-md text-sm font-semibold hover:bg-cream-warm">
+          Avbryt
+        </button>
+        <button type="submit" className="flex-1 bg-rust text-white px-3 py-2 rounded-md text-sm font-semibold">
+          Spara
+        </button>
+      </footer>
+    </form>
+  )
+}
+
+function Input({
+  label, value, onChange, type = 'text', required,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  required?: boolean
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs uppercase tracking-wide text-espresso/55">{label}{required && ' *'}</span>
+      <input
+        type={type}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full px-2 py-1.5 rounded-md border border-cream-warm"
+      />
+    </label>
+  )
+}
+
+function Textarea({
+  label, value, onChange, rows = 2,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  rows?: number
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="text-xs uppercase tracking-wide text-espresso/55">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        className="mt-1 w-full px-2 py-1.5 rounded-md border border-cream-warm"
+      />
+    </label>
+  )
+}
+
+function Select({
+  label, value, onChange, options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs uppercase tracking-wide text-espresso/55">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full px-2 py-1.5 rounded-md border border-cream-warm bg-white"
+      >
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </label>
   )
 }
 
