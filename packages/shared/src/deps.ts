@@ -1,6 +1,7 @@
 import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-markets'
 import type { RouteRepository } from './ports/routes'
 import type { ProfileRepository } from './ports/profiles'
+import type { AdminPort } from './ports/admin'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -17,4 +18,5 @@ export type Deps = {
   marketTables: MarketTableRepository
   routes: RouteRepository
   profiles: ProfileRepository
+  admin: AdminPort
 }

@@ -10,12 +10,14 @@ import {
 } from './adapters/in-memory/flea-markets'
 import { createInMemoryRoutes } from './adapters/in-memory/routes'
 import { createInMemoryProfiles } from './adapters/in-memory/profiles'
+import { createInMemoryAdmin } from './adapters/in-memory/admin'
 import {
   createSupabaseFleaMarkets,
   createSupabaseMarketTables,
 } from './adapters/supabase/flea-markets'
 import { createSupabaseRoutes } from './adapters/supabase/routes'
 import { createSupabaseProfiles } from './adapters/supabase/profiles'
+import { createSupabaseAdmin } from './adapters/supabase/admin'
 
 type StoredMarket = FleaMarket & {
   is_deleted: boolean
@@ -41,6 +43,7 @@ export function makeInMemoryDeps(
     marketTables,
     routes: createInMemoryRoutes(routes),
     profiles: createInMemoryProfiles(profiles),
+    admin: createInMemoryAdmin().repo,
   }
 }
 
@@ -76,5 +79,6 @@ export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
     marketTables: createSupabaseMarketTables(supabase),
     routes: createSupabaseRoutes(supabase),
     profiles: createSupabaseProfiles(supabase),
+    admin: createSupabaseAdmin(supabase),
   }
 }
