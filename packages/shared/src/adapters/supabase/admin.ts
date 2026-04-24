@@ -15,15 +15,31 @@ function invokeOrThrow<T>(res: { data: T | null; error: { message: string } | nu
 export function createSupabaseAdmin(supabase: SupabaseClient): AdminPort {
   return {
     async listAdmins() {
-      const { data, error } = await supabase
+      // Two-step query: PostgREST can't infer a FK relationship onto the
+      // auth_user_email_view (it's a view of Supabase-owned auth.users),
+      // so we fetch admins first and then bulk-fetch emails separately.
+      const { data: admins, error } = await supabase
         .from('admin_users')
-        .select('user_id, granted_at, granted_by, notes, user:auth_user_email_view(email)')
+        .select('user_id, granted_at, granted_by, notes')
         .is('revoked_at', null)
         .order('granted_at', { ascending: false })
       if (error) throw error
-      return (data ?? []).map((row: Record<string, unknown>) => ({
+      const rows = admins ?? []
+      if (rows.length === 0) return []
+
+      const userIds = rows.map((r) => r.user_id as string)
+      const { data: users, error: usersErr } = await supabase
+        .from('auth_user_email_view')
+        .select('id, email')
+        .in('id', userIds)
+      if (usersErr) throw usersErr
+      const emailById = new Map<string, string>(
+        (users ?? []).map((u) => [u.id as string, (u.email as string) ?? '']),
+      )
+
+      return rows.map((row) => ({
         userId: row.user_id as string,
-        email: ((row.user as { email?: string } | null)?.email ?? '') as string,
+        email: emailById.get(row.user_id as string) ?? '',
         grantedAt: row.granted_at as string,
         grantedBy: (row.granted_by as string | null) ?? null,
         notes: (row.notes as string | null) ?? null,
