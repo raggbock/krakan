@@ -7,12 +7,12 @@ import { useIsAdmin } from '@/hooks/use-admin'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
-const navItems = [
+const navItems: { href: string; label: string; disabled?: boolean }[] = [
   { href: '/admin', label: 'Översikt' },
   { href: '/admin/settings/admins', label: 'Admins' },
   { href: '/admin/import', label: 'Import' },
   { href: '/admin/takeover', label: 'Takeover' },
-  { href: '/admin/social', label: 'Social', disabled: true },
+  { href: '/admin/social', label: 'Social' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
