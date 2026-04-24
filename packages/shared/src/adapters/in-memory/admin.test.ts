@@ -39,6 +39,6 @@ describe('createInMemoryAdmin', () => {
     const { repo, control } = createInMemoryAdmin()
     control.setCurrentUser('u-only')
     control.seedAdmin({ userId: 'u-only', email: 'a@x.se' })
-    await expect(repo.revokeAdmin('u-only')).rejects.toThrow(/last admin/i)
+    await expect(repo.revokeAdmin('u-only')).rejects.toThrow(/cannot_revoke_last_admin/)
   })
 })

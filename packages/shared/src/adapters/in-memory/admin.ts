@@ -105,7 +105,7 @@ export function createInMemoryAdmin(): { repo: AdminPort; control: InMemoryAdmin
     },
     async revokeAdmin(userId) {
       requireAdmin()
-      if (activeAdminsCount() <= 1) throw new Error('cannot revoke last admin')
+      if (activeAdminsCount() <= 1) throw new Error('cannot_revoke_last_admin')
       const a = admins.get(userId)
       if (!a) throw new Error('admin_not_found')
       a.revokedAt = nowIso()
