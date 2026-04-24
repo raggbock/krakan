@@ -59,7 +59,24 @@ definePublicEndpoint({
     const matches = timingSafeEqualHex(codeHash, tokenRow.verification_code_hash as string)
     if (!matches) throw new HttpError(400, 'code_invalid')
 
-    // --- Verified. Transfer ownership. ---
+    // --- Verified. Spend the token first, THEN do user/ownership work. ---
+    //
+    // Order matters: spending the token (with .is('used_at', null) guard)
+    // is the single-use lock. If we createUser first and THEN the spend
+    // fails transiently, we leave a dangling auth.users row and the
+    // legitimate owner gets stuck on a token that's permanently spent
+    // without ever being given ownership. Spending first means a
+    // post-spend failure burns the token — admin reissues — but never
+    // creates orphan users or partial state.
+    const { data: markedRow, error: useErr } = await admin
+      .from('business_owner_tokens')
+      .update({ used_at: new Date().toISOString() })
+      .eq('id', tokenRow.id)
+      .is('used_at', null)
+      .select('id')
+      .maybeSingle()
+    if (useErr) throw new Error(useErr.message)
+    if (!markedRow) throw new HttpError(410, 'token_already_used')
 
     const { data: existing, error: lookupErr } = await admin
       .from('auth_user_email_view')
@@ -76,20 +93,6 @@ definePublicEndpoint({
       if (createErr) throw new Error(createErr.message)
       userId = created.user.id
     }
-
-    // Mark token used BEFORE transferring ownership. If the ownership
-    // UPDATE then fails, the token is spent and admin must reissue — but
-    // no concurrent caller can race in and re-transfer the market. Order
-    // matters: the token is our single-use guard.
-    const { data: markedRow, error: useErr } = await admin
-      .from('business_owner_tokens')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', tokenRow.id)
-      .is('used_at', null)
-      .select('id')
-      .maybeSingle()
-    if (useErr) throw new Error(useErr.message)
-    if (!markedRow) throw new HttpError(410, 'token_already_used')
 
     const { error: mktErr } = await admin
       .from('flea_markets')

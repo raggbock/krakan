@@ -100,8 +100,8 @@ defineEndpoint({
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')
 
-    // The /takeover route lives on the web origin, not the edge origin.
-    // Trust the request's Origin header (sent by the admin UI).
+    // ctx.origin is already allowlist-vetted by createHandler via
+    // getSafeOrigin — never read req.headers.get('origin') directly.
     // Resend is rate-limited to 5 req/s. Process in batches of 4 with a
     // 1-second pause between batches to stay safely under the limit.
     const BATCH = 4
