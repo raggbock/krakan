@@ -35,4 +35,13 @@ export const queryKeys = {
     stats: (organizerId: string) =>
       ['organizers', 'stats', organizerId] as const,
   },
+  admin: {
+    all: ['admin'] as const,
+    takeoverPending: () => ['admin', 'takeover', 'pending'] as const,
+    actions: () => ['admin', 'actions'] as const,
+    socialWeekend: () => ['admin', 'social', 'weekend-markets'] as const,
+  },
+  takeover: {
+    info: (token: string | null) => ['takeover', 'info', token] as const,
+  },
 }

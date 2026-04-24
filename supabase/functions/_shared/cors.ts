@@ -25,3 +25,14 @@ export const corsHeaders = {
 export function corsResponse(origin?: string | null) {
   return new Response('ok', { headers: origin ? getCorsHeaders(origin) : corsHeaders })
 }
+
+/**
+ * Returns the request origin if it is on the allowlist, otherwise the
+ * first allowed origin as a safe fallback. Use this when handing an
+ * origin to something downstream (e.g. magic-link redirect URLs) where
+ * an attacker-controlled Origin header must not leak through.
+ */
+export function getSafeOrigin(origin: string | null): string {
+  if (origin && allowedOrigins.includes(origin)) return origin
+  return allowedOrigins[0] ?? ''
+}

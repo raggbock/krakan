@@ -77,17 +77,25 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
+    // Mark token used BEFORE transferring ownership. If the ownership
+    // UPDATE then fails, the token is spent and admin must reissue — but
+    // no concurrent caller can race in and re-transfer the market. Order
+    // matters: the token is our single-use guard.
+    const { data: markedRow, error: useErr } = await admin
+      .from('business_owner_tokens')
+      .update({ used_at: new Date().toISOString() })
+      .eq('id', tokenRow.id)
+      .is('used_at', null)
+      .select('id')
+      .maybeSingle()
+    if (useErr) throw new Error(useErr.message)
+    if (!markedRow) throw new HttpError(410, 'token_already_used')
+
     const { error: mktErr } = await admin
       .from('flea_markets')
       .update({ organizer_id: userId, is_system_owned: false })
       .eq('id', tokenRow.flea_market_id)
     if (mktErr) throw new Error(mktErr.message)
-
-    const { error: useErr } = await admin
-      .from('business_owner_tokens')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', tokenRow.id)
-    if (useErr) throw new Error(useErr.message)
 
     const { data: market, error: marketErr } = await admin
       .from('flea_markets')

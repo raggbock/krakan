@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { z } from 'zod'
-import { getCorsHeaders, corsResponse } from './cors.ts'
+import { getCorsHeaders, corsResponse, getSafeOrigin } from './cors.ts'
 import { getSupabaseAdmin } from './auth.ts'
 import { HttpError } from './handler.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -45,7 +45,11 @@ export function definePublicEndpoint<I, O>(config: PublicEndpointConfig<I, O>): 
         )
       }
       const admin = getSupabaseAdmin()
-      const resolvedOrigin = origin || new URL(req.url).origin
+      // Use the allowlist-vetted origin, never the raw Origin header.
+      // A crafted request with Origin: https://attacker.com would
+      // otherwise propagate into any handler that uses ctx.origin for
+      // user-visible URLs (magic-link redirectTo, takeover URLs, etc.)
+      const resolvedOrigin = getSafeOrigin(origin)
       const result = await config.handler({ admin, origin: resolvedOrigin, req }, parsed.data)
       return new Response(JSON.stringify(result), { headers })
     } catch (error) {

@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { getCorsHeaders, corsResponse } from './cors.ts'
+import { getCorsHeaders, corsResponse, getSafeOrigin } from './cors.ts'
 import { getUser, getSupabaseAdmin } from './auth.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -65,7 +65,9 @@ export function createHandler(fn: HandlerFn) {
         try { body = await req.json() } catch { /* empty body is ok */ }
       }
 
-      const resolvedOrigin = origin || new URL(req.url).origin
+      // Allowlist-vetted — never trust the raw Origin header for anything
+      // downstream uses as a user-visible URL.
+      const resolvedOrigin = getSafeOrigin(origin)
 
       const result = await fn({ user, admin, body, origin: resolvedOrigin, req })
 

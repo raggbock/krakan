@@ -12,8 +12,7 @@ import {
   type ImportableMarketRow,
 } from '@fyndstigen/shared/business-import.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const SYSTEM_OWNER_ID = 'f1d57000-1000-4000-8000-000000000001'
+import { SYSTEM_OWNER_ID } from '../_shared/constants.ts'
 
 async function upsertMarket(
   admin: SupabaseClient,
