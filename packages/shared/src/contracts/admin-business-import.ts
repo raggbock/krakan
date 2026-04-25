@@ -72,6 +72,7 @@ export type ImportBusiness = z.infer<typeof ImportBusiness>
 export const AdminBusinessImportInput = z.object({
   businesses: z.array(ImportBusiness),
   commit: z.boolean().optional(),
+  publishOnCommit: z.boolean().optional(),
 })
 
 export const ImportRowAction = z.enum(['create', 'update', 'unchanged', 'error'])
@@ -94,6 +95,7 @@ export const AdminBusinessImportOutput = z.object({
     errors: z.number().int(),
     warnings: z.number().int(),
     tokensCreated: z.number().int(),
+    published: z.number().int(),
   }),
   rows: z.array(ImportRowResult),
 })

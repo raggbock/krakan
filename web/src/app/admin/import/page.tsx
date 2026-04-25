@@ -39,6 +39,7 @@ export default function AdminImportPage() {
   const [committingSlug, setCommittingSlug] = useState<string | null>(null)
   const [bulkCommitting, setBulkCommitting] = useState(false)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
+  const [publishOnCommit, setPublishOnCommit] = useState(true)
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -75,7 +76,7 @@ export default function AdminImportPage() {
     if (!target) return
     setCommittingSlug(slug)
     try {
-      await importMut.mutateAsync({ businesses: [target], commit: true })
+      await importMut.mutateAsync({ businesses: [target], commit: true, publishOnCommit })
       await importMut.mutateAsync({ businesses, commit: false })
     } finally {
       setCommittingSlug(null)
@@ -84,10 +85,11 @@ export default function AdminImportPage() {
 
   async function commitAll(pending: ImportBusiness[]) {
     if (pending.length === 0) return
-    if (!confirm(`Skapa/uppdatera ${pending.length} butiker?`)) return
+    const verb = publishOnCommit ? 'Skapa/uppdatera & publicera' : 'Skapa/uppdatera'
+    if (!confirm(`${verb} ${pending.length} butiker?`)) return
     setBulkCommitting(true)
     try {
-      await importMut.mutateAsync({ businesses: pending, commit: true })
+      await importMut.mutateAsync({ businesses: pending, commit: true, publishOnCommit })
       if (businesses) await importMut.mutateAsync({ businesses, commit: false })
     } finally {
       setBulkCommitting(false)
@@ -147,14 +149,27 @@ export default function AdminImportPage() {
           <div className="flex items-center gap-3 ml-auto">
             <span className="text-sm text-espresso/65">
               {report.summary.created} skapa · {report.summary.updated} uppdatera · {report.summary.unchanged} oförändrade · {report.summary.errors} fel
+              {!report.dryRun && report.summary.published > 0 && (
+                <> · <span className="text-emerald-700 font-semibold">{report.summary.published} publicerade</span></>
+              )}
             </span>
+            <label className="inline-flex items-center gap-2 text-sm text-espresso/75">
+              <input
+                type="checkbox"
+                checked={publishOnCommit}
+                onChange={(e) => setPublishOnCommit(e.target.checked)}
+              />
+              Publicera direkt
+            </label>
             {pending.length > 0 && (
               <button
                 onClick={() => commitAll(pending)}
                 disabled={bulkCommitting || !!committingSlug || !!editingSlug}
                 className="bg-emerald-700 text-white px-4 py-2 rounded-md font-semibold disabled:opacity-50"
               >
-                {bulkCommitting ? 'Skapar…' : `Skapa alla (${pending.length})`}
+                {bulkCommitting
+                  ? 'Skapar…'
+                  : `${publishOnCommit ? 'Skapa & publicera' : 'Skapa'} alla (${pending.length})`}
               </button>
             )}
           </div>

@@ -96,6 +96,7 @@ export type DryRunReport = {
     errors: number
     warnings: number
     tokensCreated: number
+    published: number
   }
   rows: ImportRowResult[]
 }
@@ -162,6 +163,7 @@ export function buildDryRunReport(
       errors,
       warnings,
       tokensCreated: 0,
+      published: 0,
     },
     rows,
   }

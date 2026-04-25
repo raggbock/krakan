@@ -73,12 +73,14 @@ defineEndpoint({
 
     // Commit phase: execute writes. Tokens are NOT created here —
     // /admin/takeover generates + sends them when admin opts in.
+    const committedSlugs: string[] = []
     for (let i = 0; i < report.rows.length; i++) {
       const planned = report.rows[i]
       if (planned.action !== 'create' && planned.action !== 'update') continue
       const business = input.businesses[planned.index]
       try {
         await upsertMarket(admin, business, planned.action === 'create')
+        committedSlugs.push(business.slug)
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         if (planned.action === 'create') report.summary.created--
@@ -90,6 +92,18 @@ defineEndpoint({
           errors: [...planned.errors, `DB-fel: ${msg}`],
         }
       }
+    }
+
+    let published = 0
+    if (input.publishOnCommit && committedSlugs.length > 0) {
+      const { data: pubRows, error: pubErr } = await admin
+        .from('flea_markets')
+        .update({ published_at: new Date().toISOString() })
+        .in('slug', committedSlugs)
+        .is('published_at', null)
+        .select('id')
+      if (pubErr) console.error('[admin-business-import] publish failed:', pubErr.message)
+      else published = pubRows?.length ?? 0
     }
 
     const { error: auditErr } = await admin.from('admin_actions').insert({
@@ -106,6 +120,6 @@ defineEndpoint({
     })
     if (auditErr) console.error('[admin-business-import] audit log failed:', auditErr.message)
 
-    return { ...report, dryRun: false, summary: { ...report.summary, tokensCreated: 0 } }
+    return { ...report, dryRun: false, summary: { ...report.summary, tokensCreated: 0, published } }
   },
 })
