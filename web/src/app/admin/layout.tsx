@@ -9,6 +9,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 const navItems: { href: string; label: string; disabled?: boolean }[] = [
   { href: '/admin', label: 'Översikt' },
+  { href: '/admin/markets', label: 'Loppisar' },
   { href: '/admin/settings/admins', label: 'Admins' },
   { href: '/admin/import', label: 'Import' },
   { href: '/admin/takeover', label: 'Takeover' },
