@@ -1,5 +1,6 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
+import { appError } from '@fyndstigen/shared/errors.ts'
 import {
   AdminMarketEditInput,
   AdminMarketEditOutput,
@@ -13,6 +14,29 @@ defineEndpoint({
     const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
     if (rpcErr) throw new Error(rpcErr.message)
     if (!isAdminResult) throw new HttpError(403, 'not_admin')
+
+    // Publishing requires at least one opening_hour_rule. If the same patch
+    // also includes new rules, those count — admin can publish in a single
+    // round-trip after filling hours in the drawer. Otherwise we look at
+    // what's already in the table.
+    if (patch.publish === true) {
+      const incomingRules = patch.openingHourRules?.length ?? 0
+      if (incomingRules === 0) {
+        const { data: existing, error: hErr } = await admin
+          .from('opening_hour_rules')
+          .select('id')
+          .eq('flea_market_id', marketId)
+          .limit(1)
+        if (hErr) throw new Error(hErr.message)
+        if (!existing || existing.length === 0) {
+          throw new HttpError(
+            400,
+            'Cannot publish market without opening hours',
+            appError('market.cannot_publish_without_hours'),
+          )
+        }
+      }
+    }
 
     // Build the markets-table update payload from contact + address + location patches.
     const update: Record<string, unknown> = {}

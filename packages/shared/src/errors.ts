@@ -38,6 +38,8 @@ export type ErrorCode =
   | 'booking.concurrent_update'
   // --- Organizer ---
   | 'organizer.fetch_failed'
+  // --- Market publication ---
+  | 'market.cannot_publish_without_hours'
   // --- Profile ---
   | 'profile.not_found'
   // --- Skyltfönstret subscription ---
@@ -77,6 +79,7 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'booking.invalid_status',
   'booking.concurrent_update',
   'organizer.fetch_failed',
+  'market.cannot_publish_without_hours',
   'profile.not_found',
   'skyltfonstret.already_subscribed',
   'skyltfonstret.no_subscription',

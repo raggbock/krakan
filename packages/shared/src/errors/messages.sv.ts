@@ -42,6 +42,9 @@ export const MESSAGES_SV: Record<ErrorCode, string> = {
   // Organizer
   'organizer.fetch_failed': 'Det gick inte att hämta marknadsdata. Försök igen om en liten stund.',
 
+  // Market publication
+  'market.cannot_publish_without_hours': 'Loppisen saknar öppettider. Lägg till öppettider innan du publicerar.',
+
   // Profile
   'profile.not_found': 'Vi hittar ingen profil för dig. Logga ut och in igen, eller kontakta support.',
 

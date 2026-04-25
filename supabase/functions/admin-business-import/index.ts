@@ -95,15 +95,40 @@ defineEndpoint({
     }
 
     let published = 0
+    let publishSkippedNoHours = 0
     if (input.publishOnCommit && committedSlugs.length > 0) {
-      const { data: pubRows, error: pubErr } = await admin
+      // Only publish markets that already have at least one opening_hour_rule.
+      // Mirrors the guard in admin-market-edit — never publish without hours.
+      const { data: candidateRows, error: candErr } = await admin
         .from('flea_markets')
-        .update({ published_at: new Date().toISOString() })
+        .select('id, slug')
         .in('slug', committedSlugs)
         .is('published_at', null)
-        .select('id')
-      if (pubErr) console.error('[admin-business-import] publish failed:', pubErr.message)
-      else published = pubRows?.length ?? 0
+      if (candErr) {
+        console.error('[admin-business-import] publish lookup failed:', candErr.message)
+      } else if (candidateRows && candidateRows.length > 0) {
+        const ids = candidateRows.map((r) => r.id as string)
+        const { data: hourRows, error: hErr } = await admin
+          .from('opening_hour_rules')
+          .select('flea_market_id')
+          .in('flea_market_id', ids)
+        if (hErr) {
+          console.error('[admin-business-import] hours lookup failed:', hErr.message)
+        } else {
+          const withHours = new Set((hourRows ?? []).map((r) => r.flea_market_id as string))
+          const publishable = ids.filter((id) => withHours.has(id))
+          publishSkippedNoHours = ids.length - publishable.length
+          if (publishable.length > 0) {
+            const { data: pubRows, error: pubErr } = await admin
+              .from('flea_markets')
+              .update({ published_at: new Date().toISOString() })
+              .in('id', publishable)
+              .select('id')
+            if (pubErr) console.error('[admin-business-import] publish failed:', pubErr.message)
+            else published = pubRows?.length ?? 0
+          }
+        }
+      }
     }
 
     const { error: auditErr } = await admin.from('admin_actions').insert({
@@ -116,6 +141,8 @@ defineEndpoint({
         created: report.summary.created,
         updated: report.summary.updated,
         errors: report.summary.errors,
+        published,
+        publishSkippedNoHours,
       },
     })
     if (auditErr) console.error('[admin-business-import] audit log failed:', auditErr.message)
