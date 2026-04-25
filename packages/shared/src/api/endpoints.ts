@@ -28,6 +28,38 @@ import {
   OrganizerStatsInput,
   OrganizerStatsOutput,
 } from '../contracts/organizer-stats'
+import {
+  AdminBusinessImportInput,
+  AdminBusinessImportOutput,
+} from '../contracts/admin-business-import'
+import {
+  AdminInviteCreateInput,
+  AdminInviteCreateOutput,
+} from '../contracts/admin-invite-create'
+import {
+  AdminInviteAcceptInput,
+  AdminInviteAcceptOutput,
+} from '../contracts/admin-invite-accept'
+import {
+  AdminInviteRevokeInput,
+  AdminInviteRevokeOutput,
+} from '../contracts/admin-invite-revoke'
+import {
+  AdminRevokeInput,
+  AdminRevokeOutput,
+} from '../contracts/admin-revoke'
+import {
+  AdminTakeoverPendingInput,
+  AdminTakeoverPendingOutput,
+  AdminTakeoverSendInput,
+  AdminTakeoverSendOutput,
+} from '../contracts/admin-takeover-send'
+import {
+  SkyltfonstretCheckoutInput,
+  SkyltfonstretCheckoutOutput,
+  SkyltfonstretPortalInput,
+  SkyltfonstretPortalOutput,
+} from '../contracts/skyltfonstret'
 
 // ---------------------------------------------------------------------------
 // Registry definition helpers
@@ -88,6 +120,55 @@ export const ENDPOINTS = {
     path: 'organizer-stats',
     request: OrganizerStatsInput,
     response: OrganizerStatsOutput,
+  }),
+  'admin.business.import': defineEndpointDef({
+    path: 'admin-business-import',
+    request: AdminBusinessImportInput,
+    response: AdminBusinessImportOutput,
+  }),
+  'admin.invite.create': defineEndpointDef({
+    path: 'admin-invite-create',
+    request: AdminInviteCreateInput,
+    response: AdminInviteCreateOutput,
+  }),
+  'admin.invite.accept': defineEndpointDef({
+    path: 'admin-invite-accept',
+    request: AdminInviteAcceptInput,
+    response: AdminInviteAcceptOutput,
+  }),
+  'admin.invite.revoke': defineEndpointDef({
+    path: 'admin-invite-revoke',
+    request: AdminInviteRevokeInput,
+    response: AdminInviteRevokeOutput,
+  }),
+  'admin.revoke': defineEndpointDef({
+    path: 'admin-revoke',
+    request: AdminRevokeInput,
+    response: AdminRevokeOutput,
+  }),
+  'admin.takeover.pending': defineEndpointDef({
+    path: 'admin-takeover-pending',
+    request: AdminTakeoverPendingInput,
+    response: AdminTakeoverPendingOutput,
+  }),
+  'admin.takeover.send': defineEndpointDef({
+    path: 'admin-takeover-send',
+    request: AdminTakeoverSendInput,
+    response: AdminTakeoverSendOutput,
+  }),
+  // takeover.{info,start,verify} are public (verify_jwt:false) — createEdgeClient
+  // attaches a Bearer token unconditionally, so they can't go through this
+  // registry yet. Contracts live in @fyndstigen/shared/contracts/takeover and
+  // callers use invokeEdgeFn() until the registry grows a public-endpoint mode.
+  'skyltfonstret.checkout': defineEndpointDef({
+    path: 'skyltfonstret-checkout',
+    request: SkyltfonstretCheckoutInput,
+    response: SkyltfonstretCheckoutOutput,
+  }),
+  'skyltfonstret.portal': defineEndpointDef({
+    path: 'skyltfonstret-portal',
+    request: SkyltfonstretPortalInput,
+    response: SkyltfonstretPortalOutput,
   }),
 } as const
 

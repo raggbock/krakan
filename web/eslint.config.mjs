@@ -26,6 +26,12 @@ const eslintConfig = defineConfig([
           message:
             "Throw appError(code) instead of new Error(). For unreachable guards, add eslint-disable-next-line with a reason.",
         },
+        {
+          selector:
+            "CallExpression[callee.type='MemberExpression'][callee.property.name='invoke'][callee.object.type='MemberExpression'][callee.object.property.name='functions']",
+          message:
+            "Don't call supabase.functions.invoke() directly. Use api.endpoints['<key>'].invoke(input) (RFC #39). The only allowed exception is the wrapper in web/src/lib/invoke.ts.",
+        },
       ],
     },
   },

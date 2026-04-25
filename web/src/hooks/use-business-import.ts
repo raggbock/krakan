@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/api'
 import type {
   AdminBusinessImportOutput,
   ImportBusiness,
@@ -11,12 +11,11 @@ type ImportArgs = { businesses: ImportBusiness[]; commit?: boolean; publishOnCom
 
 export function useBusinessImport() {
   return useMutation<AdminBusinessImportOutput, Error, ImportArgs>({
-    mutationFn: async ({ businesses, commit, publishOnCommit }) => {
-      const { data, error } = await supabase.functions.invoke('admin-business-import', {
-        body: { businesses, commit: commit ?? false, publishOnCommit: publishOnCommit ?? false },
-      })
-      if (error) throw new Error(error.message)
-      return data as AdminBusinessImportOutput
-    },
+    mutationFn: ({ businesses, commit, publishOnCommit }) =>
+      api.endpoints['admin.business.import'].invoke({
+        businesses,
+        commit: commit ?? false,
+        publishOnCommit: publishOnCommit ?? false,
+      }),
   })
 }

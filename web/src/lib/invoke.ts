@@ -19,6 +19,7 @@ export class EdgeFnError extends Error {
 }
 
 export async function invokeEdgeFn<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  // eslint-disable-next-line no-restricted-syntax -- this IS the typed wrapper for endpoints not (yet) in api.endpoints registry (RFC #39)
   const { data, error } = await supabase.functions.invoke(name, { body })
   if (error) {
     const ctx = (error as { context?: { json?: () => Promise<unknown> } }).context
