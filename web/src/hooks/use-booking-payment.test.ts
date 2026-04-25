@@ -1,6 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 import { isAppError } from '@fyndstigen/shared'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
+import React from 'react'
 
 vi.mock('posthog-js/react', () => ({
   usePostHog: () => ({ capture: vi.fn() }),
@@ -16,12 +20,11 @@ vi.mock('@stripe/react-stripe-js', () => ({
 }))
 
 const mockInvoke = vi.fn()
+const mockAvailableDates = vi.fn().mockResolvedValue([] as string[])
+
 vi.mock('@/lib/api', async () => {
   const { createBookingService } = await import('@fyndstigen/shared')
   const mockedApi = {
-    bookings: {
-      availableDates: vi.fn().mockResolvedValue([]),
-    },
     endpoints: {
       'booking.create': { invoke: (...args: unknown[]) => mockInvoke(...args) },
     },
@@ -34,6 +37,16 @@ vi.mock('@/lib/api', async () => {
     bookingService: createBookingService({ api: mockedApi as never }),
   }
 })
+
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    bookings: { ...base.bookings, availableDates: mockAvailableDates },
+  }
+})()
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(DepsProvider, { deps: testDeps }, children)
 
 vi.mock('@fyndstigen/shared', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')
@@ -59,13 +72,13 @@ const mockTable = {
 describe('useBooking — payment edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(api.bookings.availableDates).mockResolvedValue([])
+    vi.mocked(mockAvailableDates).mockResolvedValue([])
     mockConfirmCardPayment.mockResolvedValue({ error: null })
     mockInvoke.mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
   })
 
   it('does not submit without Stripe (stripe hooks return null equivalent)', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -83,7 +96,7 @@ describe('useBooking — payment edge cases', () => {
       error: { type: 'card_error', message: 'Your card was declined. Please try a different card.' },
     })
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -102,7 +115,7 @@ describe('useBooking — payment edge cases', () => {
   it('handles network error during payment intent creation', async () => {
     mockInvoke.mockRejectedValue(new Error('Network request failed'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -120,7 +133,7 @@ describe('useBooking — payment edge cases', () => {
   it('handles edge function returning error', async () => {
     mockInvoke.mockRejectedValue(new Error('Du har redan en pågående bokning för detta bord och datum'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -137,7 +150,7 @@ describe('useBooking — payment edge cases', () => {
   it('handles organizer not having Stripe setup', async () => {
     mockInvoke.mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -152,7 +165,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('passes correct body to edge function', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -172,7 +185,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('passes undefined message when empty', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -190,7 +203,7 @@ describe('useBooking — payment edge cases', () => {
   it('confirms card payment with correct client secret', async () => {
     mockInvoke.mockResolvedValue({ clientSecret: 'pi_specific_secret_123', bookingId: 'b-99' })
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -208,7 +221,7 @@ describe('useBooking — payment edge cases', () => {
   it('does not confirm card if edge function fails', async () => {
     mockInvoke.mockRejectedValue(new Error('Server error'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -224,7 +237,7 @@ describe('useBooking — payment edge cases', () => {
   it('clears previous error on new submit attempt', async () => {
     mockInvoke.mockRejectedValueOnce(new Error('Temporary error'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -255,7 +268,7 @@ describe('useBooking — payment edge cases', () => {
       () => new Promise((r) => { resolveInvoke = r }),
     )
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -284,7 +297,7 @@ describe('useBooking — payment edge cases', () => {
       () => new Promise((r) => { resolveInvoke = r }),
     )
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -306,8 +319,8 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('different table prices produce different commissions', () => {
-    const { result: r1 } = renderHook(() => useBooking('m-1', 'u-1'))
-    const { result: r2 } = renderHook(() => useBooking('m-1', 'u-1'))
+    const { result: r1 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
+    const { result: r2 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
 
     act(() => { r1.current.selectTable({ ...mockTable, price_sek: 100 }) })
     act(() => { r2.current.selectTable({ ...mockTable, price_sek: 500 }) })
@@ -319,7 +332,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('changing table recalculates prices', () => {
-    const { result } = renderHook(() => useBooking('m-1', 'u-1'))
+    const { result } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
 
     act(() => { result.current.selectTable({ ...mockTable, price_sek: 100 }) })
     expect(result.current.totalPrice).toBe(112)
@@ -329,7 +342,7 @@ describe('useBooking — payment edge cases', () => {
   })
 
   it('deselecting table zeros out prices', () => {
-    const { result } = renderHook(() => useBooking('m-1', 'u-1'))
+    const { result } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     expect(result.current.totalPrice).toBe(224)

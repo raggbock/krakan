@@ -1,6 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 import { isAppError } from '@fyndstigen/shared'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
+import React from 'react'
 
 // Mock PostHog
 const mockCapture = vi.fn()
@@ -18,13 +22,11 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-// Mock the api module (bookings, edge, and bookingService facade)
-vi.mock('@/lib/api', async (importOriginal) => {
+// Mock the api module (edge + bookingService facade — bookings now reach the
+// hook via Deps, so api.bookings is no longer mocked here).
+vi.mock('@/lib/api', async () => {
   const { createBookingService } = await import('@fyndstigen/shared')
   const mockedApi = {
-    bookings: {
-      availableDates: vi.fn().mockResolvedValue([]),
-    },
     endpoints: {
       'booking.create': {
         invoke: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
@@ -39,6 +41,21 @@ vi.mock('@/lib/api', async (importOriginal) => {
     bookingService: createBookingService({ api: mockedApi as never }),
   }
 })
+
+// Booking adapter under test: vi.fn-backed so per-test resolveValue still works.
+// The Deps object is constructed ONCE at module load — DepsProvider expects a
+// stable reference, and recreating per render would re-fire effects forever.
+const mockAvailableDates = vi.fn().mockResolvedValue([] as string[])
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    bookings: { ...base.bookings, availableDates: mockAvailableDates },
+  }
+})()
+
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(DepsProvider, { deps: testDeps }, children)
 
 // Mock shared imports
 vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
@@ -88,13 +105,13 @@ const mockFreeTable = {
 describe('useBooking', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(api.bookings.availableDates).mockResolvedValue([])
+    vi.mocked(mockAvailableDates).mockResolvedValue([])
     mockConfirmCardPayment.mockResolvedValue({ error: null })
     vi.mocked(api.endpoints['booking.create'].invoke).mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
   })
 
   it('starts with empty state', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     expect(result.current.selectedTable).toBeNull()
     expect(result.current.date).toBe('')
@@ -104,7 +121,7 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is false without table', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.setDate('2026-05-01') })
 
@@ -112,7 +129,7 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is false without date', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
 
@@ -120,7 +137,7 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is false without userId', () => {
-    const { result } = renderHook(() => useBooking('market-1', undefined))
+    const { result } = renderHook(() => useBooking('market-1', undefined), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -131,7 +148,7 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is true when table + valid date + userId', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -143,7 +160,7 @@ describe('useBooking', () => {
   })
 
   it('validationError shows error for past dates', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.setDate('2020-01-01') })
 
@@ -152,9 +169,9 @@ describe('useBooking', () => {
   })
 
   it('validationError shows error for booked dates', async () => {
-    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+    vi.mocked(mockAvailableDates).mockResolvedValue(['2026-12-01'])
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
@@ -166,7 +183,7 @@ describe('useBooking', () => {
   })
 
   it('computes commission and totalPrice', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
 
@@ -176,17 +193,17 @@ describe('useBooking', () => {
   })
 
   it('fetches booked dates when table changes', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
 
     await waitFor(() => {
-      expect(api.bookings.availableDates).toHaveBeenCalledWith('table-1')
+      expect(mockAvailableDates).toHaveBeenCalledWith('table-1')
     })
   })
 
   it('submit creates payment intent and confirms card', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -217,7 +234,7 @@ describe('useBooking', () => {
       error: { message: 'Card declined' },
     })
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -235,7 +252,7 @@ describe('useBooking', () => {
   it('submit sets error when edge function fails', async () => {
     vi.mocked(api.endpoints['booking.create'].invoke).mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -250,7 +267,7 @@ describe('useBooking', () => {
   })
 
   it('isFree is true for free table', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockFreeTable) })
 
@@ -260,7 +277,7 @@ describe('useBooking', () => {
   })
 
   it('isFree is false for paid table', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
 
@@ -270,7 +287,7 @@ describe('useBooking', () => {
   it('submit skips Stripe for free table', async () => {
     vi.mocked(api.endpoints['booking.create'].invoke).mockResolvedValue({ bookingId: 'booking-free' })
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockFreeTable)
@@ -292,7 +309,7 @@ describe('useBooking', () => {
   })
 
   it('switching from paid to free table updates pricing', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     expect(result.current.isFree).toBe(false)
@@ -305,7 +322,7 @@ describe('useBooking', () => {
   })
 
   it('reset clears all state', async () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -324,12 +341,12 @@ describe('useBooking', () => {
   // ── New computed-property tests ─────────────────────────────────────────
 
   it('validationError is null when no date is set (no conflict)', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
     expect(result.current.validationError).toBeNull()
   })
 
   it('validationError is null for a date not in bookedDates', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.setDate('2026-12-01') })
 
@@ -337,9 +354,9 @@ describe('useBooking', () => {
   })
 
   it('validationError contains "bokat" when selected date is already booked', async () => {
-    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+    vi.mocked(mockAvailableDates).mockResolvedValue(['2026-12-01'])
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
@@ -350,9 +367,9 @@ describe('useBooking', () => {
   })
 
   it('validationError clears after changing to an unbooked date', async () => {
-    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+    vi.mocked(mockAvailableDates).mockResolvedValue(['2026-12-01'])
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
@@ -365,12 +382,12 @@ describe('useBooking', () => {
   })
 
   it('validationError is null when no date is set', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
     expect(result.current.validationError).toBeNull()
   })
 
   it('validationError is null for a valid future date', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.setDate('2026-12-01') })
 
@@ -378,7 +395,7 @@ describe('useBooking', () => {
   })
 
   it('validationError contains Swedish message for past date', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.setDate('2020-01-01') })
 
@@ -387,9 +404,9 @@ describe('useBooking', () => {
   })
 
   it('validationError contains Swedish message for already-booked date', async () => {
-    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+    vi.mocked(mockAvailableDates).mockResolvedValue(['2026-12-01'])
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
@@ -401,9 +418,9 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is false when date is already booked', async () => {
-    vi.mocked(api.bookings.availableDates).mockResolvedValue(['2026-12-01'])
+    vi.mocked(mockAvailableDates).mockResolvedValue(['2026-12-01'])
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     await waitFor(() => expect(result.current.bookedDates).toContain('2026-12-01'))
@@ -414,7 +431,7 @@ describe('useBooking', () => {
   })
 
   it('canSubmit is false when date is in the past', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -426,7 +443,7 @@ describe('useBooking', () => {
 
   it('commission and totalPrice update when table changes', () => {
     const expensiveTable = { ...mockTable, id: 'table-2', price_sek: 500 }
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
     // 200 * 0.12 = 24 commission, total 224
@@ -442,7 +459,7 @@ describe('useBooking', () => {
   it('submitError is an AppError, not a plain string', async () => {
     vi.mocked(api.endpoints['booking.create'].invoke).mockRejectedValue(new Error('network failure'))
 
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
       result.current.selectTable(mockTable)
@@ -458,7 +475,7 @@ describe('useBooking', () => {
   })
 
   it('submitError is null initially', () => {
-    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'))
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
     expect(result.current.submitError).toBeNull()
   })
 
@@ -466,8 +483,9 @@ describe('useBooking', () => {
 
   it('canSubmit is false when selected date is a closed day (opening hours context)', () => {
     // 2026-12-01 is a Tuesday — closed in a Saturday-only market
-    const { result } = renderHook(() =>
-      useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+    const { result } = renderHook(
+      () => useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+      { wrapper },
     )
 
     act(() => {
@@ -481,8 +499,9 @@ describe('useBooking', () => {
 
   it('validationError surfaces market-closed message on a closed day', () => {
     // 2026-12-01 is a Tuesday — closed in a Saturday-only market
-    const { result } = renderHook(() =>
-      useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+    const { result } = renderHook(
+      () => useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+      { wrapper },
     )
 
     act(() => {
@@ -495,8 +514,9 @@ describe('useBooking', () => {
 
   it('canSubmit is true on an open day with opening hours context', async () => {
     // 2026-12-05 is a Saturday — open in a Saturday-only market
-    const { result } = renderHook(() =>
-      useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+    const { result } = renderHook(
+      () => useBooking('market-1', 'Loppis A', 'user-1', saturdayOnlyHours),
+      { wrapper },
     )
 
     act(() => {

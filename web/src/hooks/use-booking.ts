@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
 import type { StripeCardElement } from '@stripe/stripe-js'
-import { api, bookingService, MarketTable } from '@/lib/api'
+import { bookingService, MarketTable } from '@/lib/api'
 import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
+import { useDeps } from '@/providers/deps-provider'
 import {
   createNoOpPaymentGateway,
   createStripePaymentGateway,
@@ -44,6 +45,7 @@ export function useBooking(
   const posthog = usePostHog()
   const stripe = useStripe()
   const elements = useElements()
+  const { bookings } = useDeps()
   const [selectedTable, setSelectedTable] = useState<MarketTable | null>(null)
   const [date, setDate] = useState('')
   const [message, setMessage] = useState('')
@@ -60,10 +62,10 @@ export function useBooking(
       return
     }
     const id = ++fetchIdRef.current
-    api.bookings.availableDates(selectedTableId)
+    bookings.availableDates(selectedTableId)
       .then((dates) => { if (id === fetchIdRef.current) setBookedDates(dates) })
       .catch(() => { if (id === fetchIdRef.current) setBookedDates([]) })
-  }, [selectedTableId])
+  }, [selectedTableId, bookings])
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const dateValidation = useMemo(() => {

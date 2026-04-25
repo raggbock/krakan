@@ -2,16 +2,15 @@ import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-m
 import type { RouteRepository } from './ports/routes'
 import type { ProfileRepository } from './ports/profiles'
 import type { AdminPort } from './ports/admin'
+import type { BookingRepository } from './ports/bookings'
 
 /**
  * Dependency container for the Fyndstigen app.
  *
- * Pilot scope: `markets` and `marketTables` — `marketTables` rides along
- * because `useMarketDetails` reads both in one hook and a half-migrated
- * surface would be worse than either leaving the whole hook or doing both.
- * `SearchRepository` stays on the old `api.*` surface until its consumer
- * hook is actually migrated.
- * Add slots as features migrate (bookings, payment, telemetry).
+ * Migrated surfaces: markets, marketTables, routes, profiles, admin, bookings.
+ * `SearchRepository` and `bookingService` (booking.create + payment/capture)
+ * stay on the old `api.*` surface until their consumer hooks are migrated.
+ * Add slots as features migrate (payment gateway, telemetry).
  */
 export type Deps = {
   markets: FleaMarketRepository
@@ -19,4 +18,5 @@ export type Deps = {
   routes: RouteRepository
   profiles: ProfileRepository
   admin: AdminPort
+  bookings: BookingRepository
 }
