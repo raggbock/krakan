@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } from '@/hooks/use-admin-markets'
+import { useTakeoverSend } from '@/hooks/use-takeover-admin'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import { EditMarketDrawer } from './edit-market-drawer'
 
 type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified'
+type SortKey = 'name' | 'city' | 'updated' | 'status'
+type SortDir = 'asc' | 'desc'
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Alla' },
@@ -21,14 +24,28 @@ export default function AdminMarketsPage() {
   const { data, isLoading, error } = useAdminMarketsOverview()
   const editMut = useAdminMarketEdit()
   const bulkMut = useAdminMarketsBulkEdit()
+  const takeoverMut = useTakeoverSend()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [lastTakeoverSummary, setLastTakeoverSummary] = useState<{ sent: number; skipped: number; errors: number } | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('updated')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir(key === 'updated' ? 'desc' : 'asc') }
+  }
 
   const rows = data?.markets ?? []
   const editingMarket = editingId ? rows.find((m) => m.id === editingId) ?? null : null
-  const busy = editMut.isPending || bulkMut.isPending
+  const busy = editMut.isPending || bulkMut.isPending || takeoverMut.isPending
+
+  // Selected rows that are eligible for takeover (system-owned + has email).
+  const selectedTakeoverEligible = useMemo(() => {
+    return rows.filter((m) => selectedIds.has(m.id) && m.isSystemOwned && m.hasEmail && !m.takeover?.used)
+  }, [rows, selectedIds])
 
   function toggleSelect(id: string, on: boolean) {
     setSelectedIds((prev) => {
@@ -50,6 +67,15 @@ export default function AdminMarketsPage() {
     await editMut.mutateAsync({ marketId: m.id, patch })
   }
 
+  async function sendTakeover(marketIds: string[]) {
+    if (marketIds.length === 0) return
+    if (!confirm(`Skicka takeover-mail till ${marketIds.length} loppisar?`)) return
+    setLastTakeoverSummary(null)
+    const res = await takeoverMut.mutateAsync(marketIds)
+    setLastTakeoverSummary(res.summary)
+    setSelectedIds(new Set())
+  }
+
   const filtered = useMemo(() => {
     let r = rows
     if (filter === 'unpublished') r = r.filter((m) => !m.isPublished)
@@ -66,8 +92,21 @@ export default function AdminMarketsPage() {
         (m.city ?? '').toLowerCase().includes(q),
       )
     }
-    return r
-  }, [rows, filter, search])
+    const dirMul = sortDir === 'asc' ? 1 : -1
+    const sorted = [...r].sort((a, b) => {
+      switch (sortKey) {
+        case 'name': return dirMul * a.name.localeCompare(b.name, 'sv')
+        case 'city': return dirMul * (a.city ?? '').localeCompare(b.city ?? '', 'sv')
+        case 'updated': return dirMul * ((a.updatedAt ?? '').localeCompare(b.updatedAt ?? ''))
+        case 'status': {
+          // Sort by published-then-system rank: claimed-published < system-published < claimed-unpublished < system-unpublished.
+          const rank = (m: AdminMarketRow) => (m.isPublished ? 0 : 2) + (m.isSystemOwned ? 1 : 0)
+          return dirMul * (rank(a) - rank(b))
+        }
+      }
+    })
+    return sorted
+  }, [rows, filter, search, sortKey, sortDir])
 
   const counts = useMemo(() => ({
     total: rows.length,
@@ -122,17 +161,33 @@ export default function AdminMarketsPage() {
       {error && <p className="text-red-700 text-sm">Kunde inte hämta: {String(error)}</p>}
 
       {selectedIds.size > 0 && (
-        <section className="sticky top-2 z-10 flex items-center gap-2 px-4 py-2 bg-rust text-white rounded-md shadow">
+        <section className="sticky top-2 z-10 flex flex-wrap items-center gap-2 px-4 py-2 bg-rust text-white rounded-md shadow">
           <span className="text-sm font-semibold">{selectedIds.size} valda</span>
-          <div className="flex gap-1 ml-2">
+          <div className="flex flex-wrap gap-1 ml-2">
             <BulkBtn onClick={() => bulkApply({ publish: true }, 'Publicera')}>Publicera</BulkBtn>
             <BulkBtn onClick={() => bulkApply({ publish: false }, 'Avpublicera')}>Avpublicera</BulkBtn>
             <BulkBtn onClick={() => bulkApply({ status: 'closed' }, 'Markera som stängda:')}>Stäng</BulkBtn>
             <BulkBtn onClick={() => bulkApply({ status: 'confirmed' }, 'Återöppna')}>Återöppna</BulkBtn>
+            <BulkBtn
+              onClick={() => sendTakeover(selectedTakeoverEligible.map((m) => m.id))}
+              disabled={selectedTakeoverEligible.length === 0}
+            >
+              Skicka takeover ({selectedTakeoverEligible.length})
+            </BulkBtn>
           </div>
           <button onClick={() => setSelectedIds(new Set())} className="ml-auto text-xs underline">
             Avmarkera alla
           </button>
+        </section>
+      )}
+
+      {lastTakeoverSummary && (
+        <section className="text-sm bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 flex items-center gap-3">
+          <span className="font-semibold text-emerald-900">Takeover-utskick klart:</span>
+          <span>{lastTakeoverSummary.sent} skickade</span>
+          {lastTakeoverSummary.skipped > 0 && <span className="text-amber-800">{lastTakeoverSummary.skipped} hoppade över</span>}
+          {lastTakeoverSummary.errors > 0 && <span className="text-red-700">{lastTakeoverSummary.errors} fel</span>}
+          <button onClick={() => setLastTakeoverSummary(null)} className="ml-auto text-xs text-emerald-900/60 hover:text-emerald-900">✕</button>
         </section>
       )}
 
@@ -154,12 +209,12 @@ export default function AdminMarketsPage() {
                     aria-label="Välj alla synliga"
                   />
                 </th>
-                <th className="text-left px-3 py-2">Namn</th>
-                <th className="text-left px-3 py-2">Stad</th>
-                <th className="text-left px-3 py-2">Status</th>
+                <SortHeader label="Namn" colKey="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Stad" colKey="city" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Status" colKey="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                 <th className="text-left px-3 py-2">Saknad info</th>
                 <th className="text-left px-3 py-2">Takeover</th>
-                <th className="text-left px-3 py-2">Uppdaterad</th>
+                <SortHeader label="Uppdaterad" colKey="updated" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                 <th className="px-3 py-2"></th>
               </tr>
             </thead>
@@ -174,6 +229,7 @@ export default function AdminMarketsPage() {
                   onEdit={() => setEditingId(m.id)}
                   onTogglePublish={() => rowToggle(m, { publish: !m.isPublished })}
                   onToggleClosed={() => rowToggle(m, { status: m.status === 'closed' ? 'confirmed' : 'closed' })}
+                  onSendTakeover={() => sendTakeover([m.id])}
                 />
               ))}
               {filtered.length === 0 && (
@@ -197,7 +253,7 @@ export default function AdminMarketsPage() {
 }
 
 function MarketRow({
-  market: m, selected, busy, onSelect, onEdit, onTogglePublish, onToggleClosed,
+  market: m, selected, busy, onSelect, onEdit, onTogglePublish, onToggleClosed, onSendTakeover,
 }: {
   market: AdminMarketRow
   selected: boolean
@@ -206,7 +262,9 @@ function MarketRow({
   onEdit: () => void
   onTogglePublish: () => void
   onToggleClosed: () => void
+  onSendTakeover: () => void
 }) {
+  const canSendTakeover = m.isSystemOwned && m.hasEmail && !m.takeover?.used
   return (
     <tr className={`border-t border-cream-warm/60 align-top ${selected ? 'bg-rust/5' : ''}`}>
       <td className="px-3 py-2">
@@ -266,17 +324,55 @@ function MarketRow({
           >
             {m.status === 'closed' ? 'Återöppna' : 'Stäng'}
           </button>
+          {canSendTakeover && (
+            <button
+              onClick={onSendTakeover}
+              disabled={busy}
+              className="text-xs text-rust hover:underline disabled:opacity-50"
+              title={m.takeover?.hasActiveToken ? 'Skicka om — invaliderar befintlig token' : 'Skicka takeover-mail'}
+            >
+              {m.takeover?.hasActiveToken ? 'Skicka om' : 'Skicka takeover'}
+            </button>
+          )}
+          {m.isSystemOwned && !m.hasEmail && (
+            <span className="text-xs text-espresso/40" title="Saknar contact_email">📧 saknas</span>
+          )}
         </div>
       </td>
     </tr>
   )
 }
 
-function BulkBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+function SortHeader({
+  label, colKey, sortKey, sortDir, onSort,
+}: {
+  label: string
+  colKey: SortKey
+  sortKey: SortKey
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+}) {
+  const active = sortKey === colKey
+  const arrow = active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
+  return (
+    <th className="text-left px-3 py-2">
+      <button
+        type="button"
+        onClick={() => onSort(colKey)}
+        className={`uppercase tracking-wide text-xs hover:text-espresso ${active ? 'text-rust font-semibold' : 'text-espresso/70'}`}
+      >
+        {label}{arrow}
+      </button>
+    </th>
+  )
+}
+
+function BulkBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className="px-3 py-1 rounded-md bg-white/15 hover:bg-white/25 text-xs font-semibold"
+      disabled={disabled}
+      className="px-3 py-1 rounded-md bg-white/15 hover:bg-white/25 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {children}
     </button>
