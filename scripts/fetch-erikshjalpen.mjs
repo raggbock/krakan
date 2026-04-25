@@ -21,6 +21,8 @@
 
 import { writeFileSync } from 'node:fs'
 
+const OUTPUT_PATH = process.argv[2] ?? null
+
 const SITEMAP_URL = 'https://erikshjalpen.se/stores-post-type-sitemap.xml'
 const STORE_URL_RE = /^https:\/\/erikshjalpen\.se\/butiker\/[a-z0-9-]+\/?$/i
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search'
@@ -293,9 +295,15 @@ async function main() {
   }
 
   const out = { businesses }
-  process.stdout.write(JSON.stringify(out, null, 2))
-  console.error()
-  console.error(`Done. Wrote ${businesses.length} businesses.`)
+  const json = JSON.stringify(out, null, 2)
+  if (OUTPUT_PATH) {
+    writeFileSync(OUTPUT_PATH, json, 'utf8')
+    console.error(`Done. Wrote ${businesses.length} businesses to ${OUTPUT_PATH}`)
+  } else {
+    process.stdout.write(json)
+    console.error()
+    console.error(`Done. Wrote ${businesses.length} businesses.`)
+  }
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })
