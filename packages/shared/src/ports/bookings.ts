@@ -27,4 +27,10 @@ export interface BookingRepository extends LegacyBookingRepository {
     note?: string,
   ): Promise<void>
   availableDates(marketTableId: string): Promise<string[]>
+  /**
+   * Count of pending bookings across all of an organizer's non-deleted markets.
+   * Used by the organizer's pending-bookings badge in profile UI.
+   * Returns 0 if the organizer has no markets.
+   */
+  pendingCountForOrganizer(organizerId: string): Promise<number>
 }

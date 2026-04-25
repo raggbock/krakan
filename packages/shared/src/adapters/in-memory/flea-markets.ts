@@ -161,6 +161,14 @@ function buildRepo(
         .filter((m) => m.organizer_id === organizerId && !m.is_deleted)
         .map((m) => ({ ...m, isVisible: isMarketVisible(m) })) as FleaMarket[]
     },
+
+    async weekendOpen() {
+      // The in-memory store doesn't carry opening_hour_rules in a queryable
+      // shape. Tests that need this surface should override the method on the
+      // returned port. Returning [] is the safe default — no markets surface
+      // as weekend-open in tests that don't seed it.
+      return []
+    },
   }
 }
 

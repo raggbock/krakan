@@ -80,5 +80,23 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
       if (error) throw error
       return (data ?? []).map((b: Record<string, unknown>) => b.booking_date as string)
     },
+
+    async pendingCountForOrganizer(organizerId) {
+      const { data: markets, error: mErr } = await supabase
+        .from('flea_markets')
+        .select('id')
+        .eq('organizer_id', organizerId)
+        .eq('is_deleted', false)
+      if (mErr) throw mErr
+      const ids = (markets ?? []).map((m: { id: string }) => m.id)
+      if (ids.length === 0) return 0
+      const { count, error: cErr } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .in('flea_market_id', ids)
+        .eq('status', 'pending')
+      if (cErr) throw cErr
+      return count ?? 0
+    },
   }
 }

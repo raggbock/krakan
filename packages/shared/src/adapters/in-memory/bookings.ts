@@ -131,5 +131,13 @@ export function createInMemoryBookings(seed: StoredBooking[] = []): BookingRepos
         )
         .map((b) => b.booking_date)
     },
+
+    async pendingCountForOrganizer(): Promise<number> {
+      // The in-memory bookings store has no notion of which markets belong
+      // to which organizer (markets live in a separate adapter). Tests that
+      // need this can compose via FleaMarketRepository.listByOrganizer +
+      // store filtering, or override this method on the test double.
+      return 0
+    },
   }
 }

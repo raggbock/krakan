@@ -10,7 +10,7 @@ import type {
   SearchResult,
 } from '../../types'
 import { FleaMarketQuery, type FleaMarketDetailsRow } from '../../query/flea-market'
-import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
+import type { FleaMarketRepository, SearchRepository, MarketTableRepository, WeekendOpenSlot } from '../../ports/flea-markets'
 
 export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketRepository {
   return {
@@ -166,6 +166,35 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         .update({ published_at: null })
         .eq('id', id)
       if (error) throw error
+    },
+
+    async weekendOpen() {
+      const { data, error } = await supabase
+        .from('opening_hour_rules')
+        .select('day_of_week, open_time, close_time, flea_market_id, flea_markets(id, name, city, is_deleted, status)')
+        .eq('type', 'weekly')
+        .in('day_of_week', [0, 5, 6])
+      if (error) throw error
+      const out: WeekendOpenSlot[] = []
+      for (const row of (data ?? []) as unknown as Array<{
+        day_of_week: number
+        open_time: string
+        close_time: string
+        flea_market_id: string
+        flea_markets: { id: string; name: string; city: string | null; is_deleted: boolean; status: string | null } | null
+      }>) {
+        const m = row.flea_markets
+        if (!m || m.is_deleted || m.status === 'closed') continue
+        out.push({
+          fleaMarketId: m.id,
+          name: m.name,
+          city: m.city,
+          dayOfWeek: row.day_of_week,
+          openTime: row.open_time.slice(0, 5),
+          closeTime: row.close_time.slice(0, 5),
+        })
+      }
+      return out
     },
 
     async listByOrganizer(organizerId) {
