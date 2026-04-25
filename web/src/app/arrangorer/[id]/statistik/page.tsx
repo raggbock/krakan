@@ -51,10 +51,8 @@ export default function OrganizerStatsPage() {
   async function handleUpgrade() {
     setUpgradeLoading(true)
     try {
-      const data = await api.edge.invoke<{ url?: string }>('skyltfonstret-checkout')
-      // eslint-disable-next-line no-restricted-syntax -- internal guard: unexpected missing URL from edge function, caught immediately above
-      if (!data?.url) throw new Error('Failed to create checkout')
-      window.location.href = data.url
+      const { url } = await api.endpoints['skyltfonstret.checkout'].invoke({})
+      window.location.href = url
     } catch {
       setUpgradeLoading(false)
     }

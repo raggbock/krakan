@@ -12,6 +12,10 @@ import { createEndpointInvokers } from './endpoints'
  */
 export type EdgeClient = {
   invoke<TOut>(name: string, body?: unknown): Promise<TOut>
+  /** Same as invoke, but does NOT require an auth session — for endpoints
+   * deployed with verify_jwt:false (e.g. public token-gated takeover flow).
+   * The supabase client still applies the anon key as apikey. */
+  invokePublic<TOut>(name: string, body?: unknown): Promise<TOut>
 }
 
 export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
@@ -28,6 +32,14 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
       }
       if (body !== undefined) options.body = body
 
+      const res = await supabase.functions.invoke(name, options as Parameters<typeof supabase.functions.invoke>[1])
+      if (res.error) throw res.error
+      return res.data as TOut
+    },
+
+    async invokePublic<TOut>(name: string, body?: unknown): Promise<TOut> {
+      const options: Record<string, unknown> = {}
+      if (body !== undefined) options.body = body
       const res = await supabase.functions.invoke(name, options as Parameters<typeof supabase.functions.invoke>[1])
       if (res.error) throw res.error
       return res.data as TOut

@@ -1,15 +1,13 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { invokeEdgeFn } from '@/lib/invoke'
+import { api } from '@/lib/api'
 import { queryKeys } from '@/lib/query-keys'
-
-export type TakeoverInfo = { name: string; city: string | null; region: string | null }
 
 export function useTakeoverInfo(token: string | null) {
   return useQuery({
     queryKey: queryKeys.takeover.info(token),
-    queryFn: () => invokeEdgeFn<TakeoverInfo>('takeover-info', { token }),
+    queryFn: () => api.endpoints['takeover.info'].invoke({ token: token! }),
     enabled: !!token,
     retry: false,
   })
@@ -18,13 +16,13 @@ export function useTakeoverInfo(token: string | null) {
 export function useTakeoverStart() {
   return useMutation({
     mutationFn: (args: { token: string; email: string }) =>
-      invokeEdgeFn<{ ok: true; expiresAt: string }>('takeover-start', args),
+      api.endpoints['takeover.start'].invoke(args),
   })
 }
 
 export function useTakeoverVerify() {
   return useMutation({
     mutationFn: (args: { token: string; email: string; code: string }) =>
-      invokeEdgeFn<{ ok: true; magicLinkSent: boolean }>('takeover-verify', args),
+      api.endpoints['takeover.verify'].invoke(args),
   })
 }

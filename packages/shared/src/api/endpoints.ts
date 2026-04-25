@@ -55,6 +55,14 @@ import {
   AdminTakeoverSendOutput,
 } from '../contracts/admin-takeover-send'
 import {
+  TakeoverInfoInput,
+  TakeoverInfoOutput,
+  TakeoverStartInput,
+  TakeoverStartOutput,
+  TakeoverVerifyInput,
+  TakeoverVerifyOutput,
+} from '../contracts/takeover'
+import {
   SkyltfonstretCheckoutInput,
   SkyltfonstretCheckoutOutput,
   SkyltfonstretPortalInput,
@@ -70,6 +78,10 @@ type EndpointDef<I extends z.ZodTypeAny, O extends z.ZodTypeAny> = {
   path: string
   request: I
   response: O
+  /** Set when the edge function runs with verify_jwt:false (token-gated /
+   * webhook style). The invoker uses edge.invokePublic so it doesn't require
+   * an authenticated user. Default: false. */
+  public?: boolean
 }
 
 function defineEndpointDef<I extends z.ZodTypeAny, O extends z.ZodTypeAny>(
@@ -156,10 +168,24 @@ export const ENDPOINTS = {
     request: AdminTakeoverSendInput,
     response: AdminTakeoverSendOutput,
   }),
-  // takeover.{info,start,verify} are public (verify_jwt:false) — createEdgeClient
-  // attaches a Bearer token unconditionally, so they can't go through this
-  // registry yet. Contracts live in @fyndstigen/shared/contracts/takeover and
-  // callers use invokeEdgeFn() until the registry grows a public-endpoint mode.
+  'takeover.info': defineEndpointDef({
+    path: 'takeover-info',
+    request: TakeoverInfoInput,
+    response: TakeoverInfoOutput,
+    public: true,
+  }),
+  'takeover.start': defineEndpointDef({
+    path: 'takeover-start',
+    request: TakeoverStartInput,
+    response: TakeoverStartOutput,
+    public: true,
+  }),
+  'takeover.verify': defineEndpointDef({
+    path: 'takeover-verify',
+    request: TakeoverVerifyInput,
+    response: TakeoverVerifyOutput,
+    public: true,
+  }),
   'skyltfonstret.checkout': defineEndpointDef({
     path: 'skyltfonstret-checkout',
     request: SkyltfonstretCheckoutInput,
@@ -196,10 +222,11 @@ export function createEndpointInvokers(edge: EdgeClient): EndpointInvokers {
   const out = {} as EndpointInvokers
   for (const key of Object.keys(ENDPOINTS) as EndpointKey[]) {
     const def = ENDPOINTS[key]
+    const callEdge = def.public ? edge.invokePublic : edge.invoke
     const invoker: InvokerFor<typeof key> = {
       async invoke(input: unknown) {
         const parsedInput = def.request.parse(input)
-        const raw = await edge.invoke<unknown>(def.path, parsedInput)
+        const raw = await callEdge<unknown>(def.path, parsedInput)
         return def.response.parse(raw)
       },
     }

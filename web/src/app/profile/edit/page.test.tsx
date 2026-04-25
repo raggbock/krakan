@@ -26,6 +26,10 @@ vi.mock('@/lib/api', () => ({
     edge: {
       invoke: vi.fn(),
     },
+    endpoints: {
+      'skyltfonstret.checkout': { invoke: vi.fn() },
+      'skyltfonstret.portal': { invoke: vi.fn() },
+    },
   },
 }))
 
@@ -115,7 +119,7 @@ describe('EditProfilePage', () => {
 
   it('free tier: upgrade button calls skyltfonstret-checkout and sets window.location.href', async () => {
     const checkoutUrl = 'https://checkout.stripe.com/test-session'
-    vi.mocked(api.edge.invoke).mockResolvedValue({ url: checkoutUrl } as any)
+    vi.mocked(api.endpoints['skyltfonstret.checkout'].invoke).mockResolvedValue({ url: checkoutUrl })
     vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
 
     let capturedHref = ''
@@ -135,7 +139,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(upgradeBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith('skyltfonstret-checkout')
+      expect(vi.mocked(api.endpoints['skyltfonstret.checkout'].invoke)).toHaveBeenCalledWith({})
     })
 
     await waitFor(() => {
@@ -167,7 +171,7 @@ describe('EditProfilePage', () => {
 
   it('premium tier: manage button calls skyltfonstret-portal and sets window.location.href', async () => {
     const portalUrl = 'https://billing.stripe.com/test-portal'
-    vi.mocked(api.edge.invoke).mockResolvedValue({ url: portalUrl } as any)
+    vi.mocked(api.endpoints['skyltfonstret.portal'].invoke).mockResolvedValue({ url: portalUrl })
     vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
 
     let capturedHref = ''
@@ -186,7 +190,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(manageBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.edge.invoke)).toHaveBeenCalledWith('skyltfonstret-portal')
+      expect(vi.mocked(api.endpoints['skyltfonstret.portal'].invoke)).toHaveBeenCalledWith({})
     })
 
     await waitFor(() => {
