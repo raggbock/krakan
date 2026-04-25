@@ -26,15 +26,21 @@ import { writeFileSync } from 'node:fs'
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter'
 
 const QUERY = `
-[out:json][timeout:120];
+[out:json][timeout:180];
 area["ISO3166-1"="SE"][admin_level=2]->.se;
 (
   node["shop"="second_hand"](area.se);
   way["shop"="second_hand"](area.se);
   node["shop"="charity"](area.se);
   way["shop"="charity"](area.se);
+  node["shop"="antiques"](area.se);
+  way["shop"="antiques"](area.se);
   node["amenity"="marketplace"]["flea_market"="yes"](area.se);
   node["amenity"="marketplace"]["second_hand"="yes"](area.se);
+  node["amenity"="marketplace"](area.se);
+  way["amenity"="marketplace"](area.se);
+  node["name"~"loppis|loppmarknad|second hand|secondhand|återbruk|aterbruk",i](area.se);
+  way["name"~"loppis|loppmarknad|second hand|secondhand|återbruk|aterbruk",i](area.se);
 );
 out center tags;
 `.trim()

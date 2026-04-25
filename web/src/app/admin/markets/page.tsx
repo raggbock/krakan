@@ -10,12 +10,14 @@ import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
 
-type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified'
+type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified' | 'complete' | 'almost_complete'
 type SortKey = 'name' | 'city' | 'updated' | 'status'
 type SortDir = 'asc' | 'desc'
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Alla' },
+  { key: 'complete', label: 'Komplett ✓' },
+  { key: 'almost_complete', label: 'Nästan komplett' },
   { key: 'unpublished', label: 'Opublicerade' },
   { key: 'system_owned', label: 'Ej claimade (system-ägda)' },
   { key: 'claimed', label: 'Claimade' },
@@ -23,6 +25,24 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'missing_hours', label: 'Saknar öppettider' },
   { key: 'unverified', label: 'Status: unverified' },
 ]
+
+/** All seven info-fields filled — used by both the 'Komplett'-filter and the row badge. */
+function isComplete(m: AdminMarketRow): boolean {
+  return !!m.street && !!m.zipCode && !!m.city
+    && m.hasCoordinates
+    && m.hasOpeningHours
+    && m.hasWebsite && m.hasPhone && m.hasEmail
+}
+
+/** All-but-one: at most one info-field missing. Useful for "nästan klar"-curation. */
+function isAlmostComplete(m: AdminMarketRow): boolean {
+  const checks = [
+    !!m.street, !!m.zipCode, !!m.city,
+    m.hasCoordinates, m.hasOpeningHours,
+    m.hasWebsite, m.hasPhone, m.hasEmail,
+  ]
+  return checks.filter((x) => !x).length <= 1
+}
 
 export default function AdminMarketsPage() {
   const { data, isLoading, error } = useAdminMarketsOverview()
@@ -128,6 +148,8 @@ export default function AdminMarketsPage() {
     if (filter === 'missing_contact') r = r.filter((m) => !m.hasWebsite && !m.hasPhone && !m.hasEmail)
     if (filter === 'missing_hours') r = r.filter((m) => !m.hasOpeningHours)
     if (filter === 'unverified') r = r.filter((m) => m.status === 'unverified')
+    if (filter === 'complete') r = r.filter(isComplete)
+    if (filter === 'almost_complete') r = r.filter((m) => isAlmostComplete(m) && !isComplete(m))
     const q = search.trim().toLowerCase()
     if (q) {
       r = r.filter((m) =>
@@ -154,6 +176,7 @@ export default function AdminMarketsPage() {
 
   const counts = useMemo(() => ({
     total: rows.length,
+    complete: rows.filter(isComplete).length,
     unpublished: rows.filter((m) => !m.isPublished).length,
     systemOwned: rows.filter((m) => m.isSystemOwned).length,
     claimed: rows.filter((m) => !m.isSystemOwned).length,
@@ -169,8 +192,9 @@ export default function AdminMarketsPage() {
       </header>
 
       {!isLoading && !error && (
-        <section className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm">
+        <section className="grid grid-cols-2 md:grid-cols-7 gap-2 text-sm">
           <Stat label="Totalt" value={counts.total} />
+          <Stat label="Komplett" value={counts.complete} tone="emerald" />
           <Stat label="Opublicerade" value={counts.unpublished} tone="amber" />
           <Stat label="System-ägda" value={counts.systemOwned} tone="amber" />
           <Stat label="Claimade" value={counts.claimed} tone="emerald" />
@@ -456,6 +480,8 @@ function BulkBtn({ children, onClick, disabled }: { children: React.ReactNode; o
 
 function MissingBadges({ m }: { m: AdminMarketRow }) {
   const missing: { label: string; key: string }[] = []
+  if (!m.street) missing.push({ label: '🛣 gata', key: 'street' })
+  if (!m.zipCode) missing.push({ label: '📮 postnr', key: 'zip' })
   if (!m.hasWebsite) missing.push({ label: '🌐 webb', key: 'web' })
   if (!m.hasPhone) missing.push({ label: '📞 tfn', key: 'phone' })
   if (!m.hasEmail) missing.push({ label: '📧 epost', key: 'email' })
