@@ -36,6 +36,11 @@ export interface FleaMarketRepository extends Publishable {
    * Caller is responsible for sort + week-number arithmetic.
    */
   weekendOpen(): Promise<WeekendOpenSlot[]>
+  /**
+   * Ids of visible markets currently open right now (Stockholm local clock).
+   * Backed by the markets_open_now() Postgres function.
+   */
+  openNowIds(): Promise<string[]>
 }
 
 export interface SearchRepository {

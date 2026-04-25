@@ -1,15 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarkets } from '@/hooks/use-markets'
+import { useOpenNowIds } from '@/hooks/use-open-now'
 
 export default function ExplorePage() {
   const [page, setPage] = useState(1)
-  const pageSize = 20
-  const { markets, count, loading, error } = useMarkets({ page, pageSize })
+  const [openNowOnly, setOpenNowOnly] = useState(false)
+  const pageSize = openNowOnly ? 200 : 20
+  const { markets: rawMarkets, count, loading, error } = useMarkets({ page: openNowOnly ? 1 : page, pageSize })
+  const { data: openIds, isLoading: openLoading } = useOpenNowIds(openNowOnly)
+
+  const markets = useMemo(() => {
+    if (!openNowOnly || !openIds) return rawMarkets
+    const set = new Set(openIds)
+    return rawMarkets.filter((m) => set.has(m.id))
+  }, [rawMarkets, openIds, openNowOnly])
 
   const isEmpty = !loading && !error && !markets.length
   const totalPages = Math.ceil(count / pageSize)
@@ -142,6 +151,27 @@ export default function ExplorePage() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* ── Quick filter ── */}
+      <section className="mb-6 flex items-center gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={() => { setOpenNowOnly(!openNowOnly); setPage(1) }}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
+            openNowOnly
+              ? 'bg-emerald-700 text-white border-emerald-700'
+              : 'border-cream-warm text-espresso hover:bg-cream-warm/40'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${openNowOnly ? 'bg-white' : 'bg-emerald-600'}`} />
+          Öppet just nu
+        </button>
+        {openNowOnly && (
+          <span className="text-sm text-espresso/60">
+            {openLoading ? 'Hämtar öppettider…' : `${markets.length} öppna just nu`}
+          </span>
+        )}
       </section>
 
       {/* ── Loading ── */}

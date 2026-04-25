@@ -41,6 +41,8 @@ export const queryKeys = {
     actions: () => ['admin', 'actions'] as const,
     socialWeekend: () => ['admin', 'social', 'weekend-markets'] as const,
     marketsOverview: () => ['admin', 'markets', 'overview'] as const,
+    marketActivity: (marketId: string | null) =>
+      ['admin', 'markets', 'activity', marketId] as const,
   },
   takeover: {
     info: (token: string | null) => ['takeover', 'info', token] as const,

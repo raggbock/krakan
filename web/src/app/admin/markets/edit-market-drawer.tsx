@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, lazy, Suspense } from 'react'
-import { useAdminMarketEdit } from '@/hooks/use-admin-markets'
+import { useAdminMarketActivity, useAdminMarketEdit } from '@/hooks/use-admin-markets'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
+import type { AdminActivityRow } from '@fyndstigen/shared/contracts/admin-market-activity'
 
 // Address picker pulls in Leaflet (~100kB) — load only when the user opens
 // the map section.
@@ -268,6 +269,8 @@ export function EditMarketDrawer({
           {editMut.isError && (
             <p className="text-red-700 text-sm">Kunde inte spara: {String(editMut.error)}</p>
           )}
+
+          <ActivitySection marketId={market.id} />
         </div>
 
         <footer className="sticky bottom-0 bg-card border-t border-cream-warm px-5 py-3 flex justify-end gap-2">
@@ -288,6 +291,75 @@ export function EditMarketDrawer({
       </div>
     </div>
   )
+}
+
+function ActivitySection({ marketId }: { marketId: string }) {
+  const [open, setOpen] = useState(false)
+  const { data, isLoading } = useAdminMarketActivity(open ? marketId : null)
+
+  return (
+    <section className="space-y-2 border-t border-cream-warm pt-4">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-sm font-display font-bold"
+      >
+        <span>Historik</span>
+        <span className="text-espresso/50 text-xs">{open ? '▾' : '▸'}</span>
+      </button>
+      {open && (
+        <>
+          {isLoading && <p className="text-espresso/60 text-sm">Laddar…</p>}
+          {data && data.rows.length === 0 && (
+            <p className="text-espresso/50 text-sm">Inga händelser loggade.</p>
+          )}
+          {data && data.rows.length > 0 && (
+            <ol className="space-y-2 text-xs">
+              {data.rows.map((row) => <ActivityRow key={row.id} row={row} />)}
+            </ol>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
+function ActivityRow({ row }: { row: AdminActivityRow }) {
+  const summary = summarizeAction(row)
+  return (
+    <li className="border-l-2 border-cream-warm pl-3 py-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-espresso/85">{row.action}</span>
+        <time className="text-espresso/50">
+          {new Date(row.createdAt).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })}
+        </time>
+      </div>
+      <div className="text-espresso/65 mt-0.5">
+        {row.adminEmail ?? '—'}
+        {summary && <span className="text-espresso/50"> · {summary}</span>}
+      </div>
+    </li>
+  )
+}
+
+function summarizeAction(row: AdminActivityRow): string | null {
+  const p = row.payload
+  if (row.action === 'market.edit') {
+    const sections = (p.sections as string[] | undefined) ?? []
+    return sections.length ? `ändrade: ${sections.join(', ')}` : null
+  }
+  if (row.action === 'business.takeover.send') {
+    const sent = (p.sent as number | undefined) ?? 0
+    const skipped = (p.skipped as number | undefined) ?? 0
+    const errors = (p.errors as number | undefined) ?? 0
+    return `${sent} skickade · ${skipped} hoppade · ${errors} fel`
+  }
+  if (row.action === 'business.import.commit') {
+    const c = (p.created as number | undefined) ?? 0
+    const u = (p.updated as number | undefined) ?? 0
+    return `import: ${c} skapade, ${u} uppdaterade`
+  }
+  return null
 }
 
 function Field({

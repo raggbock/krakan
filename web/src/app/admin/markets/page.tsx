@@ -1,10 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } from '@/hooks/use-admin-markets'
 import { useTakeoverSend } from '@/hooks/use-takeover-admin'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-keys'
+import { api } from '@/lib/api'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import { EditMarketDrawer } from './edit-market-drawer'
+import { bulkGeocode } from './bulk-geocode'
 
 type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified'
 type SortKey = 'name' | 'city' | 'updated' | 'status'
@@ -32,6 +36,9 @@ export default function AdminMarketsPage() {
   const [lastTakeoverSummary, setLastTakeoverSummary] = useState<{ sent: number; skipped: number; errors: number } | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('updated')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [geocodeProgress, setGeocodeProgress] = useState<{ done: number; total: number; ok: number; skipped: number } | null>(null)
+  const geocodeAbortRef = useRef<AbortController | null>(null)
+  const qc = useQueryClient()
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -65,6 +72,43 @@ export default function AdminMarketsPage() {
 
   async function rowToggle(m: AdminMarketRow, patch: Parameters<typeof editMut.mutateAsync>[0]['patch']) {
     await editMut.mutateAsync({ marketId: m.id, patch })
+  }
+
+  async function runBulkGeocode() {
+    const targets = rows.filter((m) => !m.hasCoordinates && (m.street || m.zipCode || m.city))
+    if (targets.length === 0) {
+      alert('Inga rader saknar koordinater (eller saknar även adress att slå upp).')
+      return
+    }
+    if (!confirm(`Geocoda ${targets.length} rader via OpenStreetMap? Tar ca ${Math.ceil(targets.length * 1.1)} sekunder.`)) return
+
+    const ctrl = new AbortController()
+    geocodeAbortRef.current = ctrl
+    setGeocodeProgress({ done: 0, total: targets.length, ok: 0, skipped: 0 })
+
+    let done = 0, ok = 0, skipped = 0
+    try {
+      for await (const result of bulkGeocode(targets, ctrl.signal)) {
+        done++
+        if (result.ok) {
+          ok++
+          await api.endpoints['admin.market.edit'].invoke({
+            marketId: result.marketId,
+            patch: { location: { latitude: result.latitude, longitude: result.longitude } },
+          })
+        } else {
+          skipped++
+        }
+        setGeocodeProgress({ done, total: targets.length, ok, skipped })
+      }
+    } finally {
+      geocodeAbortRef.current = null
+      qc.invalidateQueries({ queryKey: queryKeys.admin.marketsOverview() })
+    }
+  }
+
+  function cancelBulkGeocode() {
+    geocodeAbortRef.current?.abort()
   }
 
   async function sendTakeover(marketIds: string[]) {
@@ -154,8 +198,39 @@ export default function AdminMarketsPage() {
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={runBulkGeocode}
+          disabled={!!geocodeProgress}
+          className="px-3 py-1.5 rounded-md text-xs font-semibold border border-cream-warm hover:bg-cream-warm disabled:opacity-50"
+          title="Slå upp lat/lng via OpenStreetMap för rader som har adress men saknar koord"
+        >
+          Geocoda saknade ({rows.filter((m) => !m.hasCoordinates && (m.street || m.zipCode || m.city)).length})
+        </button>
         <span className="ml-auto text-sm text-espresso/60">{filtered.length} av {rows.length}</span>
       </section>
+
+      {geocodeProgress && (
+        <section className="border border-rust/30 bg-rust/5 rounded-md px-3 py-2 flex items-center gap-3 text-sm">
+          <span className="font-semibold">Geocoding:</span>
+          <span>{geocodeProgress.done}/{geocodeProgress.total}</span>
+          <span className="text-emerald-700">{geocodeProgress.ok} klara</span>
+          {geocodeProgress.skipped > 0 && (
+            <span className="text-amber-700">{geocodeProgress.skipped} hoppade över</span>
+          )}
+          <div className="flex-1 h-2 bg-cream-warm rounded overflow-hidden">
+            <div
+              className="h-full bg-rust transition-all"
+              style={{ width: `${(geocodeProgress.done / geocodeProgress.total) * 100}%` }}
+            />
+          </div>
+          {geocodeProgress.done < geocodeProgress.total ? (
+            <button onClick={cancelBulkGeocode} className="text-xs underline text-espresso/70">Avbryt</button>
+          ) : (
+            <button onClick={() => setGeocodeProgress(null)} className="text-xs underline text-espresso/70">Stäng</button>
+          )}
+        </section>
+      )}
 
       {isLoading && <p className="text-espresso/60">Laddar…</p>}
       {error && <p className="text-red-700 text-sm">Kunde inte hämta: {String(error)}</p>}

@@ -197,6 +197,12 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
       return out
     },
 
+    async openNowIds() {
+      const { data, error } = await supabase.rpc('markets_open_now')
+      if (error) throw error
+      return ((data ?? []) as Array<{ id: string }>).map((r) => r.id)
+    },
+
     async listByOrganizer(organizerId) {
       // Fetch all non-deleted markets for this organizer
       const { data, error } = await supabase

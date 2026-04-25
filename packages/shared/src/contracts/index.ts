@@ -8,6 +8,7 @@ export { OrganizerStatsInput, OrganizerStatsOutput, OrganizerStatsMarket } from 
 export { AdminBusinessImportInput, AdminBusinessImportOutput, ImportBusiness } from './admin-business-import'
 export { AdminMarketsOverviewInput, AdminMarketsOverviewOutput, AdminMarketRow } from './admin-markets-overview'
 export { AdminMarketEditInput, AdminMarketEditOutput } from './admin-market-edit'
+export { AdminMarketActivityInput, AdminMarketActivityOutput, AdminActivityRow } from './admin-market-activity'
 export { AdminInviteCreateInput, AdminInviteCreateOutput } from './admin-invite-create'
 export { AdminInviteAcceptInput, AdminInviteAcceptOutput } from './admin-invite-accept'
 export { AdminInviteRevokeInput, AdminInviteRevokeOutput } from './admin-invite-revoke'

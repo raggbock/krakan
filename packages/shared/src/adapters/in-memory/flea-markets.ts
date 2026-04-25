@@ -169,6 +169,10 @@ function buildRepo(
       // as weekend-open in tests that don't seed it.
       return []
     },
+
+    async openNowIds() {
+      return []
+    },
   }
 }
 
