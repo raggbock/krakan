@@ -38,11 +38,18 @@ export type ErrorCode =
   | 'booking.concurrent_update'
   // --- Organizer ---
   | 'organizer.fetch_failed'
+  // --- Profile ---
+  | 'profile.not_found'
+  // --- Skyltfönstret subscription ---
+  | 'skyltfonstret.already_subscribed'
+  | 'skyltfonstret.no_subscription'
+  | 'skyltfonstret.config_missing'
   // --- Geo ---
   | 'geocode.not_found'
   // --- Auth / generic ---
   | 'auth.required'
   | 'auth.forbidden'
+  | 'auth.lookup_failed'
   | 'input.invalid'
   | 'unknown'
 
@@ -70,9 +77,14 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ErrorCode>([
   'booking.invalid_status',
   'booking.concurrent_update',
   'organizer.fetch_failed',
+  'profile.not_found',
+  'skyltfonstret.already_subscribed',
+  'skyltfonstret.no_subscription',
+  'skyltfonstret.config_missing',
   'geocode.not_found',
   'auth.required',
   'auth.forbidden',
+  'auth.lookup_failed',
   'input.invalid',
   'unknown',
 ])

@@ -42,12 +42,21 @@ export const MESSAGES_SV: Record<ErrorCode, string> = {
   // Organizer
   'organizer.fetch_failed': 'Det gick inte att hämta marknadsdata. Försök igen om en liten stund.',
 
+  // Profile
+  'profile.not_found': 'Vi hittar ingen profil för dig. Logga ut och in igen, eller kontakta support.',
+
+  // Skyltfönstret subscription
+  'skyltfonstret.already_subscribed': 'Du har redan ett aktivt Skyltfönstret-abonnemang.',
+  'skyltfonstret.no_subscription': 'Inget Skyltfönstret-abonnemang hittades på ditt konto.',
+  'skyltfonstret.config_missing': 'Skyltfönstret är inte korrekt konfigurerat. Kontakta support.',
+
   // Geo
   'geocode.not_found': 'Vi kunde inte hitta den adressen på kartan. Kontrollera stavningen och försök igen.',
 
   // Auth / generic
   'auth.required': 'Du behöver logga in för att fortsätta.',
   'auth.forbidden': 'Du har inte behörighet att göra det här.',
+  'auth.lookup_failed': 'Det gick inte att hämta dina kontouppgifter. Försök igen om en stund.',
   'input.invalid': 'Några av uppgifterna ser inte rätt ut. Kontrollera fälten och försök igen.',
   unknown: 'Något gick fel. Försök igen om en liten stund.',
 }

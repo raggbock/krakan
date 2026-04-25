@@ -1,10 +1,11 @@
 import { createHandler, HttpError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
 import { getCorsHeaders } from '../_shared/cors.ts'
+import { appError } from '@fyndstigen/shared/errors.ts'
 
 createHandler(async ({ user, admin, origin, req }) => {
   const priceId = Deno.env.get('SKYLTFONSTRET_PRICE_ID')
-  if (!priceId) throw new Error('SKYLTFONSTRET_PRICE_ID is not set')
+  if (!priceId) throw new HttpError(500, 'SKYLTFONSTRET_PRICE_ID is not set', appError('skyltfonstret.config_missing'))
 
   // Validate origin against allowed origins to prevent redirect hijacking
   const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map((o) => o.trim())
@@ -17,10 +18,10 @@ createHandler(async ({ user, admin, origin, req }) => {
     .eq('id', user.id)
     .single()
 
-  if (profileErr || !profile) throw new HttpError(400, 'Profile not found')
+  if (profileErr || !profile) throw new HttpError(400, 'Profile not found', appError('profile.not_found'))
 
   if (profile.subscription_tier >= 1) {
-    throw new HttpError(400, 'Already subscribed to Skyltfönstret')
+    throw new HttpError(400, 'Already subscribed to Skyltfönstret', appError('skyltfonstret.already_subscribed'))
   }
 
   // Create or reuse Stripe Customer
@@ -29,7 +30,7 @@ createHandler(async ({ user, admin, origin, req }) => {
   if (!customerId) {
     // Look up user email safely
     const { data: authData, error: authErr } = await admin.auth.admin.getUserById(user.id)
-    if (authErr || !authData?.user) throw new Error('Failed to look up user account')
+    if (authErr || !authData?.user) throw new HttpError(500, 'Failed to look up user account', appError('auth.lookup_failed'))
     const email = authData.user.email
 
     const customer = await stripe.customers.create(
@@ -69,7 +70,7 @@ createHandler(async ({ user, admin, origin, req }) => {
     limit: 1,
   })
   if (existingSubs.data.length > 0) {
-    throw new HttpError(400, 'Already subscribed to Skyltfönstret')
+    throw new HttpError(400, 'Already subscribed to Skyltfönstret', appError('skyltfonstret.already_subscribed'))
   }
 
   // Create Checkout Session
@@ -84,7 +85,7 @@ createHandler(async ({ user, admin, origin, req }) => {
     },
   })
 
-  if (!session.url) throw new Error('Failed to create checkout session')
+  if (!session.url) throw new HttpError(500, 'Failed to create checkout session', appError('skyltfonstret.config_missing'))
 
   return { url: session.url }
 })
