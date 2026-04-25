@@ -47,6 +47,7 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/admin-revoke',                        // zod schema
   'contracts/admin-business-import',               // zod schema
   'contracts/admin-markets-overview',              // zod schema
+  'contracts/admin-market-edit',                   // zod schema
   'contracts/takeover',                            // zod schema
   'contracts/admin-takeover-send',                 // zod schema
   'business-import',                               // pure validation/diff logic

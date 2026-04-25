@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useAdminMarketsOverview } from '@/hooks/use-admin-markets'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
+import { EditMarketDrawer } from './edit-market-drawer'
 
 type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified'
 
@@ -21,8 +21,10 @@ export default function AdminMarketsPage() {
   const { data, isLoading, error } = useAdminMarketsOverview()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const rows = data?.markets ?? []
+  const editingMarket = editingId ? rows.find((m) => m.id === editingId) ?? null : null
 
   const filtered = useMemo(() => {
     let r = rows
@@ -111,7 +113,7 @@ export default function AdminMarketsPage() {
             </thead>
             <tbody>
               {filtered.map((m) => (
-                <MarketRow key={m.id} market={m} />
+                <MarketRow key={m.id} market={m} onEdit={() => setEditingId(m.id)} />
               ))}
               {filtered.length === 0 && (
                 <tr>
@@ -122,11 +124,18 @@ export default function AdminMarketsPage() {
           </table>
         </section>
       )}
+
+      {editingMarket && (
+        <EditMarketDrawer
+          market={editingMarket}
+          onClose={() => setEditingId(null)}
+        />
+      )}
     </div>
   )
 }
 
-function MarketRow({ market: m }: { market: AdminMarketRow }) {
+function MarketRow({ market: m, onEdit }: { market: AdminMarketRow; onEdit: () => void }) {
   return (
     <tr className="border-t border-cream-warm/60 align-top">
       <td className="px-3 py-2">
@@ -157,12 +166,12 @@ function MarketRow({ market: m }: { market: AdminMarketRow }) {
         {m.updatedAt ? new Date(m.updatedAt).toISOString().slice(0, 10) : '—'}
       </td>
       <td className="px-3 py-2 text-right">
-        <Link
-          href={`/fleamarkets/${m.id}/edit`}
+        <button
+          onClick={onEdit}
           className="text-rust hover:underline text-xs font-semibold"
         >
           Redigera →
-        </Link>
+        </button>
       </td>
     </tr>
   )

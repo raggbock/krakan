@@ -20,10 +20,11 @@ defineEndpoint({
       { data: tokens, error: tErr },
     ] = await Promise.all([
       admin.from('flea_markets')
-        .select('id, slug, name, city, status, category, is_system_owned, is_permanent, published_at, contact_email, contact_phone, contact_website, location, updated_at')
+        .select('id, slug, name, city, street, zip_code, country, status, category, is_system_owned, is_permanent, published_at, contact_email, contact_phone, contact_website, contact_facebook, contact_instagram, latitude, longitude, location, updated_at')
         .eq('is_deleted', false)
         .order('updated_at', { ascending: false }),
-      admin.from('opening_hour_rules').select('flea_market_id'),
+      admin.from('opening_hour_rules')
+        .select('id, flea_market_id, type, day_of_week, anchor_date, open_time, close_time'),
       admin.from('business_owner_tokens')
         .select('flea_market_id, used_at, invalidated_at, expires_at, sent_at'),
     ])
@@ -31,9 +32,28 @@ defineEndpoint({
     if (rErr) throw new Error(rErr.message)
     if (tErr) throw new Error(tErr.message)
 
-    // Markets with at least one rule.
-    const marketsWithRules = new Set<string>()
-    for (const r of rules ?? []) marketsWithRules.add(r.flea_market_id as string)
+    // Group rules by market.
+    const rulesByMarket = new Map<string, Array<{
+      id: string
+      type: 'weekly' | 'biweekly' | 'date'
+      dayOfWeek: number | null
+      anchorDate: string | null
+      openTime: string
+      closeTime: string
+    }>>()
+    for (const r of rules ?? []) {
+      const marketId = r.flea_market_id as string
+      const list = rulesByMarket.get(marketId) ?? []
+      list.push({
+        id: r.id as string,
+        type: r.type as 'weekly' | 'biweekly' | 'date',
+        dayOfWeek: (r.day_of_week as number | null) ?? null,
+        anchorDate: (r.anchor_date as string | null) ?? null,
+        openTime: r.open_time as string,
+        closeTime: r.close_time as string,
+      })
+      rulesByMarket.set(marketId, list)
+    }
 
     // Aggregate token state per market.
     const nowMs = Date.now()
@@ -47,13 +67,11 @@ defineEndpoint({
       const sentAt = (t.sent_at as string | null) ?? null
       const isExpired = !usedAt && !invalidatedAt && Date.parse(expiresAt) < nowMs
       const isActive = !usedAt && !invalidatedAt && !isExpired
-
       const prev = tokensByMarket.get(marketId)
       const next: TokenAgg = {
         hasActiveToken: (prev?.hasActiveToken ?? false) || isActive,
         used: (prev?.used ?? false) || !!usedAt,
         expired: (prev?.expired ?? false) || isExpired,
-        // Most recent sent_at across all tokens for this market.
         sentAt: sentAt && (!prev?.sentAt || sentAt > prev.sentAt) ? sentAt : (prev?.sentAt ?? null),
       }
       tokensByMarket.set(marketId, next)
@@ -63,21 +81,41 @@ defineEndpoint({
       markets: (markets ?? []).map((m) => {
         const id = m.id as string
         const isSystemOwned = (m.is_system_owned as boolean | null) ?? false
+        const website = (m.contact_website as string | null) ?? null
+        const facebook = (m.contact_facebook as string | null) ?? null
+        const instagram = (m.contact_instagram as string | null) ?? null
+        const phone = (m.contact_phone as string | null) ?? null
+        const email = (m.contact_email as string | null) ?? null
+        const lat = (m.latitude as number | null) ?? null
+        const lng = (m.longitude as number | null) ?? null
         return {
           id,
           slug: (m.slug as string | null) ?? null,
           name: m.name as string,
           city: (m.city as string | null) ?? null,
+          street: (m.street as string | null) ?? null,
+          zipCode: (m.zip_code as string | null) ?? null,
+          country: (m.country as string | null) ?? null,
           status: (m.status as string | null) ?? 'confirmed',
           category: (m.category as string | null) ?? null,
           isSystemOwned,
           isPublished: m.published_at != null,
           isPermanent: (m.is_permanent as boolean | null) ?? false,
-          hasWebsite: !!(m.contact_website as string | null),
-          hasPhone: !!(m.contact_phone as string | null),
-          hasEmail: !!(m.contact_email as string | null),
-          hasOpeningHours: marketsWithRules.has(id),
-          hasCoordinates: m.location != null,
+          contactWebsite: website,
+          contactFacebook: facebook,
+          contactInstagram: instagram,
+          contactPhone: phone,
+          contactEmail: email,
+          hasWebsite: !!website,
+          hasFacebook: !!facebook,
+          hasInstagram: !!instagram,
+          hasPhone: !!phone,
+          hasEmail: !!email,
+          hasOpeningHours: (rulesByMarket.get(id)?.length ?? 0) > 0,
+          hasCoordinates: lat != null && lng != null,
+          latitude: lat,
+          longitude: lng,
+          openingHourRules: rulesByMarket.get(id) ?? [],
           takeover: isSystemOwned
             ? (tokensByMarket.get(id) ?? { hasActiveToken: false, used: false, expired: false, sentAt: null })
             : null,

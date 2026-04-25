@@ -37,6 +37,10 @@ import {
   AdminMarketsOverviewOutput,
 } from '../contracts/admin-markets-overview'
 import {
+  AdminMarketEditInput,
+  AdminMarketEditOutput,
+} from '../contracts/admin-market-edit'
+import {
   AdminInviteCreateInput,
   AdminInviteCreateOutput,
 } from '../contracts/admin-invite-create'
@@ -146,6 +150,11 @@ export const ENDPOINTS = {
     path: 'admin-markets-overview',
     request: AdminMarketsOverviewInput,
     response: AdminMarketsOverviewOutput,
+  }),
+  'admin.market.edit': defineEndpointDef({
+    path: 'admin-market-edit',
+    request: AdminMarketEditInput,
+    response: AdminMarketEditOutput,
   }),
   'admin.invite.create': defineEndpointDef({
     path: 'admin-invite-create',

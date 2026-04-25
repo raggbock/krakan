@@ -1,0 +1,54 @@
+import { z } from 'zod'
+
+/**
+ * admin-market-edit — admin patches a market's contact info, address,
+ * coordinates, and/or opening hours. All sections optional; only what's in
+ * the body gets written. Admins bypass the organizer-ownership RLS via
+ * service role on the edge.
+ */
+
+const ContactPatch = z.object({
+  website: z.string().nullable().optional(),
+  facebook: z.string().nullable().optional(),
+  instagram: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+})
+
+const AddressPatch = z.object({
+  street: z.string().nullable().optional(),
+  zipCode: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  country: z.string().optional(),
+})
+
+const LocationPatch = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+})
+
+const OpeningHourRuleInput = z.object({
+  type: z.enum(['weekly', 'biweekly', 'date']),
+  dayOfWeek: z.number().int().min(0).max(6).nullable(),
+  anchorDate: z.string().nullable(),
+  openTime: z.string(),
+  closeTime: z.string(),
+})
+
+export const AdminMarketEditInput = z.object({
+  marketId: z.string().uuid(),
+  patch: z.object({
+    contact: ContactPatch.optional(),
+    address: AddressPatch.optional(),
+    location: LocationPatch.optional(),
+    /** When provided, replaces all existing opening_hour_rules for the market. */
+    openingHourRules: z.array(OpeningHourRuleInput).optional(),
+  }),
+})
+
+export const AdminMarketEditOutput = z.object({
+  success: z.literal(true),
+})
+
+export type AdminMarketEditInput = z.infer<typeof AdminMarketEditInput>
+export type AdminMarketEditOutput = z.infer<typeof AdminMarketEditOutput>
