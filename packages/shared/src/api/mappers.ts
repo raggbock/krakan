@@ -18,6 +18,10 @@ import type {
   RouteStop,
 } from '../types'
 import type { BookingView } from '../types/domain'
+import type { Database } from '../types/supabase.generated'
+
+type BookingTableRow = Database['public']['Tables']['bookings']['Row']
+type RouteTableRow = Database['public']['Tables']['routes']['Row']
 
 // --- Row types (what Supabase returns) ---
 
@@ -75,7 +79,7 @@ export function formatName(profile: ProfileJoin): string {
 
 // --- Booking mappers ---
 
-export type BookingRow = Record<string, unknown> & {
+export type BookingRow = BookingTableRow & {
   market_tables?: MarketTableJoin | null
   flea_markets?: { name: string; city: string } | null
   profiles?: ProfileJoin
@@ -95,12 +99,11 @@ export type BookingRow = Record<string, unknown> & {
  * and organizer (profiles join, no flea_markets) query shapes.
  */
 export function mapBookingView(row: BookingRow): BookingView {
-  const r = row as Record<string, unknown>
   return {
-    id: r.id as string,
+    id: row.id,
     table: row.market_tables
       ? {
-          id: r.market_table_id as string,
+          id: row.market_table_id,
           label: row.market_tables.label,
           description: row.market_tables.description,
           sizeDescription: row.market_tables.size_description,
@@ -108,39 +111,39 @@ export function mapBookingView(row: BookingRow): BookingView {
       : null,
     market: row.flea_markets
       ? {
-          id: r.flea_market_id as string,
+          id: row.flea_market_id,
           name: row.flea_markets.name,
           city: row.flea_markets.city,
         }
       : null,
     booker: row.profiles
       ? {
-          id: r.booked_by as string,
+          id: row.booked_by,
           firstName: row.profiles.first_name,
           lastName: row.profiles.last_name,
         }
       : null,
-    date: r.booking_date as string,
-    status: r.status as BookingView['status'],
+    date: row.booking_date,
+    status: row.status as BookingView['status'],
     price: {
-      baseSek: r.price_sek as number,
-      commissionSek: r.commission_sek as number,
-      commissionRate: r.commission_rate as number,
+      baseSek: row.price_sek,
+      commissionSek: row.commission_sek,
+      commissionRate: row.commission_rate,
     },
-    message: r.message as string | null,
-    organizerNote: r.organizer_note as string | null,
+    message: row.message,
+    organizerNote: row.organizer_note,
     payment: {
-      status: (r.payment_status as BookingView['payment']['status']) ?? null,
-      intentId: (r.stripe_payment_intent_id as string | null) ?? null,
-      expiresAt: (r.expires_at as string | null) ?? null,
+      status: (row.payment_status as BookingView['payment']['status']) ?? null,
+      intentId: row.stripe_payment_intent_id ?? null,
+      expiresAt: row.expires_at ?? null,
     },
-    createdAt: r.created_at as string,
+    createdAt: row.created_at,
   }
 }
 
 // --- Route mappers ---
 
-export type RouteDetailsRow = Record<string, unknown> & {
+export type RouteDetailsRow = RouteTableRow & {
   profiles: ProfileJoin
   route_stops: RouteStopJoin[]
 }
@@ -168,7 +171,7 @@ export function mapRouteWithStops(row: RouteDetailsRow): RouteWithStops {
   } as RouteWithStops
 }
 
-export type RouteSummaryRow = Record<string, unknown> & {
+export type RouteSummaryRow = RouteTableRow & {
   route_stops: { id: string }[]
 }
 

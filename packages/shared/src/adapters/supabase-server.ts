@@ -70,12 +70,11 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         .eq('id', id)
         .single()
       if (!data) return null
+      const row = data as { name: string; description: string | null; route_stops?: { id: string }[] }
       return {
-        name: data.name,
-        description: data.description,
-        stopCount: (data as Record<string, unknown>).route_stops
-          ? ((data as Record<string, unknown>).route_stops as unknown[]).length
-          : 0,
+        name: row.name,
+        description: row.description,
+        stopCount: row.route_stops?.length ?? 0,
       }
     },
 
