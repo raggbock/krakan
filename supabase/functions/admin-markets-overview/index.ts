@@ -22,11 +22,14 @@ defineEndpoint({
       admin.from('flea_markets')
         .select('id, slug, name, city, street, zip_code, country, status, category, is_system_owned, is_permanent, published_at, contact_email, contact_phone, contact_website, contact_facebook, contact_instagram, latitude, longitude, location, updated_at')
         .eq('is_deleted', false)
-        .order('updated_at', { ascending: false }),
+        .order('updated_at', { ascending: false })
+        .limit(10000),
       admin.from('opening_hour_rules')
-        .select('id, flea_market_id, type, day_of_week, anchor_date, open_time, close_time'),
+        .select('id, flea_market_id, type, day_of_week, anchor_date, open_time, close_time')
+        .limit(50000),
       admin.from('business_owner_tokens')
-        .select('flea_market_id, used_at, invalidated_at, expires_at, sent_at'),
+        .select('flea_market_id, used_at, invalidated_at, expires_at, sent_at')
+        .limit(10000),
     ])
     if (mErr) throw new Error(mErr.message)
     if (rErr) throw new Error(rErr.message)

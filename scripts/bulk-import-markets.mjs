@@ -109,6 +109,90 @@ async function insertBatch(rows) {
   return { ok: true }
 }
 
+const DAY_LABEL_TO_DOW = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+}
+
+async function fetchSlugIdMap(slugs) {
+  const out = new Map()
+  const CHUNK = 100
+  for (let i = 0; i < slugs.length; i += CHUNK) {
+    const slice = slugs.slice(i, i + CHUNK)
+    const inList = slice.map((s) => `"${encodeURIComponent(s)}"`).join(',')
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/flea_markets?slug=in.(${inList})&select=id,slug`,
+      { headers },
+    )
+    if (!res.ok) {
+      console.error('Slug→id lookup failed:', res.status, await res.text())
+      return out
+    }
+    const rows = await res.json()
+    for (const r of rows) out.set(r.slug, r.id)
+  }
+  return out
+}
+
+async function replaceWeeklyHoursForMarket(marketId, regular) {
+  // Delete existing weekly rules first (idempotent re-run on re-imports).
+  const delRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/opening_hour_rules?flea_market_id=eq.${marketId}&type=eq.weekly`,
+    { method: 'DELETE', headers },
+  )
+  if (!delRes.ok) return { ok: false, reason: `delete: ${await delRes.text()}` }
+
+  if (regular.length === 0) return { ok: true, inserted: 0 }
+
+  const rows = regular
+    .map((r) => {
+      const dow = DAY_LABEL_TO_DOW[r.day]
+      if (dow == null || !r.opens || !r.closes) return null
+      return {
+        flea_market_id: marketId,
+        type: 'weekly',
+        day_of_week: dow,
+        open_time: r.opens.length === 5 ? `${r.opens}:00` : r.opens,
+        close_time: r.closes.length === 5 ? `${r.closes}:00` : r.closes,
+      }
+    })
+    .filter(Boolean)
+  if (rows.length === 0) return { ok: true, inserted: 0 }
+
+  const insRes = await fetch(`${SUPABASE_URL}/rest/v1/opening_hour_rules`, {
+    method: 'POST',
+    headers: { ...headers, prefer: 'return=minimal' },
+    body: JSON.stringify(rows),
+  })
+  if (!insRes.ok) return { ok: false, reason: `insert: ${await insRes.text()}` }
+  return { ok: true, inserted: rows.length }
+}
+
+async function fillOpeningHours(businesses) {
+  const withHours = businesses.filter(
+    (b) => b.slug && b.openingHours && Array.isArray(b.openingHours.regular) && b.openingHours.regular.length > 0,
+  )
+  if (withHours.length === 0) {
+    console.log('No opening hours to fill.')
+    return
+  }
+
+  console.log()
+  console.log(`Filling opening hours for ${withHours.length} markets…`)
+
+  const slugIdMap = await fetchSlugIdMap(withHours.map((b) => b.slug))
+  let updated = 0
+  let skipped = 0
+  let errors = 0
+  for (const b of withHours) {
+    const id = slugIdMap.get(b.slug)
+    if (!id) { skipped++; continue }
+    const result = await replaceWeeklyHoursForMarket(id, b.openingHours.regular)
+    if (result.ok) updated++
+    else { errors++; console.error(`  ${b.slug}: ${result.reason?.slice(0, 120)}`) }
+  }
+  console.log(`Opening hours: ${updated} updated, ${skipped} no-id-match, ${errors} errors.`)
+}
+
 async function main() {
   const json = JSON.parse(readFileSync(inputPath, 'utf8'))
   const businesses = json.businesses ?? json
@@ -122,34 +206,35 @@ async function main() {
   const slugs = businesses.map((b) => b.slug).filter(Boolean)
   const existing = await fetchExistingSlugs(slugs)
   const fresh = businesses.filter((b) => b.slug && !existing.has(b.slug))
-  console.log(`  ${existing.size} already in DB (skipped)`)
+  console.log(`  ${existing.size} already in DB (skipped on insert)`)
   console.log(`  ${fresh.length} new to insert`)
 
-  if (fresh.length === 0) {
-    console.log('Nothing to insert. Done.')
-    return
+  if (fresh.length > 0) {
+    const BATCH = 50
+    let inserted = 0
+    let failed = 0
+    for (let i = 0; i < fresh.length; i += BATCH) {
+      const slice = fresh.slice(i, i + BATCH)
+      const result = await insertBatch(slice)
+      if (result.ok) {
+        inserted += slice.length
+        process.stdout.write(`  +${slice.length}`)
+      } else {
+        failed += slice.length
+        console.error(`\n  batch ${i / BATCH + 1} failed (HTTP ${result.status}): ${result.message.slice(0, 200)}`)
+      }
+    }
+    console.log()
+    console.log(`Inserted ${inserted}, failed ${failed}.`)
   }
 
-  // Insert in batches so a single bad row doesn't fail the whole run, and so
-  // we can retry per batch if needed.
-  const BATCH = 50
-  let inserted = 0
-  let failed = 0
-  for (let i = 0; i < fresh.length; i += BATCH) {
-    const slice = fresh.slice(i, i + BATCH)
-    const result = await insertBatch(slice)
-    if (result.ok) {
-      inserted += slice.length
-      process.stdout.write(`  +${slice.length}`)
-    } else {
-      failed += slice.length
-      console.error(`\n  batch ${i / BATCH + 1} failed (HTTP ${result.status}): ${result.message.slice(0, 200)}`)
-    }
-  }
+  // Second pass: write opening_hour_rules for any market (new or existing)
+  // that has openingHours.regular in the JSON. Idempotent — replaces weekly
+  // rules per market.
+  await fillOpeningHours(businesses)
+
   console.log()
-  console.log(`Inserted ${inserted}, failed ${failed}, skipped ${existing.size}.`)
-  console.log()
-  console.log(`All inserted rows are is_system_owned=true with published_at=NULL.`)
+  console.log(`Done. All inserted rows are is_system_owned=true with published_at=NULL.`)
   console.log(`Curate them at https://fyndstigen.se/admin/markets`)
 }
 

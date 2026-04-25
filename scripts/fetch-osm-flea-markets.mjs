@@ -109,6 +109,82 @@ function normalizePhone(raw) {
   return cleaned
 }
 
+/** OSM day token → day_of_week (0=Sun..6=Sat). */
+const OSM_DAY = { Mo: 1, Tu: 2, We: 3, Th: 4, Fr: 5, Sa: 6, Su: 0 }
+const DAY_ORDER = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+
+function expandDayRange(start, end) {
+  const out = []
+  let i = DAY_ORDER.indexOf(start)
+  const j = DAY_ORDER.indexOf(end)
+  if (i < 0 || j < 0) return null
+  while (true) {
+    out.push(DAY_ORDER[i])
+    if (i === j) break
+    i = (i + 1) % 7
+    if (out.length > 7) return null  // safety
+  }
+  return out
+}
+
+function normalizeTime(s) {
+  if (!s) return null
+  const [h, m] = s.includes(':') ? s.split(':') : [s, '00']
+  const hh = String(parseInt(h, 10)).padStart(2, '0')
+  const mm = String(parseInt(m, 10)).padStart(2, '0')
+  if (isNaN(parseInt(hh, 10)) || isNaN(parseInt(mm, 10))) return null
+  return `${hh}:${mm}`
+}
+
+const dayLabelToKey = { monday: 'monday', tuesday: 'tuesday', wednesday: 'wednesday', thursday: 'thursday', friday: 'friday', saturday: 'saturday', sunday: 'sunday' }
+const DOW_TO_LABEL = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+
+/**
+ * Parse a subset of OSM opening_hours into our weekly rule shape.
+ * Returns { regular: [{ day, opens, closes }] } or null if nothing parseable.
+ *
+ * Handled forms (covers ~80% of the Swedish data we see):
+ *   "Mo-Fr 10:00-18:00"
+ *   "Mo-Fr 10:00-18:00; Sa 10:00-15:00"
+ *   "Mo-Sa 10-18; Su closed"
+ *   "Tu-Sa 12:00-17:00"
+ *   "Mo,We,Fr 10:00-14:00"
+ *
+ * Rejected: "24/7", "PH off", "sunrise-sunset", time-spans within a day
+ * ("Mo 10-12,14-18"), week-of-month modifiers, etc. The admin can fix
+ * those cases manually in /admin/markets.
+ */
+function parseOsmOpeningHours(raw) {
+  if (!raw || typeof raw !== 'string') return null
+  const lower = raw.toLowerCase()
+  if (lower.includes('24/7') || lower.includes('sunrise') || lower.includes('sunset')
+      || lower.includes('ph ') || lower.includes('school')) return null
+
+  const parts = raw.split(/[;,]/).map((s) => s.trim()).filter(Boolean)
+  const seen = new Map() // key day-open-close → entry
+  for (const part of parts) {
+    if (/closed|off/i.test(part)) continue
+    // "Mo-Fr 10:00-18:00" or "Mo 10-18"
+    const m = part.match(/^([A-Z][a-z])(?:-([A-Z][a-z]))?\s+(\d{1,2}(?::\d{2})?)-(\d{1,2}(?::\d{2})?)$/)
+    if (!m) continue
+    const [, startDay, endDay, openRaw, closeRaw] = m
+    const days = endDay ? expandDayRange(startDay, endDay) : [startDay]
+    if (!days) continue
+    const opens = normalizeTime(openRaw)
+    const closes = normalizeTime(closeRaw)
+    if (!opens || !closes) continue
+    for (const d of days) {
+      const dow = OSM_DAY[d]
+      if (dow == null) continue
+      const dayLabel = DOW_TO_LABEL[dow]
+      const key = `${dayLabel}-${opens}-${closes}`
+      seen.set(key, { day: dayLabel, opens, closes })
+    }
+  }
+  if (seen.size === 0) return null
+  return { regular: Array.from(seen.values()) }
+}
+
 function pickEmail(tags) {
   const v = tags.email ?? tags['contact:email']
   if (!v) return null
@@ -186,7 +262,7 @@ function toImportBusiness(el, seenSlugs, places) {
       facebook: normalizeUrl(tags['contact:facebook'] ?? null),
       instagram: normalizeUrl(tags['contact:instagram'] ?? null),
     },
-    openingHours: null,           // opening_hours-tag is OSM-format, separate parser later
+    openingHours: parseOsmOpeningHours(tags.opening_hours),
     distanceFromOrebroKm,
     status: 'unverified',
     takeover: {
