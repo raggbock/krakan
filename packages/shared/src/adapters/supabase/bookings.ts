@@ -35,7 +35,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
         .eq('booked_by', userId)
         .order('booking_date', { ascending: false })
       if (error) throw error
-      return (data ?? []).map((b) => BookingQuery.withMarketAndTable.mapRow(b as Parameters<typeof BookingQuery.withMarketAndTable.mapRow>[0]))
+      return (data ?? []).map((b) => BookingQuery.withMarketAndTable.mapRow(b as unknown as Parameters<typeof BookingQuery.withMarketAndTable.mapRow>[0]))
     },
 
     async listByMarket(fleaMarketId) {
@@ -46,7 +46,7 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
         .in('status', ['pending', 'confirmed'])
         .order('booking_date')
       if (error) throw error
-      return (data ?? []).map((b) => BookingQuery.withTableAndProfile.mapRow(b as Parameters<typeof BookingQuery.withTableAndProfile.mapRow>[0])) as BookingView[]
+      return (data ?? []).map((b) => BookingQuery.withTableAndProfile.mapRow(b as unknown as Parameters<typeof BookingQuery.withTableAndProfile.mapRow>[0])) as BookingView[]
     },
 
     async updateStatus(id, newStatus, note) {

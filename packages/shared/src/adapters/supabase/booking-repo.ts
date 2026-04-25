@@ -25,7 +25,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         .eq('id', id)
         .single()
       if (error || !data) return null
-      return data as Booking
+      return data as unknown as Booking
     },
 
     async findByPaymentIntent(paymentIntentId) {
@@ -35,7 +35,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         .eq('stripe_payment_intent_id', paymentIntentId)
         .single()
       if (error || !data) return null
-      return data as Booking
+      return data as unknown as Booking
     },
 
     async applyEvent(id, event) {
@@ -48,7 +48,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
       // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: missing booking after explicit lookup is a data integrity failure, not a user-facing error
       if (fetchErr || !booking) throw new Error(`Booking ${id} not found`)
 
-      const current = booking as Booking
+      const current = booking as unknown as Booking
       const patch = applyBookingEvent(current, event)
 
       // Empty patch → illegal / already-terminal transition; return current unchanged.
@@ -76,10 +76,10 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
           .single()
         // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: booking disappeared between concurrent operations; indicates a data integrity issue
         if (!refetched) throw new Error(`Booking ${id} disappeared after lost update`)
-        return refetched as Booking
+        return refetched as unknown as Booking
       }
 
-      return updated as Booking
+      return updated as unknown as Booking
     },
   }
 }
