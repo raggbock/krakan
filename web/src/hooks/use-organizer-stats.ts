@@ -2,20 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { appError, isAppError, messageFor } from '@fyndstigen/shared'
-import { supabase } from '@/lib/supabase'
-
-type RpcBookingRow = {
-  flea_market_id: string
-  status: string
-  booking_count: number
-  revenue_sek: number
-}
-
-type RpcRouteRow = {
-  flea_market_id: string
-  route_count: number
-}
+import { isAppError, messageFor } from '@fyndstigen/shared'
+import type { Deps } from '@fyndstigen/shared'
+import type { OrganizerBookingStatsRow } from '@fyndstigen/shared/ports/stats'
+import { useDeps } from '@/providers/deps-provider'
 
 type PostHogMarketStats = {
   flea_market_id: string
@@ -58,6 +48,7 @@ export type OrganizerDashboardStats = {
 }
 
 export function useOrganizerStats(organizerId: string | undefined): OrganizerDashboardStats {
+  const deps = useDeps()
   const [markets, setMarkets] = useState<MarketStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -67,11 +58,11 @@ export function useOrganizerStats(organizerId: string | undefined): OrganizerDas
     setLoading(true)
     setError(null)
 
-    fetchAllStats(organizerId)
+    fetchAllStats(deps, organizerId)
       .then(setMarkets)
       .catch((err) => setError(isAppError(err) ? messageFor(err) : err instanceof Error ? err.message : 'Kunde inte hämta statistik'))
       .finally(() => setLoading(false))
-  }, [organizerId])
+  }, [organizerId, deps])
 
   const totals = markets.reduce(
     (acc, m) => ({
@@ -102,37 +93,30 @@ export function useOrganizerStats(organizerId: string | undefined): OrganizerDas
   return { markets, totals, loading, error }
 }
 
-async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.access_token) throw appError('auth.required')
-
-  const marketList = await api.fleaMarkets.listByOrganizer(organizerId)
+async function fetchAllStats(deps: Deps, organizerId: string): Promise<MarketStats[]> {
+  const marketList = await deps.markets.listByOrganizer(organizerId)
   if (marketList.length === 0) return []
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
-  // All aggregation happens in SQL via RPC — no raw rows transferred
+  // All aggregation happens in SQL — no raw rows transferred
   const [bookings30d, bookingsTotal, routes30d, routesTotal, posthogRes] = await Promise.all([
-    supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
-    supabase.rpc('organizer_booking_stats', { p_organizer_id: organizerId }),
-    supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId, p_since: thirtyDaysAgo }),
-    supabase.rpc('organizer_route_stats', { p_organizer_id: organizerId }),
+    deps.stats.organizerBookingStats(organizerId, thirtyDaysAgo),
+    deps.stats.organizerBookingStats(organizerId),
+    deps.stats.organizerRouteStats(organizerId, thirtyDaysAgo),
+    deps.stats.organizerRouteStats(organizerId),
     api.endpoints['organizer.stats']
       .invoke({ organizer_id: organizerId })
       .catch(() => ({ markets: [] as PostHogMarketStats[] })),
   ])
 
-  const bookingRows30d: RpcBookingRow[] = bookings30d.data ?? []
-  const bookingRowsTotal: RpcBookingRow[] = bookingsTotal.data ?? []
-  const routeRows30d: RpcRouteRow[] = routes30d.data ?? []
-  const routeRowsTotal: RpcRouteRow[] = routesTotal.data ?? []
   const posthogMarkets: PostHogMarketStats[] = posthogRes?.markets ?? []
 
   return marketList.map((market) => {
-    const b30 = groupBookingRows(bookingRows30d, market.id)
-    const bTot = groupBookingRows(bookingRowsTotal, market.id)
-    const r30 = routeRows30d.find((r) => r.flea_market_id === market.id)
-    const rTot = routeRowsTotal.find((r) => r.flea_market_id === market.id)
+    const b30 = groupBookingRows(bookings30d, market.id)
+    const bTot = groupBookingRows(bookingsTotal, market.id)
+    const r30 = routes30d.find((r) => r.flea_market_id === market.id)
+    const rTot = routesTotal.find((r) => r.flea_market_id === market.id)
     const ph = posthogMarkets.find((p) => p.flea_market_id === market.id)
 
     return {
@@ -154,13 +138,12 @@ async function fetchAllStats(organizerId: string): Promise<MarketStats[]> {
   })
 }
 
-function groupBookingRows(rows: RpcBookingRow[], marketId: string) {
+function groupBookingRows(rows: OrganizerBookingStatsRow[], marketId: string) {
   const counts = { pending: 0, confirmed: 0, denied: 0, cancelled: 0 }
   let revenue = 0
   for (const row of rows) {
     if (row.flea_market_id !== marketId) continue
-    const status = row.status as keyof typeof counts
-    if (status in counts) counts[status] = row.booking_count
+    if (row.status in counts) counts[row.status] = row.booking_count
     if (row.status === 'confirmed') revenue = row.revenue_sek
   }
   return { counts, revenue }

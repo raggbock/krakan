@@ -3,6 +3,7 @@ import type { RouteRepository } from './ports/routes'
 import type { ProfileRepository } from './ports/profiles'
 import type { AdminPort } from './ports/admin'
 import type { BookingRepository } from './ports/bookings'
+import type { StatsPort } from './ports/stats'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -19,4 +20,5 @@ export type Deps = {
   profiles: ProfileRepository
   admin: AdminPort
   bookings: BookingRepository
+  stats: StatsPort
 }

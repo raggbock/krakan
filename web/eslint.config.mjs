@@ -14,6 +14,23 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    // Forbid `from '@/lib/supabase'` in hooks — read state through useDeps()
+    // instead. The supabase client is wired into api / Deps factories via
+    // providers/query-provider; hooks that bypass that defeat the layering.
+    files: ["src/hooks/**/*.ts", "src/hooks/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [{
+            name: "@/lib/supabase",
+            message: "Don't import the supabase client in hooks. Use useDeps() (RFC #36) — add a port method if a new query shape is needed.",
+          }],
+        },
+      ],
+    },
+  },
+  {
     // Forbid `throw new Error(...)` — use appError(code) or HttpError instead.
     // For genuine programming-error guards that should never reach users, add:
     //   // eslint-disable-next-line no-restricted-syntax

@@ -1,6 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render as rtlRender, screen, waitFor, fireEvent } from '@testing-library/react'
 import { vi, describe, it, beforeEach, expect } from 'vitest'
 import BookingsPage from './page'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
+import React from 'react'
 
 const mockPush = vi.fn()
 
@@ -18,8 +22,6 @@ vi.mock('@/lib/auth-context', () => ({
 
 vi.mock('@/lib/api', () => ({
   api: {
-    fleaMarkets: { listByOrganizer: vi.fn() },
-    bookings: { listByMarket: vi.fn() },
     organizers: { stats: vi.fn() },
     edge: { invoke: vi.fn().mockResolvedValue({}) },
     endpoints: {
@@ -28,6 +30,25 @@ vi.mock('@/lib/api', () => ({
     },
   },
 }))
+
+// Deps surfaces touched by BookingsPage (markets.listByOrganizer + bookings.listByMarket).
+const mockListByOrganizer = vi.fn()
+const mockListByMarket = vi.fn()
+
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    markets: { ...base.markets, listByOrganizer: mockListByOrganizer },
+    bookings: { ...base.bookings, listByMarket: mockListByMarket },
+  }
+})()
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(ui, {
+    wrapper: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(DepsProvider, { deps: testDeps }, children),
+  })
 
 vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading" />,
@@ -106,10 +127,10 @@ function mockAuthLoggedOut() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue([mockMarket] as any)
-  vi.mocked(api.bookings.listByMarket).mockResolvedValue([])
-  vi.mocked(api.organizers.stats).mockResolvedValue(mockStats as any)
-  vi.mocked(api.edge.invoke).mockResolvedValue({} as any)
+  mockListByOrganizer.mockResolvedValue([mockMarket])
+  mockListByMarket.mockResolvedValue([])
+  vi.mocked(api.organizers.stats).mockResolvedValue(mockStats as never)
+  vi.mocked(api.edge.invoke).mockResolvedValue({})
   vi.mocked(api.endpoints['stripe.payment.capture'].invoke).mockResolvedValue({ success: true })
 })
 
@@ -130,7 +151,7 @@ describe('BookingsPage', () => {
 
   it('shows empty state', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([])
+    mockListByMarket.mockResolvedValue([])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Inga bokningar ännu')).toBeInTheDocument()
@@ -149,7 +170,7 @@ describe('BookingsPage', () => {
 
   it('shows pending bookings with action buttons', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
+    mockListByMarket.mockResolvedValue([mockBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Väntar på svar')).toBeInTheDocument()
@@ -160,7 +181,7 @@ describe('BookingsPage', () => {
 
   it('shows confirmed bookings without action buttons', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockConfirmedBooking])
+    mockListByMarket.mockResolvedValue([mockConfirmedBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Bekräftade')).toBeInTheDocument()
@@ -171,7 +192,7 @@ describe('BookingsPage', () => {
 
   it('shows booker name and booking details', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
+    mockListByMarket.mockResolvedValue([mockBooking])
     render(<BookingsPage />)
     await waitFor(() => {
       expect(screen.getByText('Erik Nilsson')).toBeInTheDocument()
@@ -182,7 +203,7 @@ describe('BookingsPage', () => {
 
   it('approve calls stripe-payment-capture via api.endpoints', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
+    mockListByMarket.mockResolvedValue([mockBooking])
     render(<BookingsPage />)
 
     const approveBtn = await screen.findByRole('button', { name: 'Godkänn' })
@@ -197,7 +218,7 @@ describe('BookingsPage', () => {
 
   it('deny calls stripe-payment-cancel', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([mockBooking])
+    mockListByMarket.mockResolvedValue([mockBooking])
     render(<BookingsPage />)
 
     const denyBtn = await screen.findByRole('button', { name: 'Neka' })
@@ -212,7 +233,7 @@ describe('BookingsPage', () => {
 
   it('shows payment status labels', async () => {
     mockAuthLoggedIn()
-    vi.mocked(api.bookings.listByMarket).mockResolvedValue([
+    mockListByMarket.mockResolvedValue([
       mockBooking,
       mockConfirmedBooking,
     ])

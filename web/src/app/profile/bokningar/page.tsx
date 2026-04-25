@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api, BookingView, FleaMarket, OrganizerStats } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
+import { useDeps } from '@/providers/deps-provider'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function BookingsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { markets: marketsRepo, bookings: bookingsRepo } = useDeps()
   const [myMarkets, setMyMarkets] = useState<FleaMarket[]>([])
   const [bookings, setBookings] = useState<BookingView[]>([])
   const [stats, setStats] = useState<OrganizerStats | null>(null)
@@ -29,12 +31,12 @@ export default function BookingsPage() {
     if (!user) return
     try {
       setLoading(true)
-      const markets = await api.fleaMarkets.listByOrganizer(user.id)
+      const markets = await marketsRepo.listByOrganizer(user.id)
       setMyMarkets(markets)
 
       // Load bookings for all user's markets
       const allBookings = await Promise.all(
-        markets.map((m) => api.bookings.listByMarket(m.id)),
+        markets.map((m) => bookingsRepo.listByMarket(m.id)),
       )
       setBookings(allBookings.flat())
 

@@ -12,6 +12,7 @@ import { createInMemoryRoutes } from './adapters/in-memory/routes'
 import { createInMemoryProfiles } from './adapters/in-memory/profiles'
 import { createInMemoryAdmin } from './adapters/in-memory/admin'
 import { createInMemoryBookings } from './adapters/in-memory/bookings'
+import { createInMemoryStats } from './adapters/in-memory/stats'
 import {
   createSupabaseFleaMarkets,
   createSupabaseMarketTables,
@@ -20,6 +21,7 @@ import { createSupabaseRoutes } from './adapters/supabase/routes'
 import { createSupabaseProfiles } from './adapters/supabase/profiles'
 import { createSupabaseAdmin } from './adapters/supabase/admin'
 import { createSupabaseBookings } from './adapters/supabase/bookings'
+import { createSupabaseStats } from './adapters/supabase/stats'
 
 type StoredMarket = FleaMarket & {
   is_deleted: boolean
@@ -47,6 +49,7 @@ export function makeInMemoryDeps(
     profiles: createInMemoryProfiles(profiles),
     admin: createInMemoryAdmin().repo,
     bookings: createInMemoryBookings(),
+    stats: createInMemoryStats(),
   }
 }
 
@@ -69,6 +72,7 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       profiles: createInMemoryProfiles([]),
       admin: createInMemoryAdmin().repo,
       bookings: createInMemoryBookings(),
+      stats: createInMemoryStats(),
     },
     control: { markets: marketsControl },
   }
@@ -86,5 +90,6 @@ export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
     profiles: createSupabaseProfiles(supabase),
     admin: createSupabaseAdmin(supabase),
     bookings: createSupabaseBookings(supabase),
+    stats: createSupabaseStats(supabase),
   }
 }
