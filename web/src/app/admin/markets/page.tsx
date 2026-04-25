@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useAdminMarketsOverview } from '@/hooks/use-admin-markets'
+import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } from '@/hooks/use-admin-markets'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import { EditMarketDrawer } from './edit-market-drawer'
 
@@ -19,12 +19,36 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export default function AdminMarketsPage() {
   const { data, isLoading, error } = useAdminMarketsOverview()
+  const editMut = useAdminMarketEdit()
+  const bulkMut = useAdminMarketsBulkEdit()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const rows = data?.markets ?? []
   const editingMarket = editingId ? rows.find((m) => m.id === editingId) ?? null : null
+  const busy = editMut.isPending || bulkMut.isPending
+
+  function toggleSelect(id: string, on: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (on) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
+  async function bulkApply(patch: Parameters<typeof bulkMut.mutateAsync>[0]['patch'], confirmMsg: string) {
+    if (selectedIds.size === 0) return
+    if (!confirm(`${confirmMsg} ${selectedIds.size} loppisar?`)) return
+    await bulkMut.mutateAsync({ marketIds: Array.from(selectedIds), patch })
+    setSelectedIds(new Set())
+  }
+
+  async function rowToggle(m: AdminMarketRow, patch: Parameters<typeof editMut.mutateAsync>[0]['patch']) {
+    await editMut.mutateAsync({ marketId: m.id, patch })
+  }
 
   const filtered = useMemo(() => {
     let r = rows
@@ -97,11 +121,39 @@ export default function AdminMarketsPage() {
       {isLoading && <p className="text-espresso/60">Laddar…</p>}
       {error && <p className="text-red-700 text-sm">Kunde inte hämta: {String(error)}</p>}
 
+      {selectedIds.size > 0 && (
+        <section className="sticky top-2 z-10 flex items-center gap-2 px-4 py-2 bg-rust text-white rounded-md shadow">
+          <span className="text-sm font-semibold">{selectedIds.size} valda</span>
+          <div className="flex gap-1 ml-2">
+            <BulkBtn onClick={() => bulkApply({ publish: true }, 'Publicera')}>Publicera</BulkBtn>
+            <BulkBtn onClick={() => bulkApply({ publish: false }, 'Avpublicera')}>Avpublicera</BulkBtn>
+            <BulkBtn onClick={() => bulkApply({ status: 'closed' }, 'Markera som stängda:')}>Stäng</BulkBtn>
+            <BulkBtn onClick={() => bulkApply({ status: 'confirmed' }, 'Återöppna')}>Återöppna</BulkBtn>
+          </div>
+          <button onClick={() => setSelectedIds(new Set())} className="ml-auto text-xs underline">
+            Avmarkera alla
+          </button>
+        </section>
+      )}
+
       {!isLoading && !error && (
         <section className="border border-cream-warm rounded-md bg-card overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-cream-warm/40 text-espresso/70 text-xs uppercase tracking-wide">
               <tr>
+                <th className="px-3 py-2 w-8">
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && filtered.every((m) => selectedIds.has(m.id))}
+                    onChange={(e) => {
+                      const next = new Set(selectedIds)
+                      if (e.target.checked) filtered.forEach((m) => next.add(m.id))
+                      else filtered.forEach((m) => next.delete(m.id))
+                      setSelectedIds(next)
+                    }}
+                    aria-label="Välj alla synliga"
+                  />
+                </th>
                 <th className="text-left px-3 py-2">Namn</th>
                 <th className="text-left px-3 py-2">Stad</th>
                 <th className="text-left px-3 py-2">Status</th>
@@ -113,11 +165,20 @@ export default function AdminMarketsPage() {
             </thead>
             <tbody>
               {filtered.map((m) => (
-                <MarketRow key={m.id} market={m} onEdit={() => setEditingId(m.id)} />
+                <MarketRow
+                  key={m.id}
+                  market={m}
+                  selected={selectedIds.has(m.id)}
+                  busy={busy}
+                  onSelect={(on) => toggleSelect(m.id, on)}
+                  onEdit={() => setEditingId(m.id)}
+                  onTogglePublish={() => rowToggle(m, { publish: !m.isPublished })}
+                  onToggleClosed={() => rowToggle(m, { status: m.status === 'closed' ? 'confirmed' : 'closed' })}
+                />
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-6 text-center text-espresso/50">Inga loppisar matchar filtret.</td>
+                  <td colSpan={8} className="px-3 py-6 text-center text-espresso/50">Inga loppisar matchar filtret.</td>
                 </tr>
               )}
             </tbody>
@@ -135,9 +196,27 @@ export default function AdminMarketsPage() {
   )
 }
 
-function MarketRow({ market: m, onEdit }: { market: AdminMarketRow; onEdit: () => void }) {
+function MarketRow({
+  market: m, selected, busy, onSelect, onEdit, onTogglePublish, onToggleClosed,
+}: {
+  market: AdminMarketRow
+  selected: boolean
+  busy: boolean
+  onSelect: (on: boolean) => void
+  onEdit: () => void
+  onTogglePublish: () => void
+  onToggleClosed: () => void
+}) {
   return (
-    <tr className="border-t border-cream-warm/60 align-top">
+    <tr className={`border-t border-cream-warm/60 align-top ${selected ? 'bg-rust/5' : ''}`}>
+      <td className="px-3 py-2">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onSelect(e.target.checked)}
+          aria-label={`Välj ${m.name}`}
+        />
+      </td>
       <td className="px-3 py-2">
         <div className="font-semibold">{m.name}</div>
         <div className="font-mono text-xs text-espresso/50">{m.slug ?? '—'}</div>
@@ -165,15 +244,42 @@ function MarketRow({ market: m, onEdit }: { market: AdminMarketRow; onEdit: () =
       <td className="px-3 py-2 text-espresso/60 text-xs">
         {m.updatedAt ? new Date(m.updatedAt).toISOString().slice(0, 10) : '—'}
       </td>
-      <td className="px-3 py-2 text-right">
-        <button
-          onClick={onEdit}
-          className="text-rust hover:underline text-xs font-semibold"
-        >
-          Redigera →
-        </button>
+      <td className="px-3 py-2 text-right whitespace-nowrap">
+        <div className="flex flex-col items-end gap-1">
+          <button
+            onClick={onEdit}
+            className="text-rust hover:underline text-xs font-semibold"
+          >
+            Redigera →
+          </button>
+          <button
+            onClick={onTogglePublish}
+            disabled={busy}
+            className="text-xs text-espresso/60 hover:text-espresso disabled:opacity-50"
+          >
+            {m.isPublished ? 'Avpublicera' : 'Publicera'}
+          </button>
+          <button
+            onClick={onToggleClosed}
+            disabled={busy}
+            className="text-xs text-espresso/60 hover:text-espresso disabled:opacity-50"
+          >
+            {m.status === 'closed' ? 'Återöppna' : 'Stäng'}
+          </button>
+        </div>
       </td>
     </tr>
+  )
+}
+
+function BulkBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-3 py-1 rounded-md bg-white/15 hover:bg-white/25 text-xs font-semibold"
+    >
+      {children}
+    </button>
   )
 }
 

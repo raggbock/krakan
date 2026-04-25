@@ -38,6 +38,12 @@ defineEndpoint({
       update.latitude = patch.location.latitude
       update.longitude = patch.location.longitude
     }
+    if (patch.publish !== undefined) {
+      update.published_at = patch.publish ? new Date().toISOString() : null
+    }
+    if (patch.status) {
+      update.status = patch.status
+    }
 
     if (Object.keys(update).length > 0) {
       const { error } = await admin.from('flea_markets').update(update).eq('id', marketId)

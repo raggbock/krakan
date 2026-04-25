@@ -23,3 +23,22 @@ export function useAdminMarketEdit() {
     },
   })
 }
+
+/**
+ * Apply the same patch to N markets sequentially. Refetches once at the end
+ * — the per-call invalidation from useAdminMarketEdit would otherwise re-fire
+ * the overview query after every single edit.
+ */
+export function useAdminMarketsBulkEdit() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: { marketIds: string[]; patch: AdminMarketEditInput['patch'] }) => {
+      for (const marketId of input.marketIds) {
+        await api.endpoints['admin.market.edit'].invoke({ marketId, patch: input.patch })
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.marketsOverview() })
+    },
+  })
+}

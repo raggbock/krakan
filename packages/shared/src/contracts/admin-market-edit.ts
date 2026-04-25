@@ -43,6 +43,11 @@ export const AdminMarketEditInput = z.object({
     location: LocationPatch.optional(),
     /** When provided, replaces all existing opening_hour_rules for the market. */
     openingHourRules: z.array(OpeningHourRuleInput).optional(),
+    /** true = stamp published_at = now() (only if currently null);
+     *  false = set published_at = null. Omit to leave alone. */
+    publish: z.boolean().optional(),
+    /** Set status. Omit to leave alone. */
+    status: z.enum(['confirmed', 'unverified', 'closed']).optional(),
   }),
 })
 
