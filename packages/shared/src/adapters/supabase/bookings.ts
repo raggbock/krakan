@@ -1,12 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
 import type { BookingStatus, CreateBookingPayload } from '../../types'
-import {
-  mapBookingView,
-  type BookingRow,
-} from '../../api/mappers'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'
+import { BookingQuery } from '../../query/booking'
 
 export function createSupabaseBookings(supabase: SupabaseClient): BookingRepository {
   return {
@@ -34,30 +31,22 @@ export function createSupabaseBookings(supabase: SupabaseClient): BookingReposit
     async listByUser(userId) {
       const { data, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          market_tables (label, description, size_description),
-          flea_markets (name, city)
-        `)
+        .select(BookingQuery.withMarketAndTable.select)
         .eq('booked_by', userId)
         .order('booking_date', { ascending: false })
       if (error) throw error
-      return (data ?? []).map((b) => mapBookingView(b as BookingRow))
+      return (data ?? []).map((b) => BookingQuery.withMarketAndTable.mapRow(b as Parameters<typeof BookingQuery.withMarketAndTable.mapRow>[0]))
     },
 
     async listByMarket(fleaMarketId) {
       const { data, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          market_tables (label, description, size_description),
-          profiles!bookings_booked_by_fkey (first_name, last_name)
-        `)
+        .select(BookingQuery.withTableAndProfile.select)
         .eq('flea_market_id', fleaMarketId)
         .in('status', ['pending', 'confirmed'])
         .order('booking_date')
       if (error) throw error
-      return (data ?? []).map((b) => mapBookingView(b as BookingRow)) as BookingView[]
+      return (data ?? []).map((b) => BookingQuery.withTableAndProfile.mapRow(b as Parameters<typeof BookingQuery.withTableAndProfile.mapRow>[0])) as BookingView[]
     },
 
     async updateStatus(id, newStatus, note) {

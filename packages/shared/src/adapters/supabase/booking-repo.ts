@@ -14,13 +14,14 @@ import { applyBookingEvent } from '../../booking-lifecycle'
 import type { BookingEvent } from '../../booking-lifecycle'
 import type { Booking } from '../../types'
 import type { BookingRepo } from '../../ports/booking-repo'
+import { BookingQuery } from '../../query/booking'
 
 export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
   return {
     async findById(id) {
       const { data, error } = await admin
         .from('bookings')
-        .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+        .select(BookingQuery.core.select)
         .eq('id', id)
         .single()
       if (error || !data) return null
@@ -30,7 +31,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
     async findByPaymentIntent(paymentIntentId) {
       const { data, error } = await admin
         .from('bookings')
-        .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+        .select(BookingQuery.core.select)
         .eq('stripe_payment_intent_id', paymentIntentId)
         .single()
       if (error || !data) return null
@@ -41,7 +42,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
       // SELECT
       const { data: booking, error: fetchErr } = await admin
         .from('bookings')
-        .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+        .select(BookingQuery.core.select)
         .eq('id', id)
         .single()
       // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: missing booking after explicit lookup is a data integrity failure, not a user-facing error
@@ -62,7 +63,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         .update(patch)
         .eq('id', id)
         .eq('status', current.status)
-        .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+        .select(BookingQuery.core.select)
         .maybeSingle()
       // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: update error is a data integrity failure surfaced from Supabase, not a user-facing error
       if (updateErr) throw new Error(`Failed to update booking ${id}`)
@@ -70,7 +71,7 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
         // Lost the race. Re-fetch so the caller sees current truth.
         const { data: refetched } = await admin
           .from('bookings')
-          .select('id, status, stripe_payment_intent_id, flea_market_id, booked_by, market_table_id, booking_date, price_sek, commission_sek, commission_rate, message, organizer_note, payment_status, expires_at, created_at')
+          .select(BookingQuery.core.select)
           .eq('id', id)
           .single()
         // eslint-disable-next-line no-restricted-syntax -- adapter-level invariant: booking disappeared between concurrent operations; indicates a data integrity issue

@@ -6,8 +6,9 @@ import type {
   RouteSummary,
   PopularRoute,
 } from '../../types'
-import { mapRouteWithStops, mapRouteSummary, type RouteDetailsRow, type RouteSummaryRow } from '../../api/mappers'
+import type { RouteDetailsRow, RouteSummaryRow } from '../../api/mappers'
 import type { RouteRepository } from '../../ports/routes'
+import { RouteQuery } from '../../query/route'
 
 export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository {
   return {
@@ -46,26 +47,12 @@ export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository 
     async get(id) {
       const { data, error } = await supabase
         .from('routes')
-        .select(`
-          *,
-          route_stops (
-            id,
-            flea_market_id,
-            sort_order,
-            flea_markets (
-              id, name, description, street, zip_code, city, country,
-              is_permanent, latitude, longitude,
-              opening_hour_rules (*),
-              opening_hour_exceptions (*)
-            )
-          ),
-          profiles!routes_created_by_fkey (first_name, last_name)
-        `)
+        .select(RouteQuery.details.select)
         .eq('id', id)
         .single()
 
       if (error) throw error
-      return mapRouteWithStops(data as RouteDetailsRow) as RouteWithStops
+      return RouteQuery.details.mapRow(data as RouteDetailsRow) as RouteWithStops
     },
 
     async update(id, payload) {
@@ -125,13 +112,13 @@ export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository 
     async listByUser(userId) {
       const { data, error } = await supabase
         .from('routes')
-        .select('*, route_stops(id)')
+        .select(RouteQuery.summary.select)
         .eq('created_by', userId)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return (data ?? []).map((r) => mapRouteSummary(r as RouteSummaryRow)) as RouteSummary[]
+      return (data ?? []).map((r) => RouteQuery.summary.mapRow(r as RouteSummaryRow)) as RouteSummary[]
     },
 
     async listPopular(params) {
