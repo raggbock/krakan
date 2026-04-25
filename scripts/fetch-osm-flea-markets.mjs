@@ -25,6 +25,18 @@ import { writeFileSync } from 'node:fs'
 
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter'
 
+const PLACES_QUERY = `
+[out:json][timeout:120];
+area["ISO3166-1"="SE"][admin_level=2]->.se;
+(
+  node["place"="city"](area.se);
+  node["place"="town"](area.se);
+  node["place"="village"](area.se);
+  node["place"="suburb"](area.se);
+);
+out;
+`.trim()
+
 const QUERY = `
 [out:json][timeout:180];
 area["ISO3166-1"="SE"][admin_level=2]->.se;
@@ -112,7 +124,7 @@ function regionFromTags(tags) {
   return tags['addr:state'] ?? tags['is_in:state'] ?? tags['addr:province'] ?? null
 }
 
-function toImportBusiness(el, seenSlugs) {
+function toImportBusiness(el, seenSlugs, places) {
   const tags = el.tags ?? {}
   const name = (tags.name ?? '').trim()
   if (!name) return null
@@ -121,8 +133,14 @@ function toImportBusiness(el, seenSlugs) {
   const lng = el.lon ?? el.center?.lon
   if (lat == null || lng == null) return null
 
-  const locality = tags['addr:city'] ?? tags['addr:town'] ?? tags['addr:village'] ?? tags['addr:suburb'] ?? null
-  if (!locality) return null
+  let locality = tags['addr:city'] ?? tags['addr:town'] ?? tags['addr:village'] ?? tags['addr:suburb'] ?? null
+  let localitySource = 'tag'
+  if (!locality) {
+    const near = nearestPlace(places, lat, lng)
+    if (!near) return null
+    locality = near.name
+    localitySource = `nearest(${near.distanceKm.toFixed(1)}km)`
+  }
 
   const baseSlug = slugify(`${name}-${locality}`) || slugify(name)
   if (!baseSlug) return null
@@ -175,13 +193,62 @@ function toImportBusiness(el, seenSlugs) {
       shouldSendEmail: false,     // never auto-send for OSM rows; admin opts in
       priority: 3,
     },
-    notes: `osm:${el.type}/${el.id}`,
+    notes: `osm:${el.type}/${el.id} city-source:${localitySource}`,
     source: 'osm-overpass',
   }
 }
 
+async function fetchOverpass(query) {
+  const body = new URLSearchParams({ data: query }).toString()
+  const res = await fetch(OVERPASS_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+      'User-Agent': 'Fyndstigen/1.0 (+https://fyndstigen.se)',
+    },
+    body,
+  })
+  if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`)
+  const data = await res.json()
+  return data.elements ?? []
+}
+
+/** Build a list of Swedish places sorted for nearest-neighbour lookup. */
+async function fetchPlaces() {
+  const elements = await fetchOverpass(PLACES_QUERY)
+  return elements
+    .filter((el) => el.lat != null && el.lon != null && el.tags?.name)
+    .map((el) => ({
+      name: el.tags.name,
+      lat: el.lat,
+      lng: el.lon,
+      population: el.tags.population ? parseInt(el.tags.population, 10) : 0,
+    }))
+}
+
+/** Returns the closest place name within maxKm, biased toward larger settlements
+ *  when ties are close (a 4 000-pop village wins over a 200-pop hamlet 100 m
+ *  further away if both are within 5 km). */
+function nearestPlace(places, lat, lng, maxKm = 12) {
+  let best = null
+  let bestScore = -Infinity
+  for (const p of places) {
+    const d = haversineKm({ lat, lng }, p)
+    if (d > maxKm) continue
+    // Closer is better; population is a small tiebreaker.
+    const score = -d + Math.log10(Math.max(p.population, 1)) * 0.3
+    if (score > bestScore) { best = p; bestScore = score }
+  }
+  return best ? { name: best.name, distanceKm: haversineKm({ lat, lng }, best) } : null
+}
+
 async function main() {
-  process.stderr.write('Querying Overpass…\n')
+  process.stderr.write('Querying place index…\n')
+  const places = await fetchPlaces()
+  process.stderr.write(`Got ${places.length} place nodes\n`)
+
+  process.stderr.write('Querying shops…\n')
   const body = new URLSearchParams({ data: QUERY }).toString()
   const res = await fetch(OVERPASS_ENDPOINT, {
     method: 'POST',
@@ -216,7 +283,7 @@ async function main() {
       if (seenByCoord.has(key)) { dropped++; continue }
       seenByCoord.add(key)
     }
-    const b = toImportBusiness(el, seenSlugs)
+    const b = toImportBusiness(el, seenSlugs, places)
     if (b) businesses.push(b)
     else dropped++
   }
