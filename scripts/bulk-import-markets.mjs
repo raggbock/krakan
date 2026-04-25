@@ -92,9 +92,8 @@ async function insertBatch(rows) {
   const payload = rows.map((b) => {
     const row = normalizeForDb(b)
     if (b.geo?.lat != null && b.geo?.lng != null) {
+      // latitude/longitude are generated columns derived from location — only write the geography.
       row.location = `SRID=4326;POINT(${b.geo.lng} ${b.geo.lat})`
-      row.latitude = b.geo.lat
-      row.longitude = b.geo.lng
     }
     return row
   })
