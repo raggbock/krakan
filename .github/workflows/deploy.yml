@@ -1,9 +1,8 @@
 name: Deploy
 
 on:
-  # PAUSED: Actions usage cap reached. Re-enable the push trigger at the
-  # start of the next billing cycle. Manual dispatch still works — and
-  # `wrangler deploy` from the local machine is the fallback in the meantime.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
