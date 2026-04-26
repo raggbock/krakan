@@ -38,7 +38,9 @@ export default function RouteBuilder() {
 
   // Load markets
   useEffect(() => {
-    geo.nearbyMarkets({ lat: 59.27, lng: 15.21 }, 60)
+    // National radius — see map-view.tsx for the rationale. The route
+    // builder filters by user-selected area client-side anyway.
+    geo.nearbyMarkets({ lat: 59.27, lng: 15.21 }, 2000)
       .then((data) => setMarkets(data ?? []))
       .catch(() => setMarkets([]))
       .finally(() => setLoading(false))

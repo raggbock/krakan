@@ -39,7 +39,11 @@ export default function MapView() {
     )
 
     function loadMarkets(lat: number, lng: number) {
-      geo.nearbyMarkets({ lat, lng }, 60)
+      // Sweden's longest extent is ~1500km. A national radius lets users
+      // see every market in the country regardless of where they are —
+      // 60km hid all but one for a user in Örebro once chain stores were
+      // imported. Leaflet's clustering handles dense areas just fine.
+      geo.nearbyMarkets({ lat, lng }, 2000)
         .then((data) => setMarkets(data ?? []))
         .catch(() => setError('Kunde inte ladda loppisar'))
         .finally(() => setLoading(false))
