@@ -21,7 +21,10 @@
 
 import { useMemo, type ReactNode } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import L from 'leaflet'
 
 // ---------------------------------------------------------------------------
@@ -99,6 +102,13 @@ export type FyndstigenMapProps = {
   zoom?: number
   onMarkerClick?: (id: string) => void
   /**
+   * Group nearby markers into clusters that expand on zoom-in.
+   * Default false — route-builder and per-route maps want individual
+   * markers visible at all zoom levels. Public discovery maps with N>50
+   * markers should pass cluster=true to keep the view readable.
+   */
+  cluster?: boolean
+  /**
    * Children are rendered inside the MapContainer as additional Leaflet layers.
    * Use for advanced cases (e.g. MapClickHandler) that can't be expressed via props.
    */
@@ -152,6 +162,7 @@ export function FyndstigenMap({
   center,
   zoom,
   onMarkerClick,
+  cluster,
   children,
   className,
 }: FyndstigenMapProps) {
@@ -163,6 +174,19 @@ export function FyndstigenMap({
 
   const mapCenter = center ?? DEFAULT_CENTER
   const mapZoom = zoom ?? DEFAULT_ZOOM
+
+  const markerNodes = markers.map((marker) => (
+    <Marker
+      key={marker.id}
+      position={marker.coord}
+      icon={resolveIcon(marker)}
+      eventHandlers={
+        onMarkerClick ? { click: () => onMarkerClick(marker.id) } : undefined
+      }
+    >
+      {marker.popup && <Popup>{marker.popup}</Popup>}
+    </Marker>
+  ))
 
   return (
     <MapContainer
@@ -176,18 +200,16 @@ export function FyndstigenMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {markers.map((marker) => (
-        <Marker
-          key={marker.id}
-          position={marker.coord}
-          icon={resolveIcon(marker)}
-          eventHandlers={
-            onMarkerClick ? { click: () => onMarkerClick(marker.id) } : undefined
-          }
-        >
-          {marker.popup && <Popup>{marker.popup}</Popup>}
-        </Marker>
-      ))}
+      {cluster ? (
+        // chunkedLoading prevents UI freeze when adding hundreds of markers
+        // at once; the default 80px maxClusterRadius keeps clusters tight
+        // enough that a click reveals a manageable number of pins.
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={60}>
+          {markerNodes}
+        </MarkerClusterGroup>
+      ) : (
+        markerNodes
+      )}
 
       {route && routePathOptions && route.coords.length >= 2 && (
         <Polyline positions={route.coords} pathOptions={routePathOptions} />

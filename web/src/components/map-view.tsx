@@ -91,6 +91,7 @@ export default function MapView() {
         markers={markers}
         center={DEFAULT_CENTER}
         zoom={11}
+        cluster
         className="flex-1 w-full"
       >
         <FlyToLocation lat={center[0]} lng={center[1]} />
