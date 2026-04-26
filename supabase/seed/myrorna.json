@@ -1,0 +1,1894 @@
+{
+  "businesses": [
+    {
+      "slug": "myrorna-stockholm-ropsten-kolargatan",
+      "name": "Myrorna Ropsten Kolargatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Kolargatan 2",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46854584466",
+        "phoneRaw": "08-54584466",
+        "email": "stockholm.ropsten@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/ropsten-kolargatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXgl-YBjHsq"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "17:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-vasteras-vasteras-stora-gatan",
+      "name": "Myrorna Vasteras Stora Gatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Stora Gatan 48",
+        "postalCode": null,
+        "locality": "Västerås",
+        "municipality": "Västerås",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4621380590",
+        "phoneRaw": "021-380590",
+        "email": "vasteras.storagatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/vasteras/vasteras-stora-gatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DVzOmOwDH_s"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-sundsvall-sundsvall",
+      "name": "Myrorna Sundsvall",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Thulegatan 1",
+        "postalCode": null,
+        "locality": "Sundsvall",
+        "municipality": "Sundsvall",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4660143760",
+        "phoneRaw": "060-143760",
+        "email": "sundsvall.thulegatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/sundsvall/sundsvall/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXg6VXcFwq7"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-norrkoping-norrkoping-gamla-radstugugatan",
+      "name": "Myrorna Norrkoping Gamla Radstugugatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Gamla Rådstugugatan 18",
+        "postalCode": null,
+        "locality": "Norrköping",
+        "municipality": "Norrköping",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4611365104",
+        "phoneRaw": "011-365104",
+        "email": "norrkoping.gamlaradstugugatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/norrkoping/norrkoping-gamla-radstugugatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXi3QabjKX_"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-helsingborg-helsingborg",
+      "name": "Myrorna Helsingborg",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Kullagatan 29",
+        "postalCode": null,
+        "locality": "Helsingborg",
+        "municipality": "Helsingborg",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46426185400",
+        "phoneRaw": "042-6185400",
+        "email": "helsingborg.kullagatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/helsingborg/helsingborg/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXOvcdfCOGu"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-boras-boras",
+      "name": "Myrorna Boras",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Skaraborgsvägen 35",
+        "postalCode": null,
+        "locality": "Borås",
+        "municipality": "Borås",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4633153740",
+        "phoneRaw": "033-153740",
+        "email": "boras.skaraborgsvagen@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/boras/boras/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXZSeMLjJrh"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-uppsala-uppsala-vaksalagatan",
+      "name": "Myrorna Uppsala Vaksalagatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Vaksalagatan 7",
+        "postalCode": null,
+        "locality": "Uppsala",
+        "municipality": "Uppsala",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4618601416",
+        "phoneRaw": "018-601416",
+        "email": "uppsala.vaksalagatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/uppsala/uppsala-vaksalagatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DVgjKZYjMa0"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-malmo-malmo-centrum",
+      "name": "Myrorna Malmo Centrum",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Södra Förstadsgatan 74A",
+        "postalCode": null,
+        "locality": "Malmö",
+        "municipality": "Malmö",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4640579585",
+        "phoneRaw": "040-57 95 85",
+        "email": "malmo.sodraforstadsgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/malmo/malmo-centrum/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXbQkPADByr"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-umea-umea-graddvagen",
+      "name": "Myrorna Umea Graddvagen",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Gräddvägen 2",
+        "postalCode": null,
+        "locality": "Umeå",
+        "municipality": "Umeå",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4690701060",
+        "phoneRaw": "090-701060",
+        "email": "umea.graddvagen@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/umea/umea-graddvagen/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXjAbssDNM9"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-kungsholmen-fridhemsplan",
+      "name": "Myrorna Kungsholmen Fridhemsplan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Fleminggatan 89",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4686521800",
+        "phoneRaw": "08-6521800",
+        "email": "stockholm.fleminggatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/kungsholmen-fridhemsplan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXjJ-VUjK18"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-halmstad-halmstad",
+      "name": "Myrorna Halmstad",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Karl XI:s väg 47",
+        "postalCode": null,
+        "locality": "Halmstad",
+        "municipality": "Halmstad",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4635178278",
+        "phoneRaw": "035-178278",
+        "email": "halmstad@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/halmstad/halmstad/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXhaOdtjX4b"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-stockholm-city-adolf-fredriks-kyrkogata",
+      "name": "Myrorna Stockholm City Adolf Fredriks Kyrkogata",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Adolf Fredriks kyrkogata 5",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46854520891",
+        "phoneRaw": "08-54520891",
+        "email": "stockholm.adolffredrikskyrkogata@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/stockholm-city-adolf-fredriks-kyrkogata/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXL_B_zDdKY"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-linkoping-linkoping-platensgatan",
+      "name": "Myrorna Linkoping Platensgatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Platensgatan 6",
+        "postalCode": null,
+        "locality": "Linköping",
+        "municipality": "Linköping",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+4613358957",
+        "phoneRaw": "013-358957",
+        "email": "linkoping.platensgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/linkoping/linkoping-platensgatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DXFHyZfBv6q"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-linkoping-tornby-linkoping",
+      "name": "Myrorna Tornby Linkoping",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Bonnorpsgatan 11",
+        "postalCode": null,
+        "locality": "Linköping",
+        "municipality": "Linköping",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46135602025",
+        "phoneRaw": "013-560 20 25",
+        "email": "linkoping.tornby@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/linkoping/myrorna-tornby-linkoping/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXbcGKSjYNo"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-orebro-drottninggatan-orebro",
+      "name": "Myrorna Drottninggatan Orebro",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Drottninggatan 36",
+        "postalCode": null,
+        "locality": "Örebro",
+        "municipality": "Örebro",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46197601900",
+        "phoneRaw": "019-760 19 00",
+        "email": "orebro.drottninggatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/orebro/myrorna-drottninggatan-orebro/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DXeJVJZAlNC"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-orebro-orebro-hagagatan",
+      "name": "Myrorna Orebro Hagagatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Hagagatan 51",
+        "postalCode": null,
+        "locality": "Örebro",
+        "municipality": "Örebro",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46196721485",
+        "phoneRaw": "019-6721485",
+        "email": "orebro.hagagatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/orebro/orebro-hagagatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DXg-r6EjGpn"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "17:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-malmo-malmo-emporia",
+      "name": "Myrorna Malmo Emporia",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Hyllie stationsväg 22",
+        "postalCode": null,
+        "locality": "Malmö",
+        "municipality": "Malmö",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46406530001",
+        "phoneRaw": "040-6530001",
+        "email": "malmo.emporia@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/malmo/malmo-emporia/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DXgq1-FjeHd"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "10:00",
+            "closes": "20:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-goteborg-olskroken-goteborg",
+      "name": "Myrorna Olskroken Goteborg",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Redbergsvägen 11A",
+        "postalCode": null,
+        "locality": "Göteborg",
+        "municipality": "Göteborg",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46313859500",
+        "phoneRaw": "031-385 95 00",
+        "email": "goteborg.olskroken@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/goteborg/olskroken-goteborg/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXg5kPlDHuO"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-goteborg-goteborg-jarntorget",
+      "name": "Myrorna Goteborg Jarntorget",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Järntorgsgatan 10",
+        "postalCode": null,
+        "locality": "Göteborg",
+        "municipality": "Göteborg",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46317018932",
+        "phoneRaw": "031-7018932",
+        "email": "goteborg.jarntorget@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/goteborg/goteborg-jarntorget/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXg9ApdjNh9"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-goteborg-goteborg-backaplan",
+      "name": "Myrorna Goteborg Backaplan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Krokegårdsgatan 5",
+        "postalCode": null,
+        "locality": "Göteborg",
+        "municipality": "Göteborg",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46317099311",
+        "phoneRaw": "031-7099311",
+        "email": "goteborg.backaplan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/goteborg/myrorna-goteborg-backaplan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DWG0xtdiEYi"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "17:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-taby-centrum",
+      "name": "Myrorna Taby Centrum",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Biblioteksgången 7a",
+        "postalCode": null,
+        "locality": "Täby",
+        "municipality": "Täby",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46812897980",
+        "phoneRaw": "08-128 979 80",
+        "email": "stockholm.taby@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/taby-centrum/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DWoodg7jZmp"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "11:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-odenplan-norrtullsgatan",
+      "name": "Myrorna Odenplan Norrtullsgatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Norrtullsgatan 9",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+468348220",
+        "phoneRaw": "08-348220",
+        "email": "stockholm.norrtullsgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/odenplan-norrtullsgatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DWl5BscCKWh"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-master-samuelsgatan",
+      "name": "Myrorna Master Samuelsgatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Mäster Samuelsgatan 49",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46856316952",
+        "phoneRaw": "08-563 169 52",
+        "email": "stockholm.mastersamuelsgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/master-samuelsgatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DWXFKKikSxU"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "17:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-stockholm-sodermalm",
+      "name": "Myrorna Stockholm Sodermalm",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Götgatan 79",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46855603368",
+        "phoneRaw": "08-556 033 68",
+        "email": "stockholm.gotgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/stockholm-sodermalm/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/reel/DXW6I3hjFSl"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-sundbyberg",
+      "name": "Myrorna Sundbyberg",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Sturegatan 36",
+        "postalCode": null,
+        "locality": "Sundbyberg",
+        "municipality": "Sundbyberg",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+468284960",
+        "phoneRaw": "08-284960",
+        "email": "stockholm.sundbyberg@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/sundbyberg/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXhK2IACPHF"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "17:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "17:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-sodermalm-hornsgatan",
+      "name": "Myrorna Sodermalm Hornsgatan",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress Hornsgatan 96",
+        "postalCode": null,
+        "locality": "Stockholm",
+        "municipality": "Stockholm",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46855605982",
+        "phoneRaw": "08-55605982",
+        "email": "stockholm.hornsgatan@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/sodermalm-hornsgatan/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXgco-7jBX-"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "18:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "16:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "12:00",
+            "closes": "16:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    },
+    {
+      "slug": "myrorna-stockholm-skarholmen-centrum",
+      "name": "Myrorna Skarholmen Centrum",
+      "category": "Kyrklig-bistånd",
+      "description": null,
+      "address": {
+        "street": "Adress STORHOLMSGATAN 21",
+        "postalCode": null,
+        "locality": "Skärholmen",
+        "municipality": "Skärholmen",
+        "region": "Sverige",
+        "country": "Sverige"
+      },
+      "geo": null,
+      "contact": {
+        "phone": "+46855646170",
+        "phoneRaw": "08-55646170",
+        "email": "stockholm.skarholmen@myrorna.se",
+        "website": "https://www.myrorna.se/butiker/stockholm/skarholmen-centrum/",
+        "facebook": "https://www.facebook.com/tr?id=1067424709995555&ev=PageView&noscript=1",
+        "instagram": "https://www.instagram.com/p/DXTu99zjH6_"
+      },
+      "openingHours": {
+        "regular": [
+          {
+            "day": "monday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "tuesday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "wednesday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "thursday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "friday",
+            "opens": "10:00",
+            "closes": "20:00"
+          },
+          {
+            "day": "saturday",
+            "opens": "10:00",
+            "closes": "19:00"
+          },
+          {
+            "day": "sunday",
+            "opens": "11:00",
+            "closes": "18:00"
+          }
+        ]
+      },
+      "distanceFromOrebroKm": null,
+      "status": "unverified",
+      "takeover": {
+        "shouldSendEmail": false,
+        "priority": 2
+      },
+      "notes": null,
+      "source": "myrorna.se"
+    }
+  ]
+}

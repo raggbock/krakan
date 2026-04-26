@@ -68,7 +68,13 @@ defineEndpoint({
 
     if (outcome.needsStripe && stripeAccountId) {
       const gateway = createStripeBookingGateway(stripe)
-      const idempotencyKey = `${user.id}-${marketTableId}-${bookingDate}-${Date.now()}`
+      // Idempotency key is the natural booking identity — same user
+      // requesting the same table on the same date should resolve to the
+      // same PaymentIntent on retry. Including Date.now() (as the previous
+      // version did) defeated Stripe's own retry protection: every browser
+      // retry would create a new PaymentIntent and orphan the previous one
+      // in requires_capture state.
+      const idempotencyKey = `booking:${user.id}:${marketTableId}:${bookingDate}`
       const pi = await gateway.createPaymentIntentWithFees({
         priceSek: table.price_sek,
         stripeAccountId,

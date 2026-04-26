@@ -13,13 +13,6 @@ async function hashToken(token: string): Promise<string> {
     .join('')
 }
 
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  let r = 0
-  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  return r === 0
-}
-
 export type HandleInviteAcceptDeps = {
   input: { token: string }
   userId: string
@@ -35,45 +28,26 @@ export async function handleInviteAccept(
 
   const tokenHash = await hashToken(input.token)
 
-  const { data: invite, error: lookupErr } = await admin
-    .from('admin_invites')
-    .select('id, email, token_hash, expires_at, accepted_at, revoked_at, invited_by')
-    .eq('token_hash', tokenHash)
-    .maybeSingle()
-  if (lookupErr) throw new Error(lookupErr.message)
-  if (!invite) throw new HttpError(404, 'invite_not_found')
-  if (invite.revoked_at) throw new HttpError(410, 'invite_revoked')
-  if (invite.accepted_at) throw new HttpError(409, 'invite_already_accepted')
-  if (Date.parse(invite.expires_at) < Date.now()) throw new HttpError(410, 'invite_expired')
-  if (invite.email !== userEmail) throw new HttpError(403, 'invite_email_mismatch')
-  if (!timingSafeEqual(invite.token_hash, tokenHash)) throw new HttpError(403, 'invite_hash_mismatch')
-
-  await admin.from('admin_users').upsert(
-    {
-      user_id: userId,
-      granted_at: new Date().toISOString(),
-      granted_by: invite.invited_by,
-      revoked_at: null,
-    },
-    { onConflict: 'user_id' },
-  )
-
-  await admin
-    .from('admin_invites')
-    .update({
-      accepted_at: new Date().toISOString(),
-      accepted_by: userId,
-      accepted_from_ip: clientIp,
-    })
-    .eq('id', invite.id)
-
-  await admin.from('admin_actions').insert({
-    admin_user_id: userId,
-    action: 'admin.invite.accepted',
-    target_type: 'admin_user',
-    target_id: userId,
-    payload: { inviteId: invite.id },
+  // The accept_admin_invite RPC bundles validation + admin_users upsert
+  // + invite-mark + audit-row insert into one transaction. Removes the
+  // TOCTOU window the previous procedural sequence had, and surfaces
+  // any DB error (the previous code silently ignored the marker UPDATE
+  // result, leaving the invite reusable on transient write failures).
+  const { error } = await admin.rpc('accept_admin_invite', {
+    p_token_hash: tokenHash,
+    p_user_id: userId,
+    p_user_email: userEmail,
+    p_client_ip: clientIp,
   })
+  if (error) {
+    const msg = error.message ?? ''
+    if (msg.includes('invite_not_found')) throw new HttpError(404, 'invite_not_found')
+    if (msg.includes('invite_revoked')) throw new HttpError(410, 'invite_revoked')
+    if (msg.includes('invite_already_accepted')) throw new HttpError(409, 'invite_already_accepted')
+    if (msg.includes('invite_expired')) throw new HttpError(410, 'invite_expired')
+    if (msg.includes('invite_email_mismatch')) throw new HttpError(403, 'invite_email_mismatch')
+    throw new Error(msg)
+  }
 
   return { ok: true }
 }

@@ -1,15 +1,17 @@
 import { createHandler, HttpError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { getCorsHeaders } from '../_shared/cors.ts'
 import { appError } from '@fyndstigen/shared/errors.ts'
 
-createHandler(async ({ user, admin, origin, req }) => {
+createHandler(async ({ user, admin, origin }) => {
   const priceId = Deno.env.get('SKYLTFONSTRET_PRICE_ID')
   if (!priceId) throw new HttpError(500, 'SKYLTFONSTRET_PRICE_ID is not set', appError('skyltfonstret.config_missing'))
 
-  // Validate origin against allowed origins to prevent redirect hijacking
-  const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map((o) => o.trim())
-  const safeOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || origin
+  // ctx.origin is allowlist-vetted by createHandler via getSafeOrigin —
+  // safe to drop directly into success_url / cancel_url. The previous
+  // inline allowedOrigins re-check fell back to the raw request Origin
+  // header when ALLOWED_ORIGINS was unset, which would let an attacker-
+  // controlled Origin land in the Stripe URLs.
+  const safeOrigin = origin
 
   // Get user profile (single query for all needed fields)
   const { data: profile, error: profileErr } = await admin
