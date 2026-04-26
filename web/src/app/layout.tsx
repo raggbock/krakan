@@ -26,16 +26,21 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   metadataBase: new URL('https://fyndstigen.se'),
   title: {
-    default: 'Fyndstigen — Hitta loppisar nära dig',
+    default: 'Hitta loppis — Loppisar och loppmarknader i hela Sverige | Fyndstigen',
     template: '%s | Fyndstigen',
   },
   description:
-    'Fyndstigen samlar loppisar och loppmarknader på ett ställe. Hitta second hand-skatter, boka bord och planera din loppisrunda.',
+    'Hitta loppis nära dig. Fyndstigen samlar loppisar, loppmarknader och second hand-butiker i hela Sverige — sök på ort, se öppettider, boka bord och planera din loppisrunda.',
   keywords: [
+    'hitta loppis',
+    'hitta loppisar',
     'loppis',
     'loppisar',
     'loppmarknad',
+    'loppmarknader',
     'second hand',
+    'second hand butik',
+    'second hand sverige',
     'fynd',
     'vintage',
     'retro',
@@ -50,16 +55,16 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'sv_SE',
     siteName: 'Fyndstigen',
-    title: 'Fyndstigen — Hitta loppisar nära dig',
+    title: 'Hitta loppis — Loppisar i hela Sverige | Fyndstigen',
     description:
-      'Samlar loppisar på ett ställe. Hitta fynd, boka bord och planera din loppisrunda.',
+      'Hitta loppis nära dig. Sök bland loppisar och loppmarknader i hela Sverige, se öppettider och planera din loppisrunda.',
     images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Fyndstigen — Hitta loppisar nära dig',
+    title: 'Hitta loppis — Loppisar i hela Sverige | Fyndstigen',
     description:
-      'Samlar loppisar på ett ställe. Hitta fynd, boka bord och planera din loppisrunda.',
+      'Hitta loppis nära dig. Sök bland loppisar och loppmarknader i hela Sverige, se öppettider och planera din loppisrunda.',
     images: ['/logo-512.png'],
   },
   alternates: {

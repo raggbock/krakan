@@ -17,6 +17,56 @@ const organizationJsonLd = {
   },
 }
 
+// FAQ schema targeting the "hitta loppis"-intent — Google may render
+// these as rich snippets directly under the search result, eating up
+// SERP real estate even before someone clicks.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Hur hittar jag en loppis nära mig?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'På Fyndstigen kan du söka loppisar och loppmarknader i hela Sverige. Använd kartan eller sök på din ort för att se öppettider, adress och planera en loppisrunda.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Vad är skillnaden mellan loppis, loppmarknad och second hand-butik?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Loppis och loppmarknad är ofta tillfälliga marknader där flera säljare samlas. Second hand-butiker som Erikshjälpen, Myrorna och Stadsmissionen är permanenta butiker med fasta öppettider. Fyndstigen samlar alla tre typerna.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Kostar det något att använda Fyndstigen?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Nej, det är gratis att söka och hitta loppisar. Att boka bord på en loppis kostar det som arrangören sätter — Fyndstigen tar en liten avgift av arrangören när bordet bokas och betalas.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Kan jag se öppettider för loppisarna?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Ja, varje loppis har sina öppettider listade. Du kan filtrera på de som har öppet just nu, och kartan visar bara loppisar som faktiskt är igång.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Hur lägger jag till min egen loppis på Fyndstigen?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Skapa ett konto, gå till "Skapa loppis" och fyll i namn, plats och öppettider. Du kan också lägga till bord som besökare kan boka direkt via plattformen.',
+      },
+    },
+  ],
+}
+
 async function getStats() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
@@ -51,6 +101,10 @@ export default async function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
       {/* ════════════════════════════════════════════
           HERO — Full-width, immersive trail opening
@@ -109,10 +163,15 @@ export default async function LandingPage() {
             <span className="text-rust hand-underline">fynd</span>
           </h1>
 
-          <p className="text-espresso/70 mt-8 max-w-xl mx-auto text-lg sm:text-xl leading-relaxed animate-fade-up delay-3">
+          <h2 className="font-display text-xl sm:text-2xl font-bold mt-6 text-espresso/85 animate-fade-up delay-3">
+            Hitta loppis i hela Sverige
+            {marketCount > 0 && <span className="text-espresso/55"> — {marketCount} loppisar samlade</span>}
+          </h2>
+
+          <p className="text-espresso/70 mt-6 max-w-xl mx-auto text-lg sm:text-xl leading-relaxed animate-fade-up delay-3">
             Fyndstigen samlar loppisar, loppmarknader och second hand-butiker
-            &mdash; sök, boka bord, planera din runda och hitta skatter i ditt
-            närområde.
+            i hela Sverige &mdash; sök på ort, se öppettider, boka bord och
+            planera din loppisrunda.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 mt-10 animate-fade-up delay-4">

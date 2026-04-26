@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { city: slug } = await params
   const resolved = await resolveCity(slug)
   if (!resolved) return { title: 'Stad hittades inte' }
-  const title = `Loppisar i ${resolved.canonicalName}`
-  const description = `${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'} i ${resolved.canonicalName}. Hitta öppettider, adresser och boka bord på Fyndstigen.`
+  const title = `Hitta loppis i ${resolved.canonicalName} — ${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'}`
+  const description = `${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'} och loppmarknader i ${resolved.canonicalName}. Hitta öppettider, adresser och boka bord på Fyndstigen.`
   return {
     title,
     description,
@@ -91,10 +91,10 @@ export default async function CityPage({ params }: Props) {
       </nav>
 
       <h1 className="font-display text-3xl sm:text-4xl font-bold">
-        Loppisar i {resolved.canonicalName}
+        Hitta loppis i {resolved.canonicalName}
       </h1>
       <p className="text-espresso/65 mt-2">
-        {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar'} att utforska.
+        {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
       </p>
 
       <div className="mt-8 space-y-4">
