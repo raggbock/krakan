@@ -110,7 +110,7 @@ definePublicEndpoint({
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: 'magiclink',
       email,
-      options: { redirectTo: `${origin}/profile/my-markets` },
+      options: { redirectTo: `${origin}/profile` },
     })
     if (linkErr) throw new Error(linkErr.message)
 
