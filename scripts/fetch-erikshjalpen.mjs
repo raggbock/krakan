@@ -20,14 +20,17 @@
  */
 
 import { writeFileSync } from 'node:fs'
+import {
+  slugify, haversineKm, sleep, decodeHtml,
+  extractEmailFromMailto, extractPhoneFromTelHref,
+  normalizeTime, fetchSitemapUrls, nominatimGeocode, ÖREBRO,
+} from './lib/scrape-helpers.mjs'
 
 const OUTPUT_PATH = process.argv[2] ?? null
 
 const SITEMAP_URL = 'https://erikshjalpen.se/stores-post-type-sitemap.xml'
 const STORE_URL_RE = /^https:\/\/erikshjalpen\.se\/butiker\/[a-z0-9-]+\/?$/i
-const NOMINATIM = 'https://nominatim.openstreetmap.org/search'
 const USER_AGENT = 'Fyndstigen/1.0 (sebastian.myrdahl@gmail.com)'
-const ÖREBRO = { lat: 59.2741, lng: 15.2066 }
 
 const DAY_MAP = {
   måndag: 'monday', mandag: 'monday',
@@ -39,61 +42,10 @@ const DAY_MAP = {
   söndag: 'sunday', sondag: 'sunday',
 }
 
-function sleep(ms) { return new Promise((r) => setTimeout(r, ms)) }
-
-function slugify(s) {
-  return s
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[åä]/g, 'a').replace(/ö/g, 'o')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
-}
-
-function haversineKm(a, b) {
-  const R = 6371
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180
-  const x = Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2
-  return Math.round(2 * R * Math.asin(Math.sqrt(x)) * 10) / 10
-}
-
 async function fetchText(url) {
   const res = await fetch(url, { headers: { 'user-agent': USER_AGENT } })
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
   return res.text()
-}
-
-async function fetchSitemapUrls() {
-  const xml = await fetchText(SITEMAP_URL)
-  const urls = []
-  const re = /<loc>\s*([^<]+)\s*<\/loc>/g
-  let m
-  while ((m = re.exec(xml)) !== null) {
-    const u = m[1].trim()
-    if (STORE_URL_RE.test(u) && !u.endsWith('/butiker/')) urls.push(u)
-  }
-  return urls
-}
-
-function decodeHtml(s) {
-  return s
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&aring;/g, 'å').replace(/&auml;/g, 'ä').replace(/&ouml;/g, 'ö')
-    .replace(/&Aring;/g, 'Å').replace(/&Auml;/g, 'Ä').replace(/&Ouml;/g, 'Ö')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
-}
-
-function stripTags(s) {
-  return decodeHtml(s.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim()
 }
 
 // Address line looks like: "Åbyvägen 1, 702 27 Örebro, Sverige"
@@ -108,23 +60,6 @@ function extractAddress(html) {
     postalCode: m[2].replace(/\s/g, ' '),
     locality: m[3].trim(),
   }
-}
-
-function extractEmail(html) {
-  const m = /mailto:([\w.+-]+@[\w.-]+\.[a-z]{2,})/i.exec(html)
-  return m ? m[1].toLowerCase() : null
-}
-
-function extractPhone(html) {
-  // tel: hrefs are most reliable
-  const m = /href=["']tel:([+\d\s\-()]+)["']/i.exec(html)
-  if (!m) return null
-  const raw = m[1].trim()
-  let digits = raw.replace(/[^\d+]/g, '')
-  if (digits.startsWith('00')) digits = '+' + digits.slice(2)
-  if (digits.startsWith('0')) digits = '+46' + digits.slice(1)
-  if (!digits.startsWith('+')) digits = '+46' + digits
-  return { phone: digits, phoneRaw: raw }
 }
 
 function extractSocial(html) {
@@ -143,13 +78,6 @@ function extractSocial(html) {
 // open/close times in plain text, e.g. "Måndag: Stängt", "Tisdag: 11:00 – 18:00".
 const HOUR_LINE_RE = /(måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag)\s*[:\-–]\s*(stängt|stangt|\d{1,2}[.:]\d{2}\s*[-–]\s*\d{1,2}[.:]\d{2})/gi
 
-function normTime(t) {
-  const m = /(\d{1,2})[.:](\d{2})/.exec(t)
-  if (!m) return null
-  const h = String(Number(m[1])).padStart(2, '0')
-  return `${h}:${m[2]}`
-}
-
 function extractOpeningHours(html) {
   const text = decodeHtml(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')).toLowerCase()
   const regular = []
@@ -166,30 +94,14 @@ function extractOpeningHours(html) {
     }
     const range = /(\d{1,2}[.:]\d{2})\s*[-–]\s*(\d{1,2}[.:]\d{2})/.exec(value)
     if (!range) continue
-    const opens = normTime(range[1])
-    const closes = normTime(range[2])
+    const opens = normalizeTime(range[1])
+    const closes = normalizeTime(range[2])
     if (opens && closes) {
       regular.push({ day, opens, closes })
       seen.add(day)
     }
   }
   return regular.length ? { regular } : null
-}
-
-async function geocode(query) {
-  const url = `${NOMINATIM}?format=jsonv2&addressdetails=1&limit=1&countrycodes=se&q=${encodeURIComponent(query)}`
-  const res = await fetch(url, { headers: { 'user-agent': USER_AGENT, 'accept-language': 'sv' } })
-  if (!res.ok) return null
-  const arr = await res.json()
-  if (!arr.length) return null
-  const r = arr[0]
-  return {
-    lat: parseFloat(r.lat),
-    lng: parseFloat(r.lon),
-    region: r.address?.state || r.address?.county || null,
-    municipality: r.address?.municipality || r.address?.city_district || r.address?.city || r.address?.town || r.address?.village || null,
-    locality: r.address?.city || r.address?.town || r.address?.village || r.address?.suburb || null,
-  }
 }
 
 function nameFromUrl(url) {
@@ -210,8 +122,8 @@ async function scrapeStore(url) {
   const addr = extractAddress(html)
   if (!addr) return { ok: false, url, error: 'no address parsed' }
 
-  const phone = extractPhone(html)
-  const email = extractEmail(html)
+  const phone = extractPhoneFromTelHref(html)
+  const email = extractEmailFromMailto(html)
   const social = extractSocial(html)
   const openingHours = extractOpeningHours(html)
   const cityLabel = nameFromUrl(url)
@@ -256,7 +168,7 @@ async function scrapeStore(url) {
 
 async function main() {
   console.error('Fetching sitemap…')
-  const urls = await fetchSitemapUrls()
+  const urls = await fetchSitemapUrls(SITEMAP_URL, { userAgent: USER_AGENT, filter: STORE_URL_RE })
   console.error(`Found ${urls.length} store URLs.`)
 
   const businesses = []
@@ -281,7 +193,7 @@ async function main() {
   for (let i = 0; i < businesses.length; i++) {
     const b = businesses[i]
     const q = `${b.address.street}, ${b.address.postalCode} ${b.address.locality}, Sverige`
-    const g = await geocode(q)
+    const g = await nominatimGeocode(q, { userAgent: USER_AGENT })
     if (g) {
       b.geo = { lat: g.lat, lng: g.lng, precision: 'address', source: 'nominatim' }
       b.address.municipality = g.municipality ?? b.address.locality
