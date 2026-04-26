@@ -1,11 +1,21 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarkets } from '@/hooks/use-markets'
 import { useOpenNowIds } from '@/hooks/use-open-now'
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180
+  const x = Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
 
 export default function ExplorePage() {
   const [page, setPage] = useState(1)
@@ -13,6 +23,18 @@ export default function ExplorePage() {
   const pageSize = openNowOnly ? 200 : 20
   const { markets: rawMarkets, count, loading, error } = useMarkets({ page: openNowOnly ? 1 : page, pageSize })
   const { data: openIds, isLoading: openLoading } = useOpenNowIds(openNowOnly)
+
+  // User position for the per-card distance label. Silent when geolocation
+  // is denied — the card just doesn't show a distance.
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (p) => setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => setUserPos(null),
+      { timeout: 5000, maximumAge: 60_000 },
+    )
+  }, [])
 
   const markets = useMemo(() => {
     if (!openNowOnly || !openIds) return rawMarkets
@@ -279,7 +301,15 @@ export default function ExplorePage() {
                         fill="none"
                       />
                     </svg>
-                    {market.city}
+                    <span>{market.city}</span>
+                    {userPos && market.latitude != null && market.longitude != null && (
+                      <span className="text-espresso/45 ml-auto text-xs">
+                        {(() => {
+                          const km = haversineKm(userPos, { lat: market.latitude, lng: market.longitude })
+                          return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`
+                        })()}
+                      </span>
+                    )}
                   </p>
                   {market.description && (
                     <p className="text-sm text-espresso/60 mt-2.5 line-clamp-2 leading-relaxed">
