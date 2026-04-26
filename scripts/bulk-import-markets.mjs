@@ -62,6 +62,11 @@ function normalizeForDb(b) {
     contact_instagram: b.contact?.instagram ?? null,
     organizer_id: SYSTEM_OWNER_ID,
     is_system_owned: true,
+    // Chain stores and second-hand shops are permanent businesses with
+    // weekly opening hours. is_permanent must be true or visible_flea_markets
+    // filters them out — that view requires either is_permanent=true OR a
+    // future date-anchored rule, and our scrapers only emit weekly rules.
+    is_permanent: true,
     // published_at intentionally unset — caller curates via /admin/markets
   }
 }
