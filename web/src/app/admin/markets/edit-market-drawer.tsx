@@ -60,8 +60,13 @@ export function EditMarketDrawer({
     }))
   const initialNonWeekly = market.openingHourRules.filter((r) => r.type !== 'weekly' || r.dayOfWeek == null)
   const [weeklyRules, setWeeklyRules] = useState<RuleDraft[]>(initialWeekly)
+  // Track whether the user has touched the hours section. The diff-based
+  // change detection has been unreliable in practice — we now always send
+  // the rules patch when this flag is true, even if the keys look identical.
+  const [hoursTouched, setHoursTouched] = useState(false)
 
   function toggleDay(day: number, enabled: boolean) {
+    setHoursTouched(true)
     if (enabled) {
       if (weeklyRules.some((r) => r.dayOfWeek === day)) return
       setWeeklyRules([...weeklyRules, {
@@ -74,6 +79,7 @@ export function EditMarketDrawer({
   }
 
   function updateRule(day: number, field: 'openTime' | 'closeTime', v: string) {
+    setHoursTouched(true)
     setWeeklyRules(weeklyRules.map((r) => r.dayOfWeek === day ? { ...r, [field]: v } : r))
   }
 
@@ -139,13 +145,7 @@ export function EditMarketDrawer({
         closeTime: r.closeTime,
       })),
     ]
-    const ruleKey = (r: { dayOfWeek: number | null; openTime: string; closeTime: string }) => {
-      const t = (s: string) => s.length === 5 ? `${s}:00` : s
-      return `${r.dayOfWeek}|${t(r.openTime)}|${t(r.closeTime)}`
-    }
-    const originalKeys = initialWeekly.map(ruleKey).sort().join(',')
-    const newKeys = weeklySerialized.map(ruleKey).sort().join(',')
-    if (originalKeys !== newKeys) {
+    if (hoursTouched) {
       patch.openingHourRules = allRules
     }
 
@@ -154,8 +154,15 @@ export function EditMarketDrawer({
       return
     }
 
-    await editMut.mutateAsync({ marketId: market.id, patch })
-    onClose()
+    try {
+      await editMut.mutateAsync({ marketId: market.id, patch })
+      onClose()
+    } catch (err) {
+      // Surface the failure inline. The mutation's isError state also
+      // renders a banner below, but logging here makes it visible in the
+      // browser console with full context for debugging.
+      console.error('[admin-market-edit] save failed', { patch, err })
+    }
   }
 
   return (
@@ -204,33 +211,49 @@ export function EditMarketDrawer({
                   : 'Ingen koordinat satt'}
               </div>
             </div>
-            {!showMap ? (
-              <button
-                onClick={() => setShowMap(true)}
-                className="text-sm border border-cream-warm rounded-md px-3 py-2 hover:bg-cream-warm"
-              >
-                {latitude != null ? 'Justera på karta' : 'Sätt på karta'}
-              </button>
-            ) : (
-              <div className="h-80 border border-cream-warm rounded-md overflow-hidden">
-                <Suspense fallback={<div className="h-full grid place-items-center text-espresso/50">Laddar karta…</div>}>
-                  <AddressPicker
-                    value={{
-                      street, zipCode, city,
-                      latitude, longitude,
-                    }}
-                    onChange={(v) => {
-                      setStreet(v.street)
-                      setZipCode(v.zipCode)
-                      setCity(v.city)
-                      setLatitude(v.latitude)
-                      setLongitude(v.longitude)
-                    }}
-                  />
-                </Suspense>
-              </div>
-            )}
+            <button
+              onClick={() => setShowMap(true)}
+              className="text-sm border border-cream-warm rounded-md px-3 py-2 hover:bg-cream-warm"
+            >
+              {latitude != null ? 'Justera på karta' : 'Sätt på karta'}
+            </button>
           </section>
+
+          {showMap && (
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60"
+              onClick={() => setShowMap(false)}
+            >
+              <div
+                className="relative w-full max-w-4xl h-[85vh] bg-card rounded-lg overflow-hidden shadow-2xl flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <header className="flex items-center justify-between border-b border-cream-warm px-4 py-2">
+                  <h3 className="font-display font-bold text-base">Sätt position på karta</h3>
+                  <button
+                    onClick={() => setShowMap(false)}
+                    className="text-espresso/60 hover:text-espresso px-2 py-1 text-sm"
+                  >
+                    Klar ✕
+                  </button>
+                </header>
+                <div className="flex-1 min-h-0">
+                  <Suspense fallback={<div className="h-full grid place-items-center text-espresso/50">Laddar karta…</div>}>
+                    <AddressPicker
+                      value={{ street, zipCode, city, latitude, longitude }}
+                      onChange={(v) => {
+                        setStreet(v.street)
+                        setZipCode(v.zipCode)
+                        setCity(v.city)
+                        setLatitude(v.latitude)
+                        setLongitude(v.longitude)
+                      }}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Öppettider */}
           <section className="space-y-3">
