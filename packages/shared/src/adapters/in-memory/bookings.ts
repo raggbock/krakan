@@ -3,6 +3,16 @@ import type { BookingStatus, CreateBookingPayload } from '../../types'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'
 
+// `create` is no longer part of BookingRepository (removed with the dead
+// LegacyBookingRepository on 2026-04-26). It stays on the in-memory
+// adapter as a test-setup helper — use it to seed bookings inside specs
+// without going through the booking-create edge function. Production
+// code must use the edge function, so this method is intentionally
+// shaped as `InMemoryBookings.create`, not part of the port contract.
+export type InMemoryBookings = BookingRepository & {
+  create(payload: CreateBookingPayload): Promise<{ id: string }>
+}
+
 type StoredBooking = {
   id: string
   market_table_id: string
@@ -23,7 +33,7 @@ type StoredBooking = {
 
 let _bid = 1
 
-export function createInMemoryBookings(seed: StoredBooking[] = []): BookingRepository {
+export function createInMemoryBookings(seed: StoredBooking[] = []): InMemoryBookings {
   const store = new Map<string, StoredBooking>(seed.map((b) => [b.id, { ...b }]))
 
   return {

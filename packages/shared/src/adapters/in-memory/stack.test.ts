@@ -3,9 +3,8 @@
  *
  * 1. @stub canaries: nearBy / listPopular emit console.warn when called.
  * 2. createInMemorySearch accepts { fleaMarkets: FleaMarketRepository }.
- * 3. LegacyBookingRepository sub-interface carries .create().
- * 4. details() resolves organizerName from the profiles store.
- * 5. createInMemoryStack() wires everything together.
+ * 3. details() resolves organizerName from the profiles store.
+ * 4. createInMemoryStack() wires everything together.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createInMemoryFleaMarkets, createInMemorySearch } from './flea-markets'
@@ -13,7 +12,6 @@ import { createInMemoryRoutes } from './routes'
 import { createInMemoryProfiles } from './profiles'
 import { createInMemoryBookings } from './bookings'
 import { createInMemoryStack } from '../in-memory'
-import type { LegacyBookingRepository } from '../../ports/bookings'
 import type { FleaMarket, UserProfile } from '../../types'
 
 // ---------- helpers ----------
@@ -132,18 +130,7 @@ describe('createInMemorySearch with FleaMarketRepository', () => {
   })
 })
 
-// ---------- 3. LegacyBookingRepository ----------
-
-describe('LegacyBookingRepository', () => {
-  it('BookingRepository satisfies LegacyBookingRepository (structural check)', () => {
-    // If this compiles the structural subtype relationship holds.
-    const bookings = createInMemoryBookings()
-    const legacy: LegacyBookingRepository = bookings
-    expect(legacy.create).toBeDefined()
-  })
-})
-
-// ---------- 4. details() resolves organizerName ----------
+// ---------- 3. details() resolves organizerName ----------
 
 describe('details() organizerName resolution', () => {
   it('returns empty string when no profiles repo is provided', async () => {

@@ -1,24 +1,19 @@
-import type { CreateBookingPayload } from '../types'
 import type { BookingView } from '../types/domain'
 
 /**
- * LegacyBookingRepository — carries the direct `create` method that bypasses
- * the edge function flow. Only implement this interface if you need to support
- * legacy callers (e.g. the mobile app). New consumers MUST NOT call `create`
- * directly — use the `booking-create` edge function instead.
+ * BookingRepository — query-side surface for the bookings table.
  *
- * @deprecated Prefer the `booking-create` edge function for all new bookings.
+ * Lifecycle-aware persistence (findById, applyEvent, etc.) lives in
+ * BookingRepo (./booking-repo.ts) — the names are similar but the
+ * concerns are distinct: this port is for "give me a list of bookings",
+ * the other is "transition this booking through its state machine".
+ *
+ * No `create()` method here — all booking creation must go through the
+ * `booking-create` edge function so Stripe + idempotency + free-auto-
+ * accept rules stay enforced. The previous LegacyBookingRepository.create
+ * shim was deleted on 2026-04-26 after a usage audit found zero callers.
  */
-export interface LegacyBookingRepository {
-  /**
-   * @deprecated Use the `booking-create` edge function instead.
-   * Direct insert bypasses Stripe, idempotency, free/auto-accept logic,
-   * and publication validation. For legacy compatibility only.
-   */
-  create(payload: CreateBookingPayload): Promise<{ id: string }>
-}
-
-export interface BookingRepository extends LegacyBookingRepository {
+export interface BookingRepository {
   listByUser(userId: string): Promise<BookingView[]>
   listByMarket(fleaMarketId: string): Promise<BookingView[]>
   updateStatus(
