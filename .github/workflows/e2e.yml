@@ -1,10 +1,8 @@
 name: E2E
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+  # PAUSED: Actions usage cap reached. Re-enable push/pull_request triggers
+  # at the start of the next billing cycle. Manual dispatch still works.
   workflow_dispatch:
 
 # Browser-visible env needed so `supabase.ts` doesn't throw at module init

@@ -1,8 +1,8 @@
 name: Deploy Staging
 
 on:
-  push:
-    branches: [develop]
+  # PAUSED: Actions usage cap reached. Re-enable the push trigger at the
+  # start of the next billing cycle. Manual dispatch still works.
   workflow_dispatch:
 
 jobs:

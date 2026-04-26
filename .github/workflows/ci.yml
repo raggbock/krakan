@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # PAUSED: Actions usage cap reached. Re-enable push/pull_request triggers
+  # at the start of the next billing cycle. workflow_dispatch keeps the
+  # workflow runnable manually from the GitHub UI in the meantime.
   workflow_dispatch:
 
 jobs:
