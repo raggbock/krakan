@@ -59,25 +59,21 @@ definePublicEndpoint({
     const matches = timingSafeEqualHex(codeHash, tokenRow.verification_code_hash as string)
     if (!matches) throw new HttpError(400, 'code_invalid')
 
-    // --- Verified. Spend the token first, THEN do user/ownership work. ---
+    // --- Verified. Resolve the auth user FIRST, then spend+transfer in one
+    // atomic Postgres transaction via claim_takeover_atomic(). The previous
+    // shape ("spend first, then everything else") could leave the row in a
+    // half-applied state — token gone but ownership never transferred — if
+    // the auth-user lookup or createUser failed. Hit that bug in prod once.
     //
-    // Order matters: spending the token (with .is('used_at', null) guard)
-    // is the single-use lock. If we createUser first and THEN the spend
-    // fails transiently, we leave a dangling auth.users row and the
-    // legitimate owner gets stuck on a token that's permanently spent
-    // without ever being given ownership. Spending first means a
-    // post-spend failure burns the token — admin reissues — but never
-    // creates orphan users or partial state.
-    const { data: markedRow, error: useErr } = await admin
-      .from('business_owner_tokens')
-      .update({ used_at: new Date().toISOString() })
-      .eq('id', tokenRow.id)
-      .is('used_at', null)
-      .select('id')
-      .maybeSingle()
-    if (useErr) throw new Error(useErr.message)
-    if (!markedRow) throw new HttpError(410, 'token_already_used')
-
+    // The current order:
+    //   1. Look up the auth user (or create one). Failures here leave the
+    //      token intact, so admin can reissue without manual cleanup.
+    //   2. Call claim_takeover_atomic — spends the token AND updates
+    //      flea_markets in a single transaction. Postgres rollbacks both
+    //      together if anything inside fails.
+    //   3. Magic-link generation + send is best-effort. Failures don't
+    //      reverse ownership — the user just won't get the convenience
+    //      link, and admin can resend.
     const { data: existing, error: lookupErr } = await admin
       .from('auth_user_email_view')
       .select('id')
@@ -94,11 +90,16 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
-    const { error: mktErr } = await admin
-      .from('flea_markets')
-      .update({ organizer_id: userId, is_system_owned: false })
-      .eq('id', tokenRow.flea_market_id)
-    if (mktErr) throw new Error(mktErr.message)
+    const { error: claimErr } = await admin.rpc('claim_takeover_atomic', {
+      p_token_hash: tokenHash,
+      p_user_id: userId,
+    })
+    if (claimErr) {
+      if (claimErr.message?.includes('token_already_used')) {
+        throw new HttpError(410, 'token_already_used')
+      }
+      throw new Error(claimErr.message)
+    }
 
     const { data: market, error: marketErr } = await admin
       .from('flea_markets')
