@@ -12,6 +12,8 @@
   "scripts": {
     "check:edge-imports": "node scripts/check-edge-imports.mjs"
   },
-  "devDependencies": {
+  "devDependencies": {},
+  "dependencies": {
+    "@supabase/ssr": "^0.10.2"
   }
 }

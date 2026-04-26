@@ -1,33 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
-import type { BookingStatus, CreateBookingPayload } from '../../types'
+import { isValidStatusTransition } from '../../booking'
+import type { BookingStatus } from '../../types'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'
 import { BookingQuery } from '../../query/booking'
 
 export function createSupabaseBookings(supabase: SupabaseClient): BookingRepository {
   return {
-    async create(payload) {
-      const commissionSek = calculateCommission(payload.priceSek)
-
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-          market_table_id: payload.marketTableId,
-          flea_market_id: payload.fleaMarketId,
-          booked_by: payload.bookedBy,
-          booking_date: payload.bookingDate,
-          price_sek: payload.priceSek,
-          commission_sek: commissionSek,
-          commission_rate: COMMISSION_RATE,
-          message: payload.message,
-        })
-        .select('id')
-        .single()
-      if (error) throw error
-      return { id: data.id }
-    },
-
     async listByUser(userId) {
       const { data, error } = await supabase
         .from('bookings')

@@ -11,14 +11,9 @@ export function createBookingsApi(supabase: SupabaseClient) {
 
   return {
     bookings: {
-      /**
-       * @deprecated Use the `booking-create` edge function instead.
-       * This method inserts directly into the bookings table, bypassing
-       * Stripe payment creation, idempotency checks, free/auto-accept
-       * logic, and publication validation. It exists only for legacy
-       * compatibility and should NOT be used in new code.
-       */
-      create: bookingsRepo.create.bind(bookingsRepo),
+      // No `create` method — booking creation goes through the
+      // `booking-create` edge function so Stripe payments, idempotency,
+      // free/auto-accept logic, and publication validation stay enforced.
       listByUser: bookingsRepo.listByUser.bind(bookingsRepo),
       listByMarket: bookingsRepo.listByMarket.bind(bookingsRepo),
       updateStatus: bookingsRepo.updateStatus.bind(bookingsRepo),
