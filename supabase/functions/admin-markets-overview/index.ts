@@ -1,19 +1,14 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
-import { HttpError } from '../_shared/handler.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import {
   AdminMarketsOverviewInput,
   AdminMarketsOverviewOutput,
 } from '@fyndstigen/shared/contracts/admin-markets-overview.ts'
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-markets-overview',
   input: AdminMarketsOverviewInput,
   output: AdminMarketsOverviewOutput,
-  handler: async ({ user, admin }) => {
-    const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
-    if (rpcErr) throw new Error(rpcErr.message)
-    if (!isAdminResult) throw new HttpError(403, 'not_admin')
-
+  handler: async ({ admin }) => {
     // PostgREST caps responses at db.max_rows (1000 in Supabase defaults)
     // regardless of any client-side .limit() — so .range() is the only way
     // to get every row. Page through each table in 1000-row chunks until

@@ -76,3 +76,22 @@ class InputInvalidError extends HttpError {
     })
   }
 }
+
+/**
+ * Admin-gated endpoint. Wraps `defineEndpoint` with an `is_admin` RPC
+ * check that runs before the handler — non-admins get HTTP 403 and the
+ * handler is never invoked. Centralises the admin-policy so it can be
+ * changed in one place (e.g. add audit logging, swap the RPC name) and
+ * removes the per-function copy-pasted boilerplate.
+ */
+export function defineAdminEndpoint<I, O>(config: EndpointConfig<I, O>): void {
+  defineEndpoint({
+    ...config,
+    handler: async (ctx, input) => {
+      const { data: isAdmin, error } = await ctx.admin.rpc('is_admin', { uid: ctx.user.id })
+      if (error) throw new Error(error.message)
+      if (!isAdmin) throw new HttpError(403, 'not_admin')
+      return config.handler(ctx, input)
+    },
+  })
+}

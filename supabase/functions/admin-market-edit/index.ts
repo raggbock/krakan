@@ -1,4 +1,4 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { appError } from '@fyndstigen/shared/errors.ts'
 import {
@@ -6,15 +6,11 @@ import {
   AdminMarketEditOutput,
 } from '@fyndstigen/shared/contracts/admin-market-edit.ts'
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-market-edit',
   input: AdminMarketEditInput,
   output: AdminMarketEditOutput,
-  handler: async ({ user, admin }, { marketId, patch }) => {
-    const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
-    if (rpcErr) throw new Error(rpcErr.message)
-    if (!isAdminResult) throw new HttpError(403, 'not_admin')
-
+  handler: async ({ admin, user }, { marketId, patch }) => {
     // Publishing requires at least one opening_hour_rule. If the same patch
     // also includes new rules, those count — admin can publish in a single
     // round-trip after filling hours in the drawer. Otherwise we look at

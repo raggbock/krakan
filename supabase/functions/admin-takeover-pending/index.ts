@@ -1,19 +1,14 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
-import { HttpError } from '../_shared/handler.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import {
   AdminTakeoverPendingInput,
   AdminTakeoverPendingOutput,
 } from '@fyndstigen/shared/contracts/admin-takeover-send.ts'
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-takeover-pending',
   input: AdminTakeoverPendingInput,
   output: AdminTakeoverPendingOutput,
-  handler: async ({ user, admin }) => {
-    const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
-    if (rpcErr) throw new Error(rpcErr.message)
-    if (!isAdminResult) throw new HttpError(403, 'not_admin')
-
+  handler: async ({ admin }) => {
     // System-owned markets that still have an active (unused, unrevoked,
     // unexpired) token flagged for sending.
     const nowIso = new Date().toISOString()

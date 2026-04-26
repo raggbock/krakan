@@ -1,4 +1,4 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { takeoverInviteEmail } from '../_shared/email-templates/takeover-invite.ts'
@@ -88,15 +88,11 @@ async function sendOne(
   return { status: 'sent', email, reason: null }
 }
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-takeover-send',
   input: AdminTakeoverSendInput,
   output: AdminTakeoverSendOutput,
   handler: async ({ user, admin, origin }, input) => {
-    const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
-    if (rpcErr) throw new Error(rpcErr.message)
-    if (!isAdminResult) throw new HttpError(403, 'not_admin')
-
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')
 

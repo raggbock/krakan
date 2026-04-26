@@ -1,19 +1,14 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
-import { HttpError } from '../_shared/handler.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import {
   AdminMarketActivityInput,
   AdminMarketActivityOutput,
 } from '@fyndstigen/shared/contracts/admin-market-activity.ts'
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-market-activity',
   input: AdminMarketActivityInput,
   output: AdminMarketActivityOutput,
-  handler: async ({ user, admin }, { marketId, limit }) => {
-    const { data: isAdminResult, error: rpcErr } = await admin.rpc('is_admin', { uid: user.id })
-    if (rpcErr) throw new Error(rpcErr.message)
-    if (!isAdminResult) throw new HttpError(403, 'not_admin')
-
+  handler: async ({ admin }, { marketId, limit }) => {
     // Pull both per-market actions and any batch actions whose payload references
     // the market — admin-takeover-send logs as a batch but keeps per-market detail
     // in payload.results, so a strict target_id filter would miss those.

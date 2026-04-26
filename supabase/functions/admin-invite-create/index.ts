@@ -1,4 +1,4 @@
-import { defineEndpoint } from '../_shared/endpoint.ts'
+import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { adminInviteEmail } from '../_shared/email-templates/admin-invite.ts'
@@ -77,7 +77,7 @@ export async function handleInviteCreate(
   return { inviteId: invite.id, expiresAt: invite.expires_at }
 }
 
-defineEndpoint({
+defineAdminEndpoint({
   name: 'admin-invite-create',
   input: AdminInviteCreateInput,
   output: AdminInviteCreateOutput,
