@@ -14,26 +14,57 @@ defineEndpoint({
     if (rpcErr) throw new Error(rpcErr.message)
     if (!isAdminResult) throw new HttpError(403, 'not_admin')
 
-    const [
-      { data: markets, error: mErr },
-      { data: rules, error: rErr },
-      { data: tokens, error: tErr },
-    ] = await Promise.all([
-      admin.from('flea_markets')
-        .select('id, slug, name, city, street, zip_code, country, status, category, is_system_owned, is_permanent, published_at, contact_email, contact_phone, contact_website, contact_facebook, contact_instagram, latitude, longitude, location, updated_at')
-        .eq('is_deleted', false)
-        .order('updated_at', { ascending: false })
-        .limit(10000),
-      admin.from('opening_hour_rules')
-        .select('id, flea_market_id, type, day_of_week, anchor_date, open_time, close_time')
-        .limit(50000),
-      admin.from('business_owner_tokens')
-        .select('flea_market_id, used_at, invalidated_at, expires_at, sent_at')
-        .limit(10000),
-    ])
-    if (mErr) throw new Error(mErr.message)
-    if (rErr) throw new Error(rErr.message)
-    if (tErr) throw new Error(tErr.message)
+    // PostgREST caps responses at db.max_rows (1000 in Supabase defaults)
+    // regardless of any client-side .limit() — so .range() is the only way
+    // to get every row. Page through each table in 1000-row chunks until
+    // the slice comes back smaller than the page size.
+    const PAGE = 1000
+
+    async function pageMarkets() {
+      const out: Record<string, unknown>[] = []
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await admin.from('flea_markets')
+          .select('id, slug, name, city, street, zip_code, country, status, category, is_system_owned, is_permanent, published_at, contact_email, contact_phone, contact_website, contact_facebook, contact_instagram, latitude, longitude, location, updated_at')
+          .eq('is_deleted', false)
+          .order('updated_at', { ascending: false })
+          .range(from, from + PAGE - 1)
+        if (error) throw new Error(error.message)
+        const rows = data ?? []
+        out.push(...rows)
+        if (rows.length < PAGE) break
+      }
+      return out
+    }
+    async function pageRules() {
+      const out: Record<string, unknown>[] = []
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await admin.from('opening_hour_rules')
+          .select('id, flea_market_id, type, day_of_week, anchor_date, open_time, close_time')
+          .order('id', { ascending: true })
+          .range(from, from + PAGE - 1)
+        if (error) throw new Error(error.message)
+        const rows = data ?? []
+        out.push(...rows)
+        if (rows.length < PAGE) break
+      }
+      return out
+    }
+    async function pageTokens() {
+      const out: Record<string, unknown>[] = []
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await admin.from('business_owner_tokens')
+          .select('flea_market_id, used_at, invalidated_at, expires_at, sent_at')
+          .order('expires_at', { ascending: false })
+          .range(from, from + PAGE - 1)
+        if (error) throw new Error(error.message)
+        const rows = data ?? []
+        out.push(...rows)
+        if (rows.length < PAGE) break
+      }
+      return out
+    }
+
+    const [markets, rules, tokens] = await Promise.all([pageMarkets(), pageRules(), pageTokens()])
 
     // Group rules by market.
     const rulesByMarket = new Map<string, Array<{
