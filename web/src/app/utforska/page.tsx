@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
-import { useMarkets } from '@/hooks/use-markets'
+import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
 import { useOpenNowIds } from '@/hooks/use-open-now'
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
@@ -21,11 +21,10 @@ export default function ExplorePage() {
   const [page, setPage] = useState(1)
   const [openNowOnly, setOpenNowOnly] = useState(false)
   const pageSize = openNowOnly ? 200 : 20
-  const { markets: rawMarkets, count, loading, error } = useMarkets({ page: openNowOnly ? 1 : page, pageSize })
-  const { data: openIds, isLoading: openLoading } = useOpenNowIds(openNowOnly)
 
-  // User position for the per-card distance label. Silent when geolocation
-  // is denied — the card just doesn't show a distance.
+  // User position for distance-sorted feed and per-card distance label.
+  // Silent when geolocation is denied — falls back to created_at-sorted
+  // pagination via the regular list adapter.
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
   useEffect(() => {
     if (!navigator.geolocation) return
@@ -36,14 +35,55 @@ export default function ExplorePage() {
     )
   }, [])
 
+  const fallback = useMarkets({
+    page: openNowOnly ? 1 : page,
+    pageSize,
+  })
+  const nearby = useNearbyMarkets(userPos)
+  const useNearby = !!userPos && !nearby.loading
+  const loading = useNearby ? nearby.loading : fallback.loading
+  const error = useNearby ? nearby.error : fallback.error
+
+  const { data: openIds, isLoading: openLoading } = useOpenNowIds(openNowOnly)
+
+  // Normalise both adapters to the small shape the card needs. The nearby
+  // feed gives us all visible markets sorted by distance in one shot;
+  // fallback gives a server-paginated page.
+  type CardMarket = {
+    id: string
+    name: string
+    city: string | null
+    description: string | null
+    is_permanent: boolean
+    latitude: number | null
+    longitude: number | null
+  }
+  const allMarkets: CardMarket[] = useNearby
+    ? nearby.markets.map((m) => ({
+        id: m.id, name: m.name, city: m.city, description: m.description,
+        is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+      }))
+    : fallback.markets.map((m) => ({
+        id: m.id, name: m.name, city: m.city, description: m.description,
+        is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+      }))
+  const totalCount = useNearby ? nearby.markets.length : fallback.count
+
   const markets = useMemo(() => {
-    if (!openNowOnly || !openIds) return rawMarkets
-    const set = new Set(openIds)
-    return rawMarkets.filter((m) => set.has(m.id))
-  }, [rawMarkets, openIds, openNowOnly])
+    let list = allMarkets
+    if (openNowOnly && openIds) {
+      const set = new Set(openIds)
+      list = list.filter((m) => set.has(m.id))
+    }
+    if (useNearby && !openNowOnly) {
+      const start = (page - 1) * pageSize
+      list = list.slice(start, start + pageSize)
+    }
+    return list
+  }, [allMarkets, openIds, openNowOnly, useNearby, page, pageSize])
 
   const isEmpty = !loading && !error && !markets.length
-  const totalPages = Math.ceil(count / pageSize)
+  const totalPages = Math.ceil(totalCount / pageSize)
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">

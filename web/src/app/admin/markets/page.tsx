@@ -10,7 +10,7 @@ import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
 
-type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified' | 'complete' | 'almost_complete'
+type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified' | 'complete' | 'almost_complete' | 'published_no_takeover'
 type SortKey = 'name' | 'city' | 'updated' | 'status'
 type SortDir = 'asc' | 'desc'
 
@@ -24,6 +24,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'missing_contact', label: 'Saknar kontakt' },
   { key: 'missing_hours', label: 'Saknar öppettider' },
   { key: 'unverified', label: 'Status: unverified' },
+  { key: 'published_no_takeover', label: 'Publicerad, ej skickat takeover' },
 ]
 
 /** All seven info-fields filled — used by both the 'Komplett'-filter and the row badge. */
@@ -150,6 +151,11 @@ export default function AdminMarketsPage() {
     if (filter === 'unverified') r = r.filter((m) => m.status === 'unverified')
     if (filter === 'complete') r = r.filter(isComplete)
     if (filter === 'almost_complete') r = r.filter((m) => isAlmostComplete(m) && !isComplete(m))
+    if (filter === 'published_no_takeover') {
+      // Only system-owned markets have a takeover state — claimed ones are
+      // already owned by the organizer and don't need an invite.
+      r = r.filter((m) => m.isPublished && m.isSystemOwned && !m.takeover?.sentAt)
+    }
     const q = search.trim().toLowerCase()
     if (q) {
       r = r.filter((m) =>

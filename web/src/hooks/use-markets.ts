@@ -20,6 +20,26 @@ export function useMarkets(params?: { page?: number; pageSize?: number }) {
   }
 }
 
+/**
+ * Server-side nearest-first market list. Backed by the nearby_flea_markets
+ * RPC which returns markets sorted by ascending distance from the given
+ * point. The radius is generous (national-scale) — see map-view.tsx for the
+ * rationale; clients page through the result client-side.
+ */
+export function useNearbyMarkets(userPos: { lat: number; lng: number } | null) {
+  const { markets } = useDeps()
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['markets', 'nearby', userPos?.lat ?? null, userPos?.lng ?? null],
+    queryFn: () => markets.nearBy({ latitude: userPos!.lat, longitude: userPos!.lng, radiusKm: 2000 }),
+    enabled: !!userPos,
+  })
+  return {
+    markets: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+  }
+}
+
 export function useMarketsByOrganizer(organizerId: string | undefined) {
   const { markets } = useDeps()
   const { data, isLoading, error } = useQuery({
