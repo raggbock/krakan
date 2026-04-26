@@ -375,7 +375,21 @@ function MarketRow({
         />
       </td>
       <td className="px-3 py-2">
-        <div className="font-semibold">{m.name}</div>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{m.name}</span>
+          {m.contactWebsite && (
+            <a
+              href={m.contactWebsite}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-rust hover:underline"
+              title={m.contactWebsite}
+              onClick={(e) => e.stopPropagation()}
+            >
+              webbplats ↗
+            </a>
+          )}
+        </div>
         <div className="font-mono text-xs text-espresso/50">{m.slug ?? '—'}</div>
       </td>
       <td className="px-3 py-2 text-espresso/75">{m.city ?? '—'}</td>

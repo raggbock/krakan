@@ -117,7 +117,9 @@ export function EditMarketDrawer({
     }
 
     // Opening hours: serialize current weekly rules + keep any non-weekly
-    // ones from the original (the drawer doesn't edit those).
+    // ones from the original (the drawer doesn't edit those). Compare by
+    // serialising both sides to a canonical key — the previous Set + every()
+    // pair was easy to get subtly wrong (one report of edits not saving).
     const weeklySerialized = weeklyRules
       .filter((r) => r.dayOfWeek != null)
       .map((r) => ({
@@ -137,16 +139,13 @@ export function EditMarketDrawer({
         closeTime: r.closeTime,
       })),
     ]
-    // Compare against original via length + day set; if changed, include.
-    const originalDays = new Set(initialWeekly.map((r) => r.dayOfWeek))
-    const newDays = new Set(weeklyRules.map((r) => r.dayOfWeek))
-    const sameDays = originalDays.size === newDays.size &&
-      [...originalDays].every((d) => newDays.has(d))
-    const sameTimes = sameDays && weeklyRules.every((r) => {
-      const orig = initialWeekly.find((o) => o.dayOfWeek === r.dayOfWeek)
-      return orig && orig.openTime === r.openTime && orig.closeTime === r.closeTime
-    })
-    if (!sameTimes) {
+    const ruleKey = (r: { dayOfWeek: number | null; openTime: string; closeTime: string }) => {
+      const t = (s: string) => s.length === 5 ? `${s}:00` : s
+      return `${r.dayOfWeek}|${t(r.openTime)}|${t(r.closeTime)}`
+    }
+    const originalKeys = initialWeekly.map(ruleKey).sort().join(',')
+    const newKeys = weeklySerialized.map(ruleKey).sort().join(',')
+    if (originalKeys !== newKeys) {
       patch.openingHourRules = allRules
     }
 
@@ -167,6 +166,16 @@ export function EditMarketDrawer({
           <div>
             <h2 className="font-display font-bold text-xl">{market.name}</h2>
             <p className="text-xs font-mono text-espresso/50">{market.slug ?? market.id}</p>
+            {website && (
+              <a
+                href={website}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-rust hover:underline"
+              >
+                Öppna webbplats ↗
+              </a>
+            )}
           </div>
           <button onClick={onClose} className="text-espresso/60 hover:text-espresso px-2 py-1">✕</button>
         </header>
