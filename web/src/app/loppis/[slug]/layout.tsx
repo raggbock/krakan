@@ -49,10 +49,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description = `${market.name} i ${market.city}. Hitta öppettider, adress och boka bord på Fyndstigen.`
   }
 
+  // Drafts are reachable by URL (so owners can preview their work-in-progress
+  // and the post-create redirect doesn't 404), but Google must not index
+  // them — half-finished pages would tank the SEO equity of the eventual
+  // published version.
+  const isDraft = !market.published_at
+
   return {
     title,
     description,
     alternates: { canonical: `/loppis/${slug}` },
+    ...(isDraft ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: `${market.name} — Fyndstigen`,
       description,

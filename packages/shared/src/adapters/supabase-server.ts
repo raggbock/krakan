@@ -4,19 +4,34 @@ import type { ServerDataPort } from '../ports/server'
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
     async getMarketIdBySlug(slug) {
+      // Query the base table, not visible_flea_markets, so owners can still
+      // reach their unpublished drafts via /loppis/[slug] (and via the
+      // 308 redirect from the legacy /fleamarkets/[id] URL after creating
+      // a new market). The metadata layer marks drafts noindex so Google
+      // doesn't index them, and the client component already handles the
+      // owner-vs-stranger distinction with a draft banner.
+      //
+      // Only is_deleted is filtered here — soft-deleted markets must not
+      // be reachable by anyone.
       const { data } = await supabase
-        .from('visible_flea_markets')
+        .from('flea_markets')
         .select('id')
         .eq('slug', slug)
+        .eq('is_deleted', false)
         .maybeSingle()
       return (data?.id as string | undefined) ?? null
     },
 
     async getMarketSlugById(id) {
+      // Filter is_deleted so the legacy /fleamarkets/[id] route 404s
+      // directly for soft-deleted markets instead of redirecting to a
+      // /loppis/[slug] URL that would itself 404. Cleaner UX, fewer
+      // confused users, and one fewer hop for crawlers.
       const { data } = await supabase
         .from('flea_markets')
         .select('slug')
         .eq('id', id)
+        .eq('is_deleted', false)
         .maybeSingle()
       return (data?.slug as string | null | undefined) ?? null
     },
@@ -25,7 +40,7 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       const { data: market } = await supabase
         .from('flea_markets')
         .select(`
-          name, description, city, street, zip_code, is_permanent, latitude, longitude,
+          name, description, city, street, zip_code, is_permanent, latitude, longitude, published_at,
           organizer:profiles!organizer_id(subscription_tier),
           opening_hour_rules(type, day_of_week, anchor_date, open_time, close_time),
           market_tables(price_sek, is_available),
@@ -74,6 +89,7 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         latitude: market.latitude,
         longitude: market.longitude,
         is_permanent: market.is_permanent,
+        published_at: (market.published_at as string | null) ?? null,
         organizer_subscription_tier,
         opening_hour_rules,
         price_range,

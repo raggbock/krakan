@@ -61,6 +61,9 @@ export function createInMemoryServerData(seed?: {
 
   return {
     async getMarketIdBySlug(slug) {
+      // Mirrors the supabase adapter: returns drafts too, only filters out
+      // soft-deleted markets. The seed shape doesn't track is_deleted, so
+      // every seeded market is treated as live.
       return markets.find((m) => m.slug === slug)?.id ?? null
     },
     async getMarketSlugById(id) {

@@ -18,6 +18,8 @@ export interface ServerDataPort {
     latitude: number | null
     longitude: number | null
     is_permanent: boolean
+    /** Null when market is still a draft. Used to gate metadata robots:noindex. */
+    published_at: string | null
     organizer_subscription_tier: number
     opening_hour_rules: Array<{
       type: string
