@@ -73,6 +73,10 @@ import {
   TakeoverStartOutput,
   TakeoverVerifyInput,
   TakeoverVerifyOutput,
+  TakeoverFeedbackInput,
+  TakeoverFeedbackOutput,
+  TakeoverRemoveInput,
+  TakeoverRemoveOutput,
 } from '../contracts/takeover'
 import {
   SkyltfonstretCheckoutInput,
@@ -211,6 +215,18 @@ export const ENDPOINTS = {
     path: 'takeover-verify',
     request: TakeoverVerifyInput,
     response: TakeoverVerifyOutput,
+    public: true,
+  }),
+  'takeover.feedback': defineEndpointDef({
+    path: 'takeover-feedback',
+    request: TakeoverFeedbackInput,
+    response: TakeoverFeedbackOutput,
+    public: true,
+  }),
+  'takeover.remove': defineEndpointDef({
+    path: 'takeover-remove',
+    request: TakeoverRemoveInput,
+    response: TakeoverRemoveOutput,
     public: true,
   }),
   'skyltfonstret.checkout': defineEndpointDef({

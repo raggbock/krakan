@@ -26,3 +26,17 @@ export function useTakeoverVerify() {
       api.endpoints['takeover.verify'].invoke(args),
   })
 }
+
+export function useTakeoverFeedback() {
+  return useMutation({
+    mutationFn: (args: { token: string; email: string; message: string }) =>
+      api.endpoints['takeover.feedback'].invoke(args),
+  })
+}
+
+export function useTakeoverRemove() {
+  return useMutation({
+    mutationFn: (args: { token: string; reason?: string }) =>
+      api.endpoints['takeover.remove'].invoke(args),
+  })
+}

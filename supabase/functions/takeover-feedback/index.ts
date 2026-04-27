@@ -1,15 +1,19 @@
 import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
+import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
+import { takeoverFeedbackEmail } from '../_shared/email-templates/takeover-feedback.ts'
 import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
-  TakeoverInfoInput,
-  TakeoverInfoOutput,
+  TakeoverFeedbackInput,
+  TakeoverFeedbackOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
 
+const FEEDBACK_TO = 'hej@fyndstigen.se'
+
 definePublicEndpoint({
-  name: 'takeover-info',
-  input: TakeoverInfoInput,
-  output: TakeoverInfoOutput,
+  name: 'takeover-feedback',
+  input: TakeoverFeedbackInput,
+  output: TakeoverFeedbackOutput,
   handler: async ({ admin }, input) => {
     const tokenHash = await sha256Hex(input.token)
     const { data: tokenRow, error } = await admin
@@ -25,16 +29,31 @@ definePublicEndpoint({
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')
-      .select('name, city, region, contact_website')
+      .select('name, city')
       .eq('id', tokenRow.flea_market_id)
       .single()
     if (mErr) throw new Error(mErr.message)
 
-    return {
-      name: market.name as string,
-      city: (market.city as string | null) ?? null,
-      region: (market.region as string | null) ?? null,
-      sourceUrl: (market.contact_website as string | null) ?? null,
-    }
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')
+
+    const businessName = market.name as string
+    const city = (market.city as string | null) ?? null
+    const { html, text } = takeoverFeedbackEmail({
+      businessName,
+      city,
+      fromEmail: input.email,
+      message: input.message,
+    })
+    await sendEmail({
+      to: FEEDBACK_TO,
+      subject: `Ändringsförslag: ${businessName}`,
+      html,
+      text,
+      from: DEFAULT_FROM,
+      apiKey: resendApiKey,
+    })
+
+    return { ok: true as const }
   },
 })
