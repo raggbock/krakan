@@ -2,19 +2,12 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-// Mock next/navigation
-vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: 'market-1' }),
-}))
-
-// Mock next/link
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),
 }))
 
-// Mock api
 vi.mock('@/lib/api', () => ({
   api: {
     fleaMarkets: { get: vi.fn() },
@@ -22,44 +15,36 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-// Mock auth context
 vi.mock('@/lib/auth-context', () => ({
   useAuth: () => ({ user: null, loading: false }),
 }))
 
-// Mock useMarketDetails hook
 vi.mock('@/hooks/use-market-details', () => ({
   useMarketDetails: vi.fn(),
 }))
 
-// Mock logo/loading component
 vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading" />,
 }))
 
-// Mock BookableTablesCard
 vi.mock('@/components/bookable-tables-card', () => ({
   BookableTablesCard: () => <div data-testid="bookable-tables" />,
 }))
 
-// Mock OpeningHoursCard
 vi.mock('@/components/opening-hours-card', () => ({
   OpeningHoursCard: () => <div data-testid="opening-hours" />,
 }))
 
-// Mock BackLink
 vi.mock('@/components/back-link', () => ({
   BackLink: ({ href }: { href: string }) => <a href={href} data-testid="back-link" />,
 }))
 
-// Mock AddressCard
 vi.mock('@/components/address-card', () => ({
   AddressCard: ({ street, city }: { street: string; city: string }) => (
     <div data-testid="address-card">{street}, {city}</div>
   ),
 }))
 
-// Mock OrganizerCard
 vi.mock('@/components/organizer-card', () => ({
   OrganizerCard: ({ organizerName }: { organizerName: string }) => (
     <div data-testid="organizer-card">{organizerName}</div>
@@ -67,7 +52,7 @@ vi.mock('@/components/organizer-card', () => ({
 }))
 
 import { useMarketDetails } from '@/hooks/use-market-details'
-import FleaMarketDetailsPage from './page'
+import { MarketDetail } from './market-detail'
 
 const mockMarket = {
   id: 'market-1',
@@ -116,60 +101,60 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('FleaMarketDetailsPage', () => {
+describe('MarketDetail', () => {
   it('shows loading state', () => {
     setupMocks({ loading: true, market: null })
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByTestId('loading')).toBeInTheDocument()
   })
 
   it('shows "not found" when market does not exist', () => {
     setupMocks({ loading: false, market: null })
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Loppisen hittades inte')).toBeInTheDocument()
     expect(screen.getByText(/Den kanske har tagits bort eller flyttat/)).toBeInTheDocument()
   })
 
   it('shows market name and city', () => {
     setupMocks()
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Stockholms Loppis')).toBeInTheDocument()
     expect(screen.getByTestId('address-card')).toBeInTheDocument()
   })
 
   it('shows description', () => {
     setupMocks()
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByText('En fantastisk loppis i hjärtat av Stockholm.')).toBeInTheDocument()
   })
 
   it('shows "Permanent" badge for permanent market', () => {
     setupMocks({ market: { ...mockMarket, is_permanent: true } })
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Permanent')).toBeInTheDocument()
   })
 
   it('shows "Tillfällig" badge for temporary market', () => {
     setupMocks({ market: { ...mockMarket, is_permanent: false } })
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Tillfällig')).toBeInTheDocument()
   })
 
   it('shows BookableTablesCard when tables exist', () => {
     setupMocks({ tables: mockTables })
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByTestId('bookable-tables')).toBeInTheDocument()
   })
 
   it('shows opening hours when rules exist', () => {
     setupMocks()
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByTestId('opening-hours')).toBeInTheDocument()
   })
 
   it('shows organizer link', () => {
     setupMocks()
-    render(<FleaMarketDetailsPage />)
+    render(<MarketDetail id="market-1" />)
     expect(screen.getByTestId('organizer-card')).toBeInTheDocument()
     expect(screen.getByText('Test Arrangör')).toBeInTheDocument()
   })

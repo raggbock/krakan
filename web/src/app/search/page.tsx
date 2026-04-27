@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useSearch } from '@/hooks/use-search'
+import { marketUrl } from '@/lib/urls'
 
 export default function SearchPage() {
   const { query, results, loading, search } = useSearch()
@@ -68,7 +69,7 @@ export default function SearchPage() {
                 {results.map((market, i) => (
                   <Link
                     key={market.id}
-                    href={`/fleamarkets/${market.id}`}
+                    href={marketUrl(market)}
                     className="group flex items-center gap-4 vintage-card p-4 hover:shadow-md transition-all duration-300 animate-fade-up"
                     style={{ animationDelay: `${i * 0.05}s` }}
                   >

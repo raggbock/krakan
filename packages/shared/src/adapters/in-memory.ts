@@ -51,7 +51,7 @@ type RouteMeta = Awaited<ReturnType<ServerDataPort['getRouteMeta']>>
 type OrganizerMeta = Awaited<ReturnType<ServerDataPort['getOrganizerMeta']>>
 
 export function createInMemoryServerData(seed?: {
-  markets?: Array<NonNullable<MarketMeta> & { id: string; updatedAt: string }>
+  markets?: Array<NonNullable<MarketMeta> & { id: string; slug?: string | null; updatedAt: string }>
   routes?: Array<NonNullable<RouteMeta> & { id: string; updatedAt: string }>
   organizers?: Array<NonNullable<OrganizerMeta> & { id: string }>
 }): ServerDataPort {
@@ -60,6 +60,12 @@ export function createInMemoryServerData(seed?: {
   const organizers = seed?.organizers ?? []
 
   return {
+    async getMarketIdBySlug(slug) {
+      return markets.find((m) => m.slug === slug)?.id ?? null
+    },
+    async getMarketSlugById(id) {
+      return markets.find((m) => m.id === id)?.slug ?? null
+    },
     async getMarketMeta(id) {
       return markets.find((m) => m.id === id) ?? null
     },
@@ -70,7 +76,7 @@ export function createInMemoryServerData(seed?: {
       return organizers.find((o) => o.id === id) ?? null
     },
     async listPublishedMarketIds() {
-      return markets.map((m) => ({ id: m.id, updatedAt: m.updatedAt }))
+      return markets.map((m) => ({ id: m.id, slug: m.slug ?? null, updatedAt: m.updatedAt }))
     },
     async listCitiesWithMarkets() {
       const byCity = new Map<string, { count: number; latest: string }>()

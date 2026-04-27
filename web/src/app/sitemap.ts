@@ -19,8 +19,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const markets = await server.listPublishedMarketIds()
+  // Prefer slug URLs — every published market has one (DB-enforced unique
+  // index). The id-fallback is purely defensive in case a slugless row
+  // sneaks through during a future migration; it 308-redirects to the
+  // canonical slug URL anyway.
   const marketPages: MetadataRoute.Sitemap = markets.map((m) => ({
-    url: `${baseUrl}/fleamarkets/${m.id}`,
+    url: m.slug
+      ? `${baseUrl}/loppis/${m.slug}`
+      : `${baseUrl}/fleamarkets/${m.id}`,
     lastModified: new Date(m.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.9,

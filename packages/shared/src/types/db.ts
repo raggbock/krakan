@@ -22,6 +22,12 @@ export type FleaMarketRow = {
   is_permanent: boolean
   latitude: number
   longitude: number
+  /**
+   * URL-safe slug used for /loppis/[slug]. Unique per market. Optional in
+   * the type because legacy fetches predate the column, but every
+   * published row in the DB has one (00020 + backfill).
+   */
+  slug?: string | null
   published_at: string | null
   organizer_id: string
   auto_accept_bookings: boolean

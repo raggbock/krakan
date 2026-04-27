@@ -10,6 +10,7 @@ import { useMarketsByOrganizer } from '@/hooks/use-markets'
 import { useRoutesByUser } from '@/hooks/use-routes'
 import { usePendingBookingsCount } from '@/hooks/use-pending-bookings-count'
 import { StripeConnectButton } from '@/components/stripe-connect-button'
+import { marketUrl } from '@/lib/urls'
 import { useFlag } from '@/lib/flags'
 
 export default function ProfilePage() {
@@ -158,7 +159,7 @@ export default function ProfilePage() {
               return (
                 <div key={market.id}>
                   <Link
-                    href={`/fleamarkets/${market.id}`}
+                    href={marketUrl(market)}
                     className={`group flex items-center justify-between bg-parchment p-4 hover:bg-cream-warm transition-colors duration-200 ${isHidden ? 'rounded-t-xl' : 'rounded-xl'}`}
                   >
                     <div className="flex items-center gap-3">

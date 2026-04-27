@@ -1,5 +1,14 @@
 /** Lightweight queries for server-side SEO metadata and sitemap generation. */
 export interface ServerDataPort {
+  /**
+   * Resolves a market slug to its UUID. Returns null if no published market
+   * exists with that slug. Used by /loppis/[slug] to map slug → id before
+   * rendering, and by /fleamarkets/[id] to find the slug for redirecting.
+   */
+  getMarketIdBySlug(slug: string): Promise<string | null>
+  /** Inverse: id → slug for redirecting old UUID URLs to new slug URLs. */
+  getMarketSlugById(id: string): Promise<string | null>
+
   getMarketMeta(id: string): Promise<{
     name: string
     description: string | null
@@ -37,12 +46,13 @@ export interface ServerDataPort {
     marketCount: number
   } | null>
 
-  listPublishedMarketIds(): Promise<Array<{ id: string; updatedAt: string }>>
+  listPublishedMarketIds(): Promise<Array<{ id: string; slug: string | null; updatedAt: string }>>
   listPublishedRouteIds(): Promise<Array<{ id: string; updatedAt: string }>>
 
   listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string }>>
   listMarketsInCity(cityNames: string[]): Promise<Array<{
     id: string
+    slug: string | null
     name: string
     description: string | null
     street: string

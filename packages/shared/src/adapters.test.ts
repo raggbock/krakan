@@ -113,7 +113,7 @@ describe('createInMemoryServerData', () => {
   it('listPublishedMarketIds returns all seeded', async () => {
     const server = createInMemoryServerData(seed)
     const ids = await server.listPublishedMarketIds()
-    expect(ids).toEqual([{ id: 'm1', updatedAt: '2026-01-01' }])
+    expect(ids).toEqual([{ id: 'm1', slug: null, updatedAt: '2026-01-01' }])
   })
 
   it('listPublishedRouteIds returns all seeded', async () => {

@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { marketUrl } from '@/lib/urls'
 
 type Props = {
   params: Promise<{ city: string }>
@@ -66,7 +67,7 @@ export default async function CityPage({ params }: Props) {
     itemListElement: markets.map((m, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://fyndstigen.se/fleamarkets/${m.id}`,
+      url: `https://fyndstigen.se${marketUrl(m)}`,
       name: m.name,
     })),
   }
@@ -101,7 +102,7 @@ export default async function CityPage({ params }: Props) {
         {markets.map((m) => (
           <Link
             key={m.id}
-            href={`/fleamarkets/${m.id}`}
+            href={marketUrl(m)}
             className="vintage-card flex items-center gap-4 p-4 hover:bg-cream-warm/30 transition-colors"
           >
             <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-cream-warm shrink-0">

@@ -3,6 +3,24 @@ import type { ServerDataPort } from '../ports/server'
 
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
+    async getMarketIdBySlug(slug) {
+      const { data } = await supabase
+        .from('visible_flea_markets')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle()
+      return (data?.id as string | undefined) ?? null
+    },
+
+    async getMarketSlugById(id) {
+      const { data } = await supabase
+        .from('flea_markets')
+        .select('slug')
+        .eq('id', id)
+        .maybeSingle()
+      return (data?.slug as string | null | undefined) ?? null
+    },
+
     async getMarketMeta(id) {
       const { data: market } = await supabase
         .from('flea_markets')
@@ -103,8 +121,12 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     async listPublishedMarketIds() {
       const { data } = await supabase
         .from('visible_flea_markets')
-        .select('id, updated_at')
-      return (data ?? []).map((m) => ({ id: m.id, updatedAt: m.updated_at }))
+        .select('id, slug, updated_at')
+      return (data ?? []).map((m) => ({
+        id: m.id as string,
+        slug: (m.slug as string | null | undefined) ?? null,
+        updatedAt: m.updated_at as string,
+      }))
     },
 
     async listPublishedRouteIds() {
@@ -142,7 +164,7 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       if (cityNames.length === 0) return []
       const { data } = await supabase
         .from('visible_flea_markets')
-        .select('id, name, description, street, is_permanent, city, flea_market_images(storage_path, sort_order)')
+        .select('id, slug, name, description, street, is_permanent, city, flea_market_images(storage_path, sort_order)')
         .in('city', cityNames)
         .order('updated_at', { ascending: false })
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -151,12 +173,13 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
         const first = sorted[0]
         return {
-          id: m.id,
-          name: m.name,
-          description: m.description,
-          street: m.street,
-          is_permanent: m.is_permanent,
-          city: m.city,
+          id: m.id as string,
+          slug: (m.slug as string | null | undefined) ?? null,
+          name: m.name as string,
+          description: m.description as string | null,
+          street: m.street as string,
+          is_permanent: m.is_permanent as boolean,
+          city: m.city as string,
           image_url: first
             ? `${supabaseUrl}/storage/v1/object/public/flea-market-images/${first.storage_path}`
             : null,

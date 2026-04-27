@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
+import { marketUrl } from '@/lib/urls'
 import { useOpenNowIds } from '@/hooks/use-open-now'
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
@@ -297,7 +298,7 @@ export default function ExplorePage() {
             {markets.map((market, i) => (
               <Link
                 key={market.id}
-                href={`/fleamarkets/${market.id}`}
+                href={marketUrl(market)}
                 className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up"
                 style={{ animationDelay: `${0.1 + i * 0.06}s` }}
               >

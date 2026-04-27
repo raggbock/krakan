@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { api, OrganizerProfile, FleaMarket } from '@/lib/api'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth-context'
+import { marketUrl } from '@/lib/urls'
 
 export default function OrganizerProfilePage() {
   const { id } = useParams<{ id: string }>()
@@ -123,7 +124,7 @@ export default function OrganizerProfilePage() {
             {markets.map((market) => (
               <Link
                 key={market.id}
-                href={`/fleamarkets/${market.id}`}
+                href={marketUrl(market)}
                 className="group flex items-center gap-4 vintage-card p-4 hover:shadow-md transition-all"
               >
                 <div className="w-12 h-12 rounded-xl bg-cream-warm knit-bg flex items-center justify-center shrink-0">
