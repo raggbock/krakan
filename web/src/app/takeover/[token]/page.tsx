@@ -20,6 +20,7 @@ const ERROR_LABEL: Record<string, string> = {
   code_expired: 'Koden har gått ut. Begär en ny.',
   no_code_sent: 'Ingen kod skickad. Börja om.',
   too_many_attempts: 'För många felaktiga försök. Begär en ny länk från admin.',
+  market_removed: 'Den här loppisen är borttagen.',
 }
 
 function labelFor(err: unknown): string {

@@ -24,10 +24,11 @@ async function sendOne(
 ): Promise<{ status: 'sent' | 'skipped' | 'error'; email: string | null; reason: string | null }> {
   const { data: market, error: mErr } = await admin
     .from('flea_markets')
-    .select('id, name, city, contact_email, is_system_owned')
+    .select('id, name, city, contact_email, is_system_owned, is_deleted')
     .eq('id', marketId)
     .single()
   if (mErr) return { status: 'error', email: null, reason: mErr.message }
+  if (market.is_deleted) return { status: 'skipped', email: null, reason: 'market_removed' }
   if (!market.is_system_owned) return { status: 'skipped', email: null, reason: 'already_owned' }
   const email = (market.contact_email as string | null)?.trim() ?? null
   if (!email) return { status: 'skipped', email: null, reason: 'no_contact_email' }

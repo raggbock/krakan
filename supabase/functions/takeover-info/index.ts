@@ -25,10 +25,11 @@ definePublicEndpoint({
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')
-      .select('name, city, region, contact_website')
+      .select('name, city, region, contact_website, is_deleted')
       .eq('id', tokenRow.flea_market_id)
       .single()
     if (mErr) throw new Error(mErr.message)
+    if (market.is_deleted) throw new HttpError(410, 'market_removed')
 
     return {
       name: market.name as string,

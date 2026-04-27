@@ -98,6 +98,9 @@ definePublicEndpoint({
       if (claimErr.message?.includes('token_already_used')) {
         throw new HttpError(410, 'token_already_used')
       }
+      if (claimErr.message?.includes('market_deleted')) {
+        throw new HttpError(410, 'market_removed')
+      }
       throw new Error(claimErr.message)
     }
 

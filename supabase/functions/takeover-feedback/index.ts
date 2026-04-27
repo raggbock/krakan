@@ -29,10 +29,11 @@ definePublicEndpoint({
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')
-      .select('name, city')
+      .select('name, city, is_deleted')
       .eq('id', tokenRow.flea_market_id)
       .single()
     if (mErr) throw new Error(mErr.message)
+    if (market.is_deleted) throw new HttpError(410, 'market_removed')
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')
