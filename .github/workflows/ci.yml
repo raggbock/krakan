@@ -65,6 +65,23 @@ jobs:
       - name: Check edge import surface
         run: node scripts/check-edge-imports.mjs
 
+  # Verify migrations that alter columns on tables with `select *` views
+  # also refresh those views in the same file. Without this, columns added
+  # to base tables silently fail to project into the view (Postgres freezes
+  # the view's column list at creation time).
+  check-view-refreshes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check view refreshes
+        run: node scripts/check-view-refreshes.mjs
+
   lighthouse:
     runs-on: ubuntu-latest
     needs: test
