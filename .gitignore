@@ -22,6 +22,9 @@ mobile/ios/
 mobile/.next/
 
 # Environment
+.env
+.env.*
+!.env.example
 app/.env
 app/.config/*.env
 web/.env*
