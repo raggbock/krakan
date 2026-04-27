@@ -67,6 +67,10 @@ import {
   AdminTakeoverSendOutput,
 } from '../contracts/admin-takeover-send'
 import {
+  PublicMarketCreateInput,
+  PublicMarketCreateOutput,
+} from '../contracts/public-market-create'
+import {
   TakeoverInfoInput,
   TakeoverInfoOutput,
   TakeoverStartInput,
@@ -215,6 +219,12 @@ export const ENDPOINTS = {
     path: 'takeover-verify',
     request: TakeoverVerifyInput,
     response: TakeoverVerifyOutput,
+    public: true,
+  }),
+  'public.market.create': defineEndpointDef({
+    path: 'public-market-create',
+    request: PublicMarketCreateInput,
+    response: PublicMarketCreateOutput,
     public: true,
   }),
   'takeover.feedback': defineEndpointDef({

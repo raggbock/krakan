@@ -51,6 +51,8 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/admin-market-activity',               // zod schema
   'contracts/takeover',                            // zod schema
   'contracts/admin-takeover-send',                 // zod schema
+  'contracts/public-market-create',                // zod schema
+  'format',                                        // pure string utilities (slugifyCity)
   'business-import',                               // pure validation/diff logic
   'errors',                                        // AppError + error codes
   'adapters/supabase/booking-repo',                // Supabase DB adapter
