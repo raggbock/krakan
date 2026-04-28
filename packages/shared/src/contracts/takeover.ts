@@ -35,7 +35,8 @@ export const TakeoverStartInput = z.object({
 })
 export const TakeoverStartOutput = z.object({
   ok: z.literal(true),
-  expiresAt: z.string(),
+  /** True when a magic-link has been mailed; visitor should check inbox. */
+  magicLinkSent: z.boolean(),
 })
 
 export const TakeoverVerifyInput = z.object({

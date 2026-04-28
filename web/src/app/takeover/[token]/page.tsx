@@ -5,7 +5,6 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import {
   useTakeoverInfo,
   useTakeoverStart,
-  useTakeoverVerify,
   useTakeoverFeedback,
   useTakeoverRemove,
 } from '@/hooks/use-takeover'
@@ -313,28 +312,18 @@ function ClaimView({
   onCancel: () => void
 }) {
   const start = useTakeoverStart()
-  const verify = useTakeoverVerify()
-  const [step, setStep] = useState<'email' | 'code' | 'done'>('email')
+  // Single-step claim now: submit email → server creates user, claims
+  // market, mails magic-link → done. No 6-digit code round-trip — the
+  // magic-link itself proves inbox control, same as the code did.
+  const [step, setStep] = useState<'email' | 'done'>('email')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
 
   async function onSubmitEmail(e: React.FormEvent) {
     e.preventDefault()
-    // Catch so token-already-used / token-expired etc don't fire as
-    // unhandled rejections — the mutation's isError state already
-    // drives the inline labelFor() banner under the form.
     try {
       await start.mutateAsync({ token, email })
-      setStep('code')
-    } catch { /* surfaced via start.isError */ }
-  }
-
-  async function onSubmitCode(e: React.FormEvent) {
-    e.preventDefault()
-    try {
-      await verify.mutateAsync({ token, email, code })
       setStep('done')
-    } catch { /* surfaced via verify.isError */ }
+    } catch { /* surfaced via start.isError */ }
   }
 
   return (
@@ -342,9 +331,9 @@ function ClaimView({
       {step === 'email' && (
         <form onSubmit={onSubmitEmail} className="space-y-4">
           <p className="text-sm text-espresso-light">
-            Vi skickar en 6-siffrig verifieringskod till samma e-postadress som
-            mejlet kom till
+            Skriv in samma e-post som invitet kom till
             {market.maskedEmail ? <> — <code className="font-mono">{market.maskedEmail}</code></> : null}.
+            Vi skickar en inloggningslänk till den adressen.
           </p>
           <div>
             <label className="block text-[13px] font-bold text-espresso-light mb-1.5">
@@ -364,7 +353,7 @@ function ClaimView({
             disabled={start.isPending}
             className="w-full bg-forest text-parchment px-5 py-3 rounded-pill font-bold disabled:opacity-50 hover:bg-forest-light transition-colors"
           >
-            {start.isPending ? 'Skickar kod…' : 'Skicka verifieringskod'}
+            {start.isPending ? 'Skickar länk…' : 'Skicka inloggningslänk'}
           </button>
           {start.isError && (
             <p className="text-error text-sm">{labelFor(start.error)}</p>
@@ -376,58 +365,17 @@ function ClaimView({
         </form>
       )}
 
-      {step === 'code' && (
-        <form onSubmit={onSubmitCode} className="space-y-4">
-          <p className="text-sm text-espresso-light">
-            Vi skickade en 6-siffrig kod till <strong>{email}</strong>. Koden
-            gäller i 15 minuter.
-          </p>
-          <div>
-            <label className="block text-[13px] font-bold text-espresso-light mb-1.5">
-              Verifieringskod
-            </label>
-            <input
-              type="text"
-              required
-              inputMode="numeric"
-              pattern="[0-9]{6}"
-              maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              placeholder="123456"
-              className="w-full px-3.5 py-3 rounded-input border border-cream-warm bg-parchment text-espresso font-mono text-2xl text-center tracking-[0.4em] focus:outline-none focus:border-forest"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={verify.isPending || code.length !== 6}
-            className="w-full bg-forest text-parchment px-5 py-3 rounded-pill font-bold disabled:opacity-50 hover:bg-forest-light transition-colors"
-          >
-            {verify.isPending ? 'Verifierar…' : 'Bekräfta'}
-          </button>
-          {verify.isError && (
-            <p className="text-error text-sm">{labelFor(verify.error)}</p>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              setStep('email')
-              setCode('')
-            }}
-            className="text-sm text-rust hover:underline"
-          >
-            ← Tillbaka
-          </button>
-        </form>
-      )}
-
       {step === 'done' && (
-        <div className="rounded-card border border-forest/30 bg-forest/[0.06] p-5 space-y-2">
+        <div className="rounded-card border border-forest/30 bg-forest/[0.06] p-5 space-y-3">
           <h3 className="font-display text-xl font-medium text-forest">Klart!</h3>
           <p className="text-sm text-espresso-light">
-            Profilen är nu kopplad till <strong>{email}</strong>. Vi har skickat
-            en inloggningslänk till samma adress — klicka på den för att börja
-            redigera {market.name}.
+            Vi har skickat en inloggningslänk till <strong>{email}</strong>.
+            Klicka på den i ditt mejl så loggas du in och landar direkt på
+            sidan för {market.name}, redo att redigera.
+          </p>
+          <p className="text-xs text-espresso/55">
+            Hittar du inget mejl? Kolla skräpposten — det kommer från
+            noreply@fyndstigen.se.
           </p>
         </div>
       )}

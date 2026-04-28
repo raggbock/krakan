@@ -1,23 +1,34 @@
 import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
-import { takeoverCodeEmail } from '../_shared/email-templates/takeover-code.ts'
-import {
-  CODE_TTL_MS,
-  generateCode,
-  sha256Hex,
-} from '../_shared/takeover-helpers.ts'
+import { takeoverMagicLinkEmail } from '../_shared/email-templates/takeover-code.ts'
+import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
   TakeoverStartInput,
   TakeoverStartOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
 
+/**
+ * Single-shot claim flow:
+ *   - Validate token + email-match (must match sent_to_email exactly).
+ *   - Resolve or create the auth user.
+ *   - Spend the token + transfer ownership in claim_takeover_atomic.
+ *   - Mail a magic-link redirecting to the now-claimed market's slug page.
+ *
+ * Replaces the previous start → 6-digit-code → verify two-step. Same
+ * security model (must control the recipient inbox to receive the
+ * magic-link), one fewer email + one fewer typing step. takeover-verify
+ * stays deployed for ~2 weeks so anyone who already received a code from
+ * the old flow can still finish their claim.
+ */
 definePublicEndpoint({
   name: 'takeover-start',
   input: TakeoverStartInput,
   output: TakeoverStartOutput,
-  handler: async ({ admin }, input) => {
+  handler: async ({ admin, origin }, input) => {
     const tokenHash = await sha256Hex(input.token)
+    const submittedEmail = input.email.toLowerCase()
+
     const { data: tokenRow, error } = await admin
       .from('business_owner_tokens')
       .select('id, flea_market_id, used_at, invalidated_at, expires_at, sent_to_email')
@@ -29,49 +40,84 @@ definePublicEndpoint({
     if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
     if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
 
-    // Bind verification to the email the admin invited. Anyone who held
-    // the token URL could otherwise substitute a different email and
-    // intercept the code (S1 from security review).
-    const submittedEmail = input.email.toLowerCase()
     const expectedEmail = (tokenRow.sent_to_email as string | null)?.trim().toLowerCase()
     if (!expectedEmail) throw new HttpError(400, 'token_has_no_recipient')
     if (submittedEmail !== expectedEmail) throw new HttpError(400, 'email_mismatch')
 
+    // Bail out before user creation if the underlying market is gone —
+    // saves an orphan auth row that would otherwise sit unused.
     const { data: market, error: mErr } = await admin
       .from('flea_markets')
-      .select('name')
+      .select('name, slug, is_deleted')
       .eq('id', tokenRow.flea_market_id)
       .single()
     if (mErr) throw new Error(mErr.message)
+    if (market.is_deleted) throw new HttpError(410, 'market_removed')
 
-    const code = generateCode()
-    const codeHash = await sha256Hex(code)
-    const expiresAt = new Date(Date.now() + CODE_TTL_MS).toISOString()
-
-    const { error: updErr } = await admin
-      .from('business_owner_tokens')
-      .update({
-        verification_email: input.email.toLowerCase(),
-        verification_code_hash: codeHash,
-        verification_code_expires_at: expiresAt,
-        verification_attempts: 0,
+    // Resolve auth user — create if missing. email_confirm: true so the
+    // magic-link can sign them in directly. (See takeover-verify for the
+    // history of why ordering this BEFORE claim_takeover_atomic matters.)
+    const { data: existing, error: lookupErr } = await admin
+      .from('auth_user_email_view')
+      .select('id')
+      .eq('email', submittedEmail)
+      .maybeSingle()
+    if (lookupErr) throw new Error(lookupErr.message)
+    let userId = existing?.id as string | undefined
+    if (!userId) {
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email: submittedEmail,
+        email_confirm: true,
       })
-      .eq('id', tokenRow.id)
-    if (updErr) throw new Error(updErr.message)
+      if (createErr) throw new Error(createErr.message)
+      userId = created.user.id
+    }
+
+    const { error: claimErr } = await admin.rpc('claim_takeover_atomic', {
+      p_token_hash: tokenHash,
+      p_user_id: userId,
+    })
+    if (claimErr) {
+      if (claimErr.message?.includes('token_already_used')) {
+        throw new HttpError(410, 'token_already_used')
+      }
+      if (claimErr.message?.includes('market_deleted')) {
+        throw new HttpError(410, 'market_removed')
+      }
+      throw new Error(claimErr.message)
+    }
+
+    // Magic-link redirects straight to the claimed market's slug page —
+    // visitors immediately see their newly-owned listing with the draft
+    // banner (or a fresh edit link if already published).
+    const slug = market.slug as string | null
+    const redirectTo = slug ? `${origin}/loppis/${slug}` : `${origin}/profile`
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')
 
-    const { html, text } = takeoverCodeEmail({ code, businessName: market.name as string })
+    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: submittedEmail,
+      options: { redirectTo },
+    })
+    if (linkErr) throw new Error(linkErr.message)
+    const actionLink = linkData.properties?.action_link
+    if (!actionLink) throw new HttpError(500, 'magic_link_missing')
+
+    const { html, text } = takeoverMagicLinkEmail({
+      magicLink: actionLink,
+      businessName: (market.name as string) ?? 'din butik',
+    })
     await sendEmail({
-      to: input.email,
-      subject: `Verifieringskod: ${code}`,
+      to: submittedEmail,
+      subject: `Logga in på Fyndstigen — ${market.name}`,
       html,
       text,
       from: DEFAULT_FROM,
       apiKey: resendApiKey,
     })
 
-    return { ok: true as const, expiresAt }
+    return { ok: true as const, magicLinkSent: true }
   },
 })
