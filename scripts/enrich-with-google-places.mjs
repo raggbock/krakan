@@ -76,7 +76,8 @@ const APPLY = new Set(process.argv.slice(2)).has('--apply')
 // ---------------------------------------------------------------------------
 
 const SEARCH_FIELDS = 'places.id,places.displayName,places.location,places.formattedAddress,places.addressComponents'
-const DETAILS_FIELDS = 'id,displayName,location,regularOpeningHours,formattedAddress,addressComponents'
+const DETAILS_FIELDS = 'id,displayName,location,regularOpeningHours,formattedAddress,addressComponents,'
+  + 'nationalPhoneNumber,internationalPhoneNumber,websiteUri'
 
 async function searchPlace({ name, city }) {
   const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
@@ -203,6 +204,7 @@ async function loadCandidates() {
   // city + street but no postal code). Skip soft-deleted; cache hits
   // via google_place_id keep re-runs cheap.
   const select = 'id,slug,name,city,street,zip_code,location,google_place_id,'
+    + 'contact_phone,contact_website,'
     + 'opening_hour_rules(id)'
   const filter = 'is_deleted=eq.false'
   const all = []
@@ -221,7 +223,9 @@ async function loadCandidates() {
     const noHours = !m.opening_hour_rules || m.opening_hour_rules.length === 0
     const noZip = !m.zip_code
     const noStreet = !m.street
-    return noCoords || noHours || noZip || noStreet
+    const noPhone = !m.contact_phone
+    const noWebsite = !m.contact_website
+    return noCoords || noHours || noZip || noStreet || noPhone || noWebsite
   })
 }
 
@@ -265,6 +269,12 @@ async function scrape() {
       // Only keep field-level diffs when we'd actually use them — i.e. row
       // is missing them today. Saves apply-phase work and never clobbers
       // human-entered data.
+      // Prefer national format for Swedish phones (cleaner) but fall back
+      // to international when only that's set. Google's national format
+      // looks like "070-123 45 67"; international looks like "+46 70 123 45 67".
+      const googlePhone = details.nationalPhoneNumber ?? details.internationalPhoneNumber ?? null
+      const googleWebsite = details.websiteUri ?? null
+
       found.push({
         id: m.id,
         slug: m.slug,
@@ -279,14 +289,19 @@ async function scrape() {
         zip_code: !m.zip_code && parsed.zip_code ? parsed.zip_code : null,
         // city is ALWAYS set on imported rows (it's how we slug them) so
         // we don't overwrite even if Google says something different.
+        contact_phone: !m.contact_phone && googlePhone ? googlePhone : null,
+        contact_website: !m.contact_website && googleWebsite ? googleWebsite : null,
         google_address: detailsAddress,
         google_name: details.displayName?.text,
       })
       const summary = []
-      if (found.at(-1).coordinates) summary.push('coords')
-      if (found.at(-1).rules) summary.push(`${rules.length} rule(s)`)
-      if (found.at(-1).street) summary.push('street')
-      if (found.at(-1).zip_code) summary.push('zip')
+      const last = found.at(-1)
+      if (last.coordinates) summary.push('coords')
+      if (last.rules) summary.push(`${rules.length} rule(s)`)
+      if (last.street) summary.push('street')
+      if (last.zip_code) summary.push('zip')
+      if (last.contact_phone) summary.push('phone')
+      if (last.contact_website) summary.push('website')
       console.log(`${tag} → ${summary.join(', ') || 'place_id only'}`)
     } catch (err) {
       failed.push({ id: m.id, name: m.name, city: m.city, reason: String(err.message ?? err) })
@@ -318,7 +333,7 @@ async function apply() {
     // Re-check current state — someone may have manually edited since the
     // scrape phase. Don't overwrite human-entered data.
     const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}&select=street,zip_code,location,google_place_id,opening_hour_rules(id)`,
+      `${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}&select=street,zip_code,location,google_place_id,contact_phone,contact_website,opening_hour_rules(id)`,
       { headers: sbHeaders },
     )
     const [row] = await checkRes.json()
@@ -330,6 +345,8 @@ async function apply() {
     }
     if (m.street && !row.street) update.street = m.street
     if (m.zip_code && !row.zip_code) update.zip_code = m.zip_code
+    if (m.contact_phone && !row.contact_phone) update.contact_phone = m.contact_phone
+    if (m.contact_website && !row.contact_website) update.contact_website = m.contact_website
     const willInsertRules = m.rules && (!row.opening_hour_rules || row.opening_hour_rules.length === 0)
 
     const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}`, {
@@ -369,6 +386,8 @@ async function apply() {
     if (willInsertRules) parts.push(`${m.rules.length} rule(s)`)
     if (update.street) parts.push('street')
     if (update.zip_code) parts.push('zip')
+    if (update.contact_phone) parts.push('phone')
+    if (update.contact_website) parts.push('website')
     parts.push(`place_id=${m.place_id.slice(0, 12)}…`)
     console.log(`OK   ${m.name} — ${parts.join(', ')}`)
 
