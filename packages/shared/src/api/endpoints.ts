@@ -71,6 +71,10 @@ import {
   PublicMarketCreateOutput,
 } from '../contracts/public-market-create'
 import {
+  TakeoverRequestInput,
+  TakeoverRequestOutput,
+} from '../contracts/takeover-request'
+import {
   TakeoverInfoInput,
   TakeoverInfoOutput,
   TakeoverStartInput,
@@ -225,6 +229,12 @@ export const ENDPOINTS = {
     path: 'public-market-create',
     request: PublicMarketCreateInput,
     response: PublicMarketCreateOutput,
+    public: true,
+  }),
+  'takeover.request': defineEndpointDef({
+    path: 'takeover-request',
+    request: TakeoverRequestInput,
+    response: TakeoverRequestOutput,
     public: true,
   }),
   'takeover.feedback': defineEndpointDef({

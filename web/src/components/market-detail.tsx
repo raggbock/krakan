@@ -13,6 +13,7 @@ import { OpeningHoursCard } from '@/components/opening-hours-card'
 import { OrganizerCard } from '@/components/organizer-card'
 import { BookableTablesCard } from '@/components/bookable-tables-card'
 import { AutoImportedNotice } from '@/components/auto-imported-notice'
+import { ClaimMarketButton } from '@/components/claim-market-button'
 import { useMarketDetails } from '@/hooks/use-market-details'
 
 export function MarketDetail({ id }: { id: string }) {
@@ -179,13 +180,16 @@ export function MarketDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <div className="mt-8 animate-fade-up delay-5">
+      <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <Link
           href="/map"
           className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
         >
           Visa på karta &rarr;
         </Link>
+        {market.is_system_owned && (
+          <ClaimMarketButton marketId={id} marketName={market.name} />
+        )}
       </div>
     </div>
   )

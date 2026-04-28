@@ -40,3 +40,10 @@ export function useTakeoverRemove() {
       api.endpoints['takeover.remove'].invoke(args),
   })
 }
+
+export function useTakeoverRequest() {
+  return useMutation({
+    mutationFn: (args: { marketId: string; email: string; note?: string }) =>
+      api.endpoints['takeover.request'].invoke(args),
+  })
+}
