@@ -15,6 +15,8 @@ type Filter =
   | 'complete' | 'almost_complete' | 'published_no_takeover'
   | 'missing_street' | 'missing_zip' | 'missing_coords'
   | 'missing_website' | 'missing_phone' | 'missing_email' | 'missing_hours'
+  | 'has_street' | 'has_zip' | 'has_coords'
+  | 'has_website' | 'has_phone' | 'has_email' | 'has_hours'
 type SortKey = 'name' | 'city' | 'updated' | 'status'
 type SortDir = 'asc' | 'desc'
 
@@ -43,6 +45,18 @@ const FILTER_GROUPS: { label: string; filters: { key: Filter; label: string }[] 
       { key: 'missing_phone', label: '📞 tfn' },
       { key: 'missing_email', label: '📧 epost' },
       { key: 'missing_hours', label: '🕐 öppet' },
+    ],
+  },
+  {
+    label: 'Har',
+    filters: [
+      { key: 'has_street', label: '🛣 gata' },
+      { key: 'has_zip', label: '📮 postnr' },
+      { key: 'has_coords', label: '📍 koord' },
+      { key: 'has_website', label: '🌐 webb' },
+      { key: 'has_phone', label: '📞 tfn' },
+      { key: 'has_email', label: '📧 epost' },
+      { key: 'has_hours', label: '🕐 öppet' },
     ],
   },
 ]
@@ -191,6 +205,13 @@ export default function AdminMarketsPage() {
     if (filters.has('missing_phone')) r = r.filter((m) => !m.hasPhone)
     if (filters.has('missing_email')) r = r.filter((m) => !m.hasEmail)
     if (filters.has('missing_hours')) r = r.filter((m) => !m.hasOpeningHours)
+    if (filters.has('has_street')) r = r.filter((m) => !!m.street)
+    if (filters.has('has_zip')) r = r.filter((m) => !!m.zipCode)
+    if (filters.has('has_coords')) r = r.filter((m) => m.hasCoordinates)
+    if (filters.has('has_website')) r = r.filter((m) => m.hasWebsite)
+    if (filters.has('has_phone')) r = r.filter((m) => m.hasPhone)
+    if (filters.has('has_email')) r = r.filter((m) => m.hasEmail)
+    if (filters.has('has_hours')) r = r.filter((m) => m.hasOpeningHours)
     const q = search.trim().toLowerCase()
     if (q) {
       r = r.filter((m) =>

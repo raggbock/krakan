@@ -20,9 +20,17 @@ export function takeoverMagicLinkEmail(opts: { magicLink: string; businessName: 
       <p>Klart! Du är nu kopplad som ägare till <strong>${opts.businessName}</strong>.</p>
       <p>Klicka på länken nedan för att logga in och börja redigera profilen:</p>
       <p><a href="${opts.magicLink}" style="display:inline-block; background:#A84B2A; color:#fff; padding:12px 20px; border-radius:6px; text-decoration:none;">Logga in</a></p>
+      <p style="background:#fff7e6; border-left:3px solid #A84B2A; padding:12px 14px; margin-top:24px; color:#5c3d20; font-size:14px;">
+        <strong>Glöm inte att publicera din loppis</strong> — först då syns den för besökare på Fyndstigen.
+        Du hittar publicera-knappen längst upp på loppisens sida när du loggat in.
+      </p>
       <p style="color: #6b5a48; font-size: 14px;">Länken är giltig i 1 timme.</p>
     </div>
   `
-  const text = `Du är nu ägare till ${opts.businessName}.\nLogga in: ${opts.magicLink}\n(Giltig 1 timme.)`
+  const text = `Du är nu ägare till ${opts.businessName}.
+Logga in: ${opts.magicLink}
+(Giltig 1 timme.)
+
+Glöm inte att publicera din loppis — först då syns den för besökare på Fyndstigen.`
   return { html, text }
 }

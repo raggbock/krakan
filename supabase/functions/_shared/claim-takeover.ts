@@ -33,7 +33,7 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { HttpError } from './handler.ts'
 import { sendEmail, DEFAULT_FROM } from './email.ts'
 import { takeoverMagicLinkEmail } from './email-templates/takeover-code.ts'
-import { sha256Hex } from '../_shared/takeover-helpers.ts'
+import { sha256Hex } from './takeover-helpers.ts'
 import type { TakeoverTokenRow } from './takeover-token.ts'
 
 export type ClaimTakeoverInput = {
