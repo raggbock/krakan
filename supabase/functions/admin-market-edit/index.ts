@@ -52,11 +52,11 @@ defineAdminEndpoint({
       if (a.country) update.country = a.country
     }
     if (patch.location) {
-      // location uses PostGIS POINT(lng lat) — keep latitude/longitude in sync
-      // for the convenience columns the UI reads.
+      // latitude/longitude are GENERATED ALWAYS columns derived from
+      // location via st_y/st_x — Postgres rejects any direct UPDATE on
+      // them ("cannot be updated"). Only set location; the generated
+      // columns refresh automatically from the new POINT.
       update.location = `SRID=4326;POINT(${patch.location.longitude} ${patch.location.latitude})`
-      update.latitude = patch.location.latitude
-      update.longitude = patch.location.longitude
     }
     if (patch.publish !== undefined) {
       update.published_at = patch.publish ? new Date().toISOString() : null
