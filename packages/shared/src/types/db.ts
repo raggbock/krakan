@@ -32,6 +32,22 @@ export type FleaMarketRow = {
   organizer_id: string
   auto_accept_bookings: boolean
   created_at: string
+  /**
+   * True for rows imported from external sources (kommunkalendrar, OSM,
+   * scrapes) and not yet claimed by an organizer via takeover. The public
+   * detail page renders a "data may be outdated"-disclaimer when this is
+   * set, since auto-imported hours/contact info can drift before an owner
+   * notices and corrects it.
+   */
+  is_system_owned?: boolean
+  contact_website?: string | null
+  contact_phone?: string | null
+  contact_email?: string | null
+  contact_facebook?: string | null
+  contact_instagram?: string | null
+  /** Cached Google Places ID — used to deep-link visitors to the canonical
+   * Google listing for double-checking imported hours. */
+  google_place_id?: string | null
   /** Set by listByOrganizer — true if the market appears in public listings. */
   isVisible?: boolean
 }

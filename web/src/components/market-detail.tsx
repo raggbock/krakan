@@ -12,6 +12,7 @@ import { AddressCard } from '@/components/address-card'
 import { OpeningHoursCard } from '@/components/opening-hours-card'
 import { OrganizerCard } from '@/components/organizer-card'
 import { BookableTablesCard } from '@/components/bookable-tables-card'
+import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { useMarketDetails } from '@/hooks/use-market-details'
 
 export function MarketDetail({ id }: { id: string }) {
@@ -129,18 +130,36 @@ export function MarketDetail({ id }: { id: string }) {
       </div>
 
       <div className="space-y-4 mt-8">
-        <AddressCard
-          street={market.street}
-          zipCode={market.zip_code}
-          city={market.city}
-          country={market.country}
-        />
+        <div>
+          <AddressCard
+            street={market.street}
+            zipCode={market.zip_code}
+            city={market.city}
+            country={market.country}
+          />
+          {market.is_system_owned && (
+            <AutoImportedNotice
+              what="Adressen"
+              contactWebsite={market.contact_website}
+              googlePlaceId={market.google_place_id}
+            />
+          )}
+        </div>
 
         {market.opening_hour_rules?.length > 0 && (
-          <OpeningHoursCard
-            rules={market.opening_hour_rules}
-            exceptions={market.opening_hour_exceptions ?? []}
-          />
+          <div>
+            <OpeningHoursCard
+              rules={market.opening_hour_rules}
+              exceptions={market.opening_hour_exceptions ?? []}
+            />
+            {market.is_system_owned && (
+              <AutoImportedNotice
+                what="Öppettiderna"
+                contactWebsite={market.contact_website}
+                googlePlaceId={market.google_place_id}
+              />
+            )}
+          </div>
         )}
 
         {market.organizerName && (
