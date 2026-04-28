@@ -31,6 +31,9 @@ export function EditMarketDrawer({
 }) {
   const editMut = useAdminMarketEdit()
 
+  // Name (slug intentionally not editable — would break existing URLs)
+  const [name, setName] = useState(market.name)
+
   // Contact section
   const [website, setWebsite] = useState(market.contactWebsite ?? '')
   const [facebook, setFacebook] = useState(market.contactFacebook ?? '')
@@ -86,6 +89,11 @@ export function EditMarketDrawer({
   async function save() {
     // Build patch. Only include sections that changed.
     const patch: AdminMarketEditPatch = {}
+
+    const trimmedName = name.trim()
+    if (trimmedName && trimmedName !== market.name) {
+      patch.name = trimmedName
+    }
 
     const contactChanged =
       website !== (market.contactWebsite ?? '') ||
@@ -171,7 +179,7 @@ export function EditMarketDrawer({
       <div className="relative ml-auto w-full max-w-xl bg-card overflow-y-auto shadow-xl">
         <header className="sticky top-0 bg-card border-b border-cream-warm px-5 py-3 flex items-center justify-between">
           <div>
-            <h2 className="font-display font-bold text-xl">{market.name}</h2>
+            <h2 className="font-display font-bold text-xl">{name || market.name}</h2>
             <p className="text-xs font-mono text-espresso/50">{market.slug ?? market.id}</p>
             {website && (
               <a
@@ -188,6 +196,15 @@ export function EditMarketDrawer({
         </header>
 
         <div className="p-5 space-y-6">
+          {/* Namn */}
+          <section className="space-y-3">
+            <h3 className="font-display font-bold text-base">Namn</h3>
+            <Field label="Namn" value={name} onChange={setName} placeholder="Loppisens namn" />
+            <p className="text-xs text-espresso/55">
+              Slug ändras inte automatiskt — be admin re-slugga separat om du vill att URL:en ska följa nya namnet.
+            </p>
+          </section>
+
           {/* Kontakt */}
           <section className="space-y-3">
             <h3 className="font-display font-bold text-base">Kontakt</h3>
@@ -418,6 +435,7 @@ function Field({
 }
 
 type AdminMarketEditPatch = {
+  name?: string
   contact?: { website?: string | null; facebook?: string | null; instagram?: string | null; phone?: string | null; email?: string | null }
   address?: { street?: string | null; zipCode?: string | null; city?: string | null; country?: string }
   location?: { latitude: number; longitude: number }

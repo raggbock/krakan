@@ -36,6 +36,7 @@ defineAdminEndpoint({
 
     // Build the markets-table update payload from contact + address + location patches.
     const update: Record<string, unknown> = {}
+    if (patch.name !== undefined) update.name = patch.name
     if (patch.contact) {
       const c = patch.contact
       if ('website' in c) update.contact_website = c.website ?? null
