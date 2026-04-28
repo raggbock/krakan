@@ -7,11 +7,15 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { marketUrl } from '@/lib/urls'
 import type { FunnelRow } from '@fyndstigen/shared/contracts/admin-takeover-funnel'
 
+// Nya flödet (efter 8a385fd) har bara två levande stages: never_clicked och
+// clicked_only. När visitorn submittar e-post claimar servern direkt och
+// tokenen försvinner ur viewen. email_no_code och code_sent_unverified kan
+// bara innehålla legacy-tokens från innan deployen — visas tills de rinner ut.
 const STAGE_LABEL: Record<FunnelRow['stage'], string> = {
   never_clicked: 'Aldrig klickat',
   clicked_only: 'Klickat, ej e-post',
-  email_no_code: 'E-post angiven',
-  code_sent_unverified: 'Kod skickad, ej verifierad',
+  email_no_code: 'E-post angiven (legacy)',
+  code_sent_unverified: 'Kod skickad (legacy)',
 }
 
 const STAGE_TONE: Record<FunnelRow['stage'], string> = {
@@ -57,14 +61,19 @@ export default function TakeoverFunnelPage() {
         <p className="text-espresso-light">
           Aktiva tokens som ännu inte är claimade. Sortera per steg för att se var folk fastnar.
         </p>
+        <p className="text-espresso/55 text-xs mt-2">
+          Sedan magic-link-deployen finns bara två levande stages: <strong>aldrig klickat</strong> och{' '}
+          <strong>klickat, ej e-post</strong>. När visitorn fyller i e-post claimar servern direkt och
+          tokenen försvinner härifrån. De två legacy-stagen rör bara tokens som var på gång innan deployen.
+        </p>
       </header>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
         <SummaryCard label="Totalt aktiva" count={summary.total} active={filter === 'all'} onClick={() => setFilter('all')} />
         <SummaryCard label="Aldrig klickat" count={summary.neverClicked} active={filter === 'never_clicked'} onClick={() => setFilter('never_clicked')} />
         <SummaryCard label="Klickat, ej e-post" count={summary.clickedOnly} active={filter === 'clicked_only'} onClick={() => setFilter('clicked_only')} />
-        <SummaryCard label="E-post angiven" count={summary.emailNoCode} active={filter === 'email_no_code'} onClick={() => setFilter('email_no_code')} />
-        <SummaryCard label="Kod skickad" count={summary.codeSentUnverified} active={filter === 'code_sent_unverified'} onClick={() => setFilter('code_sent_unverified')} />
+        <SummaryCard label="E-post angiven (legacy)" count={summary.emailNoCode} active={filter === 'email_no_code'} onClick={() => setFilter('email_no_code')} />
+        <SummaryCard label="Kod skickad (legacy)" count={summary.codeSentUnverified} active={filter === 'code_sent_unverified'} onClick={() => setFilter('code_sent_unverified')} />
       </div>
 
       <div className="bg-card border border-cream-warm rounded-card overflow-hidden">

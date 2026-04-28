@@ -10,21 +10,41 @@ import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
 
-type Filter = 'all' | 'unpublished' | 'system_owned' | 'claimed' | 'missing_contact' | 'missing_hours' | 'unverified' | 'complete' | 'almost_complete' | 'published_no_takeover'
+type Filter =
+  | 'unpublished' | 'system_owned' | 'claimed' | 'unverified'
+  | 'complete' | 'almost_complete' | 'published_no_takeover'
+  | 'missing_street' | 'missing_zip' | 'missing_coords'
+  | 'missing_website' | 'missing_phone' | 'missing_email' | 'missing_hours'
 type SortKey = 'name' | 'city' | 'updated' | 'status'
 type SortDir = 'asc' | 'desc'
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'Alla' },
-  { key: 'complete', label: 'Komplett ✓' },
-  { key: 'almost_complete', label: 'Nästan komplett' },
-  { key: 'unpublished', label: 'Opublicerade' },
-  { key: 'system_owned', label: 'Ej claimade (system-ägda)' },
-  { key: 'claimed', label: 'Claimade' },
-  { key: 'missing_contact', label: 'Saknar kontakt' },
-  { key: 'missing_hours', label: 'Saknar öppettider' },
-  { key: 'unverified', label: 'Status: unverified' },
-  { key: 'published_no_takeover', label: 'Publicerad, ej skickat takeover' },
+// Grouped so the chip-row can render section labels — makes it obvious which
+// filters are state-style ("system-owned") vs missing-field-style ("saknar email").
+const FILTER_GROUPS: { label: string; filters: { key: Filter; label: string }[] }[] = [
+  {
+    label: 'Status',
+    filters: [
+      { key: 'complete', label: 'Komplett ✓' },
+      { key: 'almost_complete', label: 'Nästan komplett' },
+      { key: 'unpublished', label: 'Opublicerade' },
+      { key: 'system_owned', label: 'System-ägda' },
+      { key: 'claimed', label: 'Claimade' },
+      { key: 'unverified', label: 'Unverified' },
+      { key: 'published_no_takeover', label: 'Publ. utan takeover' },
+    ],
+  },
+  {
+    label: 'Saknar',
+    filters: [
+      { key: 'missing_street', label: '🛣 gata' },
+      { key: 'missing_zip', label: '📮 postnr' },
+      { key: 'missing_coords', label: '📍 koord' },
+      { key: 'missing_website', label: '🌐 webb' },
+      { key: 'missing_phone', label: '📞 tfn' },
+      { key: 'missing_email', label: '📧 epost' },
+      { key: 'missing_hours', label: '🕐 öppet' },
+    ],
+  },
 ]
 
 /** All seven info-fields filled — used by both the 'Komplett'-filter and the row badge. */
@@ -50,7 +70,7 @@ export default function AdminMarketsPage() {
   const editMut = useAdminMarketEdit()
   const bulkMut = useAdminMarketsBulkEdit()
   const takeoverMut = useTakeoverSend()
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filters, setFilters] = useState<Set<Filter>>(new Set())
   const [search, setSearch] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -152,19 +172,25 @@ export default function AdminMarketsPage() {
 
   const filtered = useMemo(() => {
     let r = rows
-    if (filter === 'unpublished') r = r.filter((m) => !m.isPublished)
-    if (filter === 'system_owned') r = r.filter((m) => m.isSystemOwned)
-    if (filter === 'claimed') r = r.filter((m) => !m.isSystemOwned)
-    if (filter === 'missing_contact') r = r.filter((m) => !m.hasWebsite && !m.hasPhone && !m.hasEmail)
-    if (filter === 'missing_hours') r = r.filter((m) => !m.hasOpeningHours)
-    if (filter === 'unverified') r = r.filter((m) => m.status === 'unverified')
-    if (filter === 'complete') r = r.filter(isComplete)
-    if (filter === 'almost_complete') r = r.filter((m) => isAlmostComplete(m) && !isComplete(m))
-    if (filter === 'published_no_takeover') {
-      // Only system-owned markets have a takeover state — claimed ones are
-      // already owned by the organizer and don't need an invite.
+    // AND-semantik: en rad måste matcha alla aktiva filter. Mutex-par
+    // (system_owned + claimed, complete + almost_complete) ger 0 träffar
+    // när båda väljs — ofarligt, bara redundant.
+    if (filters.has('unpublished')) r = r.filter((m) => !m.isPublished)
+    if (filters.has('system_owned')) r = r.filter((m) => m.isSystemOwned)
+    if (filters.has('claimed')) r = r.filter((m) => !m.isSystemOwned)
+    if (filters.has('unverified')) r = r.filter((m) => m.status === 'unverified')
+    if (filters.has('complete')) r = r.filter(isComplete)
+    if (filters.has('almost_complete')) r = r.filter((m) => isAlmostComplete(m) && !isComplete(m))
+    if (filters.has('published_no_takeover')) {
       r = r.filter((m) => m.isPublished && m.isSystemOwned && !m.takeover?.sentAt)
     }
+    if (filters.has('missing_street')) r = r.filter((m) => !m.street)
+    if (filters.has('missing_zip')) r = r.filter((m) => !m.zipCode)
+    if (filters.has('missing_coords')) r = r.filter((m) => !m.hasCoordinates)
+    if (filters.has('missing_website')) r = r.filter((m) => !m.hasWebsite)
+    if (filters.has('missing_phone')) r = r.filter((m) => !m.hasPhone)
+    if (filters.has('missing_email')) r = r.filter((m) => !m.hasEmail)
+    if (filters.has('missing_hours')) r = r.filter((m) => !m.hasOpeningHours)
     const q = search.trim().toLowerCase()
     if (q) {
       r = r.filter((m) =>
@@ -187,7 +213,16 @@ export default function AdminMarketsPage() {
       }
     })
     return sorted
-  }, [rows, filter, search, sortKey, sortDir])
+  }, [rows, filters, search, sortKey, sortDir])
+
+  function toggleFilter(key: Filter) {
+    setFilters((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const counts = useMemo(() => ({
     total: rows.length,
@@ -218,35 +253,54 @@ export default function AdminMarketsPage() {
         </section>
       )}
 
-      <section className="flex flex-wrap items-center gap-2">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Sök namn, slug eller stad…"
-          className="px-3 py-2 rounded-md border border-cream-warm w-72"
-        />
-        <div className="flex flex-wrap gap-1">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${filter === f.key ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
-            >
-              {f.label}
-            </button>
-          ))}
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Sök namn, slug eller stad…"
+            className="px-3 py-2 rounded-md border border-cream-warm w-72"
+          />
+          <button
+            type="button"
+            onClick={() => setFilters(new Set())}
+            disabled={filters.size === 0}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${filters.size === 0 ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
+          >
+            Alla
+          </button>
+          <button
+            type="button"
+            onClick={runBulkGeocode}
+            disabled={!!geocodeProgress}
+            className="px-3 py-1.5 rounded-md text-xs font-semibold border border-cream-warm hover:bg-cream-warm disabled:opacity-50"
+            title="Slå upp lat/lng via OpenStreetMap för rader som har adress men saknar koord"
+          >
+            Geocoda saknade ({rows.filter((m) => !m.hasCoordinates && (m.street || m.zipCode || m.city)).length})
+          </button>
+          <span className="ml-auto text-sm text-espresso/60">
+            {filtered.length} av {rows.length}
+            {filters.size > 0 && <span className="text-espresso/45"> · {filters.size} filter aktiva</span>}
+          </span>
         </div>
-        <button
-          type="button"
-          onClick={runBulkGeocode}
-          disabled={!!geocodeProgress}
-          className="px-3 py-1.5 rounded-md text-xs font-semibold border border-cream-warm hover:bg-cream-warm disabled:opacity-50"
-          title="Slå upp lat/lng via OpenStreetMap för rader som har adress men saknar koord"
-        >
-          Geocoda saknade ({rows.filter((m) => !m.hasCoordinates && (m.street || m.zipCode || m.city)).length})
-        </button>
-        <span className="ml-auto text-sm text-espresso/60">{filtered.length} av {rows.length}</span>
+        {FILTER_GROUPS.map((g) => (
+          <div key={g.label} className="flex flex-wrap items-center gap-1">
+            <span className="text-[11px] uppercase tracking-wide text-espresso/45 w-16">{g.label}</span>
+            {g.filters.map((f) => {
+              const active = filters.has(f.key)
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => toggleFilter(f.key)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${active ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
+        ))}
       </section>
 
       {geocodeProgress && (
