@@ -27,6 +27,11 @@ export default function MapView() {
   const targetLat = parseFloat(params.get('lat') ?? '')
   const targetLng = parseFloat(params.get('lng') ?? '')
   const hasTarget = Number.isFinite(targetLat) && Number.isFinite(targetLng)
+  // Optional metadata for the target pin's popup so a draft market that
+  // wouldn't otherwise show up in the nearby-markets feed still gets a
+  // recognisable label + back-link.
+  const targetName = params.get('name')
+  const targetSlug = params.get('slug')
 
   const [markets, setMarkets] = useState<FleaMarketNearBy[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,6 +99,39 @@ export default function MapView() {
       </div>
     ),
   }))
+
+  // Synthetic pin for the target market (typically a draft we just
+  // claimed, which isn't in the public visible_flea_markets feed and
+  // would otherwise look like the map zoomed to nowhere). Skip when a
+  // regular marker already sits within ~30m — published markets show
+  // up in `markets` and we'd otherwise stack two pins on the same spot.
+  if (hasTarget) {
+    const dupe = markers.some((m) =>
+      Math.abs(m.coord[0] - targetLat) < 0.0003 && Math.abs(m.coord[1] - targetLng) < 0.0005,
+    )
+    if (!dupe) {
+      markers.push({
+        id: '__target__',
+        coord: [targetLat, targetLng],
+        icon: 'market',
+        popup: (
+          <div className="min-w-[200px] p-1">
+            <p className="font-display font-bold text-sm text-espresso">
+              {targetName ?? 'Här'}
+            </p>
+            {targetSlug && (
+              <Link
+                href={`/loppis/${targetSlug}`}
+                className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+              >
+                Tillbaka till sidan &rarr;
+              </Link>
+            )}
+          </div>
+        ),
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>

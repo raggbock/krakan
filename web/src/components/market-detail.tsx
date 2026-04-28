@@ -184,7 +184,11 @@ export function MarketDetail({ id }: { id: string }) {
       <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         {market.latitude != null && market.longitude != null ? (
           <Link
-            href={`/map?lat=${market.latitude}&lng=${market.longitude}`}
+            href={
+              `/map?lat=${market.latitude}&lng=${market.longitude}` +
+              `&name=${encodeURIComponent(market.name)}` +
+              (market.slug ? `&slug=${encodeURIComponent(market.slug)}` : '')
+            }
             className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
           >
             Visa på karta &rarr;
