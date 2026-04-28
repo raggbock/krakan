@@ -18,11 +18,16 @@ export function AutoImportedNotice({
   contactWebsite,
   googlePlaceId,
   what,
+  plural = false,
 }: {
   contactWebsite: string | null | undefined
   googlePlaceId: string | null | undefined
-  /** "öppettiderna" / "adressen" — slots into the sentence template. */
+  /** "Öppettiderna" / "Adressen" — slots into the sentence template. */
   what: string
+  /** Swedish adjective/participle agreement: plural for "Öppettiderna" so
+   * we say "är hämtade ... inaktuella", singular for "Adressen" so we
+   * say "är hämtad ... inaktuell". */
+  plural?: boolean
 }) {
   const link = contactWebsite
     ? { href: contactWebsite, label: 'butikens webbplats' }
@@ -30,10 +35,13 @@ export function AutoImportedNotice({
       ? { href: `https://www.google.com/maps/place/?q=place_id:${googlePlaceId}`, label: 'Google Maps' }
       : null
 
+  const participle = plural ? 'hämtade' : 'hämtad'
+  const adjective = plural ? 'inaktuella' : 'inaktuell'
+
   return (
     <p className="text-xs text-espresso/65 mt-2 px-1 leading-relaxed">
       <span className="text-rust mr-1">ⓘ</span>
-      {what} är hämtade automatiskt och kan vara inaktuella.
+      {what} är {participle} automatiskt och kan vara {adjective}.
       {link && (
         <>
           {' '}Dubbelkolla på{' '}

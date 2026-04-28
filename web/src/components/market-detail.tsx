@@ -156,6 +156,7 @@ export function MarketDetail({ id }: { id: string }) {
             {market.is_system_owned && (
               <AutoImportedNotice
                 what="Öppettiderna"
+                plural
                 contactWebsite={market.contact_website}
                 googlePlaceId={market.google_place_id}
               />
