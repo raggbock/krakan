@@ -13,6 +13,7 @@ const navItems: { href: string; label: string; disabled?: boolean }[] = [
   { href: '/admin/settings/admins', label: 'Admins' },
   { href: '/admin/import', label: 'Import' },
   { href: '/admin/takeover', label: 'Takeover' },
+  { href: '/admin/takeover-funnel', label: 'Funnel' },
   { href: '/admin/social', label: 'Social' },
 ]
 
