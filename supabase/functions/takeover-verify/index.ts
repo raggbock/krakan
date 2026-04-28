@@ -1,8 +1,7 @@
 import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
-import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
-import { takeoverMagicLinkEmail } from '../_shared/email-templates/takeover-code.ts'
 import { validateTakeoverToken } from '../_shared/takeover-token.ts'
+import { claimTakeover } from '../_shared/claim-takeover.ts'
 import {
   MAX_CODE_ATTEMPTS,
   sha256Hex,
@@ -13,6 +12,15 @@ import {
   TakeoverVerifyOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
 
+/**
+ * Legacy 6-digit-code verify step — kept deployed during the deprecation
+ * window so anyone who received a code from the old flow can still finish
+ * their claim.
+ *
+ * The verify-specific pre-checks (code validation, attempt throttle) remain
+ * here. The shared tail (user resolve → claim → magic-link → email) is
+ * delegated to ClaimTakeoverService (_shared/claim-takeover.ts).
+ */
 definePublicEndpoint({
   name: 'takeover-verify',
   input: TakeoverVerifyInput,
@@ -59,84 +67,15 @@ definePublicEndpoint({
     const matches = timingSafeEqualHex(codeHash, codeRow.verification_code_hash as string)
     if (!matches) throw new HttpError(400, 'code_invalid')
 
-    // --- Verified. Resolve the auth user FIRST, then spend+transfer in one
-    // atomic Postgres transaction via claim_takeover_atomic(). The previous
-    // shape ("spend first, then everything else") could leave the row in a
-    // half-applied state — token gone but ownership never transferred — if
-    // the auth-user lookup or createUser failed. Hit that bug in prod once.
-    //
-    // The current order:
-    //   1. Look up the auth user (or create one). Failures here leave the
-    //      token intact, so admin can reissue without manual cleanup.
-    //   2. Call claim_takeover_atomic — spends the token AND updates
-    //      flea_markets in a single transaction. Postgres rollbacks both
-    //      together if anything inside fails.
-    //   3. Magic-link generation + send is best-effort. Failures don't
-    //      reverse ownership — the user just won't get the convenience
-    //      link, and admin can resend.
-    const { data: existing, error: lookupErr } = await admin
-      .from('auth_user_email_view')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
-    if (lookupErr) throw new Error(lookupErr.message)
-    let userId = existing?.id as string | undefined
-    if (!userId) {
-      const { data: created, error: createErr } = await admin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-      })
-      if (createErr) throw new Error(createErr.message)
-      userId = created.user.id
-    }
-
-    const tokenHash = await sha256Hex(input.token)
-    const { error: claimErr } = await admin.rpc('claim_takeover_atomic', {
-      p_token_hash: tokenHash,
-      p_user_id: userId,
-    })
-    if (claimErr) {
-      if (claimErr.message?.includes('token_already_used')) {
-        throw new HttpError(410, 'token_already_used')
-      }
-      if (claimErr.message?.includes('market_deleted')) {
-        throw new HttpError(410, 'market_removed')
-      }
-      throw new Error(claimErr.message)
-    }
-
-    const { data: market, error: marketErr } = await admin
-      .from('flea_markets')
-      .select('name')
-      .eq('id', tokenRow.flea_market_id)
-      .single()
-    if (marketErr) console.error('[takeover-verify] market fetch failed:', marketErr.message)
-
-    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
+    // --- Verified. Delegate the shared claim tail to ClaimTakeoverService.
+    const { magicLinkSent } = await claimTakeover({
+      admin,
+      tokenRow,
+      rawToken: input.token,
       email,
-      options: { redirectTo: `${origin}/profile` },
+      origin,
+      magicLinkRedirectTo: `${origin}/profile`,
     })
-    if (linkErr) throw new Error(linkErr.message)
-
-    let magicLinkSent = false
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    const actionLink = linkData.properties?.action_link
-    if (resendApiKey && actionLink) {
-      const { html, text } = takeoverMagicLinkEmail({
-        magicLink: actionLink,
-        businessName: (market?.name as string) ?? 'din butik',
-      })
-      await sendEmail({
-        to: email,
-        subject: 'Slutför inloggning till Fyndstigen',
-        html,
-        text,
-        from: DEFAULT_FROM,
-        apiKey: resendApiKey,
-      })
-      magicLinkSent = true
-    }
 
     return { ok: true as const, magicLinkSent }
   },
