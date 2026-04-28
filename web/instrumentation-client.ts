@@ -21,6 +21,13 @@ Sentry.init({
 
   enableLogs: true,
 
+  ignoreErrors: [
+    // Supabase auth-klienten använder Web Locks för cross-tab token-refresh;
+    // när en annan flik/instans stjäl låset rejectar den hängande request
+    // med AbortError. Inget stacktrace, inget vi kan göra.
+    /Lock broken by another request with the 'steal' option/,
+  ],
+
   integrations: hasConsent ? [Sentry.replayIntegration()] : [],
 })
 
