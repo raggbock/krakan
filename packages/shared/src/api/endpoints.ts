@@ -67,6 +67,10 @@ import {
   AdminTakeoverSendOutput,
 } from '../contracts/admin-takeover-send'
 import {
+  AdminTakeoverFunnelInput,
+  AdminTakeoverFunnelOutput,
+} from '../contracts/admin-takeover-funnel'
+import {
   PublicMarketCreateInput,
   PublicMarketCreateOutput,
 } from '../contracts/public-market-create'
@@ -206,6 +210,11 @@ export const ENDPOINTS = {
     path: 'admin-takeover-send',
     request: AdminTakeoverSendInput,
     response: AdminTakeoverSendOutput,
+  }),
+  'admin.takeover.funnel': defineEndpointDef({
+    path: 'admin-takeover-funnel',
+    request: AdminTakeoverFunnelInput,
+    response: AdminTakeoverFunnelOutput,
   }),
   'takeover.info': defineEndpointDef({
     path: 'takeover-info',

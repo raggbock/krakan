@@ -14,7 +14,7 @@ definePublicEndpoint({
     const tokenHash = await sha256Hex(input.token)
     const { data: tokenRow, error } = await admin
       .from('business_owner_tokens')
-      .select('flea_market_id, used_at, invalidated_at, expires_at, sent_to_email')
+      .select('id, flea_market_id, used_at, invalidated_at, expires_at, sent_to_email, clicked_at')
       .eq('token_hash', tokenHash)
       .maybeSingle()
     if (error) throw new Error(error.message)
@@ -22,6 +22,16 @@ definePublicEndpoint({
     if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
     if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
     if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
+
+    // Stamp first-click for funnel metrics. Best-effort — failure here
+    // shouldn't block the page from rendering, so we log and continue.
+    if (!tokenRow.clicked_at) {
+      const { error: clickErr } = await admin
+        .from('business_owner_tokens')
+        .update({ clicked_at: new Date().toISOString() })
+        .eq('id', tokenRow.id)
+      if (clickErr) console.error('[takeover-info] click stamp failed:', clickErr.message)
+    }
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')

@@ -51,6 +51,7 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/admin-market-activity',               // zod schema
   'contracts/takeover',                            // zod schema
   'contracts/admin-takeover-send',                 // zod schema
+  'contracts/admin-takeover-funnel',                // zod schema
   'contracts/public-market-create',                // zod schema
   'contracts/takeover-request',                    // zod schema
   'format',                                        // pure string utilities (slugifyCity)
