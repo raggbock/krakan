@@ -25,6 +25,10 @@ mobile/.next/
 .env
 .env.*
 !.env.example
+
+# Script output (regenerated each run — not source of truth)
+scripts/*-found.json
+scripts/*-failed.json
 app/.env
 app/.config/*.env
 web/.env*
