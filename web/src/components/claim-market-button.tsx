@@ -34,12 +34,14 @@ export function ClaimMarketButton({ marketId, marketName }: { marketId: string; 
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    await request.mutateAsync({
-      marketId,
-      email: email.trim().toLowerCase(),
-      note: note.trim() || undefined,
-    })
-    setDone(true)
+    try {
+      await request.mutateAsync({
+        marketId,
+        email: email.trim().toLowerCase(),
+        note: note.trim() || undefined,
+      })
+      setDone(true)
+    } catch { /* surfaced via request.isError */ }
   }
 
   function reset() {

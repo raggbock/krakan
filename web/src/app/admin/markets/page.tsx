@@ -87,12 +87,19 @@ export default function AdminMarketsPage() {
   async function bulkApply(patch: Parameters<typeof bulkMut.mutateAsync>[0]['patch'], confirmMsg: string) {
     if (selectedIds.size === 0) return
     if (!confirm(`${confirmMsg} ${selectedIds.size} loppisar?`)) return
-    await bulkMut.mutateAsync({ marketIds: Array.from(selectedIds), patch })
-    setSelectedIds(new Set())
+    // Catch so a server-side 4xx (validation, RLS, etc) doesn't surface as
+    // an unhandled rejection — the mutation hook already exposes isError +
+    // the inline banner below the table for user feedback.
+    try {
+      await bulkMut.mutateAsync({ marketIds: Array.from(selectedIds), patch })
+      setSelectedIds(new Set())
+    } catch { /* surfaced via bulkMut.isError */ }
   }
 
   async function rowToggle(m: AdminMarketRow, patch: Parameters<typeof editMut.mutateAsync>[0]['patch']) {
-    await editMut.mutateAsync({ marketId: m.id, patch })
+    try {
+      await editMut.mutateAsync({ marketId: m.id, patch })
+    } catch { /* surfaced via editMut.isError */ }
   }
 
   async function runBulkGeocode() {
@@ -136,9 +143,11 @@ export default function AdminMarketsPage() {
     if (marketIds.length === 0) return
     if (!confirm(`Skicka takeover-mail till ${marketIds.length} loppisar?`)) return
     setLastTakeoverSummary(null)
-    const res = await takeoverMut.mutateAsync(marketIds)
-    setLastTakeoverSummary(res.summary)
-    setSelectedIds(new Set())
+    try {
+      const res = await takeoverMut.mutateAsync(marketIds)
+      setLastTakeoverSummary(res.summary)
+      setSelectedIds(new Set())
+    } catch { /* surfaced via takeoverMut.isError */ }
   }
 
   const filtered = useMemo(() => {

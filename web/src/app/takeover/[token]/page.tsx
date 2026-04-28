@@ -319,14 +319,21 @@ function ClaimView({
 
   async function onSubmitEmail(e: React.FormEvent) {
     e.preventDefault()
-    await start.mutateAsync({ token, email })
-    setStep('code')
+    // Catch so token-already-used / token-expired etc don't fire as
+    // unhandled rejections — the mutation's isError state already
+    // drives the inline labelFor() banner under the form.
+    try {
+      await start.mutateAsync({ token, email })
+      setStep('code')
+    } catch { /* surfaced via start.isError */ }
   }
 
   async function onSubmitCode(e: React.FormEvent) {
     e.preventDefault()
-    await verify.mutateAsync({ token, email, code })
-    setStep('done')
+    try {
+      await verify.mutateAsync({ token, email, code })
+      setStep('done')
+    } catch { /* surfaced via verify.isError */ }
   }
 
   return (
@@ -443,8 +450,10 @@ function FeedbackView({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    await feedback.mutateAsync({ token, email, message })
-    onDone()
+    try {
+      await feedback.mutateAsync({ token, email, message })
+      onDone()
+    } catch { /* surfaced via feedback.isError */ }
   }
 
   return (
@@ -509,8 +518,10 @@ function RemoveView({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    await remove.mutateAsync({ token, reason: reason.trim() || undefined })
-    onDone()
+    try {
+      await remove.mutateAsync({ token, reason: reason.trim() || undefined })
+      onDone()
+    } catch { /* surfaced via remove.isError */ }
   }
 
   return (
