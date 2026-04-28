@@ -39,6 +39,25 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env.')
   process.exit(1)
 }
+
+// Detect anon-vs-service-role mix-ups before any query runs. Anon keys
+// respect RLS policies and silently return a filtered subset, which
+// burned us once already (76 rows back instead of 1146 — turned out to
+// be the anon key in .env). Decode the JWT payload (no signature check
+// — we just want the `role` claim).
+function decodeJwtRole(token) {
+  try {
+    const payload = token.split('.')[1]
+    const json = Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+    return JSON.parse(json).role ?? 'unknown'
+  } catch { return 'unparseable' }
+}
+const role = decodeJwtRole(SERVICE_KEY)
+if (role !== 'service_role') {
+  console.error(`SUPABASE_SERVICE_ROLE_KEY decodes as role="${role}" — must be "service_role".`)
+  console.error('Find the right key in Supabase dashboard → Project Settings → API → "service_role" (click Reveal).')
+  process.exit(1)
+}
 const headers = {
   apikey: SERVICE_KEY,
   authorization: `Bearer ${SERVICE_KEY}`,
@@ -113,6 +132,19 @@ const PATTERNS = [
       return [6, 0].map((d) => ({ day_of_week: d, open_time: open, close_time: close }))
     },
   },
+  // "Alla dagar 9-20", "Dagligen 9-20", "Varje dag 9-20", "7 dagar 9-20"
+  // → expand to all 7 days. "Öppet alla dagar" is the most common phrasing
+  // for shops that don't close on weekends; we'd otherwise miss them
+  // entirely because no single-day pattern matches.
+  {
+    re: new RegExp(`(?:alla\\s+dagar|dagligen|varje\\s+dag|7\\s+dagar)${SPACE}${TIME}${DASH}${TIME}`, 'gi'),
+    expand: (m) => {
+      const open = normalizeTimeFromParts(m[1], m[2])
+      const close = normalizeTimeFromParts(m[3], m[4])
+      if (!open || !close) return null
+      return [0, 1, 2, 3, 4, 5, 6].map((d) => ({ day_of_week: d, open_time: open, close_time: close }))
+    },
+  },
   // Single day: "Lördag 11-15", "Mån 10:00-18:00"
   {
     re: new RegExp(`(${DAY_NAME})[\\s:]*${TIME}${DASH}${TIME}`, 'gi'),
@@ -136,15 +168,17 @@ function normalizeTimeFromParts(h, m) {
 }
 
 function rangeOfDays(start, end) {
-  // Swedish convention: "Mån-fre" goes 1..5 in calendar order. We don't
-  // wrap around (no "fre-mån"); if the source actually means that we'd
-  // miss it, but it's vanishingly rare.
+  // Swedish convention: "Mån-fre" goes 1..5 in calendar order, "Lör-Sön"
+  // goes 6..0 — and the latter wraps because Sunday is day 0. Handle
+  // both: if end < start, walk from start through Saturday and then
+  // 0..end. Covers "Måndag-Söndag" (1→0 = all 7 days), "Lördag-Söndag"
+  // (6→0 = weekend), "Tor-Sön" (4→0 = Thu-Sun).
   const out = []
   if (start <= end) {
     for (let d = start; d <= end; d++) out.push(d)
   } else {
-    // Single-day fallback if order is reversed by accident
-    out.push(start, end)
+    for (let d = start; d <= 6; d++) out.push(d)
+    for (let d = 0; d <= end; d++) out.push(d)
   }
   return out
 }
@@ -224,23 +258,42 @@ function extractCandidateText(html) {
 // ---------------------------------------------------------------------------
 
 async function loadCandidates() {
-  // Markets with no opening_hour_rules. Ask PostgREST for the websites
-  // (93 rows) and the manual-followup set (16 rows) in two queries.
-  const baseSelect = 'select=id,slug,name,city,contact_website,contact_phone,contact_email&is_deleted=eq.false'
-  const noRules = '&id=not.in.(select_dummy)' // placeholder — we'll filter client-side using the rules listing
+  // Use PostgREST embedding to pull markets + their rules in one go,
+  // then keep only rows whose rules array is empty. The previous
+  // approach fetched markets and rules separately; the markets query
+  // hit PostgREST's default 1000-row cap (we have 1146) and the
+  // resulting partial list happened to have every id covered by some
+  // rule, yielding zero results. Embedding scopes both sides together
+  // and survives paging.
+  // Page through all non-deleted markets. We have ~1146 rows; PostgREST's
+  // default cap is 1000 per page, so do it in 500-row chunks. Filter
+  // client-side — small enough that the JS-side work is trivial.
+  const select =
+    'id,slug,name,city,contact_website,contact_phone,contact_email,' +
+    'opening_hour_rules(flea_market_id)'
+  const filter = 'is_deleted=eq.false'
 
-  // Easier path: pull rule market_ids first, then markets, then filter.
-  const rulesRes = await fetch(`${SUPABASE_URL}/rest/v1/opening_hour_rules?select=flea_market_id`, { headers })
-  if (!rulesRes.ok) throw new Error(`Rules fetch: ${rulesRes.status} ${await rulesRes.text()}`)
-  const ruleRows = await rulesRes.json()
-  const idsWithRules = new Set(ruleRows.map((r) => r.flea_market_id))
+  const all = []
+  const PAGE = 500
+  for (let from = 0; ; from += PAGE) {
+    const to = from + PAGE - 1
+    const url = `${SUPABASE_URL}/rest/v1/flea_markets?select=${encodeURIComponent(select)}&${filter}`
+    const res = await fetch(url, {
+      headers: { ...headers, range: `${from}-${to}`, 'range-unit': 'items' },
+    })
+    if (!res.ok) throw new Error(`Markets fetch ${from}-${to}: ${res.status} ${await res.text()}`)
+    const page = await res.json()
+    all.push(...page)
+    if (page.length < PAGE) break
+  }
 
-  const mRes = await fetch(`${SUPABASE_URL}/rest/v1/flea_markets?${baseSelect}&limit=10000`, { headers })
-  if (!mRes.ok) throw new Error(`Markets fetch: ${mRes.status} ${await mRes.text()}`)
-  const markets = (await mRes.json()).filter((m) => !idsWithRules.has(m.id))
-
-  const scrapable = markets.filter((m) => m.contact_website)
-  const manualFollowup = markets.filter((m) => !m.contact_website && (m.contact_phone || m.contact_email))
+  console.log(`[debug] Fetched ${all.length} markets`)
+  const noRules = all.filter((m) => !m.opening_hour_rules || m.opening_hour_rules.length === 0)
+  console.log(`[debug] Without opening_hour_rules: ${noRules.length}`)
+  const scrapable = noRules.filter((m) => m.contact_website)
+  const manualFollowup = noRules.filter((m) => !m.contact_website && (m.contact_phone || m.contact_email))
+  console.log(`[debug] Scrapable (has website): ${scrapable.length}`)
+  console.log(`[debug] Manual followup (no website, has phone/email): ${manualFollowup.length}`)
   return { scrapable, manualFollowup }
 }
 

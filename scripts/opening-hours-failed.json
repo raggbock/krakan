@@ -1,0 +1,852 @@
+[
+  {
+    "id": "58277a2d-ce16-4b24-b000-9890f8bf75b3",
+    "slug": "kyrkornas-andrahandsbutik-odensbacken",
+    "name": "Kyrkornas andrahandsbutik Odensbacken",
+    "city": "Odensbacken",
+    "source_url": "https://svenskakyrkan.se/askerlannas",
+    "reason": "no_pattern_matched",
+    "phone": "+4619452002",
+    "email": "asker-lannas.forsamling@svenskakyrkan.se"
+  },
+  {
+    "id": "f8b5997c-282e-4f01-8c94-9cf872e349c0",
+    "slug": "bra-och-begagnat-hallsberg",
+    "name": "Bra & Begagnat Hallsberg",
+    "city": "Hallsberg",
+    "source_url": "https://brabegagnat.com",
+    "reason": "no_pattern_matched",
+    "phone": "+46702067068",
+    "email": "info@brabegagnat.com"
+  },
+  {
+    "id": "7944c3e2-74bc-4ce6-8bc2-8305fc3e7dc2",
+    "slug": "gavan-secondhand-nora",
+    "name": "Gåvan Secondhand",
+    "city": "Nora",
+    "source_url": "https://gavannora.se",
+    "reason": "no_pattern_matched",
+    "phone": "+46760235332",
+    "email": "info@gavannora.se"
+  },
+  {
+    "id": "1cce47ea-923c-4103-ad44-0b4ec769c3b9",
+    "slug": "karins-loppis",
+    "name": "Karins Loppis",
+    "city": "Hallsberg",
+    "source_url": "https://karinsloppis.nu",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+4658215506",
+    "email": "kontakt@karinsloppis.nu"
+  },
+  {
+    "id": "8e9cc38f-5755-444b-b06f-cf9af5aea976",
+    "slug": "englahaket",
+    "name": "Englahaket",
+    "city": "Örebro",
+    "source_url": "https://teenchallenge.se/engla",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": "englahaket@gmail.com"
+  },
+  {
+    "id": "fcad6d68-59e9-479a-b5e2-d47229ecf21e",
+    "slug": "spader-madame-retro-vintage-vikarbyn",
+    "name": "Spader Madame Retro Vintage",
+    "city": "Vikarbyn",
+    "source_url": "http://www.spadermadame.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+46706068689",
+    "email": null
+  },
+  {
+    "id": "bf996390-9ade-41fa-8ab6-4710255c98d2",
+    "slug": "draknyckeln-jarna",
+    "name": "Draknyckeln",
+    "city": "Järna",
+    "source_url": "https://www.draknyckeln.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+46855173370",
+    "email": null
+  },
+  {
+    "id": "84267a79-0146-4c09-ad2e-c9f0f874bbeb",
+    "slug": "stationsloppis-oxelosund",
+    "name": "Stationsloppis",
+    "city": "Oxelösund",
+    "source_url": "https://www.stationsloppis.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+46734100405",
+    "email": null
+  },
+  {
+    "id": "9c7d9f3f-46e5-4dae-8d13-5e401a8016f8",
+    "slug": "emmaus-umea",
+    "name": "Emmaus",
+    "city": "Umeå",
+    "source_url": "http://www.infolux.se/emmaus/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": "+4690142814",
+    "email": "emmaus.umea@gmail.com"
+  },
+  {
+    "id": "c3b46edf-dcc8-4326-8358-a811fdecd0f2",
+    "slug": "hjarta-till-hjarta-motala",
+    "name": "Hjärta till hjärta",
+    "city": "Motala",
+    "source_url": "https://hjartatillhjarta.se/motala/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": "+4614152410",
+    "email": "motala@hearttoheart.se"
+  },
+  {
+    "id": "a87ac408-7dc8-4364-b36f-f21cea4a5d9a",
+    "slug": "norrlots-handelstradgard-enhorna",
+    "name": "Norrlöts Handelsträdgård",
+    "city": "Enhörna",
+    "source_url": "https://www.norrlot.se/index.php/antiques",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "20f813f5-eede-4f54-965c-0509d1f35b8b",
+    "slug": "millans-vintage-fritsla",
+    "name": "Millans Vintage",
+    "city": "Fritsla",
+    "source_url": "http://www.millansvintage.se",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "5168c7c5-3f31-4c2f-a030-9534ee63f0b7",
+    "slug": "2nd-hast-falkoping",
+    "name": "2nd häst",
+    "city": "Falköping",
+    "source_url": "https://www.2ndhast.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+46724438861",
+    "email": null
+  },
+  {
+    "id": "bd97cd87-b22d-4efb-a700-5f60ad2f1006",
+    "slug": "backa-konstkvarn-enkoping",
+    "name": "Backa KonstKvarn",
+    "city": "Enköping",
+    "source_url": "https://www.fjardhundraland.se/plats/backa-konstkvarn/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "79b37694-b235-4071-87b7-672b0f19e02c",
+    "slug": "skanninge-second-hand-skanninge",
+    "name": "Skänninge second hand",
+    "city": "Skänninge",
+    "source_url": "http://skeningeav.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+46725799651",
+    "email": "info@skeningeav.se"
+  },
+  {
+    "id": "8a57b869-f710-4a8f-bc5a-7a2083f63a18",
+    "slug": "allis-skoghall",
+    "name": "Allis",
+    "city": "Skoghall",
+    "source_url": "https://rednet.rodakorset.se/nyheter/allis--en-motesplats-med-fokus-pa-det-medmanskliga/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": "lilla.skoghall@gmail.com"
+  },
+  {
+    "id": "23fddb77-a759-4056-898a-53970b71ca2d",
+    "slug": "snipan-rita-ronnang",
+    "name": "Snipan Rita",
+    "city": "Rönnäng",
+    "source_url": "https://snipanrita.se",
+    "reason": "no_pattern_matched",
+    "phone": "+4620704825203",
+    "email": "gadd@snipanrita.se"
+  },
+  {
+    "id": "12d6344e-9122-4f62-b891-89e6997c11a8",
+    "slug": "vickie-s-second-hand-skarhamn",
+    "name": "Vickie's Second Hand",
+    "city": "Skärhamn",
+    "source_url": "https://www.facebook.com/people/Vickies-Second-Hand/100079756116715/",
+    "reason": "no_pattern_matched",
+    "phone": "+46722292661",
+    "email": null
+  },
+  {
+    "id": "6572865e-cb13-4ac8-a591-396b1c5d423b",
+    "slug": "second-hand-butik-sollentuna",
+    "name": "SECOND-HAND-BUTIK",
+    "city": "Sollentuna",
+    "source_url": "https://up.se/cameleontendv",
+    "reason": "no_pattern_matched",
+    "phone": "+46767709644",
+    "email": null
+  },
+  {
+    "id": "986ae139-7f5d-44e3-8ec9-3433efe04878",
+    "slug": "hjarta-till-hjarta-mjolby",
+    "name": "Hjärta till hjärta",
+    "city": "Mjölby",
+    "source_url": "https://hjartatillhjarta.se/mjolby/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": "+4614218660",
+    "email": "mjolby@hearttoheart.se"
+  },
+  {
+    "id": "f42b4c01-9374-4ef1-aaa8-7c42d74d6fd1",
+    "slug": "erikshjalpen-helsingborg",
+    "name": "Erikshjälpen",
+    "city": "Helsingborg",
+    "source_url": "https://erikshjalpen.se/secondhand/vaara-butiker/helsingborg/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "6e19f592-8a6d-4365-91cb-c5d679437a54",
+    "slug": "swedish-armory-ronneby",
+    "name": "Swedish armory",
+    "city": "Ronneby",
+    "source_url": "https://www.swedisharmory.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+4645743121",
+    "email": null
+  },
+  {
+    "id": "6aee50cb-b66b-477a-a2b0-d01e2c833e4c",
+    "slug": "erikshjalpen-lund",
+    "name": "Erikshjälpen",
+    "city": "Lund",
+    "source_url": "https://erikshjalpen.se/store/lund-city/",
+    "reason": "no_pattern_matched",
+    "phone": "+4646130035",
+    "email": "lund@erikshjalpen.se"
+  },
+  {
+    "id": "1dfcc5ad-ea68-41ae-ab51-10c1e25513ca",
+    "slug": "emmaus-lund-lund-2",
+    "name": "Emmaus Lund",
+    "city": "Lund",
+    "source_url": "https://www.emmauslund.se/kontakt/",
+    "reason": "no_pattern_matched",
+    "phone": "+46462726555",
+    "email": "info@emmauslund.se"
+  },
+  {
+    "id": "99c2c40b-6aaf-4062-9b26-af0b837a22f2",
+    "slug": "emmaus-lund-lund",
+    "name": "Emmaus Lund",
+    "city": "Lund",
+    "source_url": "https://www.emmauslund.se/kontakt/",
+    "reason": "no_pattern_matched",
+    "phone": "+46462726555",
+    "email": "info@emmauslund.se"
+  },
+  {
+    "id": "f6317edc-b35e-4a2c-a0c6-d661412fddea",
+    "slug": "reningsborg-partille-partille",
+    "name": "Reningsborg Partille",
+    "city": "Partille",
+    "source_url": "https://reningsborg.se/secondhand/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "622d22ce-04ce-485b-ba5c-0e0aa30733c9",
+    "slug": "stugan-vid-vagen-tystberga",
+    "name": "Stugan vid vägen",
+    "city": "Tystberga",
+    "source_url": "https://www.facebook.com/people/Stugan-vid-v%25C3%25A4gen/100063537579697",
+    "reason": "no_pattern_matched",
+    "phone": "+46703132375",
+    "email": "ingvarslund@gmail.com"
+  },
+  {
+    "id": "62c382ac-8a13-47ac-8d1b-d4511900630b",
+    "slug": "ahlm-market-angelholm",
+    "name": "Ählm Market",
+    "city": "Ängelholm",
+    "source_url": "https://ahlmmarket.se/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "9b2817ad-58dd-4bb5-871f-c2456ac39d70",
+    "slug": "fafangan-antik-goteborg",
+    "name": "Fåfängan Antik",
+    "city": "Göteborg",
+    "source_url": "https://fafangansantik.com/",
+    "reason": "no_pattern_matched",
+    "phone": "+46317110616",
+    "email": null
+  },
+  {
+    "id": "c45c2851-2b06-48d3-9c9b-31680da46c97",
+    "slug": "saluhall-briggen-goteborg",
+    "name": "Saluhall Briggen",
+    "city": "Göteborg",
+    "source_url": "https://briggengbg.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+46317080655",
+    "email": null
+  },
+  {
+    "id": "379d81ba-d8c4-4d6c-8e3d-9eccd491e0ef",
+    "slug": "erikshjalpen-second-hand-gavle",
+    "name": "Erikshjälpen Second Hand",
+    "city": "Gävle",
+    "source_url": "https://erikshjalpen.se/store/gavle/",
+    "reason": "no_pattern_matched",
+    "phone": "+4626185060",
+    "email": "gavle@erikshjalpen.se"
+  },
+  {
+    "id": "1679275e-ec41-4ce0-ae3a-08dfe4c4d3e7",
+    "slug": "emmaus-borlange",
+    "name": "Emmaus",
+    "city": "Borlänge",
+    "source_url": "http://emmaus.se",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "3fe298e6-7841-434b-9a3a-5c5156e7877a",
+    "slug": "svenska-rum-ladugardsgardet",
+    "name": "Svenska rum",
+    "city": "Ladugårdsgärdet",
+    "source_url": "https://www.svenskarumantikt.se",
+    "reason": "no_pattern_matched",
+    "phone": "+46702131371",
+    "email": "leif@svenskarumantikt.se"
+  },
+  {
+    "id": "6aa9a0f6-486f-449f-ae4e-d457202652ce",
+    "slug": "onytt-falun",
+    "name": "Onytt",
+    "city": "Falun",
+    "source_url": "https://onytt.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "ea2885d5-af00-4e21-9305-8591935997f3",
+    "slug": "kyrkornas-second-hand-butik-taby",
+    "name": "Kyrkornas Second Hand-butik",
+    "city": "Täby",
+    "source_url": "https://www.kyrkornas2hand.se",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "6692e433-0914-498f-82cc-26dade19f74d",
+    "slug": "johan-engbergs-antik-hjartum",
+    "name": "Johan Engbergs Antik",
+    "city": "Hjärtum",
+    "source_url": "http://www.johanengbergsantik.com",
+    "reason": "no_pattern_matched",
+    "phone": "+46520656018",
+    "email": null
+  },
+  {
+    "id": "5abd0d77-0d37-446a-a0b6-26662a8451c9",
+    "slug": "saker-ting-tingsryd",
+    "name": "Saker & Ting",
+    "city": "Tingsryd",
+    "source_url": "https://www.knallsberg.com",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "94bcab49-5b86-4ad6-adf4-6831e1bfd9b0",
+    "slug": "bengtssons-loppis-hallabro",
+    "name": "Bengtssons Loppis",
+    "city": "Hallabro",
+    "source_url": "https://www.bengtssonsloppishallabro.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "0cd2cd65-06e3-492c-bc62-4b0ad4534a72",
+    "slug": "antikaffaren-i-tingsryd-tingsryd",
+    "name": "Antikaffären i Tingsryd",
+    "city": "Tingsryd",
+    "source_url": "http://www.antikaffarenitingsryd.se",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "2fdadb00-4623-4ac0-88c6-6116a803a4aa",
+    "slug": "magda-nk-svalboviken",
+    "name": "Magda NK",
+    "city": "Svalboviken",
+    "source_url": "https://www.magdakullan.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+461680018",
+    "email": null
+  },
+  {
+    "id": "dbfd13b6-2811-44d2-91ac-5d46897826e5",
+    "slug": "gengavan-secondhand-karlstad-vaxnas",
+    "name": "Gengåvan Secondhand Karlstad",
+    "city": "Våxnäs",
+    "source_url": "https://www.gengåvansecondhand.se",
+    "reason": "no_pattern_matched",
+    "phone": "+4654211400",
+    "email": null
+  },
+  {
+    "id": "d3538fc5-323e-406a-a495-431a08d6b77b",
+    "slug": "aterbruket-falun",
+    "name": "Återbruket",
+    "city": "Falun",
+    "source_url": "https://fev.se/atervinning/sopsortering/aterbruket-falun.html",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "0e13640c-a91d-4160-be5e-f6d5d9484211",
+    "slug": "prylo-retro-norrkoping",
+    "name": "Prylo retro",
+    "city": "Norrköping",
+    "source_url": "https://prylo.nu",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "0beb08a1-f0b7-4e4d-9027-7f2069c0cbc6",
+    "slug": "agape-second-hand-hjorthagen",
+    "name": "Agape second hand",
+    "city": "Hjorthagen",
+    "source_url": "https://secondhandagape.se/butiker/stockholm",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "c996c9b8-fe66-4565-833a-966ff3a8bcb6",
+    "slug": "motesplats-kupan-lyckeby",
+    "name": "Mötesplats Kupan",
+    "city": "Lyckeby",
+    "source_url": "https://www.rodakorset.se",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "a7acbd5a-9134-4446-936d-26ac9c89a99e",
+    "slug": "framtidsantiken-vasastaden",
+    "name": "Framtidsantiken",
+    "city": "Vasastaden",
+    "source_url": "https://www.framtidsantiken.se",
+    "reason": "no_pattern_matched",
+    "phone": "+468348316",
+    "email": "larsgoranand@hotmail.com"
+  },
+  {
+    "id": "9dc64fff-a523-435b-b5aa-eca55e9c4efc",
+    "slug": "antikt-loppis-vastrum",
+    "name": "Antikt & Loppis",
+    "city": "Västrum",
+    "source_url": "https://www.facebook.com/Skaftet-Antikt-Loppis-649410358477932/",
+    "reason": "no_pattern_matched",
+    "phone": "+46702606295",
+    "email": null
+  },
+  {
+    "id": "5fe25906-4fbd-4d03-a7ce-6628fff582c7",
+    "slug": "stockholm-retro-vasastaden",
+    "name": "Stockholm Retro",
+    "city": "Vasastaden",
+    "source_url": "https://www.stockholmretro.se/",
+    "reason": "no_pattern_matched",
+    "phone": "+46769473876",
+    "email": "info@stockholmretro.se"
+  },
+  {
+    "id": "3029fe48-d5eb-40cc-a0fb-8265b411dd8b",
+    "slug": "metropol-vasastaden",
+    "name": "Metropol",
+    "city": "Vasastaden",
+    "source_url": "http://www.metropol.se",
+    "reason": "no_pattern_matched",
+    "phone": "+4686734880",
+    "email": "info@metropol.se"
+  },
+  {
+    "id": "fd7b8a44-b9d6-4358-a9d6-d8ce4efc5a17",
+    "slug": "hembygdsgarden-second-hand-bjasta",
+    "name": "Hembygdsgården Second Hand",
+    "city": "Bjästa",
+    "source_url": "https://natrahembygd.se/loppa.html",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "94d81af7-c19b-4883-9c1a-b1932af4b9a0",
+    "slug": "aterbruket-bredbyn-bredbyn",
+    "name": "Återbruket Bredbyn",
+    "city": "Bredbyn",
+    "source_url": "https://www.ornskoldsvik.se/omsorgochhjalp/arbetslivsinriktatstod/aterbruket",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": "+4666110755",
+    "email": null
+  },
+  {
+    "id": "e2102371-80be-4590-a6f3-14c3b604752b",
+    "slug": "roda-korset-second-hand-varberg",
+    "name": "Röda Korset Second Hand",
+    "city": "Varberg",
+    "source_url": "https://kommun.redcross.se/varberg/motesplatser/motesplats-kupan/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "813c8f3d-7347-4aba-a416-0b6d97e3f097",
+    "slug": "mormors-prylar-norrtalje",
+    "name": "Mormors prylar",
+    "city": "Norrtälje",
+    "source_url": "https://mormorsprylar.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+46736308843",
+    "email": "mormorsprylar@live.se"
+  },
+  {
+    "id": "51f52efb-b06c-4074-bc01-b6711d970b95",
+    "slug": "uppsala-auktionskammare-uppsala",
+    "name": "Uppsala Auktionskammare",
+    "city": "Uppsala",
+    "source_url": "https://www.uppsalaauktion.se/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "4d4ba766-96a7-4428-a9f0-2dfbf2225101",
+    "slug": "lions-loppmarknad-brakne-hoby-2",
+    "name": "Lions loppmarknad",
+    "city": "Bräkne-Hoby",
+    "source_url": "http://www.febronya.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+4645780035",
+    "email": null
+  },
+  {
+    "id": "03ca04ca-5617-43e3-b895-af91e04adf10",
+    "slug": "lions-loppmarknad-brakne-hoby",
+    "name": "Lions loppmarknad",
+    "city": "Bräkne-Hoby",
+    "source_url": "http://www.febronya.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": "+4645780035",
+    "email": null
+  },
+  {
+    "id": "1b3be1a0-d53c-43da-b077-9b5420d37beb",
+    "slug": "skillingaryds-marknad-skillingaryd",
+    "name": "Skillingaryds marknad",
+    "city": "Skillingaryd",
+    "source_url": "https://sis.nu/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "1fbdd207-5de6-4d10-907b-9080bfc60479",
+    "slug": "folks-interior-kalmar",
+    "name": "Folks Interiör",
+    "city": "Kalmar",
+    "source_url": "https://folksinterior.se/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "d414dc51-5125-4b32-9700-881418eee9aa",
+    "slug": "ronneby-torg-ronneby",
+    "name": "Ronneby Torg",
+    "city": "Ronneby",
+    "source_url": "http://www.ronneby.se/sv/trafik-och-infrastruktur/torg-och-allmanna-platser/torghandel/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "65e447e6-47ec-4f44-af2e-609c1466a2f5",
+    "slug": "re-tail-secondhand-stockholm",
+    "name": "Re-tail secondhand",
+    "city": "Stockholm",
+    "source_url": "https://re-tail.se",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "0d599688-f88a-40ba-b7db-3d4da0ee7d97",
+    "slug": "vintagemagasinet-stora-hoga",
+    "name": "Vintagemagasinet",
+    "city": "Stora Höga",
+    "source_url": "https://vintagemagasinet.se",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "7a9b2c2f-13ed-4869-b259-f125fde3df35",
+    "slug": "stora-loppisen-i-hallabro-hallabro",
+    "name": "Stora Loppisen i Hallabro",
+    "city": "Hallabro",
+    "source_url": "https://www.facebook.com/p/STORA-Loppisen-i-Hallabro-61577355060404/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "6d7a205f-61b4-42e4-b830-4f6bcc3f551f",
+    "slug": "magasin-mix-vilhelmina",
+    "name": "Magasin Mix",
+    "city": "Vilhelmina",
+    "source_url": "https://www.facebook.com/MagasinMixVilhelmina",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "af56f53c-2859-4d70-a1d8-554f13adb887",
+    "slug": "bondens-egen-marknad-ladugardsgardet",
+    "name": "Bondens egen Marknad",
+    "city": "Ladugårdsgärdet",
+    "source_url": "https://bondensegen.com/stockholm-ostermalm-tessinparken/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "56276665-7e59-4c2b-9fb1-0a1b10fc6c5d",
+    "slug": "efi-varnamo-varnamo",
+    "name": "EFI Värnamo",
+    "city": "Värnamo",
+    "source_url": "https://www.xn--efisecondhandvrnamo-twb.se/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "694cac1e-9b3b-4293-a944-abc597afd703",
+    "slug": "snokullaboden-tosseryd",
+    "name": "Snökullaboden",
+    "city": "Tosseryd",
+    "source_url": "https://snokullaboden.se/",
+    "reason": "fetch_failed: fetch failed",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "06f838a4-8fb1-48ed-a6e2-0335fbef648b",
+    "slug": "reningsborg-angered-angered",
+    "name": "Reningsborg Angered",
+    "city": "Angered",
+    "source_url": "https://reningsborg.se/secondhand/",
+    "reason": "fetch_failed: HTTP 404",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "2688d564-646e-4f45-a623-572ae3059396",
+    "slug": "megaloppis-nykoping",
+    "name": "Megaloppis",
+    "city": "Nyköping",
+    "source_url": "http://www.megaloppis.se/",
+    "reason": "no_pattern_matched",
+    "phone": null,
+    "email": null
+  },
+  {
+    "id": "7e3aa2d5-2a76-43a6-baf2-841ee82f0678",
+    "slug": "stugan-vid-vagen-tystberga-2",
+    "name": "Stugan vid vägen",
+    "city": "Tystberga",
+    "source_url": "https://www.facebook.com/people/Stugan-vid-v%25C3%25A4gen/100063537579697",
+    "reason": "no_pattern_matched",
+    "phone": "+46703132375",
+    "email": "ingvarslund@gmail.com"
+  },
+  {
+    "id": "a4b0f4d4-e676-42f7-9575-3a8d4d18c5cb",
+    "slug": "biggans-loppis-karberg",
+    "name": "Biggans Loppis",
+    "city": "Skyllberg",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46739138639",
+    "email": null
+  },
+  {
+    "id": "774b1696-5181-40ff-929b-c54e4aa2930f",
+    "slug": "orebro-second-hand-aspholmen",
+    "name": "Örebro Second Hand (Aspholmen)",
+    "city": "Örebro",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+4619322232",
+    "email": null
+  },
+  {
+    "id": "acf9b1ab-d0ca-4c7b-a166-28c95dd621b8",
+    "slug": "lilla-kladskapet-nora",
+    "name": "Lilla Klädskåpet",
+    "city": "Nora",
+    "source_url": null,
+    "reason": "email_only",
+    "phone": null,
+    "email": "lillakladskapet@gmail.com"
+  },
+  {
+    "id": "8fb92c96-8b4f-4f3e-b6f7-f489f4ca332f",
+    "slug": "loppan-hoganas",
+    "name": "Loppan",
+    "city": "Höganäs",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46735131785",
+    "email": "info@loppan-hoganas.se"
+  },
+  {
+    "id": "3688a5b2-fcca-416f-a308-c3b4e473a5ac",
+    "slug": "lions-loppis-vadstena",
+    "name": "Lions Loppis",
+    "city": "Vadstena",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46702030390",
+    "email": null
+  },
+  {
+    "id": "979d8901-8fee-49c6-b539-fad9323ae815",
+    "slug": "roda-korset-vadstena",
+    "name": "Röda Korset",
+    "city": "Vadstena",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46725863290",
+    "email": null
+  },
+  {
+    "id": "11e3404b-2f89-4100-95b6-99d302891c3a",
+    "slug": "gubb-o-gumm-loppis-kungsgarden",
+    "name": "Gubb O Gumm Loppis",
+    "city": "Kungsgården",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46704043868",
+    "email": null
+  },
+  {
+    "id": "eb9a3253-97ed-4102-a1ea-76117ff1b702",
+    "slug": "norrbygdens-antik-loppmarknad-orrefors",
+    "name": "Norrbygdens Antik & Loppmarknad",
+    "city": "Orrefors",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46730870814",
+    "email": null
+  },
+  {
+    "id": "4134036b-9c2e-4070-ad7b-d739f98f2b58",
+    "slug": "pmu-second-hand-sandviken",
+    "name": "PMU Second Hand",
+    "city": "Sandviken",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46703090607",
+    "email": null
+  },
+  {
+    "id": "f9b8457c-bb99-49d5-9a39-8e541114836b",
+    "slug": "12-korgar-strangnas",
+    "name": "12 Korgar",
+    "city": "Strängnäs",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+4615217853",
+    "email": null
+  },
+  {
+    "id": "143a08ff-b676-4286-b157-ca4fcf66567b",
+    "slug": "fyndkallaren-lund",
+    "name": "Fyndkällaren",
+    "city": "Lund",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+4646151316",
+    "email": null
+  },
+  {
+    "id": "e3012e36-a3c4-42eb-b5a2-85a33a213a3b",
+    "slug": "krasses-antik-mariannelund",
+    "name": "Krasses Antik",
+    "city": "Mariannelund",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+4649610825",
+    "email": null
+  },
+  {
+    "id": "c644244f-6db2-4432-af27-3acbbd124e7e",
+    "slug": "dackloppis-sollentuna",
+    "name": "Däckloppis",
+    "city": "Sollentuna",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46737683489",
+    "email": "dackloppis@gmail.com"
+  },
+  {
+    "id": "561974b5-f460-4dab-83e2-da8b11aad8ae",
+    "slug": "rosengatan-antiktretroloppismobler-jarvso",
+    "name": "Rosengatan Antiktretroloppismöbler",
+    "city": "Järvsö",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46706437808",
+    "email": null
+  },
+  {
+    "id": "1a3e749d-298c-4fa0-bed0-f5a4cfb9a81f",
+    "slug": "komsun-hjorthagen",
+    "name": "Komsun",
+    "city": "Hjorthagen",
+    "source_url": null,
+    "reason": "email_only",
+    "phone": null,
+    "email": "info@lidingokopplet.se"
+  },
+  {
+    "id": "90e6e46e-2e66-455a-8011-30f00b831604",
+    "slug": "almhome-almhult",
+    "name": "Älmhome",
+    "city": "Älmhult",
+    "source_url": null,
+    "reason": "phone_only",
+    "phone": "+46729331513",
+    "email": null
+  }
+]

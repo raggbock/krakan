@@ -1,0 +1,787 @@
+[
+  {
+    "id": "4450bdda-9be0-4280-a150-61f67d69bbfd",
+    "slug": "navet-kumla",
+    "name": "Navet (Biståndsföreningen)",
+    "city": "Kumla",
+    "source_url": "https://navetkumla.se",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Tisdag 10:00-17:00"
+  },
+  {
+    "id": "8be807e2-a036-48e1-a828-2e6a0439f3ee",
+    "slug": "aterbruket-andra-chansen",
+    "name": "Återbruket Andra Chansen",
+    "city": "Fjugesta",
+    "source_url": "https://lekeberg.se",
+    "rules": [
+      {
+        "day_of_week": 1,
+        "open_time": "08:00",
+        "close_time": "12:00"
+      },
+      {
+        "day_of_week": 1,
+        "open_time": "08:00",
+        "close_time": "16:30"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "08:00",
+        "close_time": "12:00"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "08:00",
+        "close_time": "16:30"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "08:00",
+        "close_time": "12:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "08:00",
+        "close_time": "16:30"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "08:00",
+        "close_time": "12:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "08:00",
+        "close_time": "16:30"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "08:00",
+        "close_time": "12:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "08:00",
+        "close_time": "16:00"
+      }
+    ],
+    "snippet": "Måndag-torsdag 8-16.30"
+  },
+  {
+    "id": "2055e124-7a6d-42d0-80c1-5bd026968761",
+    "slug": "noraskogs-antik-byggnadsvard",
+    "name": "Noraskogs Antik & Byggnadsvård",
+    "city": "Nora",
+    "source_url": "https://antikochbyggnadsvard.se",
+    "rules": [
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "11:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Onsdag-Fredag\n11.00-17.00"
+  },
+  {
+    "id": "2a712173-d408-47a4-9792-9a7864063051",
+    "slug": "gammalt-och-nytt-askersund",
+    "name": "Gammalt & Nytt",
+    "city": "Askersund",
+    "source_url": "https://gammaltnytt.se",
+    "rules": [
+      {
+        "day_of_week": 1,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "11:00",
+        "close_time": "15:00"
+      }
+    ],
+    "snippet": "Måndag-fredag 11-18"
+  },
+  {
+    "id": "7f48eb19-3dd4-4f73-9253-867c8afe2863",
+    "slug": "lilla-grodans-loppis",
+    "name": "Lilla Grodans Loppis",
+    "city": "Stora Mellösa",
+    "source_url": "https://lillagrodansloppis.com",
+    "rules": [
+      {
+        "day_of_week": 0,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 1,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "09:00",
+        "close_time": "20:00"
+      }
+    ],
+    "snippet": "Måndag – Söndag\n9 – 20"
+  },
+  {
+    "id": "a2f918d8-3939-44e3-901a-6b7b807238f4",
+    "slug": "ta-till-vara-falun",
+    "name": "Ta till vara",
+    "city": "Falun",
+    "source_url": "https://www.falun.se/jobb--foretagande/jobb-och-praktik/arbetsmarknadsinsatser/ta-till-vara.html",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "16:30"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "16:30"
+      }
+    ],
+    "snippet": "Torsdag 10.00-16.30"
+  },
+  {
+    "id": "46a1c989-a355-4423-812c-4a994c65a2c3",
+    "slug": "love-hope-second-hand-arlandstad",
+    "name": "Love & Hope Second Hand",
+    "city": "Arlandstad",
+    "source_url": "http://www.secondhandmarsta.se/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "12:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "15:00"
+      }
+    ],
+    "snippet": "Torsdag 12-18"
+  },
+  {
+    "id": "2231d0b0-bade-4027-bf80-9e720398a09f",
+    "slug": "sportbytarbutiken-linkoping",
+    "name": "Sportbytarbutiken",
+    "city": "Linköping",
+    "source_url": "https://sportbytarbutiken.se",
+    "rules": [
+      {
+        "day_of_week": 3,
+        "open_time": "16:00",
+        "close_time": "19:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "16:00",
+        "close_time": "19:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "12:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "15:00"
+      }
+    ],
+    "snippet": "Torsdag\n16-19"
+  },
+  {
+    "id": "2a55d04d-d482-4b48-9f29-2b05debf21d3",
+    "slug": "roda-korset-kalix",
+    "name": "Röda Korset",
+    "city": "Kalix",
+    "source_url": "https://www.rodakorset.se/ort/norrbotten/kalix-kommun/second-hand/roda-korset-second-hand-kalix/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "11:00",
+        "close_time": "15:00"
+      }
+    ],
+    "snippet": "Tisdag-Torsdag\n11:00-16:00"
+  },
+  {
+    "id": "bee648a3-8085-4ea3-9d51-f77135398d4b",
+    "slug": "roda-korset-second-hand-sollentuna-sollentuna",
+    "name": "Röda Korset Second hand Sollentuna",
+    "city": "Sollentuna",
+    "source_url": "https://www.rodakorset.se/ort/stockholm/sollentuna-kommun/second-hand/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "11:00",
+        "close_time": "17:00"
+      }
+    ],
+    "snippet": "Onsdag-Fredag\n11:00-17:00"
+  },
+  {
+    "id": "46e9a572-7115-44a1-9bc4-f3aa0bdd14df",
+    "slug": "mitt-secondhand-hudiksvall",
+    "name": "Mitt Secondhand",
+    "city": "Hudiksvall",
+    "source_url": "https://www.mittsecondhand.com/hudiksvall/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "15:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "08:00",
+        "close_time": "15:30"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "11:00",
+        "close_time": "15:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "11:00",
+        "close_time": "14:30"
+      }
+    ],
+    "snippet": "Lördag                    11:00 - 14:30"
+  },
+  {
+    "id": "8a01839a-0d85-4ec7-b486-b17b355040e4",
+    "slug": "retuna-aterbruksgalleria-eskilstuna",
+    "name": "ReTuna Återbruksgalleria",
+    "city": "Eskilstuna",
+    "source_url": "https://www.retuna.se/",
+    "rules": [
+      {
+        "day_of_week": 0,
+        "open_time": "10:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 1,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "16:00"
+      }
+    ],
+    "snippet": "Mån-Fre 10-18"
+  },
+  {
+    "id": "9213de18-fc4f-4011-bed5-079ccbee2c63",
+    "slug": "roda-korset-second-hand-hofors",
+    "name": "Röda Korset Second hand",
+    "city": "Hofors",
+    "source_url": "https://www.rodakorset.se/ort/gavleborg/hofors-kommun/second-hand/roda-korset-second-hand-hofors/",
+    "rules": [
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      }
+    ],
+    "snippet": "Onsdag\n10:00-17:00"
+  },
+  {
+    "id": "cf899ca9-54a8-4d4c-99f9-3e39cea1e986",
+    "slug": "roda-korset-overkalix",
+    "name": "Röda korset",
+    "city": "Överkalix",
+    "source_url": "https://kommun.redcross.se/overkalix/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Tisdag-Fredag\n10:00-14:00"
+  },
+  {
+    "id": "8e692a55-6b58-4838-a0bd-297e78339ecd",
+    "slug": "roda-korset-ockero",
+    "name": "Röda Korset",
+    "city": "Öckerö",
+    "source_url": "http://kommun.redcross.se/ockero/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "14:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Torsdag\n11:00-14:00"
+  },
+  {
+    "id": "b7b18e47-4128-48f4-9774-124903cdb767",
+    "slug": "pryl-1900-umea",
+    "name": "Pryl 1900",
+    "city": "Umeå",
+    "source_url": "http://pryl1900.se/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "12:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "12:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "12:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "12:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "11:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Torsdag\n12 – 17"
+  },
+  {
+    "id": "bff71e5c-d754-437e-afed-3e12b670ca13",
+    "slug": "roda-korset-second-hand-tranas",
+    "name": "Röda Korset Second Hand",
+    "city": "Tranås",
+    "source_url": "https://www.rodakorset.se/vad-vi-gor/second-hand/butiker/roda-korset-secondhand-tranas/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Tisdag-Torsdag\n10:00-18:00"
+  },
+  {
+    "id": "7e5de743-a8ed-46ca-9810-2f6efe4a229d",
+    "slug": "roda-korset-second-hand-tyreso-bollmora",
+    "name": "Röda korset second hand Tyresö",
+    "city": "Bollmora",
+    "source_url": "https://www.rodakorset.se/vad-vi-gor/second-hand/butiker/roda-korset-secondhand-tyreso/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "15:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "19:00"
+      }
+    ],
+    "snippet": "Torsdag\n11:00-19:00"
+  },
+  {
+    "id": "82886740-df23-4d12-927c-467c6abe0012",
+    "slug": "butik-aterbruk-rosenlund",
+    "name": "Butik Återbruk",
+    "city": "Rosenlund",
+    "source_url": "https://butikaterbruk.se/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "13:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "13:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "09:00",
+        "close_time": "14:00"
+      }
+    ],
+    "snippet": "Torsdag: 13.00 – 18.00"
+  },
+  {
+    "id": "e2b7fbc4-9458-4425-be83-c3329acd5b26",
+    "slug": "stadsmissionens-second-hand-eskilstuna-2",
+    "name": "Stadsmissionens second hand",
+    "city": "Eskilstuna",
+    "source_url": "https://www.stadsmissionen.se/butiker/second-hand-eskilstuna-retuna",
+    "rules": [
+      {
+        "day_of_week": 0,
+        "open_time": "10:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 1,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      }
+    ],
+    "snippet": "Torsdag\n10:00-18:00"
+  },
+  {
+    "id": "8fa58833-4dcd-4a43-b15b-84369ddae932",
+    "slug": "jessies-musikcafe-second-hand-ragsved",
+    "name": "Jessies musikcafé & second hand",
+    "city": "Rågsved",
+    "source_url": "https://www.jessies.se",
+    "rules": [
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "21:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "22:00"
+      }
+    ],
+    "snippet": "Lör    10-22"
+  },
+  {
+    "id": "4956f1c4-fea6-4e4f-8df4-0628a1e9fb79",
+    "slug": "svenska-roda-korset-bollnas-rodakorskrets-secondhandbutik-bo",
+    "name": "Svenska Röda Korset, Bollnäs Rödakorskrets, Secondhandbutik",
+    "city": "Bollnäs",
+    "source_url": "https://www.rodakorset.se/vad-vi-gor/second-hand/butiker/roda-korset-secondhand-bollnas/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      }
+    ],
+    "snippet": "Tisdag-Fredag\n10:00-17:00"
+  },
+  {
+    "id": "113955f3-3651-4d7f-af91-564907fd4376",
+    "slug": "feskekorka-goteborg",
+    "name": "Feskekörka",
+    "city": "Göteborg",
+    "source_url": "https://www.feskekorka.se/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "11:30",
+        "close_time": "21:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "10:00",
+        "close_time": "18:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:30",
+        "close_time": "21:00"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "10:00",
+        "close_time": "18:30"
+      },
+      {
+        "day_of_week": 5,
+        "open_time": "11:30",
+        "close_time": "22:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "10:00",
+        "close_time": "17:00"
+      },
+      {
+        "day_of_week": 6,
+        "open_time": "12:00",
+        "close_time": "22:00"
+      }
+    ],
+    "snippet": "Tis - Tor 10:00-18:00"
+  },
+  {
+    "id": "a44d310d-1dcb-4a80-a9af-04d8fd129e42",
+    "slug": "roda-korset-second-hand-forsa-sorforsa",
+    "name": "Röda Korset Second hand Forsa",
+    "city": "Sörforsa",
+    "source_url": "https://www.rodakorset.se/ort/gavleborg/hudiksvalls-kommun/second-hand/roda-korset-second-hand-forsa/",
+    "rules": [
+      {
+        "day_of_week": 2,
+        "open_time": "11:00",
+        "close_time": "16:00"
+      },
+      {
+        "day_of_week": 3,
+        "open_time": "16:00",
+        "close_time": "19:00"
+      },
+      {
+        "day_of_week": 4,
+        "open_time": "11:00",
+        "close_time": "16:00"
+      }
+    ],
+    "snippet": "Torsdag\n11:00-16:00"
+  }
+]
