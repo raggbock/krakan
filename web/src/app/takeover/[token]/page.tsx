@@ -46,10 +46,9 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
     if (linkTracked || !info.data) return
     posthog?.capture('takeover_link_clicked', {
       market_id: info.data.marketId,
-      token_short: token.slice(0, 8),
     })
     setLinkTracked(true)
-  }, [info.data, linkTracked, posthog, token])
+  }, [info.data, linkTracked, posthog])
 
   if (info.isLoading) {
     return (

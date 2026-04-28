@@ -38,8 +38,8 @@ const OpeningHourRuleInput = z.object({
 export const AdminMarketEditInput = z.object({
   marketId: z.string().uuid(),
   patch: z.object({
-    /** Rename the market. Slug intentionally not touched — changing it would break existing URLs. */
-    name: z.string().trim().min(1).optional(),
+    /** Rename the market. Slug intentionally not touched — changing it would break existing URLs. Capped at 200 chars as a defensive limit. */
+    name: z.string().trim().min(1).max(200).optional(),
     contact: ContactPatch.optional(),
     address: AddressPatch.optional(),
     location: LocationPatch.optional(),
