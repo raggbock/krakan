@@ -1,13 +1,31 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useSearch } from '@/hooks/use-search'
 import { marketUrl } from '@/lib/urls'
 
 export default function SearchPage() {
+  const posthog = usePostHog()
   const { query, results, loading, search } = useSearch()
+  const lastTrackedQuery = useRef<string | null>(null)
+
+  // Fire market_search_performed after results arrive (search hook debounces 300ms).
+  // Skip if we already fired for this query string.
+  useEffect(() => {
+    if (!results || loading) return
+    if (query.trim() === '') return
+    if (lastTrackedQuery.current === query) return
+    lastTrackedQuery.current = query
+    posthog?.capture('market_search_performed', {
+      query_length: query.trim().length,
+      has_results: results.length > 0,
+      result_count: results.length,
+    })
+  }, [results, loading, query, posthog])
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">

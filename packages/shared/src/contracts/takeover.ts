@@ -14,6 +14,8 @@ export const TakeoverInfoOutput = z.object({
    * already, so this is convenience-not-security.
    */
   maskedEmail: z.string().nullable(),
+  /** The flea market's UUID — used for analytics. */
+  marketId: z.string().uuid(),
 })
 
 export const TakeoverFeedbackInput = z.object({

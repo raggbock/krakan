@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseServerData } from '@fyndstigen/shared'
 import { MarketDetail } from '@/components/market-detail'
+import { TrackMarketView } from '@/components/track-market-view'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -13,5 +14,10 @@ export default async function LoppisPage({ params }: Props) {
   const supabase = await createSupabaseServerClient()
   const id = await createSupabaseServerData(supabase).getMarketIdBySlug(slug)
   if (!id) notFound()
-  return <MarketDetail id={id} />
+  return (
+    <>
+      <TrackMarketView marketId={id} slug={slug} />
+      <MarketDetail id={id} />
+    </>
+  )
 }

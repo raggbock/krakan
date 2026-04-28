@@ -1,6 +1,7 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import {
   useTakeoverInfo,
@@ -37,7 +38,18 @@ type View =
 export default function TakeoverPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params)
   const info = useTakeoverInfo(token)
+  const posthog = usePostHog()
   const [view, setView] = useState<View>({ kind: 'choose' })
+  const [linkTracked, setLinkTracked] = useState(false)
+
+  useEffect(() => {
+    if (linkTracked || !info.data) return
+    posthog?.capture('takeover_link_clicked', {
+      market_id: info.data.marketId,
+      token_short: token.slice(0, 8),
+    })
+    setLinkTracked(true)
+  }, [info.data, linkTracked, posthog, token])
 
   if (info.isLoading) {
     return (
@@ -130,6 +142,7 @@ type Market = {
   region: string | null
   sourceUrl: string | null
   maskedEmail: string | null
+  marketId: string
 }
 
 function ChooseView({
@@ -312,6 +325,7 @@ function ClaimView({
   onCancel: () => void
 }) {
   const start = useTakeoverStart()
+  const posthog = usePostHog()
   // Single-step claim now: submit email → server creates user, claims
   // market, mails magic-link → done. No 6-digit code round-trip — the
   // magic-link itself proves inbox control, same as the code did.
@@ -322,8 +336,21 @@ function ClaimView({
     e.preventDefault()
     try {
       await start.mutateAsync({ token, email })
+      posthog?.capture('takeover_email_submitted', {
+        market_id: market.marketId,
+        success: true,
+      })
       setStep('done')
-    } catch { /* surfaced via start.isError */ }
+    } catch (err) {
+      const rawMsg = err instanceof Error ? err.message : String(err)
+      const errorCode = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
+      posthog?.capture('takeover_email_submitted', {
+        market_id: market.marketId,
+        success: false,
+        error_reason: errorCode,
+      })
+      /* surfaced via start.isError */
+    }
   }
 
   return (

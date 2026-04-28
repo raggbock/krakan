@@ -91,7 +91,7 @@ definePublicEndpoint({
     // visitors immediately see their newly-owned listing with the draft
     // banner (or a fresh edit link if already published).
     const slug = market.slug as string | null
-    const redirectTo = slug ? `${origin}/loppis/${slug}` : `${origin}/profile`
+    const redirectTo = slug ? `${origin}/loppis/${slug}?from=takeover` : `${origin}/profile`
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) throw new HttpError(500, 'RESEND_API_KEY missing')

@@ -90,6 +90,17 @@ export function useBooking(
     setIsSubmitting(true)
     setSubmitError(null)
 
+    const priceSek = selectedTable.price_sek
+    const isFree = isFreePriced(priceSek)
+    const totalAmountOre = isFree ? 0 : bookingService.calculateTotal(priceSek).total * 100
+
+    posthog?.capture('booking_submitted', {
+      market_id: marketId,
+      table_ids: [selectedTable.id],
+      total_amount_ore: totalAmountOre,
+      is_free: isFree,
+    })
+
     try {
       // Build payment gateway lazily. For free tables no clientSecret comes
       // back, so the no-op path is the correct gateway. For paid tables with
@@ -97,14 +108,27 @@ export function useBooking(
       // gateway that throws iff actually invoked — matches pre-RFC behavior.
       const cardElement =
         stripe && elements ? (elements.getElement(CardElement) as StripeCardElement | null) : null
-      const payment =
+
+      let paymentCompleted = false
+      const basePayment =
         stripe && cardElement
           ? createStripePaymentGateway(stripe, cardElement)
           : createNoOpPaymentGateway(!stripe || !elements ? 'Stripe not loaded' : 'Card element not found')
 
+      // Wrap the payment gateway to capture booking_payment_completed
+      const payment = {
+        confirmCardPayment: async (clientSecret: string) => {
+          const result = await basePayment.confirmCardPayment(clientSecret)
+          if (result.status === 'succeeded') {
+            paymentCompleted = true
+          }
+          return result
+        },
+      }
+
       const telemetry = createPostHogTelemetry(posthog)
 
-      await bookingService.book(
+      const { bookingId } = await bookingService.book(
         {
           marketTableId: selectedTable.id,
           fleaMarketId: marketId,
@@ -112,17 +136,37 @@ export function useBooking(
           message: message || undefined,
           tableLabel: selectedTable.label,
           marketName,
-          priceSek: selectedTable.price_sek,
+          priceSek,
         },
         { payment, telemetry },
       )
+
+      posthog?.capture('booking_succeeded', {
+        booking_id: bookingId,
+        market_id: marketId,
+        requires_payment: !isFree,
+      })
+
+      if (paymentCompleted) {
+        posthog?.capture('booking_payment_completed', {
+          booking_id: bookingId,
+          market_id: marketId,
+          amount_ore: totalAmountOre,
+        })
+      }
 
       setIsDone(true)
       setSelectedTable(null)
       setDate('')
       setMessage('')
     } catch (err) {
-      setSubmitError(toAppError(err))
+      const appErr = toAppError(err)
+      setSubmitError(appErr)
+      posthog?.capture('booking_failed', {
+        market_id: marketId,
+        stage: 'submit',
+        reason: appErr.code,
+      })
     } finally {
       setIsSubmitting(false)
     }

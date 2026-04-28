@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
@@ -19,9 +20,11 @@ function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 }
 
 export default function ExplorePage() {
+  const posthog = usePostHog()
   const [page, setPage] = useState(1)
   const [openNowOnly, setOpenNowOnly] = useState(false)
   const pageSize = openNowOnly ? 200 : 20
+  const isFirstRender = useRef(true)
 
   // User position for distance-sorted feed and per-card distance label.
   // Silent when geolocation is denied — falls back to created_at-sorted
@@ -82,6 +85,19 @@ export default function ExplorePage() {
     }
     return list
   }, [allMarkets, openIds, openNowOnly, useNearby, page, pageSize])
+
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    const t = setTimeout(() => {
+      posthog?.capture('market_list_filtered', {
+        city: 'all',
+        filter_keys: openNowOnly ? ['open_now'] : [],
+        // totalCount, inte markets.length — den senare är paginerad (20/sida).
+        result_count: totalCount,
+      })
+    }, 500)
+    return () => clearTimeout(t)
+  }, [openNowOnly, totalCount, posthog])
 
   const isEmpty = !loading && !error && !markets.length
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -220,7 +236,10 @@ export default function ExplorePage() {
       <section className="mb-6 flex items-center gap-3 flex-wrap">
         <button
           type="button"
-          onClick={() => { setOpenNowOnly(!openNowOnly); setPage(1) }}
+          onClick={() => {
+            setOpenNowOnly((prev) => !prev)
+            setPage(1)
+          }}
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
             openNowOnly
               ? 'bg-emerald-700 text-white border-emerald-700'

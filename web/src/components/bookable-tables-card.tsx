@@ -6,9 +6,10 @@ import type { MarketTable } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
-import { messageFor } from '@fyndstigen/shared'
+import { isFreePriced, messageFor } from '@fyndstigen/shared'
 import { stripePromise } from '@/lib/stripe'
 import { useFlag } from '@/lib/flags'
+import { usePostHog } from 'posthog-js/react'
 
 function BookableTablesInner({
   fleaMarketId,
@@ -22,6 +23,7 @@ function BookableTablesInner({
   openingHours?: OpeningHoursContext
 }) {
   const { user } = useAuth()
+  const posthog = usePostHog()
   const booking = useBooking(fleaMarketId, fleaMarketName, user?.id, openingHours)
 
   return (
@@ -54,7 +56,17 @@ function BookableTablesInner({
               return (
                 <div key={table.id}>
                   <button
-                    onClick={() => booking.selectTable(isSelected ? null : table)}
+                    onClick={() => {
+                      const next = isSelected ? null : table
+                      booking.selectTable(next)
+                      if (next) {
+                        posthog?.capture('booking_started', {
+                          market_id: fleaMarketId,
+                          table_count: tables.length,
+                          is_free: isFreePriced(next.price_sek),
+                        })
+                      }
+                    }}
                     className={`w-full text-left flex items-center justify-between rounded-xl p-4 transition-all ${
                       isSelected
                         ? 'bg-rust/8 border border-rust/20'

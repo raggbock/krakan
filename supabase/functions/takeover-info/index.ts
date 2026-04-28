@@ -47,6 +47,7 @@ definePublicEndpoint({
       region: (market.region as string | null) ?? null,
       sourceUrl: (market.contact_website as string | null) ?? null,
       maskedEmail: maskEmail((tokenRow.sent_to_email as string | null) ?? null),
+      marketId: tokenRow.flea_market_id as string,
     }
   },
 })
