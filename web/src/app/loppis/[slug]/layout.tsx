@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseServerData } from '@fyndstigen/shared'
 
 type Props = {
@@ -11,19 +11,19 @@ type Props = {
 
 const SCHEMA_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const
 
-function getServerData() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-  )
-  return createSupabaseServerData(supabase)
+// Use the cookie-aware server client so RLS sees the logged-in
+// organizer's auth.uid() and lets them resolve their OWN drafts.
+// Anon visitors still only see published markets via RLS — exactly
+// what we want.
+async function getServerData() {
+  return createSupabaseServerData(await createSupabaseServerClient())
 }
 
 // React's cache() dedupes within a single request — both generateMetadata
 // and the layout body resolve the same slug, but only one DB round-trip
 // goes out. Without this we'd hit Supabase twice per render.
 const resolveBySlug = cache(async (slug: string) => {
-  const server = getServerData()
+  const server = await getServerData()
   const id = await server.getMarketIdBySlug(slug)
   if (!id) return null
   const meta = await server.getMarketMeta(id)

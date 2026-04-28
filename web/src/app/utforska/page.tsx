@@ -302,19 +302,18 @@ export default function ExplorePage() {
                 className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up"
                 style={{ animationDelay: `${0.1 + i * 0.06}s` }}
               >
-                {/* Card image area */}
-                <div className="h-44 bg-cream-warm knit-bg flex items-center justify-center relative overflow-hidden">
-                  <span className="font-display text-4xl font-bold text-espresso/10 group-hover:text-espresso/15 transition-colors duration-300">
-                    {getInitials(market.name)}
+                {/* Card placeholder band — compact, themed, no big empty
+                    cream area. Market name renders as faded Fraunces italic
+                    over the parchment, with the type stamp anchored to the
+                    corner. Reads as designed, not as missing-image. */}
+                <div className="h-24 sm:h-28 bg-parchment-light border-b border-cream-warm flex items-center justify-center relative overflow-hidden px-6">
+                  <span className="font-display text-xl sm:text-2xl italic text-espresso/30 truncate">
+                    {market.name}
                   </span>
-
-                  {/* Type stamp */}
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-2.5 right-2.5">
                     <span
-                      className={`stamp text-xs ${
-                        market.is_permanent
-                          ? 'text-forest'
-                          : 'text-mustard'
+                      className={`stamp text-[10px] ${
+                        market.is_permanent ? 'text-forest' : 'text-mustard'
                       }`}
                     >
                       {market.is_permanent ? 'Permanent' : 'Tillfällig'}
