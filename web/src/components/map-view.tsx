@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/api'
 import type { FleaMarketNearBy } from '@/lib/api'
@@ -10,25 +11,45 @@ import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
 
 const DEFAULT_CENTER: [number, number] = [59.33, 18.07] // Stockholm fallback
 
-function FlyToLocation({ lat, lng }: { lat: number; lng: number }) {
+function FlyToLocation({ lat, lng, zoom }: { lat: number; lng: number; zoom: number }) {
   const map = useMap()
   useEffect(() => {
-    map.flyTo([lat, lng], 11, { duration: 1.2 })
-  }, [map, lat, lng])
+    map.flyTo([lat, lng], zoom, { duration: 1.2 })
+  }, [map, lat, lng, zoom])
   return null
 }
 
 export default function MapView() {
+  const params = useSearchParams()
+  // Allow callers (e.g. /loppis/[slug]'s "Visa på karta"-link) to deep-link
+  // straight to a market's coordinates instead of opening the general map
+  // at the visitor's location. Falls back to geolocation when params absent.
+  const targetLat = parseFloat(params.get('lat') ?? '')
+  const targetLng = parseFloat(params.get('lng') ?? '')
+  const hasTarget = Number.isFinite(targetLat) && Number.isFinite(targetLng)
+
   const [markets, setMarkets] = useState<FleaMarketNearBy[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [center, setCenter] = useState(DEFAULT_CENTER)
+  const [center, setCenter] = useState<[number, number]>(
+    hasTarget ? [targetLat, targetLng] : DEFAULT_CENTER,
+  )
+  // Higher zoom when arriving at a specific market — visitor wants to see
+  // the actual location, not a regional overview.
+  const [zoom, setZoom] = useState(hasTarget ? 15 : 11)
 
   useEffect(() => {
+    if (hasTarget) {
+      // Skip geolocation prompt — we already know where to go. Still
+      // load markets in a wide radius so the user can scroll around.
+      loadMarkets(targetLat, targetLng)
+      return
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
         setCenter(loc)
+        setZoom(11)
         loadMarkets(loc[0], loc[1])
       },
       () => {
@@ -48,6 +69,9 @@ export default function MapView() {
         .catch(() => setError('Kunde inte ladda loppisar'))
         .finally(() => setLoading(false))
     }
+    // The hook's empty-dep-array intent is preserved — hasTarget+coords
+    // come from URL params which don't change without a full remount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const markers: MapMarker[] = markets.map((market) => ({
@@ -94,7 +118,7 @@ export default function MapView() {
         cluster
         className="flex-1 w-full"
       >
-        <FlyToLocation lat={center[0]} lng={center[1]} />
+        <FlyToLocation lat={center[0]} lng={center[1]} zoom={zoom} />
       </FyndstigenMap>
     </div>
   )

@@ -64,10 +64,15 @@ export function ClaimMarketButton({ marketId, marketName }: { marketId: string; 
 
       {open && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-6"
+          // Anchored to the top of the viewport so the form sits above the
+          // fold on mobile (previously centred, which dropped it behind the
+          // footer on shorter screens). z-[60] beats the sticky header and
+          // anything in the footer; pointer-events on the wrapper itself
+          // lets clicks outside the modal still close it.
+          className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-20 sm:pt-24 overflow-y-auto"
           onClick={(e) => { if (e.target === e.currentTarget) reset() }}
         >
-          <div className="w-full max-w-md bg-card border border-cream-warm rounded-card p-7 shadow-[0_4px_16px_rgba(44,36,29,0.1)]">
+          <div className="w-full max-w-md bg-card border border-cream-warm rounded-card p-7 shadow-[0_8px_28px_rgba(44,36,29,0.18)]">
             {!done && (
               <>
                 <h3 className="font-display text-2xl font-medium tracking-tight mb-2">

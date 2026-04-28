@@ -182,12 +182,21 @@ export function MarketDetail({ id }: { id: string }) {
       </div>
 
       <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-        <Link
-          href="/map"
-          className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
-        >
-          Visa på karta &rarr;
-        </Link>
+        {market.latitude != null && market.longitude != null ? (
+          <Link
+            href={`/map?lat=${market.latitude}&lng=${market.longitude}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
+          >
+            Visa på karta &rarr;
+          </Link>
+        ) : (
+          <Link
+            href="/map"
+            className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
+          >
+            Visa på karta &rarr;
+          </Link>
+        )}
         {market.is_system_owned && (
           <ClaimMarketButton marketId={id} marketName={market.name} />
         )}
