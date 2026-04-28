@@ -130,6 +130,7 @@ type Market = {
   city: string | null
   region: string | null
   sourceUrl: string | null
+  maskedEmail: string | null
 }
 
 function ChooseView({
@@ -342,7 +343,8 @@ function ClaimView({
         <form onSubmit={onSubmitEmail} className="space-y-4">
           <p className="text-sm text-espresso-light">
             Vi skickar en 6-siffrig verifieringskod till samma e-postadress som
-            mejlet kom till.
+            mejlet kom till
+            {market.maskedEmail ? <> — <code className="font-mono">{market.maskedEmail}</code></> : null}.
           </p>
           <div>
             <label className="block text-[13px] font-bold text-espresso-light mb-1.5">

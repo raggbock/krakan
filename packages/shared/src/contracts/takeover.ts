@@ -6,6 +6,14 @@ export const TakeoverInfoOutput = z.object({
   city: z.string().nullable(),
   region: z.string().nullable(),
   sourceUrl: z.string().nullable(),
+  /**
+   * Masked version of the email the takeover invite was originally sent
+   * to (e.g. "i••@andrachansen.com"). Lets visitors see which inbox to
+   * verify against without exposing the full address — though anyone
+   * holding the token URL effectively had access to the full address
+   * already, so this is convenience-not-security.
+   */
+  maskedEmail: z.string().nullable(),
 })
 
 export const TakeoverFeedbackInput = z.object({
