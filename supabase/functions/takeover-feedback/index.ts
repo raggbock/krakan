@@ -8,7 +8,7 @@ import {
   TakeoverFeedbackOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
 
-const FEEDBACK_TO = 'hej@fyndstigen.se'
+const FEEDBACK_TO = 'info@fyndstigen.se'
 
 definePublicEndpoint({
   name: 'takeover-feedback',

@@ -8,7 +8,7 @@ import {
   TakeoverRemoveOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
 
-const NOTIFY_TO = 'hej@fyndstigen.se'
+const NOTIFY_TO = 'info@fyndstigen.se'
 
 definePublicEndpoint({
   name: 'takeover-remove',
