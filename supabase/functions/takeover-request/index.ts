@@ -7,7 +7,7 @@ import {
   TakeoverRequestOutput,
 } from '@fyndstigen/shared/contracts/takeover-request.ts'
 
-const NOTIFY_TO = 'hej@fyndstigen.se'
+const NOTIFY_TO = 'info@fyndstigen.se'
 
 /**
  * Caps to keep admin inbox sane and a determined attacker from spamming
