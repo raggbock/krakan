@@ -27,6 +27,43 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  async headers() {
+    // Single-line CSP. unsafe-inline + unsafe-eval are required:
+    //   - inline-css: Next.js (inlineCss: true above) inlines Tailwind in <head>
+    //   - inline-script: Next.js bootstrap + react hydration data
+    //   - eval: PostHog session-recording uses new Function() in its rrweb bundle
+    // Allowlist drives the actual security — only these external hosts may be
+    // contacted/embedded. Sentry is same-origin via tunnelRoute '/monitoring'.
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://eu-assets.i.posthog.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://yqeegfhwbjnlrdurstxp.supabase.co https://*.stripe.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://yqeegfhwbjnlrdurstxp.supabase.co wss://yqeegfhwbjnlrdurstxp.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://api.stripe.com https://m.stripe.network https://r.stripe.com https://router.project-osrm.org https://nominatim.openstreetmap.org",
+      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join('; ')
+
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Content-Security-Policy', value: csp },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+        ],
+      },
+    ]
+  },
 };
 
 initOpenNextCloudflareForDev();
