@@ -1,6 +1,6 @@
 import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
-import { sha256Hex } from '../_shared/takeover-helpers.ts'
+import { validateTakeoverToken } from '../_shared/takeover-token.ts'
 import {
   TakeoverInfoInput,
   TakeoverInfoOutput,
@@ -11,27 +11,7 @@ definePublicEndpoint({
   input: TakeoverInfoInput,
   output: TakeoverInfoOutput,
   handler: async ({ admin }, input) => {
-    const tokenHash = await sha256Hex(input.token)
-    const { data: tokenRow, error } = await admin
-      .from('business_owner_tokens')
-      .select('id, flea_market_id, used_at, invalidated_at, expires_at, sent_to_email, clicked_at')
-      .eq('token_hash', tokenHash)
-      .maybeSingle()
-    if (error) throw new Error(error.message)
-    if (!tokenRow) throw new HttpError(404, 'token_not_found')
-    if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
-    if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
-    if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
-
-    // Stamp first-click for funnel metrics. Best-effort — failure here
-    // shouldn't block the page from rendering, so we log and continue.
-    if (!tokenRow.clicked_at) {
-      const { error: clickErr } = await admin
-        .from('business_owner_tokens')
-        .update({ clicked_at: new Date().toISOString() })
-        .eq('id', tokenRow.id)
-      if (clickErr) console.error('[takeover-info] click stamp failed:', clickErr.message)
-    }
+    const tokenRow = await validateTakeoverToken(admin, input.token, { stampClickedAt: true })
 
     const { data: market, error: mErr } = await admin
       .from('flea_markets')
@@ -46,8 +26,8 @@ definePublicEndpoint({
       city: (market.city as string | null) ?? null,
       region: (market.region as string | null) ?? null,
       sourceUrl: (market.contact_website as string | null) ?? null,
-      maskedEmail: maskEmail((tokenRow.sent_to_email as string | null) ?? null),
-      marketId: tokenRow.flea_market_id as string,
+      maskedEmail: maskEmail(tokenRow.sent_to_email),
+      marketId: tokenRow.flea_market_id,
     }
   },
 })

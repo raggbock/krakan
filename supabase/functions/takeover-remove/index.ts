@@ -2,6 +2,7 @@ import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { takeoverRemovedNotificationEmail } from '../_shared/email-templates/takeover-removed.ts'
+import { validateTakeoverToken } from '../_shared/takeover-token.ts'
 import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
   TakeoverRemoveInput,
@@ -15,20 +16,10 @@ definePublicEndpoint({
   input: TakeoverRemoveInput,
   output: TakeoverRemoveOutput,
   handler: async ({ admin }, input) => {
-    const tokenHash = await sha256Hex(input.token)
     // Pre-flight: confirm the token is real and still active. The atomic
     // RPC re-checks under a row lock, so this is purely for cleaner error
     // mapping (404 vs 410) before we mutate anything.
-    const { data: tokenRow, error } = await admin
-      .from('business_owner_tokens')
-      .select('flea_market_id, used_at, invalidated_at, expires_at')
-      .eq('token_hash', tokenHash)
-      .maybeSingle()
-    if (error) throw new Error(error.message)
-    if (!tokenRow) throw new HttpError(404, 'token_not_found')
-    if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
-    if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
-    if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
+    const tokenRow = await validateTakeoverToken(admin, input.token)
 
     // Fetch market info BEFORE the soft-delete so we can include name/city
     // in the admin notification mail. The RPC sets is_deleted = true,
@@ -40,6 +31,7 @@ definePublicEndpoint({
       .single()
     if (mErr) throw new Error(mErr.message)
 
+    const tokenHash = await sha256Hex(input.token)
     const { error: rpcErr } = await admin.rpc('remove_via_takeover', {
       p_token_hash: tokenHash,
     })
@@ -57,7 +49,7 @@ definePublicEndpoint({
       const { html, text } = takeoverRemovedNotificationEmail({
         businessName: market.name as string,
         city: (market.city as string | null) ?? null,
-        marketId: tokenRow.flea_market_id as string,
+        marketId: tokenRow.flea_market_id,
         reason: input.reason?.trim() ? input.reason.trim() : null,
       })
       try {

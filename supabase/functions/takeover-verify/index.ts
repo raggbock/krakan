@@ -2,6 +2,7 @@ import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { takeoverMagicLinkEmail } from '../_shared/email-templates/takeover-code.ts'
+import { validateTakeoverToken } from '../_shared/takeover-token.ts'
 import {
   MAX_CODE_ATTEMPTS,
   sha256Hex,
@@ -17,25 +18,24 @@ definePublicEndpoint({
   input: TakeoverVerifyInput,
   output: TakeoverVerifyOutput,
   handler: async ({ admin, origin }, input) => {
-    const tokenHash = await sha256Hex(input.token)
     const email = input.email.toLowerCase()
 
-    const { data: tokenRow, error } = await admin
-      .from('business_owner_tokens')
-      .select('id, flea_market_id, used_at, invalidated_at, expires_at, verification_email, verification_code_hash, verification_code_expires_at')
-      .eq('token_hash', tokenHash)
-      .maybeSingle()
-    if (error) throw new Error(error.message)
-    if (!tokenRow) throw new HttpError(404, 'token_not_found')
-    if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
-    if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
-    if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
+    // Validate the core token (not found / used / invalidated / expired).
+    const tokenRow = await validateTakeoverToken(admin, input.token)
 
-    if (!tokenRow.verification_code_hash || !tokenRow.verification_email) {
+    // Fetch the code-specific columns — not included in the common row shape.
+    const { data: codeRow, error: codeErr } = await admin
+      .from('business_owner_tokens')
+      .select('verification_email, verification_code_hash, verification_code_expires_at')
+      .eq('id', tokenRow.id)
+      .single()
+    if (codeErr) throw new Error(codeErr.message)
+
+    if (!codeRow.verification_code_hash || !codeRow.verification_email) {
       throw new HttpError(400, 'no_code_sent')
     }
-    if (tokenRow.verification_email !== email) throw new HttpError(400, 'email_mismatch')
-    if (Date.parse(tokenRow.verification_code_expires_at as string) < Date.now()) {
+    if (codeRow.verification_email !== email) throw new HttpError(400, 'email_mismatch')
+    if (Date.parse(codeRow.verification_code_expires_at as string) < Date.now()) {
       throw new HttpError(410, 'code_expired')
     }
 
@@ -56,7 +56,7 @@ definePublicEndpoint({
     }
 
     const codeHash = await sha256Hex(input.code)
-    const matches = timingSafeEqualHex(codeHash, tokenRow.verification_code_hash as string)
+    const matches = timingSafeEqualHex(codeHash, codeRow.verification_code_hash as string)
     if (!matches) throw new HttpError(400, 'code_invalid')
 
     // --- Verified. Resolve the auth user FIRST, then spend+transfer in one
@@ -90,6 +90,7 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
+    const tokenHash = await sha256Hex(input.token)
     const { error: claimErr } = await admin.rpc('claim_takeover_atomic', {
       p_token_hash: tokenHash,
       p_user_id: userId,

@@ -2,6 +2,7 @@ import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { takeoverMagicLinkEmail } from '../_shared/email-templates/takeover-code.ts'
+import { validateTakeoverToken } from '../_shared/takeover-token.ts'
 import { sha256Hex } from '../_shared/takeover-helpers.ts'
 import {
   TakeoverStartInput,
@@ -26,21 +27,10 @@ definePublicEndpoint({
   input: TakeoverStartInput,
   output: TakeoverStartOutput,
   handler: async ({ admin, origin }, input) => {
-    const tokenHash = await sha256Hex(input.token)
     const submittedEmail = input.email.toLowerCase()
+    const tokenRow = await validateTakeoverToken(admin, input.token)
 
-    const { data: tokenRow, error } = await admin
-      .from('business_owner_tokens')
-      .select('id, flea_market_id, used_at, invalidated_at, expires_at, sent_to_email')
-      .eq('token_hash', tokenHash)
-      .maybeSingle()
-    if (error) throw new Error(error.message)
-    if (!tokenRow) throw new HttpError(404, 'token_not_found')
-    if (tokenRow.used_at) throw new HttpError(410, 'token_already_used')
-    if (tokenRow.invalidated_at) throw new HttpError(410, 'token_invalidated')
-    if (Date.parse(tokenRow.expires_at) < Date.now()) throw new HttpError(410, 'token_expired')
-
-    const expectedEmail = (tokenRow.sent_to_email as string | null)?.trim().toLowerCase()
+    const expectedEmail = tokenRow.sent_to_email?.trim().toLowerCase()
     if (!expectedEmail) throw new HttpError(400, 'token_has_no_recipient')
     if (submittedEmail !== expectedEmail) throw new HttpError(400, 'email_mismatch')
 
@@ -73,6 +63,9 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
+    // Re-hash to pass to the atomic RPC — validateTakeoverToken does not
+    // expose the hash, so we compute it again (cheap: two SHA-256 calls).
+    const tokenHash = await sha256Hex(input.token)
     const { error: claimErr } = await admin.rpc('claim_takeover_atomic', {
       p_token_hash: tokenHash,
       p_user_id: userId,

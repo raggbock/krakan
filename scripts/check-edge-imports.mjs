@@ -57,6 +57,7 @@ const ALLOWED_SUBPATHS = new Set([
   'format',                                        // pure string utilities (slugifyCity)
   'business-import',                               // pure validation/diff logic
   'errors',                                        // AppError + error codes
+  'crypto',                                        // sha256Hex, generateCode, timingSafeEqualHex
   'adapters/supabase/booking-repo',                // Supabase DB adapter
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
 ]);
