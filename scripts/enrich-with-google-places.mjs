@@ -75,8 +75,8 @@ const APPLY = new Set(process.argv.slice(2)).has('--apply')
 //   - editorialSummary           — skipped (rarely populated for charity shops)
 // ---------------------------------------------------------------------------
 
-const SEARCH_FIELDS = 'places.id,places.displayName,places.location,places.formattedAddress'
-const DETAILS_FIELDS = 'id,displayName,location,regularOpeningHours,formattedAddress'
+const SEARCH_FIELDS = 'places.id,places.displayName,places.location,places.formattedAddress,places.addressComponents'
+const DETAILS_FIELDS = 'id,displayName,location,regularOpeningHours,formattedAddress,addressComponents'
 
 async function searchPlace({ name, city }) {
   const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
@@ -169,15 +169,40 @@ function fmtHM(h, m) {
   return `${String(h ?? 0).padStart(2, '0')}:${String(m ?? 0).padStart(2, '0')}`
 }
 
+/**
+ * Extract structured street / postal-code / city out of Google's
+ * addressComponents array. Each component has a `types` list and
+ * shortText/longText. We pick the most-specific Swedish-relevant fields:
+ *   - street: route + street_number combined
+ *   - zip_code: postal_code (Google returns "123 45" with a space)
+ *   - city: postal_town when present, else locality
+ *
+ * Returns nulls for any field Google didn't supply — caller decides
+ * whether to overwrite.
+ */
+function parseAddressComponents(components) {
+  const get = (type) => {
+    const c = (components ?? []).find((c) => c.types?.includes(type))
+    return c?.longText ?? c?.shortText ?? null
+  }
+  const route = get('route')
+  const number = get('street_number')
+  const street = [route, number].filter(Boolean).join(' ').trim() || null
+  const zip = get('postal_code')
+  const city = get('postal_town') ?? get('locality')
+  return { street, zip_code: zip, city }
+}
+
 // ---------------------------------------------------------------------------
 // DB
 // ---------------------------------------------------------------------------
 
 async function loadCandidates() {
-  // Markets that need either coordinates OR opening hours, are not
-  // soft-deleted, and don't already have a cached place_id (re-runs
-  // skip the cheap Text Search step).
-  const select = 'id,slug,name,city,street,location,google_place_id,'
+  // Markets that need any of: coordinates, opening hours, or address
+  // detail (zip code is the most common gap — many imports captured
+  // city + street but no postal code). Skip soft-deleted; cache hits
+  // via google_place_id keep re-runs cheap.
+  const select = 'id,slug,name,city,street,zip_code,location,google_place_id,'
     + 'opening_hour_rules(id)'
   const filter = 'is_deleted=eq.false'
   const all = []
@@ -194,7 +219,9 @@ async function loadCandidates() {
   return all.filter((m) => {
     const noCoords = m.location == null
     const noHours = !m.opening_hour_rules || m.opening_hour_rules.length === 0
-    return noCoords || noHours
+    const noZip = !m.zip_code
+    const noStreet = !m.street
+    return noCoords || noHours || noZip || noStreet
   })
 }
 
@@ -233,26 +260,33 @@ async function scrape() {
       const rules = periodsToRules(details.regularOpeningHours?.periods)
       const detailsLocation = details.location ?? location
       const detailsAddress = details.formattedAddress ?? address
+      const parsed = parseAddressComponents(details.addressComponents)
 
+      // Only keep field-level diffs when we'd actually use them — i.e. row
+      // is missing them today. Saves apply-phase work and never clobbers
+      // human-entered data.
       found.push({
         id: m.id,
         slug: m.slug,
         name: m.name,
         city: m.city,
         place_id: placeId,
-        // Only keep coords when we'd actually use them — i.e. row is
-        // missing them today. Saves apply-phase work and avoids
-        // overwriting better local data.
         coordinates: m.location == null && detailsLocation
           ? { latitude: detailsLocation.latitude, longitude: detailsLocation.longitude }
           : null,
         rules: m.opening_hour_rules?.length ? null : rules,
+        street: !m.street && parsed.street ? parsed.street : null,
+        zip_code: !m.zip_code && parsed.zip_code ? parsed.zip_code : null,
+        // city is ALWAYS set on imported rows (it's how we slug them) so
+        // we don't overwrite even if Google says something different.
         google_address: detailsAddress,
         google_name: details.displayName?.text,
       })
       const summary = []
       if (found.at(-1).coordinates) summary.push('coords')
       if (found.at(-1).rules) summary.push(`${rules.length} rule(s)`)
+      if (found.at(-1).street) summary.push('street')
+      if (found.at(-1).zip_code) summary.push('zip')
       console.log(`${tag} → ${summary.join(', ') || 'place_id only'}`)
     } catch (err) {
       failed.push({ id: m.id, name: m.name, city: m.city, reason: String(err.message ?? err) })
@@ -284,7 +318,7 @@ async function apply() {
     // Re-check current state — someone may have manually edited since the
     // scrape phase. Don't overwrite human-entered data.
     const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}&select=location,google_place_id,opening_hour_rules(id)`,
+      `${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}&select=street,zip_code,location,google_place_id,opening_hour_rules(id)`,
       { headers: sbHeaders },
     )
     const [row] = await checkRes.json()
@@ -294,6 +328,8 @@ async function apply() {
     if (m.coordinates && row.location == null) {
       update.location = `SRID=4326;POINT(${m.coordinates.longitude} ${m.coordinates.latitude})`
     }
+    if (m.street && !row.street) update.street = m.street
+    if (m.zip_code && !row.zip_code) update.zip_code = m.zip_code
     const willInsertRules = m.rules && (!row.opening_hour_rules || row.opening_hour_rules.length === 0)
 
     const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/flea_markets?id=eq.${m.id}`, {
@@ -331,6 +367,8 @@ async function apply() {
     const parts = []
     if (update.location) parts.push('coords')
     if (willInsertRules) parts.push(`${m.rules.length} rule(s)`)
+    if (update.street) parts.push('street')
+    if (update.zip_code) parts.push('zip')
     parts.push(`place_id=${m.place_id.slice(0, 12)}…`)
     console.log(`OK   ${m.name} — ${parts.join(', ')}`)
 
