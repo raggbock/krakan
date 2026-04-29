@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 import type { BookingView, FleaMarket, OrganizerStats } from '@fyndstigen/shared'
 import { endpoints } from '@/lib/edge'
 import { useAuth } from '@/lib/auth-context'
@@ -13,7 +12,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 export default function BookingsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { markets: marketsRepo, bookings: bookingsRepo } = useDeps()
+  const { markets: marketsRepo, bookings: bookingsRepo, organizers } = useDeps()
   const [myMarkets, setMyMarkets] = useState<FleaMarket[]>([])
   const [bookings, setBookings] = useState<BookingView[]>([])
   const [stats, setStats] = useState<OrganizerStats | null>(null)
@@ -42,7 +41,7 @@ export default function BookingsPage() {
       )
       setBookings(allBookings.flat())
 
-      const s = await api.organizers.stats(user.id)
+      const s = await organizers.stats(user.id)
       setStats(s)
     } catch {
     } finally {

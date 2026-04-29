@@ -1,18 +1,17 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render as rtlRender, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'org-1' }) }))
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }))
 vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
-vi.mock('@/lib/api', () => ({
-  api: { organizers: { get: vi.fn() }, fleaMarkets: { listByOrganizer: vi.fn() } },
-}))
 vi.mock('@/components/fyndstigen-logo', () => ({ FyndstigenLogo: () => <div data-testid="loading" /> }))
 
 import OrganizerProfilePage from './page'
 import { useAuth } from '@/lib/auth-context'
-import { api } from '@/lib/api'
 
 const mockOrganizer = {
   id: 'org-1',
@@ -30,6 +29,25 @@ const mockMarkets = [
   { id: 'm2', name: 'Vasastan Fynd', city: 'Stockholm', is_permanent: false, published_at: '2026-02-01' },
 ]
 
+// Deps surfaces touched by OrganizerProfilePage
+const mockOrganizerGet = vi.fn()
+const mockListByOrganizer = vi.fn()
+
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    organizers: { ...base.organizers, get: mockOrganizerGet },
+    markets: { ...base.markets, listByOrganizer: mockListByOrganizer },
+  }
+})()
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(ui, {
+    wrapper: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(DepsProvider, { deps: testDeps }, children),
+  })
+
 function setupMocks({
   user = null as { id: string } | null,
   organizer = mockOrganizer as any,
@@ -38,11 +56,11 @@ function setupMocks({
 } = {}) {
   vi.mocked(useAuth).mockReturnValue({ user, loading: false } as ReturnType<typeof useAuth>)
   if (rejectOrganizer) {
-    vi.mocked(api.organizers.get).mockRejectedValue(new Error('Not found'))
+    mockOrganizerGet.mockRejectedValue(new Error('Not found'))
   } else {
-    vi.mocked(api.organizers.get).mockResolvedValue(organizer)
+    mockOrganizerGet.mockResolvedValue(organizer)
   }
-  vi.mocked(api.fleaMarkets.listByOrganizer).mockResolvedValue(markets)
+  mockListByOrganizer.mockResolvedValue(markets)
 }
 
 beforeEach(() => {
@@ -53,8 +71,8 @@ describe('OrganizerProfilePage', () => {
   it('shows loading state', () => {
     // Make API calls never resolve so loading stays true
     vi.mocked(useAuth).mockReturnValue({ user: null, loading: false } as ReturnType<typeof useAuth>)
-    vi.mocked(api.organizers.get).mockReturnValue(new Promise(() => {}))
-    vi.mocked(api.fleaMarkets.listByOrganizer).mockReturnValue(new Promise(() => {}))
+    mockOrganizerGet.mockReturnValue(new Promise(() => {}))
+    mockListByOrganizer.mockReturnValue(new Promise(() => {}))
 
     render(<OrganizerProfilePage />)
     expect(screen.getByTestId('loading')).toBeInTheDocument()

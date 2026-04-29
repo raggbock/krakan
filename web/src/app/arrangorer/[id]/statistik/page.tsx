@@ -6,9 +6,9 @@ import { useAuth } from '@/lib/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api'
 import { endpoints } from '@/lib/edge'
 import { useFlag } from '@/lib/flags'
+import { useDeps } from '@/providers/deps-provider'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
@@ -42,6 +42,7 @@ export default function OrganizerStatsPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { organizers } = useDeps()
   const { markets, totals, loading, error } = useOrganizerStats(user?.id === id ? id : undefined)
   const skyltfonstretEnabled = useFlag('skyltfonstret')
   const [isPremium, setIsPremium] = useState(false)
@@ -66,7 +67,7 @@ export default function OrganizerStatsPage() {
       return
     }
     if (!id) return
-    api.organizers.get(id)
+    organizers.get(id)
       .then((org) => setIsPremium((org?.subscription_tier ?? 0) >= 1))
       .catch(() => setIsPremium(false))
       .finally(() => setTierLoading(false))

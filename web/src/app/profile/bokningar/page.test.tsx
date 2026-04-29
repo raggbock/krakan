@@ -22,7 +22,6 @@ vi.mock('@/lib/auth-context', () => ({
 
 vi.mock('@/lib/api', () => ({
   api: {
-    organizers: { stats: vi.fn() },
     edge: { invoke: vi.fn().mockResolvedValue({}) },
     endpoints: {
       'stripe.payment.capture': { invoke: vi.fn().mockResolvedValue({ success: true }) },
@@ -39,9 +38,10 @@ vi.mock('@/lib/edge', () => ({
   },
 }))
 
-// Deps surfaces touched by BookingsPage (markets.listByOrganizer + bookings.listByMarket).
+// Deps surfaces touched by BookingsPage
 const mockListByOrganizer = vi.fn()
 const mockListByMarket = vi.fn()
+const mockOrganizerStats = vi.fn()
 
 const testDeps: Deps = (() => {
   const base = makeInMemoryDeps()
@@ -49,6 +49,7 @@ const testDeps: Deps = (() => {
     ...base,
     markets: { ...base.markets, listByOrganizer: mockListByOrganizer },
     bookings: { ...base.bookings, listByMarket: mockListByMarket },
+    organizers: { ...base.organizers, stats: mockOrganizerStats },
   }
 })()
 
@@ -63,7 +64,6 @@ vi.mock('@/components/fyndstigen-logo', () => ({
 }))
 
 import { useAuth } from '@/lib/auth-context'
-import { api } from '@/lib/api'
 import { endpoints } from '@/lib/edge'
 
 const mockUser = { id: 'u1', email: 'organizer@test.se' }
@@ -138,8 +138,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockListByOrganizer.mockResolvedValue([mockMarket])
   mockListByMarket.mockResolvedValue([])
-  vi.mocked(api.organizers.stats).mockResolvedValue(mockStats as never)
-  vi.mocked(api.edge.invoke).mockResolvedValue({})
+  mockOrganizerStats.mockResolvedValue(mockStats)
   vi.mocked(endpoints['stripe.payment.capture'].invoke).mockResolvedValue({ success: true })
 })
 

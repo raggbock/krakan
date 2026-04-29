@@ -1,9 +1,11 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render as rtlRender, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { useAuth } from '@/lib/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
-import { api } from '@/lib/api'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
 
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 
@@ -32,15 +34,6 @@ vi.mock('@/hooks/use-organizer-stats', () => ({
   useOrganizerStats: vi.fn(),
 }))
 
-// Mock api
-vi.mock('@/lib/api', () => ({
-  api: {
-    organizers: {
-      get: vi.fn(),
-    },
-  },
-}))
-
 // Mock supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -53,6 +46,31 @@ vi.mock('@/lib/supabase', () => ({
 vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading-logo" />,
 }))
+
+// Mock edge (for skyltfonstret.checkout endpoint)
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn() },
+  endpoints: {
+    'skyltfonstret.checkout': { invoke: vi.fn() },
+  },
+}))
+
+// Deps surface touched by OrganizerStatsPage (organizers.get for tier check)
+const mockOrganizerGet = vi.fn()
+
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    organizers: { ...base.organizers, get: mockOrganizerGet },
+  }
+})()
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(ui, {
+    wrapper: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(DepsProvider, { deps: testDeps }, children),
+  })
 
 // Import the page after mocks are set up
 import OrganizerStatsPage from './page'
@@ -118,9 +136,9 @@ function setupMocks({
     error: statsError,
   })
   if (tierReject) {
-    vi.mocked(api.organizers.get).mockRejectedValue(new Error('Network error'))
+    mockOrganizerGet.mockRejectedValue(new Error('Network error'))
   } else {
-    vi.mocked(api.organizers.get).mockResolvedValue({ subscription_tier: subscriptionTier } as Awaited<ReturnType<typeof api.organizers.get>>)
+    mockOrganizerGet.mockResolvedValue({ subscription_tier: subscriptionTier } as any)
   }
 }
 

@@ -1,6 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render as rtlRender, screen, waitFor, fireEvent } from '@testing-library/react'
 import { vi, describe, it, beforeEach, expect } from 'vitest'
 import EditProfilePage from './page'
+import type { Deps } from '@fyndstigen/shared'
+import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
+import { DepsProvider } from '@/providers/deps-provider'
+import React from 'react'
 
 const mockReplace = vi.fn()
 const mockPush = vi.fn()
@@ -17,22 +21,6 @@ vi.mock('@/lib/auth-context', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('@/lib/api', () => ({
-  api: {
-    organizers: {
-      get: vi.fn(),
-      update: vi.fn(),
-    },
-    edge: {
-      invoke: vi.fn(),
-    },
-    endpoints: {
-      'skyltfonstret.checkout': { invoke: vi.fn() },
-      'skyltfonstret.portal': { invoke: vi.fn() },
-    },
-  },
-}))
-
 vi.mock('@/lib/edge', () => ({
   edge: { invoke: vi.fn() },
   endpoints: {
@@ -45,9 +33,30 @@ vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading-logo" />,
 }))
 
+// Deps surfaces touched by EditProfilePage (organizers.get + organizers.update)
+const mockOrganizerGet = vi.fn()
+const mockOrganizerUpdate = vi.fn()
+
+const testDeps: Deps = (() => {
+  const base = makeInMemoryDeps()
+  return {
+    ...base,
+    organizers: {
+      ...base.organizers,
+      get: mockOrganizerGet,
+      update: mockOrganizerUpdate,
+    },
+  }
+})()
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(ui, {
+    wrapper: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(DepsProvider, { deps: testDeps }, children),
+  })
+
 // Import mocked modules after vi.mock calls
 import { useAuth } from '@/lib/auth-context'
-import { api } from '@/lib/api'
 import { endpoints } from '@/lib/edge'
 
 const freeProfile = {
@@ -68,7 +77,8 @@ const mockUser = { id: 'user-1', email: 'anna@test.se' }
 beforeEach(() => {
   vi.clearAllMocks()
   mockSearchParams = new URLSearchParams()
-  vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
+  mockOrganizerGet.mockResolvedValue(freeProfile as any)
+  mockOrganizerUpdate.mockResolvedValue(undefined)
   vi.mocked(useAuth).mockReturnValue({
     user: mockUser as any,
     loading: false,
@@ -109,7 +119,7 @@ describe('EditProfilePage', () => {
   })
 
   it('free tier: shows upgrade section with correct button text', async () => {
-    vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
+    mockOrganizerGet.mockResolvedValue(freeProfile as any)
     render(<EditProfilePage />)
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Uppgradera — 69 kr\/mån/i })).toBeInTheDocument()
@@ -117,7 +127,7 @@ describe('EditProfilePage', () => {
   })
 
   it('free tier: shows benefit list with checkmarks', async () => {
-    vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
+    mockOrganizerGet.mockResolvedValue(freeProfile as any)
     render(<EditProfilePage />)
     await waitFor(() => {
       expect(screen.getByText(/Bättre synlighet på Google/i)).toBeInTheDocument()
@@ -129,7 +139,7 @@ describe('EditProfilePage', () => {
   it('free tier: upgrade button calls skyltfonstret-checkout and sets window.location.href', async () => {
     const checkoutUrl = 'https://checkout.stripe.com/test-session'
     vi.mocked(endpoints['skyltfonstret.checkout'].invoke).mockResolvedValue({ url: checkoutUrl })
-    vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
+    mockOrganizerGet.mockResolvedValue(freeProfile as any)
 
     let capturedHref = ''
     const locationDescriptor = Object.getOwnPropertyDescriptor(window, 'location')
@@ -162,7 +172,7 @@ describe('EditProfilePage', () => {
   })
 
   it('premium tier: shows active badge with "Skyltfönstret" and "Aktivt"', async () => {
-    vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
+    mockOrganizerGet.mockResolvedValue(premiumProfile as any)
     render(<EditProfilePage />)
     await waitFor(() => {
       expect(screen.getByText('Skyltfönstret')).toBeInTheDocument()
@@ -171,7 +181,7 @@ describe('EditProfilePage', () => {
   })
 
   it('premium tier: shows manage subscription button', async () => {
-    vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
+    mockOrganizerGet.mockResolvedValue(premiumProfile as any)
     render(<EditProfilePage />)
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Hantera prenumeration/i })).toBeInTheDocument()
@@ -181,7 +191,7 @@ describe('EditProfilePage', () => {
   it('premium tier: manage button calls skyltfonstret-portal and sets window.location.href', async () => {
     const portalUrl = 'https://billing.stripe.com/test-portal'
     vi.mocked(endpoints['skyltfonstret.portal'].invoke).mockResolvedValue({ url: portalUrl })
-    vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
+    mockOrganizerGet.mockResolvedValue(premiumProfile as any)
 
     let capturedHref = ''
     Object.defineProperty(window, 'location', {

@@ -34,6 +34,9 @@ export const queryKeys = {
       [...queryKeys.routes.all, 'popular'] as const,
   },
   organizers: {
+    all: ['organizers'] as const,
+    byId: (id: string) =>
+      ['organizers', 'detail', id] as const,
     stats: (organizerId: string) =>
       ['organizers', 'stats', organizerId] as const,
   },

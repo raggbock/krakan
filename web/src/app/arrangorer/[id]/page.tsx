@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 import type { OrganizerProfile, FleaMarket } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth-context'
+import { useDeps } from '@/providers/deps-provider'
 import { marketUrl } from '@/lib/urls'
 
 export default function OrganizerProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
+  const { organizers, markets: marketsRepo } = useDeps()
   const [organizer, setOrganizer] = useState<OrganizerProfile | null>(null)
   const [markets, setMarkets] = useState<FleaMarket[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,8 +20,8 @@ export default function OrganizerProfilePage() {
   useEffect(() => {
     if (!id) return
     Promise.all([
-      api.organizers.get(id),
-      api.fleaMarkets.listByOrganizer(id),
+      organizers.get(id),
+      marketsRepo.listByOrganizer(id),
     ])
       .then(([org, mkts]) => {
         setOrganizer(org)
@@ -28,7 +29,7 @@ export default function OrganizerProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, organizers, marketsRepo])
 
   if (loading) {
     return (

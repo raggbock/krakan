@@ -9,7 +9,7 @@ import {
   type FleaMarketsControl,
 } from './adapters/in-memory/flea-markets'
 import { createInMemoryRoutes } from './adapters/in-memory/routes'
-import { createInMemoryProfiles } from './adapters/in-memory/profiles'
+import { createInMemoryProfiles, createInMemoryOrganizers } from './adapters/in-memory/profiles'
 import { createInMemoryAdmin } from './adapters/in-memory/admin'
 import { createInMemoryBookings } from './adapters/in-memory/bookings'
 import { createInMemoryStats } from './adapters/in-memory/stats'
@@ -18,7 +18,7 @@ import {
   createSupabaseMarketTables,
 } from './adapters/supabase/flea-markets'
 import { createSupabaseRoutes } from './adapters/supabase/routes'
-import { createSupabaseProfiles } from './adapters/supabase/profiles'
+import { createSupabaseProfiles, createSupabaseOrganizers } from './adapters/supabase/profiles'
 import { createSupabaseAdmin } from './adapters/supabase/admin'
 import { createSupabaseBookings } from './adapters/supabase/bookings'
 import { createSupabaseStats } from './adapters/supabase/stats'
@@ -47,6 +47,7 @@ export function makeInMemoryDeps(
     marketTables,
     routes: createInMemoryRoutes(routes),
     profiles: createInMemoryProfiles(profiles),
+    organizers: createInMemoryOrganizers(),
     admin: createInMemoryAdmin().repo,
     bookings: createInMemoryBookings(),
     stats: createInMemoryStats(),
@@ -70,6 +71,7 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       marketTables: createInMemoryMarketTables(),
       routes: createInMemoryRoutes([]),
       profiles: createInMemoryProfiles([]),
+      organizers: createInMemoryOrganizers(),
       admin: createInMemoryAdmin().repo,
       bookings: createInMemoryBookings(),
       stats: createInMemoryStats(),
@@ -88,6 +90,7 @@ export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
     marketTables: createSupabaseMarketTables(supabase),
     routes: createSupabaseRoutes(supabase),
     profiles: createSupabaseProfiles(supabase),
+    organizers: createSupabaseOrganizers(supabase),
     admin: createSupabaseAdmin(supabase),
     bookings: createSupabaseBookings(supabase),
     stats: createSupabaseStats(supabase),

@@ -2,10 +2,10 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { api } from '@/lib/api'
 import type { OrganizerProfile } from '@fyndstigen/shared'
 import { endpoints } from '@/lib/edge'
 import { useAuth } from '@/lib/auth-context'
+import { useDeps } from '@/providers/deps-provider'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useFlag } from '@/lib/flags'
 
@@ -26,6 +26,7 @@ export default function EditProfilePage() {
 function EditProfilePageInner() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { organizers } = useDeps()
   const skyltfonstretEnabled = useFlag('skyltfonstret')
   const [profile, setProfile] = useState<OrganizerProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,7 +79,7 @@ function EditProfilePageInner() {
       router.push('/auth')
       return
     }
-    api.organizers
+    organizers
       .get(user.id)
       .then((p) => {
         setProfile(p)
@@ -99,7 +100,7 @@ function EditProfilePageInner() {
     setSaved(false)
     setSaveError('')
     try {
-      await api.organizers.update(user.id, {
+      await organizers.update(user.id, {
         first_name: firstName || null,
         last_name: lastName || null,
         bio: bio || null,
