@@ -28,18 +28,23 @@ defineAdminEndpoint({
       sentToEmail: (r.sent_to_email as string | null) ?? null,
       sentAt: (r.sent_at as string | null) ?? null,
       clickedAt: (r.clicked_at as string | null) ?? null,
+      emailAttemptAt: (r.email_attempt_at as string | null) ?? null,
+      emailAttemptCount: (r.email_attempt_count as number) ?? 0,
+      lastFailureCode: (r.last_failure_code as string | null) ?? null,
       emailSubmitted: r.email_submitted as boolean,
       codeSent: r.code_sent as boolean,
       verificationAttempts: (r.verification_attempts as number) ?? 0,
       expiresAt: r.expires_at as string,
       daysSinceSent: Number(r.days_since_sent ?? 0),
-      stage: r.stage as 'never_clicked' | 'clicked_only' | 'email_no_code' | 'code_sent_unverified',
+      stage: r.stage as 'never_clicked' | 'clicked_only' | 'attempt_failed' | 'attempt_succeeded_unclaimed' | 'email_no_code' | 'code_sent_unverified',
     }))
 
     const summary = {
       total: rows.length,
       neverClicked: rows.filter((r) => r.stage === 'never_clicked').length,
       clickedOnly: rows.filter((r) => r.stage === 'clicked_only').length,
+      attemptFailed: rows.filter((r) => r.stage === 'attempt_failed').length,
+      attemptSucceededUnclaimed: rows.filter((r) => r.stage === 'attempt_succeeded_unclaimed').length,
       emailNoCode: rows.filter((r) => r.stage === 'email_no_code').length,
       codeSentUnverified: rows.filter((r) => r.stage === 'code_sent_unverified').length,
     }

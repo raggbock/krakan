@@ -10,6 +10,8 @@ export const AdminTakeoverFunnelInput = z.object({})
 export const FunnelStage = z.enum([
   'never_clicked',
   'clicked_only',
+  'attempt_failed',
+  'attempt_succeeded_unclaimed',
   'email_no_code',
   'code_sent_unverified',
 ])
@@ -23,6 +25,9 @@ export const FunnelRow = z.object({
   sentToEmail: z.string().nullable(),
   sentAt: z.string().nullable(),
   clickedAt: z.string().nullable(),
+  emailAttemptAt: z.string().nullable(),
+  emailAttemptCount: z.number().int(),
+  lastFailureCode: z.string().nullable(),
   emailSubmitted: z.boolean(),
   codeSent: z.boolean(),
   verificationAttempts: z.number().int(),
@@ -35,6 +40,8 @@ export const FunnelSummary = z.object({
   total: z.number().int(),
   neverClicked: z.number().int(),
   clickedOnly: z.number().int(),
+  attemptFailed: z.number().int(),
+  attemptSucceededUnclaimed: z.number().int(),
   emailNoCode: z.number().int(),
   codeSentUnverified: z.number().int(),
 })

@@ -26,36 +26,55 @@ definePublicEndpoint({
     const submittedEmail = input.email.toLowerCase()
     const tokenRow = await validateTakeoverToken(admin, input.token)
 
-    // Start-specific: the submitted email must match the invite recipient.
-    const expectedEmail = tokenRow.sent_to_email?.trim().toLowerCase()
-    if (!expectedEmail) throw new HttpError(400, 'token_has_no_recipient')
-    if (submittedEmail !== expectedEmail) throw new HttpError(400, 'email_mismatch')
+    // Helper: stamp every attempt outcome on the token row so we have
+    // consent-independent telemetry on where in the flow visitors fail.
+    // Atomic increment via RPC so we don't need to round-trip the current
+    // count. Best-effort — failure to stamp must never block the response.
+    async function stampAttempt(failureCode: string | null) {
+      const { error } = await admin.rpc('stamp_takeover_attempt', {
+        p_token_id: tokenRow.id,
+        p_failure_code: failureCode,
+      })
+      if (error) console.error('[takeover-start] attempt stamp failed:', error.message)
+    }
 
-    // Bail out before user creation if the underlying market is gone —
-    // saves an orphan auth row that would otherwise sit unused.
-    const { data: market, error: mErr } = await admin
-      .from('flea_markets')
-      .select('name, slug, is_deleted')
-      .eq('id', tokenRow.flea_market_id)
-      .single()
-    if (mErr) throw new Error(mErr.message)
-    if (market.is_deleted) throw new HttpError(410, 'market_removed')
+    try {
+      // Start-specific: the submitted email must match the invite recipient.
+      const expectedEmail = tokenRow.sent_to_email?.trim().toLowerCase()
+      if (!expectedEmail) throw new HttpError(400, 'token_has_no_recipient')
+      if (submittedEmail !== expectedEmail) throw new HttpError(400, 'email_mismatch')
 
-    // Magic-link redirects straight to the claimed market's slug page —
-    // visitors immediately see their newly-owned listing with the draft
-    // banner (or a fresh edit link if already published).
-    const slug = market.slug as string | null
-    const redirectTo = slug ? `${origin}/loppis/${slug}?from=takeover` : `${origin}/profile`
+      // Bail out before user creation if the underlying market is gone —
+      // saves an orphan auth row that would otherwise sit unused.
+      const { data: market, error: mErr } = await admin
+        .from('flea_markets')
+        .select('name, slug, is_deleted')
+        .eq('id', tokenRow.flea_market_id)
+        .single()
+      if (mErr) throw new Error(mErr.message)
+      if (market.is_deleted) throw new HttpError(410, 'market_removed')
 
-    const { magicLinkSent } = await claimTakeover({
-      admin,
-      tokenRow,
-      rawToken: input.token,
-      email: submittedEmail,
-      origin,
-      magicLinkRedirectTo: redirectTo,
-    })
+      // Magic-link redirects straight to the claimed market's slug page —
+      // visitors immediately see their newly-owned listing with the draft
+      // banner (or a fresh edit link if already published).
+      const slug = market.slug as string | null
+      const redirectTo = slug ? `${origin}/loppis/${slug}?from=takeover` : `${origin}/profile`
 
-    return { ok: true as const, magicLinkSent }
+      const { magicLinkSent } = await claimTakeover({
+        admin,
+        tokenRow,
+        rawToken: input.token,
+        email: submittedEmail,
+        origin,
+        magicLinkRedirectTo: redirectTo,
+      })
+
+      await stampAttempt(null)
+      return { ok: true as const, magicLinkSent }
+    } catch (err) {
+      const code = err instanceof HttpError ? err.message : 'unexpected_error'
+      await stampAttempt(code)
+      throw err
+    }
   },
 })
