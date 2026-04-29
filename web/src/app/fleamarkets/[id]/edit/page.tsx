@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth-context'
+import { useDeps } from '@/providers/deps-provider'
+import { useMarketDetails } from '@/hooks/use-market-details'
+import { queryKeys } from '@/lib/query-keys'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { ImageUploadList } from '@/components/image-upload-list'
 import { useMarketForm } from '@/hooks/market-form'
@@ -18,65 +22,55 @@ export default function EditMarketPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { markets } = useDeps()
+  const queryClient = useQueryClient()
 
-  const [loading, setLoading] = useState(true)
-  const [publishing, setPublishing] = useState(false)
-  const [publishedAt, setPublishedAt] = useState<string | null>(null)
+  const { market, tables: fetchedTables, loading: marketLoading } = useMarketDetails(id)
+
   const [initial, setInitial] = useState<(FleaMarketDetails & { market_tables?: MarketTable[] }) | undefined>()
+  const [publishedAt, setPublishedAt] = useState<string | null>(null)
+  const [initialised, setInitialised] = useState(false)
+
+  // Seed the form once the market data first arrives
+  useEffect(() => {
+    if (!market || initialised) return
+    if (market.organizer_id !== user?.id) {
+      router.replace(`/fleamarkets/${id}`)
+      return
+    }
+    setPublishedAt(market.published_at ?? null)
+    setInitial({ ...market, market_tables: fetchedTables })
+    setInitialised(true)
+  }, [market, fetchedTables, user?.id, initialised, id, router])
 
   const form = useMarketForm({ mode: 'edit', initial })
-  const { fields, openingHours, images, tables, submit, status, clearError, clearSuccess } = form
+  const { fields, openingHours, images, tables, submit, status, clearError } = form
 
-  useEffect(() => {
-    if (!id) return
-    loadMarket()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
-
-  async function loadMarket() {
-    try {
-      const [market, marketTables] = await Promise.all([
-        api.fleaMarkets.details(id),
-        api.marketTables.list(id),
-      ])
-      if (market.organizer_id !== user?.id) {
-        router.replace(`/fleamarkets/${id}`)
-        return
-      }
-      const full = { ...market, market_tables: marketTables }
-      setPublishedAt(market.published_at ?? null)
-      setInitial(full)
-    } catch {
-      // error shown via form.status.error
-    } finally {
-      setLoading(false)
-    }
-  }
+  const publishMutation = useMutation({
+    mutationFn: () => markets.publish(id),
+    onSuccess: () => {
+      router.push(`/fleamarkets/${id}`)
+    },
+  })
 
   async function handleSubmit() {
     const result = await submit()
     if (result.ok) {
-      // Reload to get fresh DB state
-      setLoading(true)
       images.resetNew()
       tables.resetNew()
-      await loadMarket()
+      // Refetch market data from the server to sync fresh DB state
+      await queryClient.invalidateQueries({ queryKey: queryKeys.markets.details(id) })
+      setInitialised(false)
     }
   }
 
   async function handlePublish() {
     if (!user) return
-    setPublishing(true)
     clearError()
-    try {
-      await api.fleaMarkets.publish(id)
-      router.push(`/fleamarkets/${id}`)
-    } catch (err) {
-      // Surface publish errors via local state — status.error is for form submit
-    } finally {
-      setPublishing(false)
-    }
+    publishMutation.mutate()
   }
+
+  const loading = marketLoading && !initialised
 
   if (authLoading || loading) {
     return (
@@ -252,10 +246,10 @@ export default function EditMarketPage() {
             </div>
             <button
               onClick={handlePublish}
-              disabled={publishing || status.isSubmitting || !fields.isValid}
+              disabled={publishMutation.isPending || status.isSubmitting || !fields.isValid}
               className="w-full h-11 rounded-xl bg-forest text-white font-semibold text-sm hover:bg-forest/90 transition-colors disabled:opacity-40 shadow-sm"
             >
-              {publishing ? 'Publicerar...' : 'Publicera loppisen'}
+              {publishMutation.isPending ? 'Publicerar...' : 'Publicera loppisen'}
             </button>
           </section>
         )}
@@ -273,7 +267,7 @@ export default function EditMarketPage() {
           </Link>
           <button
             onClick={handleSubmit}
-            disabled={status.isSubmitting || publishing || !fields.isValid}
+            disabled={status.isSubmitting || publishMutation.isPending || !fields.isValid}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {status.isSubmitting && status.imageStatuses.some((s) => s.state === 'uploading' || s.state === 'pending')
