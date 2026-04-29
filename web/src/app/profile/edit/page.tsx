@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { api, OrganizerProfile } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useFlag } from '@/lib/flags'
@@ -46,7 +47,7 @@ function EditProfilePageInner() {
   async function handleUpgrade() {
     setUpgradeLoading(true)
     try {
-      const { url } = await api.endpoints['skyltfonstret.checkout'].invoke({})
+      const { url } = await endpoints['skyltfonstret.checkout'].invoke({})
       window.location.href = url
     } catch {
       setUpgradeLoading(false)
@@ -56,7 +57,7 @@ function EditProfilePageInner() {
   async function handleManageSubscription() {
     setUpgradeLoading(true)
     try {
-      const { url } = await api.endpoints['skyltfonstret.portal'].invoke({})
+      const { url } = await endpoints['skyltfonstret.portal'].invoke({})
       window.location.href = url
     } catch {
       setUpgradeLoading(false)

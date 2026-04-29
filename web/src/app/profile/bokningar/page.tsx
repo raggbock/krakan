@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api, BookingView, FleaMarket, OrganizerStats } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import { useAuth } from '@/lib/auth-context'
 import { useDeps } from '@/providers/deps-provider'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
@@ -55,9 +56,9 @@ export default function BookingsPage() {
     setUpdatingId(bookingId)
     try {
       if (status === 'confirmed') {
-        await api.endpoints['stripe.payment.capture'].invoke({ bookingId })
+        await endpoints['stripe.payment.capture'].invoke({ bookingId })
       } else {
-        await api.endpoints['stripe.payment.cancel'].invoke({ bookingId, newStatus: 'denied' })
+        await endpoints['stripe.payment.cancel'].invoke({ bookingId, newStatus: 'denied' })
       }
 
       setBookings((prev) =>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import { isAppError, messageFor } from '@fyndstigen/shared'
 import type { Deps } from '@fyndstigen/shared'
 import type { OrganizerBookingStatsRow } from '@fyndstigen/shared/ports/stats'
@@ -105,7 +105,7 @@ async function fetchAllStats(deps: Deps, organizerId: string): Promise<MarketSta
     deps.stats.organizerBookingStats(organizerId),
     deps.stats.organizerRouteStats(organizerId, thirtyDaysAgo),
     deps.stats.organizerRouteStats(organizerId),
-    api.endpoints['organizer.stats']
+    endpoints['organizer.stats']
       .invoke({ organizer_id: organizerId })
       .catch(() => ({ markets: [] as PostHogMarketStats[] })),
   ])

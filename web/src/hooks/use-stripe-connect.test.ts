@@ -1,7 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { useStripeConnect } from './use-stripe-connect'
 
-// Mock api.endpoints invokers
+// Mock endpoint invokers
 const mockInvokeStatus = vi.fn()
 const mockInvokeCreate = vi.fn()
 const mockInvokeRefresh = vi.fn()
@@ -13,6 +13,15 @@ vi.mock('@/lib/api', () => ({
       'stripe.connect.create': { invoke: (...args: unknown[]) => mockInvokeCreate(...args) },
       'stripe.connect.refresh': { invoke: (...args: unknown[]) => mockInvokeRefresh(...args) },
     },
+  },
+}))
+
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn(), invokePublic: vi.fn() },
+  endpoints: {
+    'stripe.connect.status': { invoke: (...args: unknown[]) => mockInvokeStatus(...args) },
+    'stripe.connect.create': { invoke: (...args: unknown[]) => mockInvokeCreate(...args) },
+    'stripe.connect.refresh': { invoke: (...args: unknown[]) => mockInvokeRefresh(...args) },
   },
 }))
 

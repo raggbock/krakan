@@ -15,6 +15,11 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn(), invokePublic: vi.fn() },
+  endpoints: {},
+}))
+
 vi.mock('@/lib/auth-context', () => ({
   useAuth: () => ({ user: null, loading: false }),
 }))

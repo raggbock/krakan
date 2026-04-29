@@ -7,6 +7,7 @@ import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import { useFlag } from '@/lib/flags'
 
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
@@ -51,7 +52,7 @@ export default function OrganizerStatsPage() {
   async function handleUpgrade() {
     setUpgradeLoading(true)
     try {
-      const { url } = await api.endpoints['skyltfonstret.checkout'].invoke({})
+      const { url } = await endpoints['skyltfonstret.checkout'].invoke({})
       window.location.href = url
     } catch {
       setUpgradeLoading(false)

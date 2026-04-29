@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 
 export function usePublicMarketCreate() {
   return useMutation({
@@ -13,6 +13,6 @@ export function usePublicMarketCreate() {
       closeTime: string
       street?: string
       email: string
-    }) => api.endpoints['public.market.create'].invoke(args),
+    }) => endpoints['public.market.create'].invoke(args),
   })
 }

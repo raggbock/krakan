@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 
 type ConnectState = {
   connected: boolean
@@ -32,7 +32,7 @@ export function useStripeConnect(
   async function checkStatus() {
     try {
       setLoading(true)
-      const data = await api.endpoints['stripe.connect.status'].invoke({})
+      const data = await endpoints['stripe.connect.status'].invoke({})
       setConnected(data.connected)
       setOnboardingComplete(data.onboarding_complete)
     } catch {
@@ -45,7 +45,7 @@ export function useStripeConnect(
   async function startOnboarding() {
     try {
       setError(null)
-      const data = await api.endpoints['stripe.connect.create'].invoke({})
+      const data = await endpoints['stripe.connect.create'].invoke({})
       window.location.href = data.url
     } catch {
       setError('Kunde inte starta Stripe-koppling')
@@ -55,7 +55,7 @@ export function useStripeConnect(
   async function refreshOnboarding() {
     try {
       setError(null)
-      const data = await api.endpoints['stripe.connect.refresh'].invoke({})
+      const data = await endpoints['stripe.connect.refresh'].invoke({})
       window.location.href = data.url
     } catch {
       setError('Kunde inte generera ny Stripe-länk')

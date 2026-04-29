@@ -5,7 +5,7 @@ import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } 
 import { useTakeoverSend } from '@/hooks/use-takeover-admin'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
-import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
@@ -154,7 +154,7 @@ export default function AdminMarketsPage() {
         done++
         if (result.ok) {
           ok++
-          await api.endpoints['admin.market.edit'].invoke({
+          await endpoints['admin.market.edit'].invoke({
             marketId: result.marketId,
             patch: { location: { latitude: result.latitude, longitude: result.longitude } },
           })

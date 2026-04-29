@@ -33,6 +33,14 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn() },
+  endpoints: {
+    'skyltfonstret.checkout': { invoke: vi.fn() },
+    'skyltfonstret.portal': { invoke: vi.fn() },
+  },
+}))
+
 vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading-logo" />,
 }))
@@ -40,6 +48,7 @@ vi.mock('@/components/fyndstigen-logo', () => ({
 // Import mocked modules after vi.mock calls
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 
 const freeProfile = {
   id: 'user-1',
@@ -119,7 +128,7 @@ describe('EditProfilePage', () => {
 
   it('free tier: upgrade button calls skyltfonstret-checkout and sets window.location.href', async () => {
     const checkoutUrl = 'https://checkout.stripe.com/test-session'
-    vi.mocked(api.endpoints['skyltfonstret.checkout'].invoke).mockResolvedValue({ url: checkoutUrl })
+    vi.mocked(endpoints['skyltfonstret.checkout'].invoke).mockResolvedValue({ url: checkoutUrl })
     vi.mocked(api.organizers.get).mockResolvedValue(freeProfile as any)
 
     let capturedHref = ''
@@ -139,7 +148,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(upgradeBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.endpoints['skyltfonstret.checkout'].invoke)).toHaveBeenCalledWith({})
+      expect(vi.mocked(endpoints['skyltfonstret.checkout'].invoke)).toHaveBeenCalledWith({})
     })
 
     await waitFor(() => {
@@ -171,7 +180,7 @@ describe('EditProfilePage', () => {
 
   it('premium tier: manage button calls skyltfonstret-portal and sets window.location.href', async () => {
     const portalUrl = 'https://billing.stripe.com/test-portal'
-    vi.mocked(api.endpoints['skyltfonstret.portal'].invoke).mockResolvedValue({ url: portalUrl })
+    vi.mocked(endpoints['skyltfonstret.portal'].invoke).mockResolvedValue({ url: portalUrl })
     vi.mocked(api.organizers.get).mockResolvedValue(premiumProfile as any)
 
     let capturedHref = ''
@@ -190,7 +199,7 @@ describe('EditProfilePage', () => {
     fireEvent.click(manageBtn)
 
     await waitFor(() => {
-      expect(vi.mocked(api.endpoints['skyltfonstret.portal'].invoke)).toHaveBeenCalledWith({})
+      expect(vi.mocked(endpoints['skyltfonstret.portal'].invoke)).toHaveBeenCalledWith({})
     })
 
     await waitFor(() => {

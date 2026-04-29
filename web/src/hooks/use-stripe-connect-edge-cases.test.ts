@@ -15,6 +15,15 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn(), invokePublic: vi.fn() },
+  endpoints: {
+    'stripe.connect.status': { invoke: (...args: unknown[]) => mockInvokeStatus(...args) },
+    'stripe.connect.create': { invoke: (...args: unknown[]) => mockInvokeCreate(...args) },
+    'stripe.connect.refresh': { invoke: (...args: unknown[]) => mockInvokeRefresh(...args) },
+  },
+}))
+
 describe('useStripeConnect — edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()

@@ -2,6 +2,11 @@ import { createApi, createGeo, createSupabaseAuth, createBookingService } from '
 import { supabase } from './supabase'
 import { compressImage } from './compress-image'
 
+// Re-export edge layer so any legacy test that mocks '@/lib/api' for
+// `api.endpoints` / `api.edge` keeps working without changes.
+// New code should import directly from '@/lib/edge'.
+export { endpoints, edge } from './edge'
+
 // Legacy `api.*` surface. Most features still reach the backend through here.
 // For FleaMarket reads (markets + marketTables), prefer the Deps container:
 //   const { markets } = useDeps(); markets.list(...)

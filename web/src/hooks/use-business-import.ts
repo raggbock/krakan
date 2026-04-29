@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 import type {
   AdminBusinessImportOutput,
   ImportBusiness,
@@ -12,7 +12,7 @@ type ImportArgs = { businesses: ImportBusiness[]; commit?: boolean; publishOnCom
 export function useBusinessImport() {
   return useMutation<AdminBusinessImportOutput, Error, ImportArgs>({
     mutationFn: ({ businesses, commit, publishOnCommit }) =>
-      api.endpoints['admin.business.import'].invoke({
+      endpoints['admin.business.import'].invoke({
         businesses,
         commit: commit ?? false,
         publishOnCommit: publishOnCommit ?? false,

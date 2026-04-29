@@ -14,7 +14,15 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/lib/edge', () => ({
+  edge: { invoke: vi.fn() },
+  endpoints: {
+    'organizer.stats': { invoke: vi.fn() },
+  },
+}))
+
 import { api } from '@/lib/api'
+import { endpoints } from '@/lib/edge'
 
 // ─── Test deps wrapper ─────────────────────────────────────────────────────
 
@@ -46,7 +54,7 @@ function setupDefaults() {
   mockListByOrganizer.mockResolvedValue([])
   mockBookingStats.mockResolvedValue([])
   mockRouteStats.mockResolvedValue([])
-  vi.mocked(api.endpoints['organizer.stats'].invoke).mockResolvedValue({ markets: [] } as never)
+  vi.mocked(endpoints['organizer.stats'].invoke).mockResolvedValue({ markets: [] } as never)
 }
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
@@ -113,7 +121,7 @@ describe('useOrganizerStats', () => {
 
   it('calculates conversion_30d as round(initiated/pageviews * 100)', async () => {
     mockListByOrganizer.mockResolvedValue([mockMarket1])
-    vi.mocked(api.endpoints['organizer.stats'].invoke).mockResolvedValue({
+    vi.mocked(endpoints['organizer.stats'].invoke).mockResolvedValue({
       markets: [{
         flea_market_id: 'market-1', name: 'Loppis Centrum',
         pageviews_30d: 200, pageviews_total: 500, bookings_initiated_30d: 50,
@@ -129,7 +137,7 @@ describe('useOrganizerStats', () => {
 
   it('returns conversion_30d of 0 when pageviews_30d is 0', async () => {
     mockListByOrganizer.mockResolvedValue([mockMarket1])
-    vi.mocked(api.endpoints['organizer.stats'].invoke).mockResolvedValue({
+    vi.mocked(endpoints['organizer.stats'].invoke).mockResolvedValue({
       markets: [{
         flea_market_id: 'market-1', name: 'Loppis Centrum',
         pageviews_30d: 0, pageviews_total: 0, bookings_initiated_30d: 0,
@@ -144,7 +152,7 @@ describe('useOrganizerStats', () => {
 
   it('handles PostHog edge function failure gracefully', async () => {
     mockListByOrganizer.mockResolvedValue([mockMarket1])
-    vi.mocked(api.endpoints['organizer.stats'].invoke).mockRejectedValue(new Error('edge function unavailable'))
+    vi.mocked(endpoints['organizer.stats'].invoke).mockRejectedValue(new Error('edge function unavailable'))
 
     const { result } = renderHook(() => useOrganizerStats('org-1'), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
