@@ -200,7 +200,11 @@ export function interpolate(template: string, params?: Record<string, string | n
 // If the catalog grows large, move it back to errors/messages.sv.ts and import directly.
 // This object is the single source of truth for Swedish messages at the shared layer.
 // (web/src/lib/messages.sv.ts keeps UI-level messages; this catalog covers domain errors.)
-import { MESSAGES_SV } from './errors/messages.sv'
+// NB: keep the .ts extension. sloppy-imports works locally but the Supabase
+// Edge bundler doesn't honour it — extensionless paths cause BOOT_ERROR
+// on any function that transitively imports this file. Burned admin-market-edit
+// v7-v9 with this. Always include .ts on cross-file shared/ imports.
+import { MESSAGES_SV } from './errors/messages.sv.ts'
 
 /**
  * Return a Swedish user-facing message for an ErrorCode or AppError.

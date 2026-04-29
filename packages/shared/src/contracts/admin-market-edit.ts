@@ -38,8 +38,13 @@ const OpeningHourRuleInput = z.object({
 export const AdminMarketEditInput = z.object({
   marketId: z.string().uuid(),
   patch: z.object({
-    /** Rename the market. Slug intentionally not touched — changing it would break existing URLs. Capped at 200 chars as a defensive limit. */
-    name: z.string().trim().min(1).max(200).optional(),
+    /** Rename the market. Slug intentionally not touched — changing it would
+     *  break existing URLs. Capped at 200 chars as a defensive limit.
+     *  NB: not chaining .trim() because Zod 4 (deno deploy uses 4.3.6) turns
+     *  it into a transform that broke module load on the Edge runtime
+     *  (BOOT_ERROR on v7-v8 of admin-market-edit). The drawer trims before
+     *  calling so this is functionally equivalent. */
+    name: z.string().min(1).max(200).optional(),
     contact: ContactPatch.optional(),
     address: AddressPatch.optional(),
     location: LocationPatch.optional(),
