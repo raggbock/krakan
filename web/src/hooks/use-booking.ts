@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements } from '@stripe/react-stripe-js'
-import { bookingService } from '@/lib/api'
+import { bookingService } from '@/lib/booking-service'
 import type { MarketTable } from '@fyndstigen/shared'
 import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'

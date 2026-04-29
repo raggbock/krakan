@@ -22,25 +22,26 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-// Mock the api module (edge + bookingService facade — bookings now reach the
-// hook via Deps, so api.bookings is no longer mocked here).
-vi.mock('@/lib/api', async () => {
+// Mock booking-service (edge + bookingService facade — bookings now reach the
+// hook via Deps, so bookings is no longer mocked here).
+// vi.hoisted() runs before vi.mock() hoisting so the reference is safe.
+const { _mockedBookingCreate } = vi.hoisted(() => ({
+  _mockedBookingCreate: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
+}))
+
+vi.mock('@/lib/booking-service', async () => {
   const { createBookingService } = await import('@fyndstigen/shared')
   const mockedApi = {
-    endpoints: {
-      'booking.create': {
-        invoke: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
-      },
-    },
-    edge: {
-      invoke: vi.fn().mockResolvedValue({}),
-    },
+    endpoints: { 'booking.create': { invoke: _mockedBookingCreate } },
+    edge: { invoke: vi.fn().mockResolvedValue({}) },
   }
   return {
-    api: mockedApi,
     bookingService: createBookingService({ api: mockedApi as never }),
   }
 })
+
+// Expose a handle so tests can assert on invoke calls.
+const api = { endpoints: { 'booking.create': { invoke: _mockedBookingCreate } } }
 
 // Booking adapter under test: vi.fn-backed so per-test resolveValue still works.
 // The Deps object is constructed ONCE at module load — DepsProvider expects a
@@ -63,7 +64,6 @@ vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
   return { ...actual }
 })
 
-import { api } from '@/lib/api'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
 
 // Saturday-only market (day_of_week: 6)

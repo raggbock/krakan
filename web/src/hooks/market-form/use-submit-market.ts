@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { geo } from '@/lib/api'
+import { geo } from '@/lib/geo'
 import { runMarketMutation } from '@fyndstigen/shared'
 import { useDeps } from '@/providers/deps-provider'
 import { messageFor } from '@/lib/messages.sv'

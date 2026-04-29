@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from 'react'
 import type { AuthUser } from '@fyndstigen/shared'
-import { auth } from './api'
+import { auth } from './auth'
 
 type AuthState = {
   user: AuthUser | null

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { geo } from '@/lib/api'
+import { geo } from '@/lib/geo'
 import { useDeps } from '@/providers/deps-provider'
 import type { FleaMarketNearBy } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth-context'

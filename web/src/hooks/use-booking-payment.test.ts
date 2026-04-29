@@ -19,21 +19,18 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-const mockInvoke = vi.fn()
 const mockAvailableDates = vi.fn().mockResolvedValue([] as string[])
 
-vi.mock('@/lib/api', async () => {
+// vi.hoisted() runs before vi.mock() hoisting so the reference is safe.
+const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
+
+vi.mock('@/lib/booking-service', async () => {
   const { createBookingService } = await import('@fyndstigen/shared')
   const mockedApi = {
-    endpoints: {
-      'booking.create': { invoke: (...args: unknown[]) => mockInvoke(...args) },
-    },
-    edge: {
-      invoke: vi.fn().mockResolvedValue({}),
-    },
+    endpoints: { 'booking.create': { invoke: (...args: unknown[]) => mockInvoke(...args) } },
+    edge: { invoke: vi.fn().mockResolvedValue({}) },
   }
   return {
-    api: mockedApi,
     bookingService: createBookingService({ api: mockedApi as never }),
   }
 })
@@ -52,8 +49,6 @@ vi.mock('@fyndstigen/shared', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')
   return actual
 })
-
-import { api } from '@/lib/api'
 
 const mockTable = {
   id: 'table-1',

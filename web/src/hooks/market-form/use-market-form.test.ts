@@ -9,16 +9,13 @@ import { useMarketForm } from './use-market-form'
 global.URL.createObjectURL = vi.fn((f: File) => `blob:${f.name}`)
 global.URL.revokeObjectURL = vi.fn()
 
-// `geo` is not yet a port — still imported as a singleton from @/lib/api.
-// We mock only the geo geocode function; everything else in @/lib/api is unused
-// by the saga now that market/table/image calls go through Deps.
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/geo', () => ({
   geo: {
     geocode: vi.fn().mockResolvedValue({ lat: 59.33, lng: 18.07 }),
   },
 }))
 
-import { geo } from '@/lib/api'
+import { geo } from '@/lib/geo'
 
 // Build the in-memory Deps object ONCE — DepsProvider expects a stable reference.
 // We spy on individual adapter methods per-test inside each describe block.
