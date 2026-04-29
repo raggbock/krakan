@@ -14,6 +14,7 @@ import { createInMemoryProfiles, createInMemoryOrganizers } from './adapters/in-
 import { createInMemoryAdmin } from './adapters/in-memory/admin'
 import { createInMemoryBookings } from './adapters/in-memory/bookings'
 import { createInMemoryStats } from './adapters/in-memory/stats'
+import { createInMemoryImages } from './adapters/in-memory/images'
 import {
   createSupabaseFleaMarkets,
   createSupabaseMarketTables,
@@ -24,6 +25,7 @@ import { createSupabaseProfiles, createSupabaseOrganizers } from './adapters/sup
 import { createSupabaseAdmin } from './adapters/supabase/admin'
 import { createSupabaseBookings } from './adapters/supabase/bookings'
 import { createSupabaseStats } from './adapters/supabase/stats'
+import { createSupabaseImages } from './adapters/supabase/images'
 
 type StoredMarket = FleaMarket & {
   is_deleted: boolean
@@ -54,6 +56,7 @@ export function makeInMemoryDeps(
     bookings: createInMemoryBookings(),
     stats: createInMemoryStats(),
     search: createInMemorySearch({ fleaMarkets }),
+    images: createInMemoryImages(),
   }
 }
 
@@ -79,16 +82,26 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       bookings: createInMemoryBookings(),
       stats: createInMemoryStats(),
       search: createInMemorySearch({ fleaMarkets: markets }),
+      images: createInMemoryImages(),
     },
     control: { markets: marketsControl },
   }
+}
+
+export type MakeSupabaseDepsOptions = {
+  /**
+   * Optional image compression hook. The web layer injects `compressImage`
+   * from `web/src/lib/compress-image.ts`; callers without a DOM (tests,
+   * Deno edge functions) can omit it and files are uploaded untouched.
+   */
+  compressImage?: (file: File) => Promise<File>
 }
 
 /**
  * Supabase-backed Deps — for the browser app.
  * Construct ONCE per app mount (e.g. inside QueryProvider or DepsProvider).
  */
-export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
+export function makeSupabaseDeps(supabase: SupabaseClient, options: MakeSupabaseDepsOptions = {}): Deps {
   return {
     markets: createSupabaseFleaMarkets(supabase),
     marketTables: createSupabaseMarketTables(supabase),
@@ -99,5 +112,6 @@ export function makeSupabaseDeps(supabase: SupabaseClient): Deps {
     bookings: createSupabaseBookings(supabase),
     stats: createSupabaseStats(supabase),
     search: createSupabaseSearch(supabase),
+    images: createSupabaseImages({ supabase, compress: options.compressImage }),
   }
 }

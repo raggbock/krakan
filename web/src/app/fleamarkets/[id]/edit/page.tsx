@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
 import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth-context'
 import { useDeps } from '@/providers/deps-provider'
@@ -22,7 +21,7 @@ export default function EditMarketPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { markets } = useDeps()
+  const { markets, images: imagePort } = useDeps()
   const queryClient = useQueryClient()
 
   const { market, tables: fetchedTables, loading: marketLoading } = useMarketDetails(id)
@@ -168,7 +167,7 @@ export default function EditMarketPage() {
                   key={img.id}
                   className={`relative aspect-square rounded-lg overflow-hidden bg-cream-warm group ${isDeleted ? 'opacity-30' : ''}`}
                 >
-                  <img src={api.images.publicUrl(img.storage_path)} alt="" className="w-full h-full object-cover" />
+                  <img src={imagePort.publicUrl(img.storage_path)} alt="" className="w-full h-full object-cover" />
                   {isDeleted ? (
                     <button
                       type="button"

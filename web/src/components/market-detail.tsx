@@ -3,8 +3,8 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
+import { useDeps } from '@/providers/deps-provider'
 import { marketEditUrl } from '@/lib/urls'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { BackLink } from '@/components/back-link'
@@ -18,6 +18,7 @@ import { useMarketDetails } from '@/hooks/use-market-details'
 
 export function MarketDetail({ id }: { id: string }) {
   const { user } = useAuth()
+  const { images } = useDeps()
   const { market, tables, loading } = useMarketDetails(id)
 
   const openingHours = useMemo(() => {
@@ -85,7 +86,7 @@ export function MarketDetail({ id }: { id: string }) {
                   }`}
                 >
                   <Image
-                    src={api.images.publicUrl(img.storage_path)}
+                    src={images.publicUrl(img.storage_path)}
                     alt={market.name}
                     fill
                     sizes={market.flea_market_images.length === 1 ? '100vw' : '(min-width: 640px) 33vw, 50vw'}

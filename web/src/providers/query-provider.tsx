@@ -8,6 +8,7 @@ import {
   createE2EInMemoryDeps,
 } from '@fyndstigen/shared/deps-factory'
 import { supabase } from '@/lib/supabase'
+import { compressImage } from '@/lib/compress-image'
 import { DepsProvider } from './deps-provider'
 import { createE2EBridge } from '@/lib/e2e/bridge'
 
@@ -21,7 +22,7 @@ function buildAppDeps(): Deps {
     }
     return deps
   }
-  return makeSupabaseDeps(supabase)
+  return makeSupabaseDeps(supabase, { compressImage })
 }
 
 // Construct Deps once at module scope so the reference is stable across renders.

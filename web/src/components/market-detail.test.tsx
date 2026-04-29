@@ -15,6 +15,12 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/providers/deps-provider', () => ({
+  useDeps: () => ({
+    images: { publicUrl: (path: string) => `/images/${path}` },
+  }),
+}))
+
 vi.mock('@/lib/edge', () => ({
   edge: { invoke: vi.fn(), invokePublic: vi.fn() },
   endpoints: {},
