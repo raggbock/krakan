@@ -84,7 +84,10 @@ defineAdminEndpoint({
       }))
       const { error: rpcErr } = await admin.rpc('replace_opening_hours_atomic', {
         p_market_id: marketId,
-        p_rules: JSON.stringify(p_rules),
+        // PostgREST converts the JS array to jsonb directly — DON'T JSON.stringify
+        // here, that would deliver a quoted text value and the RPC's
+        // jsonb_array_elements call would error out.
+        p_rules,
       })
       if (rpcErr) throw new Error(rpcErr.message)
     }
