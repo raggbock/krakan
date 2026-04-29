@@ -1,41 +1,63 @@
 import { describe, it, expect, vi } from 'vitest'
-import { runMarketMutation, type MarketDeps, type MarketEvent, type MarketPlan } from './market-mutation'
+import { runMarketMutation, type MarketMutationDeps, type MarketEvent, type MarketPlan } from './market-mutation'
 import { GeocodeError } from './geo'
 
 function makeFile(name = 'pic.jpg'): File {
   return new File(['x'], name, { type: 'image/jpeg' })
 }
 
-function makeApi(overrides: Partial<MarketDeps['api']> = {}): MarketDeps['api'] {
+type MarketsDeps = MarketMutationDeps['markets']
+type TablesDeps = MarketMutationDeps['marketTables']
+type ImagesDeps = MarketMutationDeps['images']
+
+function makeMarkets(overrides: Partial<MarketsDeps> = {}): MarketsDeps {
   return {
-    fleaMarkets: {
-      create: vi.fn().mockResolvedValue({ id: 'market-1' }),
-      update: vi.fn().mockResolvedValue(undefined),
-      publish: vi.fn().mockResolvedValue(undefined),
-      ...(overrides.fleaMarkets ?? {}),
-    },
-    marketTables: {
-      create: vi.fn().mockResolvedValue({ id: 'table-1' }),
-      delete: vi.fn().mockResolvedValue(undefined),
-      ...(overrides.marketTables ?? {}),
-    },
-    images: {
-      add: vi.fn().mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 }),
-      remove: vi.fn().mockResolvedValue(undefined),
-      ...(overrides.images ?? {}),
-    },
+    create: vi.fn().mockResolvedValue({ id: 'market-1' }),
+    update: vi.fn().mockResolvedValue(undefined),
+    publish: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
+}
+
+function makeMarketTables(overrides: Partial<TablesDeps> = {}): TablesDeps {
+  return {
+    create: vi.fn().mockResolvedValue({ id: 'table-1' }),
+    delete: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
+}
+
+function makeImages(overrides: Partial<ImagesDeps> = {}): ImagesDeps {
+  return {
+    add: vi.fn().mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 }),
+    remove: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
   }
 }
 
 function makeGeo(
-  impl: MarketDeps['geo']['geocode'] = vi.fn().mockResolvedValue({ lat: 59.33, lng: 18.07 }),
-): MarketDeps['geo'] {
+  impl: MarketMutationDeps['geo']['geocode'] = vi.fn().mockResolvedValue({ lat: 59.33, lng: 18.07 }),
+): MarketMutationDeps['geo'] {
   return { geocode: impl }
+}
+
+function makeDeps(overrides: {
+  markets?: Partial<MarketsDeps>
+  marketTables?: Partial<TablesDeps>
+  images?: Partial<ImagesDeps>
+  geo?: MarketMutationDeps['geo']
+} = {}): MarketMutationDeps {
+  return {
+    markets: makeMarkets(overrides.markets),
+    marketTables: makeMarketTables(overrides.marketTables),
+    images: makeImages(overrides.images),
+    geo: overrides.geo ?? makeGeo(),
+  }
 }
 
 async function collect(
   plan: MarketPlan,
-  deps: MarketDeps,
+  deps: MarketMutationDeps,
 ): Promise<MarketEvent[]> {
   const events: MarketEvent[] = []
   for await (const ev of runMarketMutation(plan, deps)) events.push(ev)
@@ -67,9 +89,8 @@ const createPlan: MarketPlan = {
 
 describe('runMarketMutation — create new market', () => {
   it('emits full happy-path event sequence', async () => {
-    const api = makeApi()
-    const geo = makeGeo()
-    const events = await collect(createPlan, { api, geo })
+    const deps = makeDeps()
+    const events = await collect(createPlan, deps)
 
     const phases = events.map((e) => ('phase' in e ? `${e.phase}:${e.status}` : `end:${e.type}`))
     expect(phases).toEqual([
@@ -89,18 +110,17 @@ describe('runMarketMutation — create new market', () => {
       'end:complete',
     ])
 
-    expect(api.fleaMarkets.create).toHaveBeenCalledTimes(1)
-    expect(api.fleaMarkets.publish).toHaveBeenCalledWith('market-1')
-    expect(api.marketTables.create).toHaveBeenCalledTimes(1)
-    expect(api.images.add).toHaveBeenCalledTimes(1)
+    expect(deps.markets.create).toHaveBeenCalledTimes(1)
+    expect(deps.markets.publish).toHaveBeenCalledWith('market-1')
+    expect(deps.marketTables.create).toHaveBeenCalledTimes(1)
+    expect(deps.images.add).toHaveBeenCalledTimes(1)
 
     const complete = events.at(-1)!
     expect(complete).toEqual({ type: 'complete', marketId: 'market-1' })
   })
 
   it('skips geocoding when coordinates are pre-supplied', async () => {
-    const api = makeApi()
-    const geo = makeGeo()
+    const deps = makeDeps()
     const plan: MarketPlan = {
       ...createPlan,
       market: {
@@ -115,38 +135,37 @@ describe('runMarketMutation — create new market', () => {
         },
       },
     }
-    const events = await collect(plan, { api, geo })
+    const events = await collect(plan, deps)
 
-    expect(geo.geocode).not.toHaveBeenCalled()
+    expect(deps.geo.geocode).not.toHaveBeenCalled()
     expect(events[0]).toEqual({ phase: 'geocoding', status: 'skipped' })
   })
 })
 
 describe('runMarketMutation — failures', () => {
   it('critical: geocode failure emits failed with geocode.not_found and terminates', async () => {
-    const api = makeApi()
-    const geo = makeGeo(vi.fn().mockRejectedValue(new GeocodeError('Storgatan 1')))
-    const events = await collect(createPlan, { api, geo })
+    const deps = makeDeps({ geo: makeGeo(vi.fn().mockRejectedValue(new GeocodeError('Storgatan 1'))) })
+    const events = await collect(createPlan, deps)
 
     const last = events.at(-1)!
     expect(last).toEqual({ type: 'failed', error: expect.objectContaining({ code: 'geocode.not_found' }) })
-    expect(api.fleaMarkets.create).not.toHaveBeenCalled()
+    expect(deps.markets.create).not.toHaveBeenCalled()
   })
 
   it('critical: create-market failure emits failed and terminates', async () => {
-    const api = makeApi({
-      fleaMarkets: {
+    const deps = makeDeps({
+      markets: {
         create: vi.fn().mockRejectedValue(new Error('Forbidden')),
         update: vi.fn(),
         publish: vi.fn(),
       },
     })
-    const events = await collect(createPlan, { api, geo: makeGeo() })
+    const events = await collect(createPlan, deps)
 
     const last = events.at(-1)!
     expect('type' in last && last.type).toBe('failed')
-    expect(api.fleaMarkets.publish).not.toHaveBeenCalled()
-    expect(api.marketTables.create).not.toHaveBeenCalled()
+    expect(deps.markets.publish).not.toHaveBeenCalled()
+    expect(deps.marketTables.create).not.toHaveBeenCalled()
   })
 
   it('non-critical: single image upload failure emits item_error and continues to complete', async () => {
@@ -154,7 +173,7 @@ describe('runMarketMutation — failures', () => {
       .fn()
       .mockRejectedValueOnce(new Error('Storage error'))
       .mockResolvedValueOnce({ id: 'img-2', storage_path: 'p/2.jpg', sort_order: 1 })
-    const api = makeApi({
+    const deps = makeDeps({
       images: { add: addMock, remove: vi.fn().mockResolvedValue(undefined) },
     })
 
@@ -162,7 +181,7 @@ describe('runMarketMutation — failures', () => {
       ...createPlan,
       images: { add: [makeFile('a.jpg'), makeFile('b.jpg')], remove: [] },
     }
-    const events = await collect(plan, { api, geo: makeGeo() })
+    const events = await collect(plan, deps)
 
     const imageEvents = events.filter((e) => 'phase' in e && e.phase === 'saving_images')
     // start + 2 × (item_start + item_ok/error) + done
@@ -179,7 +198,7 @@ describe('runMarketMutation — failures', () => {
       .fn()
       .mockResolvedValueOnce({ id: 't-1' })
       .mockRejectedValueOnce(new Error('DB error'))
-    const api = makeApi({
+    const deps = makeDeps({
       marketTables: { create: createMock, delete: vi.fn().mockResolvedValue(undefined) },
     })
     const plan: MarketPlan = {
@@ -192,7 +211,7 @@ describe('runMarketMutation — failures', () => {
         remove: [],
       },
     }
-    const events = await collect(plan, { api, geo: makeGeo() })
+    const events = await collect(plan, deps)
     const tableEvents = events.filter((e) => 'phase' in e && e.phase === 'saving_tables')
     expect(tableEvents[1]).toMatchObject({ status: 'item_ok', kind: 'add', index: 0 })
     expect(tableEvents[2]).toMatchObject({ status: 'item_error', kind: 'add', index: 1 })
@@ -231,11 +250,11 @@ describe('runMarketMutation — edit existing market', () => {
   }
 
   it('skips publishing when alreadyPublished and applies removes before adds', async () => {
-    const api = makeApi()
-    const events = await collect(editPlan, { api, geo: makeGeo() })
+    const deps = makeDeps()
+    const events = await collect(editPlan, deps)
 
-    expect(api.fleaMarkets.update).toHaveBeenCalledTimes(1)
-    expect(api.fleaMarkets.publish).not.toHaveBeenCalled()
+    expect(deps.markets.update).toHaveBeenCalledTimes(1)
+    expect(deps.markets.publish).not.toHaveBeenCalled()
 
     const publishEv = events.find((e) => 'phase' in e && e.phase === 'publishing')
     expect(publishEv).toEqual({ phase: 'publishing', status: 'skipped' })
@@ -251,13 +270,13 @@ describe('runMarketMutation — edit existing market', () => {
   })
 
   it('edit with partial image failure still completes', async () => {
-    const api = makeApi({
+    const deps = makeDeps({
       images: {
         add: vi.fn().mockRejectedValue(new Error('boom')),
         remove: vi.fn().mockResolvedValue(undefined),
       },
     })
-    const events = await collect(editPlan, { api, geo: makeGeo() })
+    const events = await collect(editPlan, deps)
     const errEv = events.find(
       (e) => 'phase' in e && e.phase === 'saving_images' && 'status' in e && e.status === 'item_error',
     )

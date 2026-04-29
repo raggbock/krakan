@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { api, geo } from '@/lib/api'
+import { geo } from '@/lib/api'
 import { runMarketMutation } from '@fyndstigen/shared'
+import { useDeps } from '@/providers/deps-provider'
 import { messageFor } from '@/lib/messages.sv'
 import type { MarketFields } from './use-market-fields'
 import type { OpeningHoursDraftResult } from './use-opening-hours-draft'
@@ -52,6 +53,8 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
   clearError: () => void
   clearSuccess: () => void
 } {
+  const { markets, marketTables, images: imagesPort } = useDeps()
+
   // Keep latest opts in a ref so submit() never goes stale.
   const optsRef = useRef(opts)
   optsRef.current = opts
@@ -134,7 +137,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
     let firstFailedTableLabel: string | null = null
 
     try {
-      for await (const ev of runMarketMutation(plan, { api, geo })) {
+      for await (const ev of runMarketMutation(plan, { markets, marketTables, images: imagesPort, geo })) {
         if ('type' in ev) {
           if (ev.type === 'complete') resolvedMarketId = ev.marketId
           if (ev.type === 'failed') failedMsg = messageFor(ev.error)

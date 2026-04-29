@@ -18,6 +18,8 @@ import type {
   CreateMarketTablePayload,
   FleaMarketImage,
 } from './types'
+import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-markets'
+import type { ImagePort } from './ports/images'
 import { GeocodeError } from './geo'
 import { appError, isAppError, type AppError } from './errors'
 
@@ -134,37 +136,23 @@ export type MarketEvent =
 
 // ---------- Deps ----------
 
-/**
- * Subset of the `Api` surface the saga actually needs. Narrowing the type
- * here (rather than pulling in the full `Api`) keeps the shared package
- * free of the full Supabase-backed factory and lets tests stub just these
- * methods.
- */
-export type MarketMutationApi = {
-  fleaMarkets: {
-    create(payload: CreateFleaMarketPayload): Promise<{ id: string }>
-    update(id: string, payload: UpdateFleaMarketPayload): Promise<void>
-    publish(id: string): Promise<void>
-  }
-  marketTables: {
-    create(payload: CreateMarketTablePayload): Promise<{ id: string }>
-    delete(id: string): Promise<void>
-  }
-  images: {
-    add(marketId: string, file: File): Promise<FleaMarketImage>
-    remove(image: FleaMarketImage): Promise<void>
-  }
-}
-
 export type MarketMutationGeo = {
   geocode(address: string): Promise<{ lat: number; lng: number }>
 }
 
-export type MarketDeps = {
-  api: MarketMutationApi
+export type MarketMutationDeps = {
+  markets: Pick<FleaMarketRepository, 'create' | 'update' | 'publish'>
+  marketTables: Pick<MarketTableRepository, 'create' | 'delete'>
+  images: Pick<ImagePort, 'add' | 'remove'>
   geo: MarketMutationGeo
   now?: () => Date
 }
+
+/**
+ * @deprecated Use `MarketMutationDeps` instead.
+ * Kept for a transition period — will be removed once all callers are migrated.
+ */
+export type MarketDeps = MarketMutationDeps
 
 // ---------- Saga ----------
 
@@ -185,9 +173,9 @@ function buildAddressString(a: MarketPlanAddress): string {
 
 export async function* runMarketMutation(
   plan: MarketPlan,
-  deps: MarketDeps,
+  deps: MarketMutationDeps,
 ): AsyncGenerator<MarketEvent, void, void> {
-  const { api, geo } = deps
+  const { markets, marketTables, images, geo } = deps
 
   // Grab the address + whether this is an edit up-front.
   const isCreate = 'create' in plan.market
@@ -222,7 +210,7 @@ export async function* runMarketMutation(
   try {
     if (isCreate) {
       const f = fields as MarketCreateFields
-      const { id } = await api.fleaMarkets.create({
+      const { id } = await markets.create({
         name: f.name.trim(),
         description: f.description.trim(),
         address: {
@@ -241,7 +229,7 @@ export async function* runMarketMutation(
       marketId = id
     } else {
       const { id, patch } = (plan.market as { update: { id: string; patch: MarketUpdateFields } }).update
-      await api.fleaMarkets.update(id, {
+      await markets.update(id, {
         name: patch.name.trim(),
         description: patch.description.trim(),
         address: {
@@ -270,7 +258,7 @@ export async function* runMarketMutation(
   if (shouldPublish) {
     yield { phase: 'publishing', status: 'start' }
     try {
-      await api.fleaMarkets.publish(marketId)
+      await markets.publish(marketId)
       yield { phase: 'publishing', status: 'ok' }
     } catch (err) {
       yield { type: 'failed', error: toAppError(err) }
@@ -290,7 +278,7 @@ export async function* runMarketMutation(
   for (let i = 0; i < plan.tables.remove.length; i++) {
     const tableId = plan.tables.remove[i]
     try {
-      await api.marketTables.delete(tableId)
+      await marketTables.delete(tableId)
       yield { phase: 'saving_tables', status: 'item_ok', kind: 'remove', index: i, tableId }
     } catch (err) {
       yield {
@@ -306,7 +294,7 @@ export async function* runMarketMutation(
   for (let i = 0; i < plan.tables.add.length; i++) {
     const t = plan.tables.add[i]
     try {
-      const { id } = await api.marketTables.create({
+      const { id } = await marketTables.create({
         fleaMarketId: marketId,
         label: t.label,
         description: t.description || undefined,
@@ -331,7 +319,7 @@ export async function* runMarketMutation(
   for (let i = 0; i < plan.images.remove.length; i++) {
     const img = plan.images.remove[i]
     try {
-      await api.images.remove(img)
+      await images.remove(img)
       yield { phase: 'saving_images', status: 'item_ok', kind: 'remove', index: i, imageId: img.id }
     } catch (err) {
       yield {
@@ -348,7 +336,7 @@ export async function* runMarketMutation(
     const file = plan.images.add[i]
     yield { phase: 'saving_images', status: 'item_start', kind: 'add', index: i, file }
     try {
-      await api.images.add(marketId, file)
+      await images.add(marketId, file)
       yield { phase: 'saving_images', status: 'item_ok', kind: 'add', index: i, file }
     } catch (err) {
       yield {
@@ -374,7 +362,7 @@ export async function* runMarketMutation(
  */
 export async function collectMarketEvents(
   plan: MarketPlan,
-  deps: MarketDeps,
+  deps: MarketMutationDeps,
 ): Promise<MarketEvent[]> {
   const events: MarketEvent[] = []
   for await (const ev of runMarketMutation(plan, deps)) events.push(ev)
