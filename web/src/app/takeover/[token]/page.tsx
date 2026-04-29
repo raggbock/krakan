@@ -153,11 +153,11 @@ function ChooseView({
 }) {
   return (
     <>
-      <section className="max-w-3xl mx-auto px-6 sm:px-8 pt-10 pb-12 text-center">
-        <span className="inline-block text-[13px] font-bold uppercase tracking-[0.12em] text-rust bg-rust/[0.08] rounded-pill px-3.5 py-1.5 mb-7">
+      <section className="max-w-3xl mx-auto px-6 sm:px-8 pt-6 sm:pt-10 pb-8 sm:pb-12 text-center">
+        <span className="inline-block text-[13px] font-bold uppercase tracking-[0.12em] text-rust bg-rust/[0.08] rounded-pill px-3.5 py-1.5 mb-4 sm:mb-7">
           Hej!
         </span>
-        <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-medium leading-[1.05] tracking-[-0.02em] text-espresso mb-6">
+        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium leading-[1.05] tracking-[-0.02em] text-espresso mb-6">
           Vi har lagt till{' '}
           <em className="italic font-normal text-forest">{market.name}</em>{' '}
           på&nbsp;fyndstigen.
@@ -224,10 +224,28 @@ function ChooseView({
             badge="Rekommenderas"
             icon="🗝️"
             title="Ta över sidan"
-            body="Ni får kontroll att uppdatera info, lägga till bilder och aktivera bordbokning för säljare. Gratis, tar 2 minuter."
+            body="Gratis, tar 2 minuter — ni landar direkt på er sida, redo att redigera."
             cta="Gör anspråk →"
             onClick={() => onSelect('claim')}
-          />
+            className="sm:col-span-2 lg:col-span-2 lg:row-span-2"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <Benefit icon="🖼️" label="Egna bilder" />
+              <Benefit icon="✏️" label="Redigera info" />
+              <Benefit icon="📋" label="Bordbokning (valfritt)" />
+              <Benefit icon="📈" label="Besökarstatistik" />
+            </div>
+            <div className="bg-parchment/50 rounded-card p-4 mb-6 text-sm">
+              <p className="font-bold text-espresso text-[13px] uppercase tracking-wide mb-2">
+                Så går det till
+              </p>
+              <ol className="space-y-1.5 text-espresso-light">
+                <li>1. Skriv din e-post nedan</li>
+                <li>2. Vi mailar en inloggningslänk</li>
+                <li>3. Klart — du landar direkt på din sida, redo att redigera</li>
+              </ol>
+            </div>
+          </ChoiceCard>
           <ChoiceCard
             tone="secondary"
             badge="Minimal insats"
@@ -264,6 +282,8 @@ function ChoiceCard({
   body,
   cta,
   onClick,
+  className,
+  children,
 }: {
   tone: 'primary' | 'secondary' | 'tertiary'
   badge: string
@@ -272,6 +292,8 @@ function ChoiceCard({
   body: string
   cta: string
   onClick: () => void
+  className?: string
+  children?: React.ReactNode
 }) {
   const badgeClass =
     tone === 'primary'
@@ -289,7 +311,7 @@ function ChoiceCard({
     <button
       type="button"
       onClick={onClick}
-      className="bg-card border border-cream-warm rounded-card p-8 text-left flex flex-col shadow-[0_1px_2px_rgba(44,36,29,0.04),0_4px_12px_rgba(44,36,29,0.03)] hover:-translate-y-0.5 hover:border-forest transition-all duration-200 cursor-pointer group"
+      className={`bg-card border border-cream-warm rounded-card p-8 text-left flex flex-col shadow-[0_1px_2px_rgba(44,36,29,0.04),0_4px_12px_rgba(44,36,29,0.03)] hover:-translate-y-0.5 hover:border-forest transition-all duration-200 cursor-pointer group${className ? ` ${className}` : ''}`}
     >
       <span
         className={`self-start text-[11px] font-extrabold uppercase tracking-[0.12em] rounded-pill px-2.5 py-1 mb-4 ${badgeClass}`}
@@ -302,15 +324,27 @@ function ChoiceCard({
       <h3 className="font-display text-2xl font-medium tracking-tight mb-2.5 text-espresso">
         {title}
       </h3>
-      <p className="text-[15px] text-espresso-light font-medium leading-relaxed mb-6 flex-1">
+      <p className="text-[15px] text-espresso-light font-medium leading-relaxed mb-6">
         {body}
       </p>
+      {children}
       <span
-        className={`inline-flex items-center gap-2 self-start px-5 py-3 rounded-pill text-sm font-bold transition-all ${btnClass}`}
+        className={`inline-flex items-center gap-2 self-start px-5 py-3 rounded-pill text-sm font-bold transition-all mt-auto ${btnClass}`}
       >
         {cta}
       </span>
     </button>
+  )
+}
+
+function Benefit({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 bg-parchment/50 rounded-card p-3 text-center">
+      <span className="text-2xl leading-none" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="text-[12px] font-semibold text-espresso leading-tight">{label}</span>
+    </div>
   )
 }
 
