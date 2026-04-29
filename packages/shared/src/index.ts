@@ -24,7 +24,6 @@ export {
   validateBookingDate,
   generateBatchLabels,
   isFreePriced,
-  resolveBookingOutcome,
   decideCreateBooking,
 } from './booking'
 export type { CreateBookingInput, CreateBookingDecision } from './booking'

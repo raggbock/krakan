@@ -11,7 +11,7 @@
  */
 
 import type { Booking, BookingStatus, PaymentStatus } from './types'
-import { decideCreateBooking } from './booking'
+import { decidePaidBooking } from './booking'
 
 // Events that drive the lifecycle.
 // Note: the 'created' event is here for the BookingRepo.applyEvent port
@@ -56,15 +56,7 @@ export function applyBookingEvent(
 ): BookingPatch {
   switch (event.type) {
     case 'created': {
-      // Delegates to the canonical decideCreateBooking. The reducer doesn't
-      // know the price, only `paid: boolean` — pass a sentinel that
-      // isFreePriced will classify correctly. New code with access to the
-      // price should call decideCreateBooking directly.
-      const d = decideCreateBooking({
-        priceSek: event.paid ? 1 : 0,
-        autoAccept: event.autoAccept,
-        now,
-      })
+      const d = decidePaidBooking(event.paid, event.autoAccept, now)
       return { status: d.status, payment_status: d.paymentStatus, expires_at: d.expiresAt }
     }
 

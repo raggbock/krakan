@@ -83,39 +83,6 @@ export function isFreePriced(priceSek: number): boolean {
   return priceSek === 0
 }
 
-type BookingOutcome = {
-  status: 'pending' | 'confirmed'
-  paymentStatus: 'free' | 'requires_payment' | 'requires_capture'
-  needsStripe: boolean
-  captureMethod: 'automatic' | 'manual' | null
-  expiresAt: string | null
-}
-
-export function resolveBookingOutcome(priceSek: number, autoAccept: boolean): BookingOutcome {
-  const free = isFreePriced(priceSek)
-
-  if (free && autoAccept) {
-    return { status: 'confirmed', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: null }
-  }
-
-  if (free && !autoAccept) {
-    const expires = new Date()
-    expires.setDate(expires.getDate() + 7)
-    return { status: 'pending', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: expires.toISOString() }
-  }
-
-  if (!free && autoAccept) {
-    const expires = new Date()
-    expires.setDate(expires.getDate() + 1)
-    return { status: 'pending', paymentStatus: 'requires_payment', needsStripe: true, captureMethod: 'automatic', expiresAt: expires.toISOString() }
-  }
-
-  // paid + manual
-  const expires = new Date()
-  expires.setDate(expires.getDate() + 7)
-  return { status: 'pending', paymentStatus: 'requires_capture', needsStripe: true, captureMethod: 'manual', expiresAt: expires.toISOString() }
-}
-
 // ---------------------------------------------------------------------------
 // decideCreateBooking — single source of truth for booking-creation decisions
 // ---------------------------------------------------------------------------
@@ -171,4 +138,18 @@ export function decideCreateBooking({ priceSek, autoAccept, now = new Date() }: 
 
   // paid + manual
   return { status: 'pending', paymentStatus: 'requires_capture', needsStripe: true, captureMethod: 'manual', expiresAt: addDays(7, now) }
+}
+
+/**
+ * File-local helper for the booking lifecycle reducer.
+ * Wraps the `paid → synthetic priceSek` sentinel so it never leaks into
+ * the reducer call site. Not part of the public package API.
+ */
+export function decidePaidBooking(
+  paid: boolean,
+  autoAccept: boolean,
+  now: Date,
+): Pick<CreateBookingDecision, 'status' | 'paymentStatus' | 'expiresAt'> {
+  const d = decideCreateBooking({ priceSek: paid ? 1 : 0, autoAccept, now })
+  return { status: d.status, paymentStatus: d.paymentStatus, expiresAt: d.expiresAt }
 }
