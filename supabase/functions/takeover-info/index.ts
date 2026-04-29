@@ -5,31 +5,48 @@ import {
   TakeoverInfoInput,
   TakeoverInfoOutput,
 } from '@fyndstigen/shared/contracts/takeover.ts'
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+export type HandleTakeoverInfoDeps = {
+  admin: SupabaseClient
+  input: { token: string }
+}
+
+export async function handleTakeoverInfo(deps: HandleTakeoverInfoDeps): Promise<{
+  name: string
+  city: string | null
+  region: string | null
+  sourceUrl: string | null
+  maskedEmail: string | null
+  marketId: string
+}> {
+  const { admin, input } = deps
+
+  const tokenRow = await validateTakeoverToken(admin, input.token, { stampClickedAt: true })
+
+  const { data: market, error: mErr } = await admin
+    .from('flea_markets')
+    .select('name, city, region, contact_website, is_deleted')
+    .eq('id', tokenRow.flea_market_id)
+    .single()
+  if (mErr) throw new Error(mErr.message)
+  if (market.is_deleted) throw new HttpError(410, 'market_removed')
+
+  return {
+    name: market.name as string,
+    city: (market.city as string | null) ?? null,
+    region: (market.region as string | null) ?? null,
+    sourceUrl: (market.contact_website as string | null) ?? null,
+    maskedEmail: maskEmail(tokenRow.sent_to_email),
+    marketId: tokenRow.flea_market_id,
+  }
+}
 
 definePublicEndpoint({
   name: 'takeover-info',
   input: TakeoverInfoInput,
   output: TakeoverInfoOutput,
-  handler: async ({ admin }, input) => {
-    const tokenRow = await validateTakeoverToken(admin, input.token, { stampClickedAt: true })
-
-    const { data: market, error: mErr } = await admin
-      .from('flea_markets')
-      .select('name, city, region, contact_website, is_deleted')
-      .eq('id', tokenRow.flea_market_id)
-      .single()
-    if (mErr) throw new Error(mErr.message)
-    if (market.is_deleted) throw new HttpError(410, 'market_removed')
-
-    return {
-      name: market.name as string,
-      city: (market.city as string | null) ?? null,
-      region: (market.region as string | null) ?? null,
-      sourceUrl: (market.contact_website as string | null) ?? null,
-      maskedEmail: maskEmail(tokenRow.sent_to_email),
-      marketId: tokenRow.flea_market_id,
-    }
-  },
+  handler: ({ admin }, input) => handleTakeoverInfo({ admin, input }),
 })
 
 /**
