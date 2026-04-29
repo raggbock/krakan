@@ -72,25 +72,21 @@ defineAdminEndpoint({
     }
 
     if (patch.openingHourRules) {
-      // Replace all rules atomically — same shape the organizer edit page uses.
-      const { error: delErr } = await admin
-        .from('opening_hour_rules')
-        .delete()
-        .eq('flea_market_id', marketId)
-      if (delErr) throw new Error(delErr.message)
-
-      if (patch.openingHourRules.length > 0) {
-        const rows = patch.openingHourRules.map((r) => ({
-          flea_market_id: marketId,
-          type: r.type,
-          day_of_week: r.dayOfWeek,
-          anchor_date: r.anchorDate,
-          open_time: r.openTime,
-          close_time: r.closeTime,
-        }))
-        const { error: insErr } = await admin.from('opening_hour_rules').insert(rows)
-        if (insErr) throw new Error(insErr.message)
-      }
+      // Atomically replace all rules via a single Postgres function call —
+      // the DELETE and INSERT run inside one implicit transaction, so a
+      // failed INSERT can never leave the market with zero hours.
+      const p_rules = patch.openingHourRules.map((r) => ({
+        type: r.type,
+        day_of_week: r.dayOfWeek,
+        anchor_date: r.anchorDate,
+        open_time: r.openTime,
+        close_time: r.closeTime,
+      }))
+      const { error: rpcErr } = await admin.rpc('replace_opening_hours_atomic', {
+        p_market_id: marketId,
+        p_rules: JSON.stringify(p_rules),
+      })
+      if (rpcErr) throw new Error(rpcErr.message)
     }
 
     const { error: auditErr } = await admin.from('admin_actions').insert({

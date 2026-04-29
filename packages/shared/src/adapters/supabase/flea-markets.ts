@@ -116,18 +116,21 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
 
       if (error) throw error
 
-      await supabase.from('opening_hour_rules').delete().eq('flea_market_id', id)
-      if (payload.openingHours?.length) {
-        const { error: ohError } = await supabase.from('opening_hour_rules').insert(
-          payload.openingHours.map((oh) => ({
-            flea_market_id: id,
-            type: oh.type,
-            day_of_week: oh.dayOfWeek,
-            anchor_date: oh.anchorDate,
-            open_time: oh.openTime,
-            close_time: oh.closeTime,
-          })),
-        )
+      // Atomically replace all rules via a single Postgres function call —
+      // the DELETE and INSERT run inside one implicit transaction, so a
+      // failed INSERT can never leave the market with zero hours.
+      if (payload.openingHours !== undefined) {
+        const p_rules = (payload.openingHours ?? []).map((oh) => ({
+          type: oh.type,
+          day_of_week: oh.dayOfWeek,
+          anchor_date: oh.anchorDate,
+          open_time: oh.openTime,
+          close_time: oh.closeTime,
+        }))
+        const { error: ohError } = await supabase.rpc('replace_opening_hours_atomic', {
+          p_market_id: id,
+          p_rules: JSON.stringify(p_rules),
+        })
         if (ohError) throw ohError
       }
 

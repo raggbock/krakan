@@ -120,19 +120,47 @@ function buildRepo(
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
-      store.set(id, {
-        ...existing,
-        name: payload.name,
-        description: payload.description,
-        street: payload.address.street,
-        zip_code: payload.address.zipCode,
-        city: payload.address.city,
-        country: payload.address.country,
-        latitude: payload.address.location.latitude,
-        longitude: payload.address.location.longitude,
-        is_permanent: payload.isPermanent,
-        updated_at: new Date().toISOString(),
+
+      // Snapshot previous rules so we can restore on failure (mirrors the
+      // atomic Postgres function used in the real adapter).
+      const previousRules = existing.opening_hour_rules
+
+      // Validate new rules before mutating — all-or-nothing like the RPC.
+      const newRules: OpeningHourRule[] = (payload.openingHours ?? []).map((oh, i) => {
+        if (!oh.openTime || !oh.closeTime) {
+          throw new Error(`Opening hour rule at index ${i} is missing open_time or close_time`)
+        }
+        return {
+          id: `ohr-${id}-${i}`,
+          flea_market_id: id,
+          type: oh.type,
+          day_of_week: oh.dayOfWeek ?? null,
+          anchor_date: oh.anchorDate ?? null,
+          open_time: oh.openTime,
+          close_time: oh.closeTime,
+        } as OpeningHourRule
       })
+
+      try {
+        store.set(id, {
+          ...existing,
+          name: payload.name,
+          description: payload.description,
+          street: payload.address.street,
+          zip_code: payload.address.zipCode,
+          city: payload.address.city,
+          country: payload.address.country,
+          latitude: payload.address.location.latitude,
+          longitude: payload.address.location.longitude,
+          is_permanent: payload.isPermanent,
+          opening_hour_rules: newRules,
+          updated_at: new Date().toISOString(),
+        })
+      } catch (err) {
+        // Restore previous state on failure.
+        store.set(id, { ...existing, opening_hour_rules: previousRules })
+        throw err
+      }
     },
 
     async delete(id) {
