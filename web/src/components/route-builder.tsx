@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api, geo } from '@/lib/api'
+import { geo } from '@/lib/api'
+import { useDeps } from '@/providers/deps-provider'
 import type { FleaMarketNearBy } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth-context'
 import { usePostHog } from 'posthog-js/react'
@@ -24,6 +25,7 @@ export default function RouteBuilder() {
   const router = useRouter()
   const { user } = useAuth()
   const posthog = usePostHog()
+  const { routes } = useDeps()
 
   const [markets, setMarkets] = useState<MarketWithHours[]>([])
   const [stops, setStops] = useState<RouteBuilderStop[]>([])
@@ -116,7 +118,7 @@ export default function RouteBuilder() {
       },
     }
 
-    for await (const ev of runRouteMutation(plan, { api })) {
+    for await (const ev of runRouteMutation(plan, { api: { routes } })) {
       if ('type' in ev) {
         if (ev.type === 'complete') {
           posthog?.capture('route_saved', {
