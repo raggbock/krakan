@@ -1,17 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
-import type { StripeCardElement } from '@stripe/stripe-js'
+import { useStripe, useElements } from '@stripe/react-stripe-js'
 import { bookingService, MarketTable } from '@/lib/api'
 import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
-import {
-  createNoOpPaymentGateway,
-  createStripePaymentGateway,
-} from '@/lib/adapters/stripe-payment-gateway'
+import { resolvePaymentGateway } from '@/lib/adapters/payment-gateway-factory'
 import { createPostHogTelemetry } from '@/lib/adapters/posthog-telemetry'
 
 type BookingHook = {
@@ -102,29 +98,12 @@ export function useBooking(
     })
 
     try {
-      // Build payment gateway lazily. For free tables no clientSecret comes
-      // back, so the no-op path is the correct gateway. For paid tables with
-      // Stripe unloaded or missing a CardElement, we still return a no-op
-      // gateway that throws iff actually invoked — matches pre-RFC behavior.
-      const cardElement =
-        stripe && elements ? (elements.getElement(CardElement) as StripeCardElement | null) : null
-
       let paymentCompleted = false
-      const basePayment =
-        stripe && cardElement
-          ? createStripePaymentGateway(stripe, cardElement)
-          : createNoOpPaymentGateway(!stripe || !elements ? 'Stripe not loaded' : 'Card element not found')
-
-      // Wrap the payment gateway to capture booking_payment_completed
-      const payment = {
-        confirmCardPayment: async (clientSecret: string) => {
-          const result = await basePayment.confirmCardPayment(clientSecret)
-          if (result.status === 'succeeded') {
-            paymentCompleted = true
-          }
-          return result
-        },
-      }
+      const payment = resolvePaymentGateway({
+        stripe,
+        elements,
+        onPaymentCompleted: () => { paymentCompleted = true },
+      })
 
       const telemetry = createPostHogTelemetry(posthog)
 

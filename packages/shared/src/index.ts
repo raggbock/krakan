@@ -25,7 +25,9 @@ export {
   generateBatchLabels,
   isFreePriced,
   resolveBookingOutcome,
+  decideCreateBooking,
 } from './booking'
+export type { CreateBookingInput, CreateBookingDecision } from './booking'
 export { applyBookingEvent } from './booking-lifecycle'
 export type { BookingEvent, BookingPatch } from './booking-lifecycle'
 export { createBookingService } from './booking-service'

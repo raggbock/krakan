@@ -26,6 +26,9 @@ function makeBooking(overrides: Partial<Booking> = {}): Booking {
 }
 
 describe('applyBookingEvent — created', () => {
+  // Thin smoke tests — the truth-table is owned by decideCreateBooking
+  // and exhaustively tested in booking.test.ts. Here we only verify the
+  // reducer correctly delegates for each of the four branches.
   it('free + auto-accept → confirmed, free, no expiry', () => {
     const b = makeBooking({ status: 'pending', stripe_payment_intent_id: null })
     const patch = applyBookingEvent(b, { type: 'created', autoAccept: true, paid: false }, FIXED_NOW)

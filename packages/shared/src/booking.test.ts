@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   isFreePriced,
   resolveBookingOutcome,
+  decideCreateBooking,
   validateBookingDate,
 } from './booking'
 
@@ -52,6 +53,63 @@ describe('resolveBookingOutcome', () => {
     expect(result.needsStripe).toBe(true)
     expect(result.captureMethod).toBe('manual')
     expect(result.expiresAt).not.toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// decideCreateBooking — single source of truth for creation decisions
+// ---------------------------------------------------------------------------
+
+const FIXED_NOW = new Date('2026-04-21T12:00:00.000Z')
+
+describe('decideCreateBooking', () => {
+  it('free + auto-accept → confirmed/free, no stripe, no expiry', () => {
+    const d = decideCreateBooking({ priceSek: 0, autoAccept: true, now: FIXED_NOW })
+    expect(d).toEqual({
+      status: 'confirmed',
+      paymentStatus: 'free',
+      needsStripe: false,
+      captureMethod: null,
+      expiresAt: null,
+    })
+  })
+
+  it('free + manual → pending/free, no stripe, +7d expiry', () => {
+    const d = decideCreateBooking({ priceSek: 0, autoAccept: false, now: FIXED_NOW })
+    expect(d.status).toBe('pending')
+    expect(d.paymentStatus).toBe('free')
+    expect(d.needsStripe).toBe(false)
+    expect(d.captureMethod).toBeNull()
+    expect(d.expiresAt).toBe('2026-04-28T12:00:00.000Z')
+  })
+
+  it('paid + auto-accept → pending/requires_payment, stripe automatic, +1d expiry', () => {
+    const d = decideCreateBooking({ priceSek: 200, autoAccept: true, now: FIXED_NOW })
+    expect(d.status).toBe('pending')
+    expect(d.paymentStatus).toBe('requires_payment')
+    expect(d.needsStripe).toBe(true)
+    expect(d.captureMethod).toBe('automatic')
+    expect(d.expiresAt).toBe('2026-04-22T12:00:00.000Z')
+  })
+
+  it('paid + manual → pending/requires_capture, stripe manual, +7d expiry', () => {
+    const d = decideCreateBooking({ priceSek: 200, autoAccept: false, now: FIXED_NOW })
+    expect(d.status).toBe('pending')
+    expect(d.paymentStatus).toBe('requires_capture')
+    expect(d.needsStripe).toBe(true)
+    expect(d.captureMethod).toBe('manual')
+    expect(d.expiresAt).toBe('2026-04-28T12:00:00.000Z')
+  })
+
+  it('defaults now to current time when omitted', () => {
+    const before = Date.now()
+    const d = decideCreateBooking({ priceSek: 0, autoAccept: false })
+    const after = Date.now()
+    // expiresAt should be ~7 days from now
+    const expiresMs = new Date(d.expiresAt!).getTime()
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+    expect(expiresMs).toBeGreaterThanOrEqual(before + sevenDaysMs - 1000)
+    expect(expiresMs).toBeLessThanOrEqual(after + sevenDaysMs + 1000)
   })
 })
 

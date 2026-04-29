@@ -1,8 +1,7 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { calculateStripeAmounts, isFreePriced, resolveBookingOutcome } from '@fyndstigen/shared/booking.ts'
-import { applyBookingEvent } from '@fyndstigen/shared/booking-lifecycle.ts'
+import { calculateStripeAmounts, decideCreateBooking } from '@fyndstigen/shared/booking.ts'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway.ts'
 import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create.ts'
 import { appError } from '@fyndstigen/shared/errors.ts'
@@ -32,11 +31,11 @@ defineEndpoint({
     if (!market) throw new NotFoundError('Market not found or not published', appError('booking.market_not_found'))
 
     // Resolve what kind of booking this is
-    const outcome = resolveBookingOutcome(table.price_sek, market.auto_accept_bookings)
+    const decision = decideCreateBooking({ priceSek: table.price_sek, autoAccept: market.auto_accept_bookings })
 
     // If paid, require Stripe account
     let stripeAccountId: string | null = null
-    if (outcome.needsStripe) {
+    if (decision.needsStripe) {
       const { data: stripeAccount } = await admin
         .from('stripe_accounts')
         .select('stripe_account_id, onboarding_complete')
@@ -66,7 +65,7 @@ defineEndpoint({
     let paymentIntentId: string | null = null
     let clientSecret: string | null = null
 
-    if (outcome.needsStripe && stripeAccountId) {
+    if (decision.needsStripe && stripeAccountId) {
       const gateway = createStripeBookingGateway(stripe)
       // Idempotency key is the natural booking identity — same user
       // requesting the same table on the same date should resolve to the
@@ -78,7 +77,7 @@ defineEndpoint({
       const pi = await gateway.createPaymentIntentWithFees({
         priceSek: table.price_sek,
         stripeAccountId,
-        captureMethod: outcome.captureMethod!,
+        captureMethod: decision.captureMethod!,
         idempotencyKey,
         metadata: {
           market_table_id: marketTableId,
@@ -91,15 +90,7 @@ defineEndpoint({
       clientSecret = pi.clientSecret
     }
 
-    // Derive status/payment_status/expires_at via the lifecycle reducer.
-    // The 'created' branch only reads `event`, not `current` — so a minimal
-    // object stands in for the not-yet-persisted Booking row.
-    const lifecyclePatch = applyBookingEvent(
-      { status: 'pending', stripe_payment_intent_id: paymentIntentId } as Parameters<typeof applyBookingEvent>[0],
-      { type: 'created', autoAccept: market.auto_accept_bookings, paid: !isFreePriced(table.price_sek) },
-    )
-
-    // Create booking
+    // Create booking — status/payment_status/expires_at come from decideCreateBooking above
     const { data: booking, error: bookingErr } = await admin
       .from('bookings')
       .insert({
@@ -112,7 +103,9 @@ defineEndpoint({
         commission_rate: commissionRate,
         message: message || null,
         stripe_payment_intent_id: paymentIntentId,
-        ...lifecyclePatch,
+        status: decision.status,
+        payment_status: decision.paymentStatus,
+        expires_at: decision.expiresAt,
       })
       .select('id')
       .single()

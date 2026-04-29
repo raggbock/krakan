@@ -115,3 +115,60 @@ export function resolveBookingOutcome(priceSek: number, autoAccept: boolean): Bo
   expires.setDate(expires.getDate() + 7)
   return { status: 'pending', paymentStatus: 'requires_capture', needsStripe: true, captureMethod: 'manual', expiresAt: expires.toISOString() }
 }
+
+// ---------------------------------------------------------------------------
+// decideCreateBooking — single source of truth for booking-creation decisions
+// ---------------------------------------------------------------------------
+
+export type CreateBookingInput = {
+  priceSek: number
+  autoAccept: boolean
+  /** Injectable clock for deterministic testing. Defaults to new Date(). */
+  now?: Date
+}
+
+/**
+ * The DB columns derived purely from (price, autoAccept) at creation time.
+ * Returned alongside Stripe-gateway hints so edge functions and tests have a
+ * single import for all booking-creation decisions.
+ */
+export type CreateBookingDecision = {
+  /** null when no payment is needed */
+  captureMethod: 'manual' | 'automatic' | null
+  needsStripe: boolean
+  status: 'pending' | 'confirmed'
+  paymentStatus: 'free' | 'requires_payment' | 'requires_capture'
+  expiresAt: string | null
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function addDays(days: number, now: Date): string {
+  return new Date(now.getTime() + days * DAY_MS).toISOString()
+}
+
+/**
+ * Pure function. Given price and auto-accept flag, returns every DB column
+ * that must be set when a booking row is first inserted.
+ *
+ * Both the `booking-create` edge function and `applyBookingEvent({type:'created'})`
+ * delegate here so the truth-table lives in exactly one place.
+ */
+export function decideCreateBooking({ priceSek, autoAccept, now = new Date() }: CreateBookingInput): CreateBookingDecision {
+  const free = isFreePriced(priceSek)
+
+  if (free && autoAccept) {
+    return { status: 'confirmed', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: null }
+  }
+
+  if (free && !autoAccept) {
+    return { status: 'pending', paymentStatus: 'free', needsStripe: false, captureMethod: null, expiresAt: addDays(7, now) }
+  }
+
+  if (!free && autoAccept) {
+    return { status: 'pending', paymentStatus: 'requires_payment', needsStripe: true, captureMethod: 'automatic', expiresAt: addDays(1, now) }
+  }
+
+  // paid + manual
+  return { status: 'pending', paymentStatus: 'requires_capture', needsStripe: true, captureMethod: 'manual', expiresAt: addDays(7, now) }
+}

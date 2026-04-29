@@ -11,8 +11,14 @@
  */
 
 import type { Booking, BookingStatus, PaymentStatus } from './types'
+import { decideCreateBooking } from './booking'
 
-// Events that drive the lifecycle
+// Events that drive the lifecycle.
+// Note: the 'created' event is here for the BookingRepo.applyEvent port
+// (the in-memory + Supabase adapters route booking creation through it).
+// Direct callers that have the price should prefer decideCreateBooking
+// in ./booking.ts — it returns a richer decision (captureMethod, needsStripe)
+// without needing a synthetic current-row.
 export type BookingEvent =
   | { type: 'created'; autoAccept: boolean; paid: boolean }
   | { type: 'stripe.payment_intent.succeeded'; autoAccept: boolean }
@@ -35,12 +41,6 @@ export type BookingPatch = Partial<{
   denied_at: string
 }>
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
-function addDays(days: number, now: Date): string {
-  return new Date(now.getTime() + days * DAY_MS).toISOString()
-}
-
 /**
  * Pure reducer. Given the current booking row and an event, return the
  * patch to apply. Returns {} for illegal transitions so the caller can
@@ -56,21 +56,16 @@ export function applyBookingEvent(
 ): BookingPatch {
   switch (event.type) {
     case 'created': {
-      // 'created' is a synthesis event. The reducer returns the derived
-      // status/payment_status/expires_at the caller should persist. The
-      // logic mirrors `resolveBookingOutcome` in ./booking.ts.
-      const { autoAccept, paid } = event
-      if (!paid && autoAccept) {
-        return { status: 'confirmed', payment_status: 'free', expires_at: null }
-      }
-      if (!paid && !autoAccept) {
-        return { status: 'pending', payment_status: 'free', expires_at: addDays(7, now) }
-      }
-      if (paid && autoAccept) {
-        return { status: 'pending', payment_status: 'requires_payment', expires_at: addDays(1, now) }
-      }
-      // paid && !autoAccept
-      return { status: 'pending', payment_status: 'requires_capture', expires_at: addDays(7, now) }
+      // Delegates to the canonical decideCreateBooking. The reducer doesn't
+      // know the price, only `paid: boolean` — pass a sentinel that
+      // isFreePriced will classify correctly. New code with access to the
+      // price should call decideCreateBooking directly.
+      const d = decideCreateBooking({
+        priceSek: event.paid ? 1 : 0,
+        autoAccept: event.autoAccept,
+        now,
+      })
+      return { status: d.status, payment_status: d.paymentStatus, expires_at: d.expiresAt }
     }
 
     case 'stripe.payment_intent.succeeded': {
