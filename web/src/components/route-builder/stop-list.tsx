@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { checkOpeningHours, type OpeningHourRule, type OpeningHourException } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '../fyndstigen-logo'
-import type { FleaMarketNearBy } from '@/lib/api'
+import type { FleaMarketNearBy } from '@fyndstigen/shared'
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]

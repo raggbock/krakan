@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import type { FleaMarket } from '@/lib/api'
+import type { FleaMarket } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 

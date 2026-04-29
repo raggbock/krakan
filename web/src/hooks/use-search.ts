@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { api, type FleaMarket } from '@/lib/api'
+import { api } from '@/lib/api'
+import type { FleaMarket } from '@fyndstigen/shared'
 
 export function useSearch(debounceMs = 300) {
   const [query, setQuery] = useState('')

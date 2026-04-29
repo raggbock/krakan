@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { RouteStop } from '@/lib/api'
+import type { RouteStop } from '@fyndstigen/shared'
 import { fetchDrivingRoute, type RoutingResult } from '@fyndstigen/shared'
 import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
 

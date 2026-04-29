@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/api'
-import type { FleaMarketNearBy } from '@/lib/api'
+import type { FleaMarketNearBy } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
 

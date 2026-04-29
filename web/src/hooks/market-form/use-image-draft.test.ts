@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { useImageDraft } from './use-image-draft'
-import type { FleaMarketImage } from '@/lib/api'
+import type { FleaMarketImage } from '@fyndstigen/shared'
 
 // jsdom doesn't implement createObjectURL
 global.URL.createObjectURL = vi.fn((f: File) => `blob:${f.name}`)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { FleaMarketDetails, MarketTable } from '@/lib/api'
+import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
 import { useMarketFields } from './use-market-fields'
 import { useOpeningHoursDraft } from './use-opening-hours-draft'
 import { useImageDraft } from './use-image-draft'

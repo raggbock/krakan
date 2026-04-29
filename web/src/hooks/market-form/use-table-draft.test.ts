@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { useTableDraft } from './use-table-draft'
-import type { MarketTable } from '@/lib/api'
+import type { MarketTable } from '@fyndstigen/shared'
 
 const dbTable: MarketTable = {
   id: 't-1',

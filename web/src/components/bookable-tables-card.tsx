@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Elements, CardElement } from '@stripe/react-stripe-js'
-import type { MarketTable } from '@/lib/api'
+import type { MarketTable } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'

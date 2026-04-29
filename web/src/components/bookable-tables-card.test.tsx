@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BookableTablesCard } from './bookable-tables-card'
-import type { MarketTable } from '@/lib/api'
+import type { MarketTable } from '@fyndstigen/shared'
 
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))

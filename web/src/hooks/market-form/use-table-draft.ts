@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import type { MarketTable } from '@/lib/api'
+import type { MarketTable } from '@fyndstigen/shared'
 
 export type TableDraftRow = {
   id?: string // present for existing DB rows

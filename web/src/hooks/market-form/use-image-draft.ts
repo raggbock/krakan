@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { FleaMarketImage } from '@/lib/api'
+import type { FleaMarketImage } from '@fyndstigen/shared'
 
 export type ImageDraftExisting = FleaMarketImage & { _deleted?: boolean }
 

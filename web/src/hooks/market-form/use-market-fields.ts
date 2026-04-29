@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import type { AddressValue } from '@/components/address-picker'
-import type { FleaMarketDetails } from '@/lib/api'
+import type { FleaMarketDetails } from '@fyndstigen/shared'
 
 export type MarketFields = {
   name: string

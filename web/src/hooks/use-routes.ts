@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { RouteWithStops, RouteSummary, CreateRoutePayload, UpdateRoutePayload } from '@/lib/api'
+import type { RouteWithStops, RouteSummary, CreateRoutePayload, UpdateRoutePayload } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 

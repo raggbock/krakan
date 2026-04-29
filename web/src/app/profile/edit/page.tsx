@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { api, OrganizerProfile } from '@/lib/api'
+import { api } from '@/lib/api'
+import type { OrganizerProfile } from '@fyndstigen/shared'
 import { endpoints } from '@/lib/edge'
 import { useAuth } from '@/lib/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'

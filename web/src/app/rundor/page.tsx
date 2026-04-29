@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { api, PopularRoute } from '@/lib/api'
+import { api } from '@/lib/api'
+import type { PopularRoute } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function RoutesDiscoveryPage() {
