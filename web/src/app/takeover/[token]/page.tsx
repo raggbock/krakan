@@ -42,6 +42,8 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
   const [view, setView] = useState<View>({ kind: 'choose' })
   const [linkTracked, setLinkTracked] = useState(false)
 
+  const [errorTracked, setErrorTracked] = useState(false)
+
   useEffect(() => {
     if (linkTracked || !info.data) return
     posthog?.capture('takeover_link_clicked', {
@@ -49,6 +51,14 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
     })
     setLinkTracked(true)
   }, [info.data, linkTracked, posthog])
+
+  useEffect(() => {
+    if (errorTracked || info.isLoading || !info.isError) return
+    const rawMsg = info.error instanceof Error ? info.error.message : String(info.error)
+    const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
+    posthog?.capture('takeover_info_load_failed', { error_reason })
+    setErrorTracked(true)
+  }, [info.isError, info.isLoading, info.error, errorTracked, posthog])
 
   if (info.isLoading) {
     return (
@@ -87,14 +97,23 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
       </header>
 
       {view.kind === 'choose' && (
-        <ChooseView market={market} onSelect={(kind) => setView({ kind })} />
+        <ChooseView
+          market={market}
+          onSelect={(kind) => {
+            posthog?.capture('takeover_path_chosen', { path: kind, market_id: market.marketId })
+            setView({ kind })
+          }}
+        />
       )}
 
       {view.kind === 'claim' && (
         <ClaimView
           token={token}
           market={market}
-          onCancel={() => setView({ kind: 'choose' })}
+          onCancel={() => {
+            posthog?.capture('takeover_path_cancelled', { path: 'claim', market_id: market.marketId })
+            setView({ kind: 'choose' })
+          }}
         />
       )}
 
@@ -102,7 +121,10 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
         <FeedbackView
           token={token}
           market={market}
-          onCancel={() => setView({ kind: 'choose' })}
+          onCancel={() => {
+            posthog?.capture('takeover_path_cancelled', { path: 'feedback', market_id: market.marketId })
+            setView({ kind: 'choose' })
+          }}
           onDone={() =>
             setView({
               kind: 'success',
@@ -116,7 +138,10 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
         <RemoveView
           token={token}
           market={market}
-          onCancel={() => setView({ kind: 'choose' })}
+          onCancel={() => {
+            posthog?.capture('takeover_path_cancelled', { path: 'remove', market_id: market.marketId })
+            setView({ kind: 'choose' })
+          }}
           onDone={() =>
             setView({
               kind: 'success',
@@ -151,6 +176,7 @@ function ChooseView({
   market: Market
   onSelect: (kind: 'claim' | 'feedback' | 'remove') => void
 }) {
+  const posthog = usePostHog()
   return (
     <>
       <section className="max-w-3xl mx-auto px-6 sm:px-8 pt-6 sm:pt-10 pb-8 sm:pb-12 text-center">
@@ -194,6 +220,12 @@ function ChooseView({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline decoration-cream-warm hover:decoration-rust"
+                  onClick={() =>
+                    posthog?.capture('takeover_source_link_clicked', {
+                      market_id: market.marketId,
+                      hostname: hostname(market.sourceUrl!),
+                    })
+                  }
                 >
                   {hostname(market.sourceUrl)}
                 </a>
@@ -455,6 +487,7 @@ function FeedbackView({
   onDone: () => void
 }) {
   const feedback = useTakeoverFeedback()
+  const posthog = usePostHog()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
 
@@ -462,8 +495,21 @@ function FeedbackView({
     e.preventDefault()
     try {
       await feedback.mutateAsync({ token, email, message })
+      posthog?.capture('takeover_feedback_submitted', {
+        market_id: market.marketId,
+        success: true,
+      })
       onDone()
-    } catch { /* surfaced via feedback.isError */ }
+    } catch (err) {
+      const rawMsg = err instanceof Error ? err.message : String(err)
+      const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
+      posthog?.capture('takeover_feedback_submitted', {
+        market_id: market.marketId,
+        success: false,
+        error_reason,
+      })
+      /* surfaced via feedback.isError */
+    }
   }
 
   return (
@@ -524,14 +570,31 @@ function RemoveView({
   onDone: () => void
 }) {
   const remove = useTakeoverRemove()
+  const posthog = usePostHog()
   const [reason, setReason] = useState('')
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const trimmedReason = reason.trim()
     try {
-      await remove.mutateAsync({ token, reason: reason.trim() || undefined })
+      await remove.mutateAsync({ token, reason: trimmedReason || undefined })
+      posthog?.capture('takeover_remove_submitted', {
+        market_id: market.marketId,
+        success: true,
+        has_reason: trimmedReason.length > 0,
+      })
       onDone()
-    } catch { /* surfaced via remove.isError */ }
+    } catch (err) {
+      const rawMsg = err instanceof Error ? err.message : String(err)
+      const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
+      posthog?.capture('takeover_remove_submitted', {
+        market_id: market.marketId,
+        success: false,
+        has_reason: trimmedReason.length > 0,
+        error_reason,
+      })
+      /* surfaced via remove.isError */
+    }
   }
 
   return (
