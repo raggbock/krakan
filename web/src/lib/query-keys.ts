@@ -30,6 +30,8 @@ export const queryKeys = {
       [...queryKeys.routes.all, 'user', userId] as const,
     details: (id: string) =>
       [...queryKeys.routes.all, 'details', id] as const,
+    popular: () =>
+      [...queryKeys.routes.all, 'popular'] as const,
   },
   organizers: {
     stats: (organizerId: string) =>

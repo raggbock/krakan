@@ -1,22 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { api } from '@/lib/api'
-import type { PopularRoute } from '@fyndstigen/shared'
+import { usePopularRoutes } from '@/hooks/use-routes'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function RoutesDiscoveryPage() {
-  const [routes, setRoutes] = useState<PopularRoute[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    api.routes
-      .listPopular({ latitude: 59.27, longitude: 15.21, radiusKm: 60 })
-      .then(setRoutes)
-      .catch(() => setRoutes([]))
-      .finally(() => setLoading(false))
-  }, [])
+  const { routes, loading } = usePopularRoutes({ latitude: 59.27, longitude: 15.21, radiusKm: 60 })
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
