@@ -1,5 +1,6 @@
 import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
+import { pickUniqueSlug } from '../_shared/slug.ts'
 import { appError } from '@fyndstigen/shared/errors.ts'
 import {
   AdminMarketEditInput,
@@ -36,7 +37,40 @@ defineAdminEndpoint({
 
     // Build the markets-table update payload from contact + address + location patches.
     const update: Record<string, unknown> = {}
-    if (patch.name !== undefined) update.name = patch.name
+    if (patch.name !== undefined) {
+      update.name = patch.name
+
+      // Auto-regenerate slug when the name actually changes. We fetch the
+      // current market first so we can compare names and carry city across.
+      const { data: current, error: fetchErr } = await admin
+        .from('flea_markets')
+        .select('name, city, slug')
+        .eq('id', marketId)
+        .single()
+      if (fetchErr) throw new Error(fetchErr.message)
+
+      if (patch.name.trim() !== current.name) {
+        // Name changed — derive a new slug that avoids both live and
+        // historic slugs, excluding self so the market can keep its own
+        // slug if the name normalises to the same base.
+        const newSlug = await pickUniqueSlug(admin, patch.name, current.city, marketId)
+
+        if (newSlug !== current.slug) {
+          // Archive the old slug for redirect. unique(old_slug) means a
+          // concurrent/repeat rename can't overwrite an earlier claim —
+          // we let the unique-key conflict bubble and swallow it. Plain
+          // .insert() is correct here; supabase-js has no .options() chain.
+          const { error: histErr } = await admin
+            .from('flea_market_slug_history')
+            .insert({ flea_market_id: marketId, old_slug: current.slug })
+          if (histErr && !histErr.message?.includes('duplicate key') && !histErr.message?.includes('23505')) {
+            throw new Error(histErr.message)
+          }
+
+          update.slug = newSlug
+        }
+      }
+    }
     if (patch.contact) {
       const c = patch.contact
       if ('website' in c) update.contact_website = c.website ?? null

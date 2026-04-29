@@ -2,7 +2,7 @@ import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { marketCreatedEmail } from '../_shared/email-templates/market-created.ts'
-import { slugifyCity } from '@fyndstigen/shared/format.ts'
+import { pickUniqueSlug } from '../_shared/slug.ts'
 import {
   PublicMarketCreateInput,
   PublicMarketCreateOutput,
@@ -16,14 +16,6 @@ import {
  * 1, maybe 2) and well below what an automated abuser would want.
  */
 const MAX_DRAFTS_PER_EMAIL_24H = 5
-
-function buildSlug(name: string, city: string): string {
-  // Reuse slugifyCity's diacritic-stripping rules so "Östermalm" becomes
-  // "ostermalm" — same convention as imported markets, keeps the URL
-  // shape consistent across human-created and crawler-created rows.
-  const base = slugifyCity(`${name}-${city}`)
-  return base.length > 0 ? base : 'loppis'
-}
 
 definePublicEndpoint({
   name: 'public-market-create',
@@ -76,41 +68,29 @@ definePublicEndpoint({
       userId = created.user.id
     }
 
-    // Build a unique slug. Postgres has a unique index on flea_markets.slug,
-    // so collisions throw 23505. Retry up to 5 times with random suffix
-    // before giving up (extremely unlikely to need more — base slug already
-    // includes city, and 5 random suffixes is 60 bits of entropy).
-    let slug = buildSlug(input.name, input.city)
-    let marketId: string | null = null
-    for (let attempt = 0; attempt < 6; attempt++) {
-      const trySlug = attempt === 0 ? slug : `${slug}-${Math.random().toString(36).slice(2, 8)}`
-      const { data, error } = await admin
-        .from('flea_markets')
-        .insert({
-          name: input.name,
-          slug: trySlug,
-          city: input.city,
-          street: input.street?.trim() || null,
-          country: 'Sweden',
-          is_permanent: false,
-          organizer_id: userId,
-          is_system_owned: false,
-          contact_email: email,
-          // published_at intentionally null — owner publishes manually
-        })
-        .select('id, slug')
-        .single()
-      if (!error) {
-        marketId = data.id as string
-        slug = data.slug as string
-        break
-      }
-      // 23505 = unique_violation. Retry with suffix; surface other errors.
-      if (!error.message?.includes('duplicate key') && !error.message?.includes('23505')) {
-        throw new Error(error.message)
-      }
-    }
-    if (!marketId) throw new HttpError(500, 'slug_generation_failed')
+    // Build a unique slug — checks both live slugs and historic slug claims
+    // so we never create a market whose slug would shadow a redirect.
+    // No excludeMarketId on creation (the market doesn't exist yet).
+    const slug = await pickUniqueSlug(admin, input.name, input.city)
+
+    const { data: inserted, error: insertErr } = await admin
+      .from('flea_markets')
+      .insert({
+        name: input.name,
+        slug,
+        city: input.city,
+        street: input.street?.trim() || null,
+        country: 'Sweden',
+        is_permanent: false,
+        organizer_id: userId,
+        is_system_owned: false,
+        contact_email: email,
+        // published_at intentionally null — owner publishes manually
+      })
+      .select('id')
+      .single()
+    if (insertErr) throw new Error(insertErr.message)
+    const marketId = inserted.id as string
 
     // Insert the date-anchored opening hour rule. is_market_visible's
     // temporary-market branch keys off this row (anchor_date >= today)
