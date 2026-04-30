@@ -54,5 +54,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticPages, ...cityPages, ...marketPages, ...routePages]
+  const blockSales = await server.listPublishedBlockSaleIds()
+  const blockSalePages: MetadataRoute.Sitemap = blockSales.map((bs) => ({
+    url: `${baseUrl}/kvartersloppis/${bs.slug}`,
+    lastModified: new Date(bs.updatedAt),
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
+
+  return [...staticPages, ...cityPages, ...marketPages, ...routePages, ...blockSalePages]
 }

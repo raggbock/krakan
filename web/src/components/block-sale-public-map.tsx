@@ -1,8 +1,7 @@
 'use client'
 
-// TODO(Task 16): Replace this stub with a real Leaflet/MapLibre map using the
-// kvartersloppis pin variant from map-markers.ts. For now we render a list of
-// stands so the page is fully functional without the map library setup.
+import dynamic from 'next/dynamic'
+import type { ComponentProps } from 'react'
 
 type Stand = {
   id: string
@@ -19,8 +18,11 @@ type Props = {
   onSelect: (id: string) => void
 }
 
-export function BlockSalePublicMap({ stands, onSelect }: Props) {
-  if (stands.length === 0) {
+// Dynamic import to keep Leaflet out of the SSR pass
+const BlockSaleMapInner = dynamic(() => import('./block-sale-map-inner'), { ssr: false })
+
+export function BlockSalePublicMap(props: Props) {
+  if (props.stands.length === 0) {
     return (
       <div className="bg-parchment-light border border-cream-warm rounded-card p-8 text-center text-espresso/60">
         <p className="font-medium">Inga godkända stånd ännu.</p>
@@ -29,6 +31,24 @@ export function BlockSalePublicMap({ stands, onSelect }: Props) {
     )
   }
 
+  const pinned = props.stands.filter((s) => s.latitude !== null && s.longitude !== null)
+
+  // If none of the approved stands have coordinates yet, fall back to list
+  if (pinned.length === 0) {
+    return <StandList stands={props.stands} onSelect={props.onSelect} />
+  }
+
+  return (
+    <section aria-label="Godkända stånd">
+      <h2 className="font-display text-xl font-semibold mb-3">
+        Godkända stånd ({props.stands.length})
+      </h2>
+      <BlockSaleMapInner {...props} />
+    </section>
+  )
+}
+
+function StandList({ stands, onSelect }: { stands: Stand[]; onSelect: (id: string) => void }) {
   return (
     <section aria-label="Godkända stånd">
       <h2 className="font-display text-xl font-semibold mb-3">Godkända stånd ({stands.length})</h2>

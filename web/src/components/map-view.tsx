@@ -5,9 +5,19 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/geo'
+import { supabase } from '@/lib/supabase'
 import type { FleaMarketNearBy } from '@fyndstigen/shared'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
+
+type BlockSalePin = {
+  id: string
+  slug: string
+  name: string
+  city: string
+  latitude: number
+  longitude: number
+}
 
 const DEFAULT_CENTER: [number, number] = [59.33, 18.07] // Stockholm fallback
 
@@ -34,6 +44,7 @@ export default function MapView() {
   const targetSlug = params.get('slug')
 
   const [markets, setMarkets] = useState<FleaMarketNearBy[]>([])
+  const [blockSales, setBlockSales] = useState<BlockSalePin[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [center, setCenter] = useState<[number, number]>(
@@ -44,6 +55,23 @@ export default function MapView() {
   const [zoom, setZoom] = useState(hasTarget ? 15 : 11)
 
   useEffect(() => {
+    // Fetch published kvartersloppis events with known coordinates.
+    // Done once at mount — block_sales is a small dataset (no geofence needed).
+    const today = new Date().toISOString().slice(0, 10)
+    supabase
+      .from('block_sales')
+      .select('id, slug, name, city, latitude, longitude')
+      .eq('is_deleted', false)
+      .not('published_at', 'is', null)
+      .gte('end_date', today)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .then(({ data }) => {
+        if (data) {
+          setBlockSales(data as unknown as BlockSalePin[])
+        }
+      })
+
     if (hasTarget) {
       // Skip geolocation prompt — we already know where to go. Still
       // load markets in a wide radius so the user can scroll around.
@@ -79,26 +107,48 @@ export default function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const markers: MapMarker[] = markets.map((market) => ({
-    id: market.id,
-    coord: [market.latitude, market.longitude],
-    icon: 'market',
+  const blockSaleMarkers: MapMarker[] = blockSales.map((bs) => ({
+    id: `bs_${bs.id}`,
+    coord: [bs.latitude, bs.longitude],
+    icon: 'block_sale' as const,
     popup: (
       <div className="min-w-[200px] p-1">
-        <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
-        <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
-        {market.description && (
-          <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
-        )}
+        <p className="font-display font-bold text-sm text-espresso">{bs.name}</p>
+        <p className="text-xs text-espresso/65 mt-1">{bs.city}</p>
         <Link
-          href={`/fleamarkets/${market.id}`}
-          className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+          href={`/kvartersloppis/${bs.slug}`}
+          className="inline-block mt-2 text-xs font-semibold transition-colors"
+          style={{ color: '#7c3aed' }}
         >
-          Visa loppis &rarr;
+          Visa kvartersloppis &rarr;
         </Link>
       </div>
     ),
   }))
+
+  const markers: MapMarker[] = [
+    ...blockSaleMarkers,
+    ...markets.map((market) => ({
+      id: market.id,
+      coord: [market.latitude, market.longitude] as [number, number],
+      icon: 'market' as const,
+      popup: (
+        <div className="min-w-[200px] p-1">
+          <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
+          <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+          {market.description && (
+            <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
+          )}
+          <Link
+            href={`/fleamarkets/${market.id}`}
+            className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+          >
+            Visa loppis &rarr;
+          </Link>
+        </div>
+      ),
+    })),
+  ]
 
   // Synthetic pin for the target market (typically a draft we just
   // claimed, which isn't in the public visible_flea_markets feed and
@@ -140,7 +190,7 @@ export default function MapView() {
         <div>
           <h1 className="font-display font-bold">Karta</h1>
           <p className="text-xs text-espresso/60">
-            {error ? error : `${markets.length} loppisar i närheten`}
+            {error ? error : `${markets.length} loppisar${blockSales.length > 0 ? ` · ${blockSales.length} kvartersloppisar` : ''} i närheten`}
           </p>
         </div>
         {loading && (

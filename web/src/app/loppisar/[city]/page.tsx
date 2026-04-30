@@ -49,7 +49,11 @@ export default async function CityPage({ params }: Props) {
   const resolved = await resolveCity(slug)
   if (!resolved) notFound()
 
-  const markets = await getServerData().listMarketsInCity(resolved.cityNames)
+  const server = getServerData()
+  const [markets, blockSalesInCity] = await Promise.all([
+    server.listMarketsInCity(resolved.cityNames),
+    server.listBlockSalesInCity(resolved.canonicalName),
+  ])
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
@@ -97,6 +101,21 @@ export default async function CityPage({ params }: Props) {
       <p className="text-espresso/65 mt-2">
         {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
       </p>
+
+      {blockSalesInCity.length > 0 && (
+        <section className="mt-6 mb-8">
+          <h2 className="font-display text-xl font-bold">Kvartersloppisar i {resolved.canonicalName}</h2>
+          <ul className="mt-2 space-y-2">
+            {blockSalesInCity.map((bs) => (
+              <li key={bs.id}>
+                <a href={`/kvartersloppis/${bs.slug}`} className="link">
+                  {bs.name} · {bs.startDate}{bs.endDate !== bs.startDate ? `–${bs.endDate}` : ''}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-8 space-y-4">
         {markets.map((m) => (

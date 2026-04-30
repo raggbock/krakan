@@ -263,6 +263,25 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       }
     },
 
+    async listBlockSalesInCity(city) {
+      const today = new Date().toISOString().slice(0, 10)
+      const { data } = await supabase
+        .from('block_sales')
+        .select('id, slug, name, start_date, end_date')
+        .eq('city', city)
+        .eq('is_deleted', false)
+        .not('published_at', 'is', null)
+        .gte('end_date', today)
+        .order('start_date', { ascending: true })
+      return (data ?? []).map((r) => ({
+        id: r.id as string,
+        slug: r.slug as string,
+        name: r.name as string,
+        startDate: r.start_date as string,
+        endDate: r.end_date as string,
+      }))
+    },
+
     async listMarketsInCity(cityNames) {
       if (cityNames.length === 0) return []
       const { data } = await supabase

@@ -87,6 +87,14 @@ export interface ServerDataPort {
 
   getBlockSaleIdBySlug(slug: string): Promise<string | null>
 
+  listBlockSalesInCity(city: string): Promise<Array<{
+    id: string
+    slug: string
+    name: string
+    startDate: string
+    endDate: string
+  }>>
+
   listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string }>>
   listMarketsInCity(cityNames: string[]): Promise<Array<{
     id: string

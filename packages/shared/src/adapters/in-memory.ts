@@ -102,6 +102,13 @@ export function createInMemoryServerData(seed?: {
       }))
     },
     async listMarketsInCity() { return [] },
+    async listBlockSalesInCity(city) {
+      const today = new Date().toISOString().slice(0, 10)
+      return blockSales
+        .filter((bs) => bs.publishedAt !== null && bs.city === city && bs.endDate >= today)
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))
+        .map((bs) => ({ id: bs.id, slug: bs.slug, name: bs.name, startDate: bs.startDate, endDate: bs.endDate }))
+    },
     async listPublishedRouteIds() {
       return routes.map((r) => ({ id: r.id, updatedAt: r.updatedAt }))
     },
