@@ -206,6 +206,63 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       }))
     },
 
+    async getBlockSaleIdBySlug(slug) {
+      const { data } = await supabase
+        .from('block_sales').select('id')
+        .eq('slug', slug).eq('is_deleted', false).maybeSingle()
+      return (data?.id as string | undefined) ?? null
+    },
+
+    async listPublishedBlockSaleIds() {
+      const cutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+      const { data } = await supabase
+        .from('block_sales')
+        .select('id, slug, updated_at, end_date')
+        .eq('is_deleted', false)
+        .not('published_at', 'is', null)
+        .gte('end_date', cutoff)
+      return (data ?? []).map((r) => ({
+        id: r.id as string,
+        slug: r.slug as string,
+        updatedAt: r.updated_at as string,
+        endDate: r.end_date as string,
+      }))
+    },
+
+    async getBlockSaleMeta(id) {
+      const { data: bs } = await supabase
+        .from('block_sales')
+        .select(`
+          name, description, city, region, start_date, end_date,
+          daily_open, daily_close, latitude, longitude, published_at, organizer_id,
+          visible_block_sale_stands(id, street, city, description, latitude, longitude)
+        `)
+        .eq('id', id).eq('is_deleted', false).maybeSingle()
+      if (!bs) return null
+      const stands = (bs.visible_block_sale_stands as unknown as Array<{
+        id: string; street: string; city: string; description: string
+        latitude: number | null; longitude: number | null
+      }>) ?? []
+      return {
+        name: bs.name as string,
+        description: (bs.description as string | null) ?? null,
+        city: bs.city as string,
+        region: (bs.region as string | null) ?? null,
+        startDate: bs.start_date as string,
+        endDate: bs.end_date as string,
+        dailyOpen: (bs.daily_open as string).slice(0, 5),
+        dailyClose: (bs.daily_close as string).slice(0, 5),
+        centerLatitude: (bs.latitude as number | null) ?? null,
+        centerLongitude: (bs.longitude as number | null) ?? null,
+        publishedAt: (bs.published_at as string | null) ?? null,
+        organizerId: bs.organizer_id as string,
+        approvedStands: stands.map((s) => ({
+          id: s.id, street: s.street, city: s.city, description: s.description,
+          latitude: s.latitude ?? null, longitude: s.longitude ?? null,
+        })),
+      }
+    },
+
     async listMarketsInCity(cityNames) {
       if (cityNames.length === 0) return []
       const { data } = await supabase

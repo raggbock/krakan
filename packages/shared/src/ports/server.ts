@@ -60,6 +60,33 @@ export interface ServerDataPort {
   listPublishedMarketIds(): Promise<Array<{ id: string; slug: string | null; updatedAt: string }>>
   listPublishedRouteIds(): Promise<Array<{ id: string; updatedAt: string }>>
 
+  listPublishedBlockSaleIds(): Promise<Array<{ id: string; slug: string; updatedAt: string; endDate: string }>>
+
+  getBlockSaleMeta(id: string): Promise<{
+    name: string
+    description: string | null
+    city: string
+    region: string | null
+    startDate: string
+    endDate: string
+    dailyOpen: string
+    dailyClose: string
+    centerLatitude: number | null
+    centerLongitude: number | null
+    publishedAt: string | null
+    organizerId: string
+    approvedStands: Array<{
+      id: string
+      street: string
+      city: string
+      description: string
+      latitude: number | null
+      longitude: number | null
+    }>
+  } | null>
+
+  getBlockSaleIdBySlug(slug: string): Promise<string | null>
+
   listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string }>>
   listMarketsInCity(cityNames: string[]): Promise<Array<{
     id: string

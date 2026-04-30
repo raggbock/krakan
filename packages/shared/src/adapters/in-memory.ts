@@ -49,15 +49,18 @@ export function createInMemoryAuth(initialUser?: AuthUser): AuthPort {
 type MarketMeta = Awaited<ReturnType<ServerDataPort['getMarketMeta']>>
 type RouteMeta = Awaited<ReturnType<ServerDataPort['getRouteMeta']>>
 type OrganizerMeta = Awaited<ReturnType<ServerDataPort['getOrganizerMeta']>>
+type BlockSaleMeta = Awaited<ReturnType<ServerDataPort['getBlockSaleMeta']>>
 
 export function createInMemoryServerData(seed?: {
   markets?: Array<NonNullable<MarketMeta> & { id: string; slug?: string | null; updatedAt: string }>
   routes?: Array<NonNullable<RouteMeta> & { id: string; updatedAt: string }>
   organizers?: Array<NonNullable<OrganizerMeta> & { id: string }>
+  blockSales?: Array<NonNullable<BlockSaleMeta> & { id: string; slug: string; updatedAt: string; publishedAt: string | null }>
 }): ServerDataPort {
   const markets = seed?.markets ?? []
   const routes = seed?.routes ?? []
   const organizers = seed?.organizers ?? []
+  const blockSales = seed?.blockSales ?? []
 
   return {
     async getMarketIdBySlug(slug) {
@@ -101,6 +104,17 @@ export function createInMemoryServerData(seed?: {
     async listMarketsInCity() { return [] },
     async listPublishedRouteIds() {
       return routes.map((r) => ({ id: r.id, updatedAt: r.updatedAt }))
+    },
+    async getBlockSaleIdBySlug(slug) {
+      return blockSales.find((bs) => bs.slug === slug)?.id ?? null
+    },
+    async listPublishedBlockSaleIds() {
+      return blockSales
+        .filter((bs) => bs.publishedAt !== null)
+        .map((bs) => ({ id: bs.id, slug: bs.slug, updatedAt: bs.updatedAt, endDate: bs.endDate }))
+    },
+    async getBlockSaleMeta(id) {
+      return blockSales.find((bs) => bs.id === id) ?? null
     },
   }
 }

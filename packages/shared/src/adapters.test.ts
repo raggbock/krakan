@@ -129,3 +129,83 @@ describe('createInMemoryServerData', () => {
     expect(await server.getMarketMeta('any')).toBeNull()
   })
 })
+
+describe('createInMemoryServerData — block sales', () => {
+  const blockSalesSeed = {
+    blockSales: [
+      {
+        id: 'bs1',
+        slug: 'vasastan-2026',
+        updatedAt: '2026-06-01',
+        publishedAt: '2026-05-01T00:00:00Z',
+        name: 'Vasastan-loppis',
+        description: 'En kul kvartersloppis',
+        city: 'Stockholm',
+        region: 'Stockholms län',
+        startDate: '2026-06-14',
+        endDate: '2026-06-14',
+        dailyOpen: '10:00',
+        dailyClose: '16:00',
+        centerLatitude: 59.34,
+        centerLongitude: 18.05,
+        organizerId: 'org1',
+        approvedStands: [
+          {
+            id: 'stand1',
+            street: 'Vasagatan 5',
+            city: 'Stockholm',
+            description: 'Barnkläder och böcker',
+            latitude: 59.34,
+            longitude: 18.05,
+          },
+        ],
+      },
+      {
+        id: 'bs2',
+        slug: 'gamla-stan-draft',
+        updatedAt: '2026-06-02',
+        publishedAt: null,
+        name: 'Gamla Stan-loppis',
+        description: null,
+        city: 'Stockholm',
+        region: null,
+        startDate: '2026-07-01',
+        endDate: '2026-07-01',
+        dailyOpen: '09:00',
+        dailyClose: '15:00',
+        centerLatitude: null,
+        centerLongitude: null,
+        organizerId: 'org2',
+        approvedStands: [],
+      },
+    ],
+  }
+
+  it('getBlockSaleMeta returns matching block sale with approved stands', async () => {
+    const server = createInMemoryServerData(blockSalesSeed)
+    const meta = await server.getBlockSaleMeta('bs1')
+    expect(meta?.name).toBe('Vasastan-loppis')
+    expect(meta?.city).toBe('Stockholm')
+    expect(meta?.approvedStands).toHaveLength(1)
+    expect(meta?.approvedStands[0].street).toBe('Vasagatan 5')
+    expect(meta?.centerLatitude).toBe(59.34)
+  })
+
+  it('getBlockSaleMeta returns null for unknown id', async () => {
+    const server = createInMemoryServerData(blockSalesSeed)
+    expect(await server.getBlockSaleMeta('nope')).toBeNull()
+  })
+
+  it('listPublishedBlockSaleIds returns published only', async () => {
+    const server = createInMemoryServerData(blockSalesSeed)
+    const ids = await server.listPublishedBlockSaleIds()
+    expect(ids).toHaveLength(1)
+    expect(ids[0]).toEqual({ id: 'bs1', slug: 'vasastan-2026', updatedAt: '2026-06-01', endDate: '2026-06-14' })
+  })
+
+  it('getBlockSaleIdBySlug resolves slug → id', async () => {
+    const server = createInMemoryServerData(blockSalesSeed)
+    expect(await server.getBlockSaleIdBySlug('vasastan-2026')).toBe('bs1')
+    expect(await server.getBlockSaleIdBySlug('nope')).toBeNull()
+  })
+})
