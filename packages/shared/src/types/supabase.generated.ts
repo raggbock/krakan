@@ -1067,20 +1067,14 @@ export type Database = {
       }
       visible_block_sale_stands: {
         Row: {
-          applicant_email: string | null
-          applicant_name: string | null
           block_sale_id: string | null
           city: string | null
           created_at: string | null
-          decided_at: string | null
           description: string | null
-          edit_token: string | null
-          email_confirmed_at: string | null
           id: string | null
           location: unknown
           status: string | null
           street: string | null
-          user_id: string | null
           zip_code: string | null
         }
         Relationships: [
@@ -1089,13 +1083,6 @@ export type Database = {
             columns: ["block_sale_id"]
             isOneToOne: false
             referencedRelation: "block_sales"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "block_sale_stands_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "auth_user_email_view"
             referencedColumns: ["id"]
           },
         ]
