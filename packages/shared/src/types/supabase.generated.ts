@@ -17,6 +17,271 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          payload: Json
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          accepted_from_ip: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          revoked_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          accepted_from_ip?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          revoked_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          accepted_from_ip?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          revoked_at?: string | null
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_invites_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          notes: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          notes?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          notes?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      block_sale_stands: {
+        Row: {
+          applicant_email: string
+          applicant_name: string
+          block_sale_id: string
+          city: string
+          created_at: string
+          decided_at: string | null
+          description: string
+          edit_token: string
+          email_confirmed_at: string | null
+          id: string
+          location: unknown
+          status: string
+          street: string
+          user_id: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          applicant_email: string
+          applicant_name: string
+          block_sale_id: string
+          city: string
+          created_at?: string
+          decided_at?: string | null
+          description: string
+          edit_token: string
+          email_confirmed_at?: string | null
+          id?: string
+          location?: unknown
+          status?: string
+          street: string
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          applicant_email?: string
+          applicant_name?: string
+          block_sale_id?: string
+          city?: string
+          created_at?: string
+          decided_at?: string | null
+          description?: string
+          edit_token?: string
+          email_confirmed_at?: string | null
+          id?: string
+          location?: unknown
+          status?: string
+          street?: string
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "block_sale_stands_block_sale_id_fkey"
+            columns: ["block_sale_id"]
+            isOneToOne: false
+            referencedRelation: "block_sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "block_sale_stands_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      block_sales: {
+        Row: {
+          center_location: unknown
+          city: string
+          created_at: string
+          daily_close: string
+          daily_open: string
+          description: string | null
+          end_date: string
+          id: string
+          is_deleted: boolean
+          name: string
+          organizer_id: string
+          published_at: string | null
+          region: string | null
+          slug: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          center_location?: unknown
+          city: string
+          created_at?: string
+          daily_close: string
+          daily_open: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_deleted?: boolean
+          name: string
+          organizer_id: string
+          published_at?: string | null
+          region?: string | null
+          slug: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          center_location?: unknown
+          city?: string
+          created_at?: string
+          daily_close?: string
+          daily_open?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_deleted?: boolean
+          name?: string
+          organizer_id?: string
+          published_at?: string | null
+          region?: string | null
+          slug?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "block_sales_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booked_by: string
@@ -112,6 +377,90 @@ export type Database = {
           },
         ]
       }
+      business_owner_tokens: {
+        Row: {
+          clicked_at: string | null
+          clicked_from_ip: unknown
+          created_at: string
+          email_attempt_at: string | null
+          email_attempt_count: number
+          expires_at: string
+          flea_market_id: string
+          id: string
+          invalidated_at: string | null
+          last_failure_code: string | null
+          priority: number
+          sent_at: string | null
+          sent_to_email: string | null
+          should_send_email: boolean
+          token_hash: string
+          used_at: string | null
+          verification_attempts: number
+          verification_code_expires_at: string | null
+          verification_code_hash: string | null
+          verification_email: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          clicked_from_ip?: unknown
+          created_at?: string
+          email_attempt_at?: string | null
+          email_attempt_count?: number
+          expires_at?: string
+          flea_market_id: string
+          id?: string
+          invalidated_at?: string | null
+          last_failure_code?: string | null
+          priority?: number
+          sent_at?: string | null
+          sent_to_email?: string | null
+          should_send_email?: boolean
+          token_hash: string
+          used_at?: string | null
+          verification_attempts?: number
+          verification_code_expires_at?: string | null
+          verification_code_hash?: string | null
+          verification_email?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          clicked_from_ip?: unknown
+          created_at?: string
+          email_attempt_at?: string | null
+          email_attempt_count?: number
+          expires_at?: string
+          flea_market_id?: string
+          id?: string
+          invalidated_at?: string | null
+          last_failure_code?: string | null
+          priority?: number
+          sent_at?: string | null
+          sent_to_email?: string | null
+          should_send_email?: boolean
+          token_hash?: string
+          used_at?: string | null
+          verification_attempts?: number
+          verification_code_expires_at?: string | null
+          verification_code_hash?: string | null
+          verification_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_owner_tokens_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "flea_markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_owner_tokens_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "visible_flea_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flea_market_images: {
         Row: {
           created_at: string
@@ -151,60 +500,132 @@ export type Database = {
           },
         ]
       }
+      flea_market_slug_history: {
+        Row: {
+          flea_market_id: string
+          id: string
+          old_slug: string
+          replaced_at: string
+        }
+        Insert: {
+          flea_market_id: string
+          id?: string
+          old_slug: string
+          replaced_at?: string
+        }
+        Update: {
+          flea_market_id?: string
+          id?: string
+          old_slug?: string
+          replaced_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flea_market_slug_history_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "flea_markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flea_market_slug_history_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "visible_flea_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flea_markets: {
         Row: {
           auto_accept_bookings: boolean
+          category: string | null
           city: string | null
+          contact_email: string | null
+          contact_facebook: string | null
+          contact_instagram: string | null
+          contact_phone: string | null
+          contact_website: string | null
           country: string | null
           created_at: string
           description: string | null
+          google_place_id: string | null
           id: string
           is_deleted: boolean
           is_permanent: boolean
+          is_system_owned: boolean
           latitude: number | null
           location: unknown
           longitude: number | null
+          municipality: string | null
           name: string
           organizer_id: string
           published_at: string | null
+          region: string | null
+          slug: string | null
+          status: string
           street: string | null
           updated_at: string
           zip_code: string | null
         }
         Insert: {
           auto_accept_bookings?: boolean
+          category?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_instagram?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           is_deleted?: boolean
           is_permanent?: boolean
+          is_system_owned?: boolean
           latitude?: number | null
           location?: unknown
           longitude?: number | null
+          municipality?: string | null
           name: string
           organizer_id: string
           published_at?: string | null
+          region?: string | null
+          slug?: string | null
+          status?: string
           street?: string | null
           updated_at?: string
           zip_code?: string | null
         }
         Update: {
           auto_accept_bookings?: boolean
+          category?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_instagram?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string
           description?: string | null
+          google_place_id?: string | null
           id?: string
           is_deleted?: boolean
           is_permanent?: boolean
+          is_system_owned?: boolean
           latitude?: number | null
           location?: unknown
           longitude?: number | null
+          municipality?: string | null
           name?: string
           organizer_id?: string
           published_at?: string | null
+          region?: string | null
+          slug?: string | null
+          status?: string
           street?: string | null
           updated_at?: string
           zip_code?: string | null
@@ -403,7 +824,15 @@ export type Database = {
           user_type?: number
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_stops: {
         Row: {
@@ -539,62 +968,228 @@ export type Database = {
           },
         ]
       }
+      takeover_requests: {
+        Row: {
+          created_at: string
+          flea_market_id: string
+          id: string
+          note: string | null
+          requester_email: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          flea_market_id: string
+          id?: string
+          note?: string | null
+          requester_email: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          flea_market_id?: string
+          id?: string
+          note?: string | null
+          requester_email?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "takeover_requests_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "flea_markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "takeover_requests_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "visible_flea_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
+      auth_user_email_view: {
+        Row: {
+          email: string | null
+          id: string | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
+      takeover_funnel: {
+        Row: {
+          city: string | null
+          clicked_at: string | null
+          code_sent: boolean | null
+          days_since_sent: number | null
+          email_attempt_at: string | null
+          email_attempt_count: number | null
+          email_submitted: boolean | null
+          expires_at: string | null
+          flea_market_id: string | null
+          last_failure_code: string | null
+          market_name: string | null
+          market_slug: string | null
+          priority: number | null
+          sent_at: string | null
+          sent_to_email: string | null
+          stage: string | null
+          token_id: string | null
+          verification_attempts: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_owner_tokens_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "flea_markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_owner_tokens_flea_market_id_fkey"
+            columns: ["flea_market_id"]
+            isOneToOne: false
+            referencedRelation: "visible_flea_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visible_block_sale_stands: {
+        Row: {
+          applicant_email: string | null
+          applicant_name: string | null
+          block_sale_id: string | null
+          city: string | null
+          created_at: string | null
+          decided_at: string | null
+          description: string | null
+          edit_token: string | null
+          email_confirmed_at: string | null
+          id: string | null
+          location: unknown
+          status: string | null
+          street: string | null
+          user_id: string | null
+          zip_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "block_sale_stands_block_sale_id_fkey"
+            columns: ["block_sale_id"]
+            isOneToOne: false
+            referencedRelation: "block_sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "block_sale_stands_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "auth_user_email_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visible_flea_markets: {
         Row: {
           auto_accept_bookings: boolean | null
+          category: string | null
           city: string | null
+          contact_email: string | null
+          contact_facebook: string | null
+          contact_instagram: string | null
+          contact_phone: string | null
+          contact_website: string | null
           country: string | null
           created_at: string | null
           description: string | null
+          google_place_id: string | null
           id: string | null
           is_deleted: boolean | null
           is_permanent: boolean | null
+          is_system_owned: boolean | null
           latitude: number | null
           location: unknown
           longitude: number | null
+          municipality: string | null
           name: string | null
           organizer_id: string | null
           published_at: string | null
+          region: string | null
+          slug: string | null
+          status: string | null
           street: string | null
           updated_at: string | null
           zip_code: string | null
         }
         Insert: {
           auto_accept_bookings?: boolean | null
+          category?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_instagram?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          google_place_id?: string | null
           id?: string | null
           is_deleted?: boolean | null
           is_permanent?: boolean | null
+          is_system_owned?: boolean | null
           latitude?: number | null
           location?: unknown
           longitude?: number | null
+          municipality?: string | null
           name?: string | null
           organizer_id?: string | null
           published_at?: string | null
+          region?: string | null
+          slug?: string | null
+          status?: string | null
           street?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
         Update: {
           auto_accept_bookings?: boolean | null
+          category?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_instagram?: string | null
+          contact_phone?: string | null
+          contact_website?: string | null
           country?: string | null
           created_at?: string | null
           description?: string | null
+          google_place_id?: string | null
           id?: string | null
           is_deleted?: boolean | null
           is_permanent?: boolean | null
+          is_system_owned?: boolean | null
           latitude?: number | null
           location?: unknown
           longitude?: number | null
+          municipality?: string | null
           name?: string | null
           organizer_id?: string | null
           published_at?: string | null
+          region?: string | null
+          slug?: string | null
+          status?: string | null
           street?: string | null
           updated_at?: string | null
           zip_code?: string | null
@@ -611,8 +1206,39 @@ export type Database = {
       }
     }
     Functions: {
+      accept_admin_invite: {
+        Args: {
+          p_client_ip: string
+          p_token_hash: string
+          p_user_email: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      admin_user_emails: {
+        Args: { user_ids: string[] }
+        Returns: {
+          email: string
+          id: string
+        }[]
+      }
+      bump_takeover_attempt: {
+        Args: { p_max_attempts: number; p_token_id: string }
+        Returns: number
+      }
       cancel_expired_bookings: { Args: never; Returns: number }
+      claim_takeover_atomic: {
+        Args: { p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
+      is_admin: { Args: { uid?: string }; Returns: boolean }
       is_market_visible: { Args: { flea_market_id: string }; Returns: boolean }
+      markets_open_now: {
+        Args: never
+        Returns: {
+          id: string
+        }[]
+      }
       nearby_flea_markets: {
         Args: { lat: number; lng: number; radius_km?: number }
         Returns: {
@@ -640,6 +1266,15 @@ export type Database = {
           published_at: string
           stop_count: number
         }[]
+      }
+      remove_via_takeover: { Args: { p_token_hash: string }; Returns: string }
+      replace_opening_hours_atomic: {
+        Args: { p_market_id: string; p_rules: Json }
+        Returns: undefined
+      }
+      stamp_takeover_attempt: {
+        Args: { p_failure_code: string; p_token_id: string }
+        Returns: undefined
       }
     }
     Enums: {
