@@ -131,6 +131,61 @@ export default async function LoppisLayout({ params, children }: Props) {
     ],
   }
 
+  // One Event per upcoming dated opening rule. Permanent markets and
+  // weekly recurring hours stay on LocalBusiness/OpeningHoursSpecification
+  // — Google's Event rich results expect a concrete future date.
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const eventLds = market.opening_hour_rules
+    .filter((r) => r.type === 'date' && r.anchor_date && r.anchor_date >= todayIso)
+    .map((r) => ({
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      name: `${market.name} — ${r.anchor_date}`,
+      startDate: `${r.anchor_date}T${r.open_time.slice(0, 5)}`,
+      endDate: `${r.anchor_date}T${r.close_time.slice(0, 5)}`,
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      location: {
+        '@type': 'Place',
+        name: market.name,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: market.street,
+          postalCode: market.zip_code,
+          addressLocality: market.city,
+          addressCountry: 'SE',
+        },
+        ...(market.latitude && market.longitude
+          ? {
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: market.latitude,
+                longitude: market.longitude,
+              },
+            }
+          : {}),
+      },
+      organizer: {
+        '@type': 'Organization',
+        name: 'Fyndstigen',
+        url: 'https://fyndstigen.se',
+      },
+      url: `https://fyndstigen.se/loppis/${slug}`,
+      ...(market.description ? { description: market.description.slice(0, 500) } : {}),
+      ...(market.image_url ? { image: market.image_url } : {}),
+      ...(market.price_range
+        ? {
+            offers: {
+              '@type': 'Offer',
+              price: market.price_range.min_sek,
+              priceCurrency: 'SEK',
+              availability: 'https://schema.org/InStock',
+              url: `https://fyndstigen.se/loppis/${slug}`,
+            },
+          }
+        : {}),
+    }))
+
   return (
     <>
       <script
@@ -141,6 +196,13 @@ export default async function LoppisLayout({ params, children }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c') }}
       />
+      {eventLds.map((ev, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ev).replace(/</g, '\\u003c') }}
+        />
+      ))}
       {children}
     </>
   )

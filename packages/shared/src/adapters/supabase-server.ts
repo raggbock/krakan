@@ -100,15 +100,45 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     async getRouteMeta(id) {
       const { data } = await supabase
         .from('routes')
-        .select('name, description, route_stops(id)')
+        .select(`
+          name, description,
+          route_stops(position, flea_markets(id, slug, name, city, latitude, longitude))
+        `)
         .eq('id', id)
         .single()
       if (!data) return null
-      const row = data as { name: string; description: string | null; route_stops?: { id: string }[] }
+      const row = data as unknown as {
+        name: string
+        description: string | null
+        route_stops?: Array<{
+          position: number
+          flea_markets: {
+            id: string
+            slug: string | null
+            name: string
+            city: string
+            latitude: number | null
+            longitude: number | null
+          } | null
+        }>
+      }
+      const stops = (row.route_stops ?? [])
+        .filter((s) => s.flea_markets)
+        .map((s) => ({
+          position: s.position,
+          marketId: s.flea_markets!.id,
+          marketSlug: s.flea_markets!.slug,
+          marketName: s.flea_markets!.name,
+          city: s.flea_markets!.city,
+          latitude: s.flea_markets!.latitude,
+          longitude: s.flea_markets!.longitude,
+        }))
+        .sort((a, b) => a.position - b.position)
       return {
         name: row.name,
         description: row.description,
-        stopCount: row.route_stops?.length ?? 0,
+        stopCount: stops.length,
+        stops,
       }
     },
 

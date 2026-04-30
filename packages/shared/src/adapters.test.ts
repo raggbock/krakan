@@ -78,6 +78,7 @@ describe('createInMemoryServerData', () => {
         name: 'Södermalm-rundan',
         description: 'Tre loppisar',
         stopCount: 3,
+        stops: [],
       },
     ],
   }

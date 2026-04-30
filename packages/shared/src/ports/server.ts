@@ -39,6 +39,15 @@ export interface ServerDataPort {
     name: string
     description: string | null
     stopCount: number
+    stops: Array<{
+      position: number
+      marketId: string
+      marketSlug: string | null
+      marketName: string
+      city: string
+      latitude: number | null
+      longitude: number | null
+    }>
   } | null>
 
   getOrganizerMeta(id: string): Promise<{
