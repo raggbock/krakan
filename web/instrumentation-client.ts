@@ -28,6 +28,17 @@ Sentry.init({
     /^Lock broken by another request with the 'steal' option$/,
   ],
 
+  beforeSend(event) {
+    const msg = event.exception?.values?.[0]?.value ?? ''
+    // Supabase lock stolen by another tab/request — same family as the
+    // ignoreErrors pattern above but triggered via a different code path.
+    if (/Lock .* was released because another request stole it/.test(msg)) return null
+    // GDPR archive cron logs a structured "Block sale archived" message
+    // when it completes; this is expected and not an error.
+    if (/Block sale archived/.test(msg)) return null
+    return event
+  },
+
   integrations: hasConsent ? [Sentry.replayIntegration()] : [],
 })
 
