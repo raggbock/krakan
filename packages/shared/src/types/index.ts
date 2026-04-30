@@ -29,6 +29,9 @@ export type {
   RouteStopView,
   RouteSummaryView,
   PopularRouteView,
+  BlockSale,
+  BlockSaleStand,
+  BlockSaleStandStatus,
 } from './domain'
 
 // --- DB row types (for mappers and api layer only) ---

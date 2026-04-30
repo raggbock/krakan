@@ -192,3 +192,42 @@ export type PopularRouteView = {
   creatorFirstName: string | null
   creatorLastName: string | null
 }
+
+// --- Block Sales (Kvartersloppis) ---
+
+export type BlockSale = {
+  id: string
+  organizerId: string
+  name: string
+  slug: string
+  description: string | null
+  startDate: string  // ISO date
+  endDate: string
+  dailyOpen: string  // HH:MM
+  dailyClose: string
+  city: string
+  region: string | null
+  centerLocation: { latitude: number; longitude: number } | null
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type BlockSaleStandStatus = 'pending' | 'confirmed' | 'approved' | 'rejected'
+
+export type BlockSaleStand = {
+  id: string
+  blockSaleId: string
+  userId: string | null
+  applicantEmail: string
+  applicantName: string
+  street: string
+  zipCode: string | null
+  city: string
+  location: { latitude: number; longitude: number } | null
+  description: string
+  status: BlockSaleStandStatus
+  emailConfirmedAt: string | null
+  decidedAt: string | null
+  createdAt: string
+}
