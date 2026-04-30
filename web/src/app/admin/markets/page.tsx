@@ -11,7 +11,7 @@ import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
 
 type Filter =
-  | 'unpublished' | 'system_owned' | 'claimed' | 'unverified'
+  | 'unpublished' | 'system_owned' | 'claimed' | 'unverified' | 'closed'
   | 'complete' | 'almost_complete' | 'published_no_takeover'
   | 'missing_street' | 'missing_zip' | 'missing_coords'
   | 'missing_website' | 'missing_phone' | 'missing_email' | 'missing_hours'
@@ -32,6 +32,7 @@ const FILTER_GROUPS: { label: string; filters: { key: Filter; label: string }[] 
       { key: 'system_owned', label: 'System-ägda' },
       { key: 'claimed', label: 'Claimade' },
       { key: 'unverified', label: 'Unverified' },
+      { key: 'closed', label: 'Visa stängda' },
       { key: 'published_no_takeover', label: 'Publ. utan takeover' },
     ],
   },
@@ -186,9 +187,10 @@ export default function AdminMarketsPage() {
 
   const filtered = useMemo(() => {
     let r = rows
-    // AND-semantik: en rad måste matcha alla aktiva filter. Mutex-par
-    // (system_owned + claimed, complete + almost_complete) ger 0 träffar
-    // när båda väljs — ofarligt, bara redundant.
+    // Closed markets are hidden by default — opt in via the 'closed' chip
+    // to audit/restore them. Other filters use AND-semantics on top of
+    // this base filter.
+    if (!filters.has('closed')) r = r.filter((m) => m.status !== 'closed')
     if (filters.has('unpublished')) r = r.filter((m) => !m.isPublished)
     if (filters.has('system_owned')) r = r.filter((m) => m.isSystemOwned)
     if (filters.has('claimed')) r = r.filter((m) => !m.isSystemOwned)
