@@ -52,4 +52,9 @@ export const queryKeys = {
   takeover: {
     info: (token: string | null) => ['takeover', 'info', token] as const,
   },
+  blockSales: {
+    all: () => ['blockSales'] as const,
+    bySlug: (slug: string) => ['blockSales', 'slug', slug] as const,
+    queue: (slug: string) => ['blockSales', 'queue', slug] as const,
+  },
 }
