@@ -33,3 +33,8 @@ export {
   SkyltfonstretPortalInput,
   SkyltfonstretPortalOutput,
 } from './skyltfonstret'
+export { BlockSaleCreateInput, BlockSaleCreateOutput } from './block-sale-create'
+export { BlockSaleStandApplyInput, BlockSaleStandApplyOutput } from './block-sale-stand-apply'
+export { BlockSaleStandConfirmInput, BlockSaleStandConfirmOutput } from './block-sale-stand-confirm'
+export { BlockSaleDecideInput, BlockSaleDecideOutput } from './block-sale-decide'
+export { BlockSaleStandEditInput, BlockSaleStandEditOutput } from './block-sale-stand-edit'

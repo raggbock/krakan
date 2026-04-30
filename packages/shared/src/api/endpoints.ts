@@ -96,6 +96,26 @@ import {
   SkyltfonstretPortalInput,
   SkyltfonstretPortalOutput,
 } from '../contracts/skyltfonstret'
+import {
+  BlockSaleCreateInput,
+  BlockSaleCreateOutput,
+} from '../contracts/block-sale-create'
+import {
+  BlockSaleStandApplyInput,
+  BlockSaleStandApplyOutput,
+} from '../contracts/block-sale-stand-apply'
+import {
+  BlockSaleStandConfirmInput,
+  BlockSaleStandConfirmOutput,
+} from '../contracts/block-sale-stand-confirm'
+import {
+  BlockSaleDecideInput,
+  BlockSaleDecideOutput,
+} from '../contracts/block-sale-decide'
+import {
+  BlockSaleStandEditInput,
+  BlockSaleStandEditOutput,
+} from '../contracts/block-sale-stand-edit'
 
 // ---------------------------------------------------------------------------
 // Registry definition helpers
@@ -267,6 +287,34 @@ export const ENDPOINTS = {
     path: 'skyltfonstret-portal',
     request: SkyltfonstretPortalInput,
     response: SkyltfonstretPortalOutput,
+  }),
+  'block-sale.create': defineEndpointDef({
+    path: 'block-sale-create',
+    request: BlockSaleCreateInput,
+    response: BlockSaleCreateOutput,
+  }),
+  'block-sale.stand.apply': defineEndpointDef({
+    path: 'block-sale-stand-apply',
+    request: BlockSaleStandApplyInput,
+    response: BlockSaleStandApplyOutput,
+    public: true,
+  }),
+  'block-sale.stand.confirm': defineEndpointDef({
+    path: 'block-sale-stand-confirm',
+    request: BlockSaleStandConfirmInput,
+    response: BlockSaleStandConfirmOutput,
+    public: true,
+  }),
+  'block-sale.decide': defineEndpointDef({
+    path: 'block-sale-decide',
+    request: BlockSaleDecideInput,
+    response: BlockSaleDecideOutput,
+  }),
+  'block-sale.stand.edit': defineEndpointDef({
+    path: 'block-sale-stand-edit',
+    request: BlockSaleStandEditInput,
+    response: BlockSaleStandEditOutput,
+    public: true,
   }),
 } as const
 
