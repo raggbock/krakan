@@ -54,6 +54,12 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/admin-takeover-funnel',                // zod schema
   'contracts/public-market-create',                // zod schema
   'contracts/takeover-request',                    // zod schema
+  'block-sale',                                    // pure block-sale domain logic (slug, transitions)
+  'contracts/block-sale-create',                   // zod schema
+  'contracts/block-sale-stand-apply',              // zod schema
+  'contracts/block-sale-stand-confirm',            // zod schema
+  'contracts/block-sale-decide',                   // zod schema
+  'contracts/block-sale-stand-edit',               // zod schema
   'format',                                        // pure string utilities (slugifyCity)
   'business-import',                               // pure validation/diff logic
   'errors',                                        // AppError + error codes
