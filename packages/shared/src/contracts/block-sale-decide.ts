@@ -8,4 +8,8 @@ export const BlockSaleDecideInput = z.object({
 export const BlockSaleDecideOutput = z.object({
   ok: z.literal(true),
   decided: z.number(),
+  /** Count of approved/rejected stands whose decision email failed to send.
+   *  Surfaced so the organizer UI can warn them that some applicants may
+   *  not have been notified — re-running the decision is safe (idempotent). */
+  emailFailures: z.number(),
 })

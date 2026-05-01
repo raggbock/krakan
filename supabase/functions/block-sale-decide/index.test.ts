@@ -322,12 +322,11 @@ Deno.test('block-sale-decide: cross-tenant attack returns decided=0 (stands from
 })
 
 Deno.test('block-sale-decide: email send failure for stand #2 breaks the loop (current behavior — gap documented)', async () => {
-  // KNOWN GAP: the handler does not wrap sendMail in try/catch, so a send
-  // failure for stand #2 will reject the entire function, leaving stand #3
-  // unprocessed. This test asserts the *current* (imperfect) behavior so any
-  // future improvement is caught by a failing test.
-  // TODO: Consider wrapping sendMail in try/catch to make email failures
-  //       non-fatal and continue processing remaining stands.
+  // Email failure for one stand should NOT abandon the bulk operation.
+  // The DB transition has already happened — failing the whole request
+  // would leave earlier stands updated-but-unnotified AND prevent later
+  // stands from being processed. Instead we count failures and surface
+  // them so the organizer UI can warn / retry.
   let callCount = 0
   const failOnSecond = async (opts: { to: string; subject: string; html: string; text: string; from: string; apiKey: string }) => {
     callCount++
@@ -343,26 +342,21 @@ Deno.test('block-sale-decide: email send failure for stand #2 breaks the loop (c
     ],
   })
 
-  // Current behavior: the whole promise rejects when stand #2 email fails
-  let threw = false
-  try {
-    await handleBlockSaleDecide({
-      admin,
-      userId: ORGANIZER_ID,
-      origin: 'https://fyndstigen.se',
-      input: {
-        blockSaleId: BLOCK_SALE_ID,
-        standIds: [STAND_ID_1, STAND_ID_2, STAND_ID_3],
-        decision: 'approve' as const,
-      },
-      resendApiKey: 'test-key',
-      sendMail: failOnSecond,
-    })
-  } catch {
-    threw = true
-  }
-  // Current behavior: throws. Stand #3 is never processed.
-  // If this test starts FAILING (threw === false), it means the handler now
-  // handles email errors gracefully — update this test to assert decided=3.
-  assertEquals(threw, true, 'Expected email failure to propagate (see TODO above)')
+  const result = await handleBlockSaleDecide({
+    admin,
+    userId: ORGANIZER_ID,
+    origin: 'https://fyndstigen.se',
+    input: {
+      blockSaleId: BLOCK_SALE_ID,
+      standIds: [STAND_ID_1, STAND_ID_2, STAND_ID_3],
+      decision: 'approve' as const,
+    },
+    resendApiKey: 'test-key',
+    sendMail: failOnSecond,
+  })
+
+  // All 3 stands DB-transitioned to approved despite stand #2's email failure.
+  assertEquals(result.decided, 3, 'all stands decide regardless of email failures')
+  assertEquals(result.emailFailures, 1, 'stand #2 email failed, others succeeded')
+  assertEquals(callCount, 3, 'sendMail attempted for all 3 stands')
 })

@@ -47,6 +47,7 @@ export async function handleBlockSaleDecide(
     .in('id', input.standIds).eq('block_sale_id', bs.id)
 
   let decided = 0
+  let emailFailures = 0
   for (const s of stands ?? []) {
     if (!canTransitionStandStatus(s.status, targetStatus)) continue
     await admin.from('block_sale_stands').update({
@@ -59,18 +60,27 @@ export async function handleBlockSaleDecide(
     const tpl = input.decision === 'approve'
       ? blockSaleApprovedEmail({ eventName: bs.name, eventUrl: `${origin}/kvartersloppis/${bs.slug}`, editUrl })
       : blockSaleRejectedEmail({ eventName: bs.name, reason: input.reason })
-    await sendMail({
-      to: s.applicant_email,
-      subject: tpl.subject,
-      html: tpl.html,
-      text: tpl.text,
-      from: DEFAULT_FROM,
-      apiKey: resendApiKey,
-      fetchImpl,
-    })
+    // Wrap email in try/catch so a single failure doesn't abandon the
+    // remaining stands. The DB transition has already happened — failing
+    // the whole bulk would leave earlier stands updated-but-unnotified
+    // AND prevent later stands from being decided at all.
+    try {
+      await sendMail({
+        to: s.applicant_email,
+        subject: tpl.subject,
+        html: tpl.html,
+        text: tpl.text,
+        from: DEFAULT_FROM,
+        apiKey: resendApiKey,
+        fetchImpl,
+      })
+    } catch (e) {
+      emailFailures++
+      console.error(`[block-sale-decide] sendMail failed for stand ${s.id}:`, e)
+    }
   }
 
-  return { ok: true as const, decided }
+  return { ok: true as const, decided, emailFailures }
 }
 
 defineEndpoint({

@@ -19,6 +19,11 @@ definePublicEndpoint({
   input: RouteCreateAnonInput,
   output: RouteCreateAnonOutput,
   handler: async ({ admin, origin }, input) => {
+    // Honeypot — bots auto-fill the hidden 'website' field; humans don't.
+    if (input.website && input.website.length > 0) {
+      throw new HttpError(400, 'honeypot')
+    }
+
     const email = input.email.toLowerCase()
 
     // Spam guard: count routes created via this email in the last 24h.

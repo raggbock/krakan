@@ -12,6 +12,8 @@ export const RouteCreateAnonInput = z.object({
   startLatitude: z.number().optional(),
   startLongitude: z.number().optional(),
   marketIds: z.array(z.string().uuid()).min(1).max(50),
+  // Honeypot — must be empty/absent. Bots fill hidden fields; humans don't.
+  website: z.string().max(0).optional(),
 })
 
 export const RouteCreateAnonOutput = z.object({

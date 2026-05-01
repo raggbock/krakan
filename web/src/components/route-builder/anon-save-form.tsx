@@ -37,12 +37,19 @@ export function AnonSaveForm({
   const router = useRouter()
   const posthog = usePostHog()
   const [email, setEmail] = useState('')
+  const [website, setWebsite] = useState('') // honeypot — bots fill, humans don't
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || stops.length === 0) return
+
+    // Honeypot hit — show generic error, don't reveal detection
+    if (website.length > 0) {
+      setError(labelFor(new Error('honeypot')))
+      return
+    }
 
     posthog?.capture('route_anon_save_attempted', { stop_count: stops.length })
     setPending(true)
@@ -82,6 +89,16 @@ export function AnonSaveForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute left-[-9999px] w-0 h-0"
+      />
       <input
         type="email"
         required
