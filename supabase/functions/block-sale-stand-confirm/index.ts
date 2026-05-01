@@ -38,7 +38,7 @@ export async function handleBlockSaleStandConfirm(
 
   const { data: stand } = await admin
     .from('block_sale_stands')
-    .select('id, status, applicant_name, block_sales!inner(id, name, slug, organizer_id)')
+    .select('id, status, applicant_name, block_sale_id')
     .eq('id', payload.standId)
     .maybeSingle()
 
@@ -59,13 +59,16 @@ export async function handleBlockSaleStandConfirm(
     })
     .eq('id', stand.id)
 
-  // Look up organizer email via auth.users (profiles has no email column)
-  const blockSale = stand.block_sales as {
-    id: string
-    name: string
-    slug: string
-    organizer_id: string
-  }
+  // Fetch parent block_sale separately — avoids PostgREST embedding ambiguity
+  // where !inner on a many-to-one may return an array instead of a plain object
+  // depending on the client version.
+  const { data: blockSale } = await admin
+    .from('block_sales')
+    .select('id, name, slug, organizer_id')
+    .eq('id', stand.block_sale_id)
+    .maybeSingle()
+
+  if (!blockSale) throw new HttpError(404, 'block_sale_not_found')
   const { data: authData } = await admin.auth.admin.getUserById(blockSale.organizer_id)
   const organizerEmail = authData?.user?.email
   if (organizerEmail) {
