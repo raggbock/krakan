@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { geo } from '@/lib/geo'
@@ -21,6 +21,59 @@ type MarketWithHours = FleaMarketNearBy & {
   opening_hour_exceptions?: OpeningHourException[]
 }
 
+// ---------------------------------------------------------------------------
+// localStorage draft
+// ---------------------------------------------------------------------------
+
+const DRAFT_KEY = 'fyndstigen.route-draft.v1'
+const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+type RouteDraft = {
+  name: string
+  plannedDate: string
+  useGps: boolean
+  customStart: { lat: number; lng: number } | null
+  stops: Array<{ marketId: string; index: number }>
+  savedAt: string // ISO
+}
+
+function readDraft(): RouteDraft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as RouteDraft
+    if (!parsed.savedAt) return null
+    const age = Date.now() - Date.parse(parsed.savedAt)
+    if (age > DRAFT_MAX_AGE_MS) {
+      localStorage.removeItem(DRAFT_KEY)
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeDraft(draft: RouteDraft): void {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  } catch {
+    // localStorage unavailable (private browsing / quota exceeded) — no-op
+  }
+}
+
+export function clearDraft(): void {
+  try {
+    localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // no-op
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function RouteBuilder() {
   const router = useRouter()
   const { user } = useAuth()
@@ -38,6 +91,9 @@ export default function RouteBuilder() {
   const [customStart, setCustomStart] = useState<{ lat: number; lng: number } | null>(null)
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
 
+  // Whether we've already attempted to restore from localStorage
+  const draftRestoredRef = useRef(false)
+
   // Load markets
   useEffect(() => {
     // National radius — see map-view.tsx for the rationale. The route
@@ -47,6 +103,57 @@ export default function RouteBuilder() {
       .catch(() => setMarkets([]))
       .finally(() => setLoading(false))
   }, [])
+
+  // Restore draft from localStorage once markets have loaded
+  useEffect(() => {
+    if (draftRestoredRef.current) return
+    if (markets.length === 0) return // wait until markets are available
+
+    draftRestoredRef.current = true
+    const draft = readDraft()
+    if (!draft) return
+
+    setName(draft.name)
+    setPlannedDate(draft.plannedDate)
+    setUseGps(draft.useGps)
+    setCustomStart(draft.customStart)
+
+    const resolved: RouteBuilderStop[] = []
+    for (const s of draft.stops) {
+      const market = markets.find((m) => m.id === s.marketId)
+      if (market) resolved.push({ market, index: s.index })
+    }
+    if (resolved.length > 0) {
+      setStops(resolved)
+      const ageMins = Math.round((Date.now() - Date.parse(draft.savedAt)) / 60_000)
+      posthog?.capture('route_draft_restored', {
+        stop_count: resolved.length,
+        age_minutes: ageMins,
+      })
+    }
+  }, [markets, posthog])
+
+  // Persist draft to localStorage whenever relevant state changes (debounced)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (stops.length === 0) return // nothing worth persisting
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      writeDraft({
+        name,
+        plannedDate,
+        useGps,
+        customStart,
+        stops: stops.map((s) => ({ marketId: s.market.id, index: s.index })),
+        savedAt: new Date().toISOString(),
+      })
+    }, 250)
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    }
+  }, [name, plannedDate, useGps, customStart, stops])
 
   // Get user GPS
   useEffect(() => {
@@ -138,6 +245,7 @@ export default function RouteBuilder() {
             stop_count: stops.length,
             market_ids: stops.map((s) => s.market.id),
           })
+          clearDraft()
           router.push(`/rundor/${ev.routeId}`)
         } else {
           // ev.type === 'failed'
