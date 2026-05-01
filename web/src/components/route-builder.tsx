@@ -94,8 +94,20 @@ export default function RouteBuilder() {
     )
   }
 
+  // Track when an anon user has built a real route but is blocked by the
+  // login wall — this is the suspected dropoff point (see commit history).
+  // Fires once per build session, not per re-render.
+  const [loginBlockedReported, setLoginBlockedReported] = useState(false)
+  useEffect(() => {
+    if (!user && stops.length > 0 && !loginBlockedReported) {
+      posthog?.capture('route_login_blocked', { stop_count: stops.length })
+      setLoginBlockedReported(true)
+    }
+  }, [user, stops.length, posthog, loginBlockedReported])
+
   async function handleSave() {
     if (!user || !name.trim() || stops.length === 0) return
+    posthog?.capture('route_save_attempted', { stop_count: stops.length })
     setSaving(true)
     setSaveError('')
 
@@ -129,6 +141,7 @@ export default function RouteBuilder() {
           router.push(`/rundor/${ev.routeId}`)
         } else {
           // ev.type === 'failed'
+          posthog?.capture('route_save_failed', { stop_count: stops.length, reason: (ev as { reason?: string }).reason ?? 'unknown' })
           setSaveError('Kunde inte spara rundan. Försök igen.')
           setSaving(false)
         }
