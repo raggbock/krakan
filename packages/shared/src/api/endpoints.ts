@@ -116,6 +116,10 @@ import {
   BlockSaleStandEditInput,
   BlockSaleStandEditOutput,
 } from '../contracts/block-sale-stand-edit'
+import {
+  RouteCreateAnonInput,
+  RouteCreateAnonOutput,
+} from '../contracts/route-create-anon'
 
 // ---------------------------------------------------------------------------
 // Registry definition helpers
@@ -314,6 +318,12 @@ export const ENDPOINTS = {
     path: 'block-sale-stand-edit',
     request: BlockSaleStandEditInput,
     response: BlockSaleStandEditOutput,
+    public: true,
+  }),
+  'route.create-anon': defineEndpointDef({
+    path: 'route-create-anon',
+    request: RouteCreateAnonInput,
+    response: RouteCreateAnonOutput,
     public: true,
   }),
 } as const
