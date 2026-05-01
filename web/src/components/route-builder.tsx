@@ -15,6 +15,7 @@ import { RouteFormFields } from './route-builder/route-form-fields'
 import { StopList, type RouteBuilderStop } from './route-builder/stop-list'
 import { RouteMap } from './route-builder/route-map'
 import { SaveRouteButton } from './route-builder/save-route-button'
+import { AnonSaveForm } from './route-builder/anon-save-form'
 
 type MarketWithHours = FleaMarketNearBy & {
   opening_hour_rules?: OpeningHourRule[]
@@ -312,6 +313,28 @@ export default function RouteBuilder() {
               error={saveError}
               onSave={handleSave}
             />
+          ) : stops.length > 0 ? (
+            <div className="mt-6 vintage-card p-4 space-y-3">
+              <p className="text-sm font-semibold text-espresso">
+                Du har {stops.length} stopp på din runda — spara den så du inte tappar bort den.
+              </p>
+              <AnonSaveForm
+                stops={stops}
+                name={name}
+                plannedDate={plannedDate}
+                useGps={useGps}
+                customStart={customStart}
+                userPos={userPos}
+                onSaved={clearDraft}
+              />
+              <p className="text-xs text-espresso/60 text-center">
+                Eller{' '}
+                <Link href="/auth" className="text-rust font-semibold underline">
+                  logga in
+                </Link>{' '}
+                om du redan har konto.
+              </p>
+            </div>
           ) : (
             <div className="mt-6 vintage-card p-4 text-center">
               <p className="text-sm text-espresso/65">
