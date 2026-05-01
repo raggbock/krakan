@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth-context'
 import { BlockSaleForm } from '@/components/block-sale-form'
 import { useBlockSaleCreate } from '@/hooks/use-block-sale'
@@ -8,7 +10,13 @@ import { useBlockSaleCreate } from '@/hooks/use-block-sale'
 export default function CreateBlockSalePage() {
   const { user } = useAuth()
   const router = useRouter()
+  const posthog = usePostHog()
   const mut = useBlockSaleCreate()
+
+  useEffect(() => {
+    posthog?.capture('block_sale_create_started', {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!user) {
     return (

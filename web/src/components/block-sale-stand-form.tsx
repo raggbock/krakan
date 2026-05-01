@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { endpoints } from '@/lib/edge'
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 }
 
 export function BlockSaleStandForm({ blockSaleId, defaultCity, onSuccess }: Props) {
+  const posthog = usePostHog()
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [street, setStreet] = useState('')
@@ -37,6 +39,7 @@ export function BlockSaleStandForm({ blockSaleId, defaultCity, onSuccess }: Prop
         website,
       })
       if (res.ok) {
+        posthog?.capture('block_sale_application_submitted', { blockSaleId })
         onSuccess()
       }
     } catch (err: unknown) {

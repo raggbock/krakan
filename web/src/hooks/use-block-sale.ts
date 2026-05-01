@@ -1,20 +1,26 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { usePostHog } from 'posthog-js/react'
 import { endpoints } from '@/lib/edge'
 import { queryKeys } from '@/lib/query-keys'
 import type { ServerDataPort } from '@fyndstigen/shared'
 
 type CreateInput = Parameters<typeof endpoints['block-sale.create']['invoke']>[0]
+type CreateResult = Awaited<ReturnType<typeof endpoints['block-sale.create']['invoke']>>
 
 // The public meta API returns the port's getBlockSaleMeta result merged with id.
 type BlockSaleMeta = NonNullable<Awaited<ReturnType<ServerDataPort['getBlockSaleMeta']>>> & { id: string }
 
 export function useBlockSaleCreate() {
   const qc = useQueryClient()
+  const posthog = usePostHog()
   return useMutation({
     mutationFn: (input: CreateInput) => endpoints['block-sale.create'].invoke(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.blockSales.all() }),
+    onSuccess: (result: CreateResult, input: CreateInput) => {
+      posthog?.capture('block_sale_created', { slug: result.slug, published: input.publish })
+      void qc.invalidateQueries({ queryKey: queryKeys.blockSales.all() })
+    },
   })
 }
 

@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { useState } from 'react'
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { useBlockSale } from '@/hooks/use-block-sale'
 import { BlockSalePublicMap } from '@/components/block-sale-public-map'
 import { BlockSaleStandPanel } from '@/components/block-sale-stand-panel'
@@ -12,6 +13,20 @@ export default function Page() {
   const slug = params.slug
   const { data: bs, isLoading, error } = useBlockSale(slug)
   const [selectedStandId, setSelectedStandId] = useState<string | null>(null)
+  const posthog = usePostHog()
+  const tracked = useRef(false)
+
+  useEffect(() => {
+    if (tracked.current || !bs) return
+    tracked.current = true
+    const isOver = new Date(bs.endDate + 'T23:59:59') < new Date()
+    posthog?.capture('block_sale_view', {
+      slug,
+      blockSaleId: bs.id,
+      city: bs.city,
+      isOver,
+    })
+  }, [bs, posthog, slug])
 
   if (isLoading) return <p className="p-6">Laddar…</p>
   if (error || !bs) return <p className="p-6">Kunde inte ladda kvartersloppis.</p>
