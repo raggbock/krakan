@@ -8,6 +8,7 @@ import { getInitials } from '@fyndstigen/shared'
 import { useSearch } from '@/hooks/use-search'
 import { marketUrl } from '@/lib/urls'
 import { supabase } from '@/lib/supabase'
+import { safeFilterValue } from '@/lib/postgrest-utils'
 
 type BlockSaleResult = {
   id: string
@@ -48,7 +49,7 @@ export default function SearchPage() {
       setBlockSaleResults(null)
       return
     }
-    const q = query.trim()
+    const q = safeFilterValue(query.trim())
     const timer = setTimeout(async () => {
       setBlockSalesLoading(true)
       try {
