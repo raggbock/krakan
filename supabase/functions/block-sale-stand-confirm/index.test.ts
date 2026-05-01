@@ -7,6 +7,7 @@ import { HttpError } from '../_shared/handler.ts'
 // ---------------------------------------------------------------------------
 
 const STAND_ID = '00000000-0000-0000-0000-000000000001'
+const BLOCK_SALE_ID = 'bs-001'
 const ORGANIZER_ID = '00000000-0000-0000-0000-000000000002'
 const BLOCK_SALE_SLUG = 'regnbagsgatan-kvartersloppis-2025'
 const BLOCK_SALE_NAME = 'Regnbågsgatan Kvartersloppis'
@@ -30,25 +31,46 @@ function makeFluentBuilder(result: { data: unknown; error: unknown }) {
   return make()
 }
 
+/**
+ * Build a stand row. The new refactored code queries block_sales separately,
+ * so the stand no longer needs the embedded block_sales object.
+ */
 function makeStand(status: string) {
   return {
     id: STAND_ID,
     status,
     applicant_name: 'Anna Svensson',
-    block_sales: {
-      id: 'bs-001',
-      name: BLOCK_SALE_NAME,
-      slug: BLOCK_SALE_SLUG,
-      organizer_id: ORGANIZER_ID,
-    },
+    block_sale_id: BLOCK_SALE_ID,
   }
 }
 
+function makeBlockSale() {
+  return {
+    id: BLOCK_SALE_ID,
+    name: BLOCK_SALE_NAME,
+    slug: BLOCK_SALE_SLUG,
+    organizer_id: ORGANIZER_ID,
+  }
+}
+
+type FakeAdminOpts = {
+  stand?: ReturnType<typeof makeStand> | null
+  blockSale?: ReturnType<typeof makeBlockSale> | null
+  updateError?: { message: string } | null
+  organizerEmail?: string | null
+}
+
+/**
+ * After commit 45059f4, block-sale-stand-confirm queries block_sales in a
+ * SEPARATE request (instead of PostgREST embedding). The fake admin must
+ * handle both tables.
+ */
 function fakeAdmin({
-  stand = makeStand('pending') as ReturnType<typeof makeStand> | null,
+  stand = makeStand('pending'),
+  blockSale = makeBlockSale() as ReturnType<typeof makeBlockSale> | null,
   updateError = null as { message: string } | null,
   organizerEmail = 'organizer@example.com' as string | null,
-} = {}) {
+}: FakeAdminOpts = {}) {
   return {
     from: (table: string) => {
       if (table === 'block_sale_stands') {
@@ -60,6 +82,15 @@ function fakeAdmin({
           }),
           update: (_data: unknown) => ({
             eq: () => Promise.resolve({ data: null, error: updateError }),
+          }),
+        }
+      }
+      if (table === 'block_sales') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: blockSale, error: null }),
+            }),
           }),
         }
       }
@@ -136,7 +167,7 @@ Deno.test('block-sale-stand-confirm: idempotent when already confirmed', async (
 
   assertEquals(result.ok, true)
   assertEquals(result.standId, STAND_ID)
-  // No email on idempotent re-confirm
+  // No email on idempotent re-confirm — skips the block_sales fetch entirely
   assertEquals(sent.length, 0)
 })
 
@@ -210,6 +241,27 @@ Deno.test('block-sale-stand-confirm: throws 404 when stand not found', async () 
       }),
     HttpError,
     'not_found',
+  ) as HttpError
+  assertEquals(err.statusCode, 404)
+})
+
+Deno.test('block-sale-stand-confirm: throws 404 block_sale_not_found when parent block_sale missing (post-refactor path)', async () => {
+  // After commit 45059f4, the handler fetches block_sales in a separate query.
+  // If that lookup returns null (data integrity issue), it must throw 404.
+  const admin = fakeAdmin({ stand: makeStand('pending'), blockSale: null })
+
+  const err = await assertRejects(
+    () =>
+      handleBlockSaleStandConfirm({
+        admin,
+        origin: 'https://fyndstigen.se',
+        input: { token: VALID_TOKEN },
+        resendApiKey: 'test-key',
+        verifyToken: makeVerifyToken(STAND_ID),
+        sendMail: async () => ({ id: '' }),
+      }),
+    HttpError,
+    'block_sale_not_found',
   ) as HttpError
   assertEquals(err.statusCode, 404)
 })

@@ -257,3 +257,112 @@ Deno.test('block-sale-decide: processes multiple stands, counts only valid trans
   assertEquals(result.decided, 1)
   assertEquals(sent.length, 1)
 })
+
+// ---------------------------------------------------------------------------
+// New tests: bulk + cross-tenant + email failure resilience
+// ---------------------------------------------------------------------------
+
+const STAND_ID_3 = '00000000-0000-0000-0000-000000000013'
+const STAND_ID_4 = '00000000-0000-0000-0000-000000000014'
+const STAND_ID_5 = '00000000-0000-0000-0000-000000000015'
+
+Deno.test('block-sale-decide: bulk approve 3 confirmed + 2 already-approved → decided=3, 3 emails sent', async () => {
+  const { fn: sendMail, sent } = makeSendMail()
+  const admin = fakeAdmin({
+    stands: [
+      makeStand(STAND_ID_1, 'confirmed'),
+      makeStand(STAND_ID_2, 'confirmed'),
+      makeStand(STAND_ID_3, 'confirmed'),
+      makeStand(STAND_ID_4, 'approved'), // already approved — skipped
+      makeStand(STAND_ID_5, 'approved'), // already approved — skipped
+    ],
+  })
+
+  const result = await handleBlockSaleDecide({
+    admin,
+    userId: ORGANIZER_ID,
+    origin: 'https://fyndstigen.se',
+    input: {
+      blockSaleId: BLOCK_SALE_ID,
+      standIds: [STAND_ID_1, STAND_ID_2, STAND_ID_3, STAND_ID_4, STAND_ID_5],
+      decision: 'approve' as const,
+    },
+    resendApiKey: 'test-key',
+    sendMail,
+  })
+
+  assertEquals(result.ok, true)
+  assertEquals(result.decided, 3)
+  assertEquals(sent.length, 3)
+})
+
+Deno.test('block-sale-decide: cross-tenant attack returns decided=0 (stands from different block_sale filtered out by .eq)', async () => {
+  // In production, the DB query filters by block_sale_id so stands from
+  // another block_sale are never returned. We simulate this by returning []
+  // from the fake — equivalent to the DB filtering them all out.
+  const { fn: sendMail, sent } = makeSendMail()
+  const admin = fakeAdmin({ stands: [] }) // DB filter would remove foreign stands
+
+  const result = await handleBlockSaleDecide({
+    admin,
+    userId: ORGANIZER_ID,
+    origin: 'https://fyndstigen.se',
+    input: {
+      blockSaleId: BLOCK_SALE_ID,
+      standIds: [STAND_ID_1, STAND_ID_2], // standIds from a different block_sale
+      decision: 'approve' as const,
+    },
+    resendApiKey: 'test-key',
+    sendMail,
+  })
+
+  assertEquals(result.ok, true)
+  assertEquals(result.decided, 0)
+  assertEquals(sent.length, 0)
+})
+
+Deno.test('block-sale-decide: email send failure for stand #2 breaks the loop (current behavior — gap documented)', async () => {
+  // KNOWN GAP: the handler does not wrap sendMail in try/catch, so a send
+  // failure for stand #2 will reject the entire function, leaving stand #3
+  // unprocessed. This test asserts the *current* (imperfect) behavior so any
+  // future improvement is caught by a failing test.
+  // TODO: Consider wrapping sendMail in try/catch to make email failures
+  //       non-fatal and continue processing remaining stands.
+  let callCount = 0
+  const failOnSecond = async (opts: { to: string; subject: string; html: string; text: string; from: string; apiKey: string }) => {
+    callCount++
+    if (callCount === 2) throw new Error('SMTP timeout')
+    return { id: `email-${callCount}` }
+  }
+
+  const admin = fakeAdmin({
+    stands: [
+      makeStand(STAND_ID_1, 'confirmed'),
+      makeStand(STAND_ID_2, 'confirmed'),
+      makeStand(STAND_ID_3, 'confirmed'),
+    ],
+  })
+
+  // Current behavior: the whole promise rejects when stand #2 email fails
+  let threw = false
+  try {
+    await handleBlockSaleDecide({
+      admin,
+      userId: ORGANIZER_ID,
+      origin: 'https://fyndstigen.se',
+      input: {
+        blockSaleId: BLOCK_SALE_ID,
+        standIds: [STAND_ID_1, STAND_ID_2, STAND_ID_3],
+        decision: 'approve' as const,
+      },
+      resendApiKey: 'test-key',
+      sendMail: failOnSecond,
+    })
+  } catch {
+    threw = true
+  }
+  // Current behavior: throws. Stand #3 is never processed.
+  // If this test starts FAILING (threw === false), it means the handler now
+  // handles email errors gracefully — update this test to assert decided=3.
+  assertEquals(threw, true, 'Expected email failure to propagate (see TODO above)')
+})

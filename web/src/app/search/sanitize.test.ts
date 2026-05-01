@@ -29,4 +29,24 @@ describe('safeFilterValue', () => {
   it('passes through Swedish characters and digits', () => {
     expect(safeFilterValue('Åre Loppis 2025')).toBe('Åre Loppis 2025')
   })
+
+  it('returns empty string for empty input', () => {
+    expect(safeFilterValue('')).toBe('')
+  })
+
+  it('strips all banned chars from a string containing only them', () => {
+    expect(safeFilterValue(',()*%\\')).toBe('')
+  })
+
+  it('handles mixed real-world injection attempt', () => {
+    // Should strip ( ) % , while preserving accented chars and alphanumeric
+    const result = safeFilterValue('Café (50%) ,attack')
+    expect(result).toBe('Café 50 attack')
+    // Crucially, no banned chars should remain
+    expect(result).not.toMatch(/[,()*%\\]/)
+  })
+
+  it('preserves newlines and tabs (only PostgREST-specific chars are stripped)', () => {
+    expect(safeFilterValue('hello\nworld\ttab')).toBe('hello\nworld\ttab')
+  })
 })
