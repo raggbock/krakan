@@ -20,7 +20,17 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       person_profiles: 'identified_only',
       capture_pageview: false, // we handle this manually below
       capture_pageleave: true,
+      disable_session_recording: true, // start lazily after pageload to avoid blocking first paint
     })
+
+    // Defer session recording until the browser is idle (or after 2 s on
+    // browsers that don't support requestIdleCallback, e.g. older Safari).
+    // This prevents the rrweb snapshot from blocking first interaction.
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => posthog.startSessionRecording())
+    } else {
+      setTimeout(() => posthog.startSessionRecording(), 2000)
+    }
   }, [])
 
   return <PHProvider client={posthog}>{children}</PHProvider>
