@@ -142,10 +142,10 @@ export default function RootLayout({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-espresso/60">
-                    <Link href="/fragor-svar" className="hover:text-espresso transition-colors">
+                    <Link href="/fragor-svar" prefetch={false} className="hover:text-espresso transition-colors">
                       Frågor & svar
                     </Link>
-                    <Link href="/integritetspolicy" className="hover:text-espresso transition-colors">
+                    <Link href="/integritetspolicy" prefetch={false} className="hover:text-espresso transition-colors">
                       Integritetspolicy
                     </Link>
                     <CookieSettingsLink />
