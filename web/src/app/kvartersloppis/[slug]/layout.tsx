@@ -5,6 +5,9 @@ import { createSupabaseServerData } from '@fyndstigen/shared'
 import { expandEventDates } from '@fyndstigen/shared/block-sale'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
+// ISR: revalidate every hour — kvartersloppis pages are stable once published.
+export const revalidate = 3600
+
 type Props = { params: Promise<{ slug: string }>; children: React.ReactNode }
 
 const resolve = cache(async (slug: string) => {
