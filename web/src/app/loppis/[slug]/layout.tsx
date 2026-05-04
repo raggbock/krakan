@@ -12,13 +12,26 @@ export const revalidate = 3600
 export async function generateStaticParams() {
   // Pre-render top markets at build time for instant TTFB.
   // Falls back to ISR (revalidate = 3600) for other slugs.
+  //
+  // ⚠️ Currently a no-op: page.tsx reads cookies (for organizer-draft access),
+  // which forces dynamic rendering at request time. The build output shows
+  // /loppis/[slug] as ƒ Dynamic regardless of these params.
+  //
+  // To make this actually SSG: refactor page.tsx to use an anon client for
+  // the public flow. Drafts would then only be reachable via the post-create
+  // /fleamarkets/[id] → /loppis/[slug] redirect (which keeps cookie auth).
+  // Risk: organizers who navigate directly to /loppis/<their-draft-slug>
+  // would get 404 instead of seeing their preview.
+  //
+  // Until the refactor lands, ISR (revalidate=3600) already cuts p95 from
+  // ~3s to <300ms on cache hits — the marginal SSG win (<100ms TTFB) isn't
+  // worth the draft-flow risk yet.
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
   )
   const server = createSupabaseServerData(sb)
   const markets = await server.listPublishedMarketIds()
-  // Pre-render up to 200 most recent. Beyond that, ISR handles the long tail.
   return markets.slice(0, 200).map((m) => ({ slug: m.slug ?? m.id }))
 }
 
