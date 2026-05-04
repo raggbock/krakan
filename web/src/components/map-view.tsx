@@ -7,6 +7,7 @@ import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/geo'
 import { supabase } from '@/lib/supabase'
 import type { FleaMarketNearBy } from '@fyndstigen/shared'
+import { marketUrl } from '@/lib/urls'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
 
@@ -140,7 +141,7 @@ export default function MapView() {
             <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
           )}
           <Link
-            href={`/fleamarkets/${market.id}`}
+            href={marketUrl(market)}
             className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
           >
             Visa loppis &rarr;

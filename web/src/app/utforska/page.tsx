@@ -42,6 +42,9 @@ export default function ExplorePage() {
   const fallback = useMarkets({
     page: openNowOnly ? 1 : page,
     pageSize,
+    // Skip the visible_flea_markets fetch once we have coordinates — the
+    // nearby RPC already covers the same data and is already in flight.
+    enabled: !userPos,
   })
   const nearby = useNearbyMarkets(userPos)
   const useNearby = !!userPos && !nearby.loading
@@ -61,15 +64,18 @@ export default function ExplorePage() {
     is_permanent: boolean
     latitude: number | null
     longitude: number | null
+    slug?: string | null
   }
   const allMarkets: CardMarket[] = useNearby
     ? nearby.markets.map((m) => ({
         id: m.id, name: m.name, city: m.city, description: m.description,
         is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+        slug: m.slug,
       }))
     : fallback.markets.map((m) => ({
         id: m.id, name: m.name, city: m.city, description: m.description,
         is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+        slug: m.slug,
       }))
   const totalCount = useNearby ? nearby.markets.length : fallback.count
 

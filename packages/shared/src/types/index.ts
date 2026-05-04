@@ -93,6 +93,7 @@ export type FleaMarketNearBy = {
   longitude: number
   distance_km: number
   published_at: string | null
+  slug?: string | null
 }
 
 // Opening hours (unchanged shapes)
