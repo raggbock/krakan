@@ -7,6 +7,10 @@ import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { marketUrl } from '@/lib/urls'
 
+// ISR: revalidate every hour — city listing pages are stable; kvartersloppisar
+// are dated events so 1h staleness is acceptable.
+export const revalidate = 3600
+
 type Props = {
   params: Promise<{ city: string }>
 }
