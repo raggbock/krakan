@@ -162,9 +162,13 @@ export default function RootLayout({
                     <Link href="/fragor-svar" prefetch={false} className="hover:text-espresso transition-colors">
                       Frågor & svar
                     </Link>
-                    <Link href="/integritetspolicy" prefetch={false} className="hover:text-espresso transition-colors">
+                    <a
+                      href="https://fyndstigen.se/integritetspolicy"
+                      aria-label="Privacy Policy"
+                      className="hover:text-espresso transition-colors"
+                    >
                       Integritetspolicy
-                    </Link>
+                    </a>
                     <CookieSettingsLink />
                     <a
                       href="mailto:hej@fyndstigen.se"

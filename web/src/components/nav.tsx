@@ -30,6 +30,17 @@ export function Nav() {
           <NavLink href="/map">Karta</NavLink>
           <NavLink href="/rundor">Rundor</NavLink>
 
+          {/* Visible privacy link required by Google OAuth verification —
+              the footer link alone wasn't recognized by their reviewer.
+              Absolute href + English aria-label so automated scans match. */}
+          <a
+            href="https://fyndstigen.se/integritetspolicy"
+            aria-label="Privacy Policy"
+            className="px-3 py-2 rounded-lg text-xs font-medium text-espresso/55 hover:text-espresso hover:bg-cream-warm/60 transition-all duration-200"
+          >
+            Integritetspolicy
+          </a>
+
           <div className="w-px h-5 bg-cream-warm mx-2" />
 
           {!loading && (
@@ -89,6 +100,15 @@ export function Nav() {
             <MobileNavLink href="/rundor" onClick={() => setMenuOpen(false)}>
               Rundor
             </MobileNavLink>
+
+            <a
+              href="https://fyndstigen.se/integritetspolicy"
+              aria-label="Privacy Policy"
+              onClick={() => setMenuOpen(false)}
+              className="px-4 py-3 rounded-xl text-sm font-medium text-espresso/65 hover:bg-cream-warm/50 transition-colors"
+            >
+              Integritetspolicy
+            </a>
 
             <div className="h-px bg-cream-warm my-2" />
 
