@@ -34,6 +34,13 @@ async function resolveCity(slug: string) {
   }
 }
 
+export async function generateStaticParams() {
+  // Pre-render all city pages at build time — city list is bounded and
+  // changes infrequently. ISR (revalidate = 3600) handles new cities.
+  const cities = await getServerData().listCitiesWithMarkets()
+  return cities.map((c) => ({ city: slugifyCity(c.city) }))
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { city: slug } = await params
   const resolved = await resolveCity(slug)

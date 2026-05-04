@@ -1,12 +1,26 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseServerData } from '@fyndstigen/shared'
 
 // Cache this route for 1 hour. Published markets change infrequently;
 // ISR pushes p95 latency from ~3s (full SSR) down to <300ms on cache hits.
 export const revalidate = 3600
+
+export async function generateStaticParams() {
+  // Pre-render top markets at build time for instant TTFB.
+  // Falls back to ISR (revalidate = 3600) for other slugs.
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+  )
+  const server = createSupabaseServerData(sb)
+  const markets = await server.listPublishedMarketIds()
+  // Pre-render up to 200 most recent. Beyond that, ISR handles the long tail.
+  return markets.slice(0, 200).map((m) => ({ slug: m.slug ?? m.id }))
+}
 
 type Props = {
   params: Promise<{ slug: string }>
