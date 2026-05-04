@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
 import { isFreePriced, messageFor } from '@fyndstigen/shared'
-import { stripePromise } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { useFlag } from '@/lib/flags'
 import { usePostHog } from 'posthog-js/react'
 
@@ -190,14 +190,8 @@ export function BookableTablesCard({
 
   if (visibleTables.length === 0) return null
 
-  if (!stripePromise) {
-    return (
-      <BookableTablesInner fleaMarketId={fleaMarketId} fleaMarketName={fleaMarketName} tables={visibleTables} openingHours={openingHours} />
-    )
-  }
-
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={getStripe()}>
       <BookableTablesInner fleaMarketId={fleaMarketId} fleaMarketName={fleaMarketName} tables={visibleTables} openingHours={openingHours} />
     </Elements>
   )
