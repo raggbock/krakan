@@ -112,6 +112,15 @@ export default function RootLayout({
       lang="sv"
       className={`${fraunces.variable} ${nunito.variable} h-full antialiased`}
     >
+      <head>
+        {/* Reduce connection latency to Supabase (auth + data) */}
+        <link rel="preconnect" href="https://yqeegfhwbjnlrdurstxp.supabase.co" />
+        {/* Reduce connection latency to PostHog analytics */}
+        <link rel="preconnect" href="https://eu.i.posthog.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://eu-assets.i.posthog.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for Sentry (error reporting — doesn't need full preconnect) */}
+        <link rel="dns-prefetch" href="https://o.ingest.sentry.io" />
+      </head>
       <body className="min-h-full flex flex-col font-body">
         <script
           type="application/ld+json"
