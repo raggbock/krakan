@@ -26,6 +26,12 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fyndstigen.se'),
+  icons: {
+    // Explicit static icon prevents Next.js from generating a dynamic /icon
+    // route (which added ~863ms per takeover page load due to runtime overhead).
+    // Serving from /public gives full CDN cache with long max-age headers.
+    icon: '/icon.svg',
+  },
   title: {
     default: 'Hitta loppis — Loppisar och loppmarknader i hela Sverige | Fyndstigen',
     template: '%s | Fyndstigen',
