@@ -269,7 +269,7 @@ export default function CreateMarketPage() {
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {images.newPreviews.map((src, i) => (
                   <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-cream-warm group">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     <button
                       type="button"
                       onClick={() => images.removeNew(i)}
