@@ -26,6 +26,17 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     // Defer session recording until the browser is idle (or after 2 s on
     // browsers that don't support requestIdleCallback, e.g. older Safari).
     // This prevents the rrweb snapshot from blocking first interaction.
+    //
+    // TODO(perf/posthog-recorder): Bundle analysis (2026-05-02) attributed
+    // ~538 KB (uncompressed) to a combined posthog+Sentry chunk and suggested
+    // switching to CDN-loaded recorder.  Investigation shows posthog-js@1.367
+    // already loads the rrweb recorder from CDN via loadExternalDependency()
+    // rather than bundling it in dist/module.js (only 178 KB minified, with 3
+    // rrweb refs that are purely external-extension checks).  The 538 KB chunk
+    // is posthog uncompressed (~400 KB) + Sentry (~56 KB) combined by Turbopack.
+    // Switching to posthog-js/dist/module.slim.js would save ~86 KB but requires
+    // verifying that all used features (session recording, autocapture) are
+    // preserved.  Skipping for now — the main rrweb recorder is already CDN-loaded.
     if (typeof requestIdleCallback !== 'undefined') {
       requestIdleCallback(() => posthog.startSessionRecording())
     } else {
