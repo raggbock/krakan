@@ -3,7 +3,7 @@ import { Fraunces, Nunito } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { Nav } from '@/components/nav'
-import { TrailBackground } from '@/components/trail-background'
+import { TrailBackgroundLazy } from '@/components/trail-background-lazy'
 import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
 import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
@@ -144,7 +144,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <PostHogPageview />
             </Suspense>
-            <TrailBackground />
+            <TrailBackgroundLazy />
             <Nav />
             <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
             <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
