@@ -9,6 +9,7 @@ import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
 import { CookieConsent } from '@/components/cookie-consent'
 import { CookieSettingsLink } from '@/components/cookie-settings-link'
+import { WebVitalsReporter } from '@/components/web-vitals-reporter'
 import Link from 'next/link'
 
 const fraunces = Fraunces({
@@ -131,6 +132,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <PostHogProvider>
+          <WebVitalsReporter />
           <QueryProvider>
           <AuthProvider>
             <Suspense fallback={null}>
