@@ -10,6 +10,15 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  * still mirrors them locally to satisfy supabase-js's session shape.
  * That mirror is short-lived and refreshed on every navigation by the
  * middleware.
+ *
+ * NOTE(perf/supabase-realtime): Bundle analysis (2026-05-02) suggested
+ * switching to createBrowserClient from @supabase/ssr to save ~60 KB of
+ * realtime code.  This file already uses createBrowserClient — but
+ * investigation shows it internally calls createClient() from
+ * @supabase/supabase-js (peer dep), which always bundles @supabase/realtime-js.
+ * The realtime-js module is therefore unavoidable with the current
+ * @supabase/ssr@0.x + @supabase/supabase-js@2.x dependency tree.
+ * No further changes possible without removing the supabase-js peer dep.
  */
 function initClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
