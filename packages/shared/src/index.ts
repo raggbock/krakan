@@ -54,6 +54,12 @@ export { createInMemoryFleaMarkets, createInMemorySearch, createInMemoryMarketTa
 export { createInMemoryBookings } from './adapters/in-memory/bookings'
 export { createInMemoryRoutes } from './adapters/in-memory/routes'
 export { createInMemoryProfiles, createInMemoryOrganizers } from './adapters/in-memory/profiles'
+export { createInMemoryBookingRepo } from './adapters/in-memory/booking-repo'
+export type { InMemoryBookingRepo } from './adapters/in-memory/booking-repo'
+export { createInMemoryStripeAccountRepo } from './adapters/in-memory/stripe-account-repo'
+export type { InMemoryStripeAccountRepo } from './adapters/in-memory/stripe-account-repo'
+export { createInMemorySubscriptionRepo } from './adapters/in-memory/subscription-repo'
+export type { InMemorySubscriptionRepo } from './adapters/in-memory/subscription-repo'
 
 // Geo
 export { createGeo, GeocodeError } from './geo'
@@ -99,6 +105,10 @@ export type {
 export type { Deps } from './deps'
 // makeInMemoryDeps + makeSupabaseDeps live at @fyndstigen/shared/deps-factory
 // so tree-shakers can skip Supabase adapter graph when only domain logic is needed.
+
+// Stripe webhook reducer
+export { interpretWebhookEvent } from './stripe-webhook'
+export type { WebhookCommand, WebhookLookups, InterpretInput } from './stripe-webhook'
 
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'

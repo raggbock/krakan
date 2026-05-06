@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createSupabaseBookingRepo } from './booking-repo'
 import type { Booking } from '../../types'
 
@@ -53,6 +53,29 @@ function makeFakeClient(opts: {
   return { client, updateFilters }
 }
 
+// Fake client that returns a row with a flea_markets join (for findByPaymentIntent tests)
+function makeFindByPIClient(opts: {
+  data: unknown
+  error?: unknown
+}) {
+  const client = {
+    from(_table: string) {
+      const builder: Record<string, (...args: unknown[]) => unknown> = {
+        select() { return builder },
+        eq() { return builder },
+        single() {
+          return Promise.resolve({ data: opts.data, error: opts.error ?? null })
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: opts.data, error: opts.error ?? null })
+        },
+      }
+      return builder
+    },
+  }
+  return client
+}
+
 function seedRow(): Booking & { created_at: string } {
   return {
     id: 'b1',
@@ -72,6 +95,33 @@ function seedRow(): Booking & { created_at: string } {
     created_at: '2026-04-22T00:00:00Z',
   }
 }
+
+describe('SupabaseBookingRepo.findByPaymentIntent', () => {
+  it('returns { booking, autoAccept: true } when market has auto_accept_bookings=true', async () => {
+    const rowWithJoin = { ...seedRow(), flea_markets: { auto_accept_bookings: true } }
+    const client = makeFindByPIClient({ data: rowWithJoin })
+    const repo = createSupabaseBookingRepo(client as never)
+    const result = await repo.findByPaymentIntent('pi_1')
+    expect(result).not.toBeNull()
+    expect(result?.booking.id).toBe('b1')
+    expect(result?.autoAccept).toBe(true)
+  })
+
+  it('returns autoAccept: false when market has auto_accept_bookings=false', async () => {
+    const rowWithJoin = { ...seedRow(), flea_markets: { auto_accept_bookings: false } }
+    const client = makeFindByPIClient({ data: rowWithJoin })
+    const repo = createSupabaseBookingRepo(client as never)
+    const result = await repo.findByPaymentIntent('pi_1')
+    expect(result?.autoAccept).toBe(false)
+  })
+
+  it('returns null when no booking found', async () => {
+    const client = makeFindByPIClient({ data: null, error: { message: 'not found' } })
+    const repo = createSupabaseBookingRepo(client as never)
+    const result = await repo.findByPaymentIntent('pi_unknown')
+    expect(result).toBeNull()
+  })
+})
 
 describe('SupabaseBookingRepo.applyEvent concurrency guard', () => {
   it('includes optimistic status filter on UPDATE', async () => {

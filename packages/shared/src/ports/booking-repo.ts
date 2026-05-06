@@ -25,8 +25,11 @@ export interface BookingRepo {
   /**
    * Find a booking by its Stripe PaymentIntent ID. Returns null if not found
    * or if no booking owns that intent.
+   *
+   * Also returns the market's auto_accept_bookings flag in a single round-trip
+   * join so callers don't need a separate market lookup.
    */
-  findByPaymentIntent(paymentIntentId: string): Promise<Booking | null>
+  findByPaymentIntent(paymentIntentId: string): Promise<{ booking: Booking; autoAccept: boolean } | null>
 
   /**
    * Apply a lifecycle event to the booking identified by `id`.

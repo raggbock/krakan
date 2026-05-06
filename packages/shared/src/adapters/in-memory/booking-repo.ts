@@ -15,6 +15,8 @@ let _id = 1
 
 export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
   const store = new Map<string, Booking>(seed.map((b) => [b.id, { ...b }]))
+  // market-level auto_accept flag, keyed by flea_market_id
+  const autoAcceptByMarket = new Map<string, boolean>()
 
   function nextId() {
     return `bk-repo-${_id++}`
@@ -31,8 +33,16 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
     return full
   }
 
-  const repo: BookingRepo & { _insert: typeof insert } = {
+  /**
+   * Convenience: set the auto_accept_bookings flag for a market (test setup only).
+   */
+  function setAutoAccept(marketId: string, autoAccept: boolean): void {
+    autoAcceptByMarket.set(marketId, autoAccept)
+  }
+
+  const repo: BookingRepo & { _insert: typeof insert; _setAutoAccept: typeof setAutoAccept } = {
     _insert: insert,
+    _setAutoAccept: setAutoAccept,
 
     async findById(id) {
       return store.get(id) ?? null
@@ -40,7 +50,10 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
 
     async findByPaymentIntent(paymentIntentId) {
       for (const b of store.values()) {
-        if (b.stripe_payment_intent_id === paymentIntentId) return { ...b }
+        if (b.stripe_payment_intent_id === paymentIntentId) {
+          const autoAccept = autoAcceptByMarket.get(b.flea_market_id) ?? false
+          return { booking: { ...b }, autoAccept }
+        }
       }
       return null
     },
@@ -63,9 +76,10 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
 }
 
 /**
- * Type guard to access the test-only `_insert` helper on an
- * in-memory repo created by `createInMemoryBookingRepo`.
+ * Type guard to access the test-only helpers on an in-memory repo
+ * created by `createInMemoryBookingRepo`.
  */
 export type InMemoryBookingRepo = BookingRepo & {
   _insert(booking: Omit<Booking, 'id'> & { id?: string }): Booking
+  _setAutoAccept(marketId: string, autoAccept: boolean): void
 }

@@ -55,9 +55,22 @@ describe('findByPaymentIntent', () => {
   })
 
   it('finds the booking by payment intent id', async () => {
-    const b = repo._insert(makeBooking({ stripe_payment_intent_id: 'pi_abc' }))
-    const found = await repo.findByPaymentIntent('pi_abc')
-    expect(found?.id).toBe(b.id)
+    const b = repo._insert(makeBooking({ stripe_payment_intent_id: 'pi_abc', flea_market_id: 'fm-1' }))
+    const result = await repo.findByPaymentIntent('pi_abc')
+    expect(result?.booking.id).toBe(b.id)
+  })
+
+  it('returns autoAccept=false when not set for market', async () => {
+    repo._insert(makeBooking({ stripe_payment_intent_id: 'pi_abc', flea_market_id: 'fm-1' }))
+    const result = await repo.findByPaymentIntent('pi_abc')
+    expect(result?.autoAccept).toBe(false)
+  })
+
+  it('returns autoAccept=true when set for market', async () => {
+    repo._insert(makeBooking({ stripe_payment_intent_id: 'pi_abc', flea_market_id: 'fm-1' }))
+    repo._setAutoAccept('fm-1', true)
+    const result = await repo.findByPaymentIntent('pi_abc')
+    expect(result?.autoAccept).toBe(true)
   })
 })
 
