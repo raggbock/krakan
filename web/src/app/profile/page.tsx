@@ -15,7 +15,8 @@ import { useFlag } from '@/lib/flags'
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, signOut, loading: authLoading } = useAuth()
+  const { user, auth, loading: authLoading } = useAuth()
+  const { signOut } = auth
   const { markets: myMarkets, loading: marketsLoading } = useMarketsByOrganizer(user?.id)
   const { routes: myRoutes, loading: routesLoading } = useRoutesByUser(user?.id)
   const { count: pendingCount } = usePendingBookingsCount(user?.id)

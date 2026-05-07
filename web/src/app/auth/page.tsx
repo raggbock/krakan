@@ -9,7 +9,8 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 export default function AuthPage() {
   const router = useRouter()
   const posthog = usePostHog()
-  const { user, signIn, signUp, signInWithGoogle, resetPasswordForEmail } = useAuth()
+  const { user, auth } = useAuth()
+  const { signIn, signUp, signInWithGoogle, resetPasswordForEmail } = auth
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [resetSent, setResetSent] = useState(false)
   const [nextPath, setNextPath] = useState('/utforska')
