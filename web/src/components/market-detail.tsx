@@ -1,11 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useAuth } from '@/lib/auth-context'
-import { useDeps } from '@/providers/deps-provider'
-import { marketEditUrl } from '@/lib/urls'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { BackLink } from '@/components/back-link'
 import { AddressCard } from '@/components/address-card'
@@ -14,22 +9,14 @@ import { OrganizerCard } from '@/components/organizer-card'
 import { BookableTablesCard } from '@/components/bookable-tables-card'
 import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
-import { useMarketDetails } from '@/hooks/use-market-details'
+import { MarketImageGallery } from '@/components/market-image-gallery'
+import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
 
 export function MarketDetail({ id }: { id: string }) {
-  const { user } = useAuth()
-  const { images } = useDeps()
-  const { market, tables, loading } = useMarketDetails(id)
+  const vm = useMarketDetailViewModel(id)
+  const { market, tables, images, openingHours, isOwner, editUrl, mapUrl } = vm
 
-  const openingHours = useMemo(() => {
-    if (!market) return undefined
-    const rules = market.opening_hour_rules ?? []
-    const exceptions = market.opening_hour_exceptions ?? []
-    if (rules.length === 0 && exceptions.length === 0) return undefined
-    return { rules, exceptions }
-  }, [market])
-
-  if (loading) {
+  if (vm.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <FyndstigenLogo size={40} className="text-rust animate-bob" />
@@ -57,9 +44,6 @@ export function MarketDetail({ id }: { id: string }) {
     )
   }
 
-  const isOwner = user?.id === market.organizer_id
-  const editUrl = marketEditUrl({ id })
-
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
       <BackLink href="/utforska" />
@@ -73,31 +57,7 @@ export function MarketDetail({ id }: { id: string }) {
         </div>
       )}
 
-      {market.flea_market_images?.length > 0 && (
-        <div className="mb-8 animate-fade-up">
-          <div className={`grid gap-3 ${market.flea_market_images.length === 1 ? '' : 'grid-cols-2 sm:grid-cols-3'}`}>
-            {market.flea_market_images
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((img, idx) => (
-                <div
-                  key={img.id}
-                  className={`relative rounded-xl overflow-hidden bg-cream-warm ${
-                    market.flea_market_images.length === 1 ? 'aspect-[2/1]' : 'aspect-square'
-                  }`}
-                >
-                  <Image
-                    src={images.publicUrl(img.storage_path)}
-                    alt={market.name}
-                    fill
-                    sizes={market.flea_market_images.length === 1 ? '100vw' : '(min-width: 640px) 33vw, 50vw'}
-                    className="object-cover"
-                    priority={idx === 0}
-                  />
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
+      <MarketImageGallery images={images} marketName={market.name} />
 
       <div className="animate-fade-up">
         <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -183,25 +143,12 @@ export function MarketDetail({ id }: { id: string }) {
       </div>
 
       <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-        {market.latitude != null && market.longitude != null ? (
-          <Link
-            href={
-              `/map?lat=${market.latitude}&lng=${market.longitude}` +
-              `&name=${encodeURIComponent(market.name)}` +
-              (market.slug ? `&slug=${encodeURIComponent(market.slug)}` : '')
-            }
-            className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
-          >
-            Visa på karta &rarr;
-          </Link>
-        ) : (
-          <Link
-            href="/map"
-            className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
-          >
-            Visa på karta &rarr;
-          </Link>
-        )}
+        <Link
+          href={mapUrl}
+          className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
+        >
+          Visa på karta &rarr;
+        </Link>
         {market.is_system_owned && (
           <ClaimMarketButton marketId={id} marketName={market.name} />
         )}
