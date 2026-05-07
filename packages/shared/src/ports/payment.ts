@@ -1,15 +1,26 @@
 /**
  * PaymentGateway port — abstracts card payment confirmation.
  *
- * Today this only collapses `confirmCardPayment` into `{ status, error? }`
- * with a single error string. It does NOT yet discriminate card_error vs
- * requires_action vs authentication_required — add an `errorCode` field
- * (and matching adapter mapping) before wiring 3DS / SCA flows.
+ * `confirmCardPayment` resolves when payment fully completes (status ===
+ * 'requires_capture' for manual-capture flow, or 'succeeded' otherwise) and
+ * rejects with an Error on failure or cancellation.
+ *
+ * The `PaymentResult` type is kept for adapter implementations that need to
+ * inspect the raw outcome before deciding whether to throw.
  */
 export interface PaymentGateway {
-  confirmCardPayment(clientSecret: string): Promise<PaymentResult>
+  /**
+   * Confirm a card payment identified by `clientSecret`.
+   * Resolves on success; throws on failure or cancellation.
+   */
+  confirmCardPayment(clientSecret: string): Promise<void>
 }
 
+/**
+ * @deprecated Used only inside gateway adapter implementations.
+ * External callers should rely on the throw/resolve contract of
+ * `PaymentGateway.confirmCardPayment`.
+ */
 export type PaymentResult =
   | { status: 'succeeded' }
   | { status: 'failed'; error: string }

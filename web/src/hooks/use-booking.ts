@@ -4,12 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements } from '@stripe/react-stripe-js'
 import { bookingService } from '@/lib/booking-service'
 import type { MarketTable } from '@fyndstigen/shared'
-import { isFreePriced, toAppError, messageFor } from '@fyndstigen/shared'
+import { isFreePriced, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
 import { resolvePaymentGateway } from '@/lib/adapters/payment-gateway-factory'
-import { createPostHogTelemetry } from '@/lib/adapters/posthog-telemetry'
 
 type BookingHook = {
   selectedTable: MarketTable | null
@@ -35,8 +34,8 @@ type BookingHook = {
 
 export function useBooking(
   marketId: string,
-  marketName: string,
-  userId: string | undefined,
+  marketName?: string,
+  userId?: string,
   openingHours?: OpeningHoursContext,
 ): BookingHook {
   const posthog = usePostHog()
@@ -84,72 +83,83 @@ export function useBooking(
 
   const submit = useCallback(async () => {
     if (!canSubmit || !selectedTable) return
-    setIsSubmitting(true)
     setSubmitError(null)
 
     const priceSek = selectedTable.price_sek
-    const isFree = isFreePriced(priceSek)
-    const totalAmountOre = isFree ? 0 : bookingService.calculateTotal(priceSek).total * 100
+    const payment = resolvePaymentGateway({ stripe, elements })
 
-    posthog?.capture('booking_submitted', {
-      market_id: marketId,
-      table_ids: [selectedTable.id],
-      total_amount_ore: totalAmountOre,
-      is_free: isFree,
-    })
+    const stream = bookingService.book(
+      {
+        marketTableId: selectedTable.id,
+        fleaMarketId: marketId,
+        bookingDate: date,
+        message: message || undefined,
+        tableLabel: selectedTable.label,
+        marketName: marketName ?? '',
+        priceSek,
+      },
+      { payment },
+    )
 
-    try {
-      let paymentCompleted = false
-      const payment = resolvePaymentGateway({
-        stripe,
-        elements,
-        onPaymentCompleted: () => { paymentCompleted = true },
-      })
+    for await (const evt of stream) {
+      switch (evt.type) {
+        case 'submitted':
+          setIsSubmitting(true)
+          posthog?.capture('booking_submitted', {
+            market_id: marketId,
+            table_ids: [selectedTable.id],
+            total_amount_ore: isFreePriced(priceSek) ? 0 : bookingService.calculateTotal(priceSek).total * 100,
+            is_free: isFreePriced(priceSek),
+          })
+          break
 
-      const telemetry = createPostHogTelemetry(posthog)
+        case 'created':
+          // bookingId and amountOre are available here if needed for future telemetry
+          break
 
-      const { bookingId } = await bookingService.book(
-        {
-          marketTableId: selectedTable.id,
-          fleaMarketId: marketId,
-          bookingDate: date,
-          message: message || undefined,
-          tableLabel: selectedTable.label,
-          marketName,
-          priceSek,
-        },
-        { payment, telemetry },
-      )
+        case 'payment-required':
+          // payment-required is informational; the generator awaits confirmCardPayment next
+          break
 
-      posthog?.capture('booking_succeeded', {
-        booking_id: bookingId,
-        market_id: marketId,
-        requires_payment: !isFree,
-      })
+        case 'payment-confirmed':
+          posthog?.capture('booking_payment_completed', {
+            booking_id: evt.bookingId,
+            market_id: marketId,
+            amount_ore: evt.amountOre,
+          })
+          break
 
-      if (paymentCompleted) {
-        posthog?.capture('booking_payment_completed', {
-          booking_id: bookingId,
-          market_id: marketId,
-          amount_ore: totalAmountOre,
-        })
+        case 'succeeded':
+          posthog?.capture('booking_succeeded', {
+            booking_id: evt.bookingId,
+            market_id: marketId,
+            requires_payment: evt.requiresPayment,
+          })
+          setIsDone(true)
+          setSelectedTable(null)
+          setDate('')
+          setMessage('')
+          break
+
+        case 'failed':
+          setSubmitError(evt.error)
+          posthog?.capture('booking_failed', {
+            market_id: marketId,
+            stage: evt.stage,
+            reason: evt.error.code,
+          })
+          break
+
+        default: {
+          // Exhaustiveness check — TS will error if a new variant is unhandled
+          const _exhaustive: never = evt
+          void _exhaustive
+          break
+        }
       }
-
-      setIsDone(true)
-      setSelectedTable(null)
-      setDate('')
-      setMessage('')
-    } catch (err) {
-      const appErr = toAppError(err)
-      setSubmitError(appErr)
-      posthog?.capture('booking_failed', {
-        market_id: marketId,
-        stage: 'submit',
-        reason: appErr.code,
-      })
-    } finally {
-      setIsSubmitting(false)
     }
+
+    setIsSubmitting(false)
   }, [canSubmit, selectedTable, stripe, elements, marketId, marketName, date, message, posthog])
 
   function reset() {

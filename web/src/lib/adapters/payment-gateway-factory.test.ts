@@ -30,68 +30,54 @@ describe('resolvePaymentGateway', () => {
       const stripe = makeStripe(confirmImpl)
       const cardElement = makeCardElement()
       const elements = makeElements(cardElement)
-      const onPaymentCompleted = vi.fn()
 
-      const gateway = resolvePaymentGateway({ stripe, elements, onPaymentCompleted })
-      const result = await gateway.confirmCardPayment('pi_secret_123')
+      const gateway = resolvePaymentGateway({ stripe, elements })
+      await gateway.confirmCardPayment('pi_secret_123')
 
-      expect(result.status).toBe('succeeded')
       expect(confirmImpl).toHaveBeenCalledWith('pi_secret_123', {
         payment_method: { card: cardElement },
       })
     })
 
-    it('calls onPaymentCompleted when card payment succeeds', async () => {
+    it('resolves (does not throw) when card payment succeeds', async () => {
       const stripe = makeStripe(async () => ({ error: undefined }))
       const elements = makeElements(makeCardElement())
-      const onPaymentCompleted = vi.fn()
 
-      const gateway = resolvePaymentGateway({ stripe, elements, onPaymentCompleted })
-      await gateway.confirmCardPayment('pi_secret_456')
-
-      expect(onPaymentCompleted).toHaveBeenCalledOnce()
+      const gateway = resolvePaymentGateway({ stripe, elements })
+      await expect(gateway.confirmCardPayment('pi_secret_456')).resolves.toBeUndefined()
     })
 
-    it('does NOT call onPaymentCompleted when card payment fails', async () => {
+    it('throws when card payment fails', async () => {
       const stripe = makeStripe(async () => ({ error: { message: 'Card declined' } }))
       const elements = makeElements(makeCardElement())
-      const onPaymentCompleted = vi.fn()
 
-      const gateway = resolvePaymentGateway({ stripe, elements, onPaymentCompleted })
-      const result = await gateway.confirmCardPayment('pi_secret_789')
-
-      expect(result.status).toBe('failed')
-      expect(onPaymentCompleted).not.toHaveBeenCalled()
+      const gateway = resolvePaymentGateway({ stripe, elements })
+      await expect(gateway.confirmCardPayment('pi_secret_789')).rejects.toThrow('Card declined')
     })
   })
 
   describe('no-op gateway branch', () => {
     it('uses no-op when stripe is null', async () => {
-      const onPaymentCompleted = vi.fn()
-      const gateway = resolvePaymentGateway({ stripe: null, elements: null, onPaymentCompleted })
+      const gateway = resolvePaymentGateway({ stripe: null, elements: null })
 
-      // No-op succeeds silently when no clientSecret is passed (free booking path)
-      const result = await gateway.confirmCardPayment('')
-      expect(result.status).toBe('succeeded')
-      expect(onPaymentCompleted).toHaveBeenCalledOnce()
+      // No-op resolves silently when no clientSecret is passed (free booking path)
+      await expect(gateway.confirmCardPayment('')).resolves.toBeUndefined()
     })
 
     it('uses no-op when card element is not mounted', async () => {
       const stripe = makeStripe(async () => ({ error: undefined }))
       const elements = makeElements(null) // no card element mounted
-      const onPaymentCompleted = vi.fn()
 
-      const gateway = resolvePaymentGateway({ stripe, elements, onPaymentCompleted })
+      const gateway = resolvePaymentGateway({ stripe, elements })
 
-      // No-op succeeds on empty secret; throws on a real secret (regression guard)
+      // No-op throws on a real secret (regression guard)
       await expect(gateway.confirmCardPayment('pi_real_secret')).rejects.toThrow('Card element not found')
     })
 
     it('uses no-op when elements is null', async () => {
       const stripe = makeStripe(async () => ({ error: undefined }))
-      const onPaymentCompleted = vi.fn()
 
-      const gateway = resolvePaymentGateway({ stripe, elements: null, onPaymentCompleted })
+      const gateway = resolvePaymentGateway({ stripe, elements: null })
 
       await expect(gateway.confirmCardPayment('pi_real_secret')).rejects.toThrow('Stripe not loaded')
     })

@@ -1,35 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createBookingService } from './booking-service'
-import type { OpeningHoursContext } from './booking-service'
+import type { BookingProgress, OpeningHoursContext } from './booking-service'
 import { isAppError } from './errors'
 import type { Api } from './api'
 import type { Booking } from './types'
-import type { PaymentGateway, PaymentResult } from './ports/payment'
-import type { Telemetry, TelemetryEvent } from './ports/telemetry'
+import type { PaymentGateway } from './ports/payment'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** In-memory PaymentGateway for contract tests. */
-function makePaymentGateway(result: PaymentResult = { status: 'succeeded' }): PaymentGateway & { calls: string[] } {
+/** Collect all events from a BookingProgress AsyncIterable. */
+async function collect(stream: AsyncIterable<BookingProgress>): Promise<BookingProgress[]> {
+  const out: BookingProgress[] = []
+  for await (const e of stream) out.push(e)
+  return out
+}
+
+/** In-memory PaymentGateway that resolves (success) or rejects (failure). */
+function makePaymentGateway(mode: 'succeed' | 'fail' | 'throw' = 'succeed'): PaymentGateway & { calls: string[] } {
   const calls: string[] = []
   return {
     calls,
-    async confirmCardPayment(clientSecret: string): Promise<PaymentResult> {
+    async confirmCardPayment(clientSecret: string): Promise<void> {
       calls.push(clientSecret)
-      return result
-    },
-  }
-}
-
-/** In-memory Telemetry for contract tests. */
-function makeTelemetry(): Telemetry & { events: TelemetryEvent[] } {
-  const events: TelemetryEvent[] = []
-  return {
-    events,
-    capture(event: TelemetryEvent) {
-      events.push(event)
+      if (mode === 'fail' || mode === 'throw') {
+        throw new Error('card_declined')
+      }
     },
   }
 }
@@ -280,7 +277,7 @@ describe('BookingService.applyEvent', () => {
 })
 
 // ---------------------------------------------------------------------------
-// book() — four-branch contract tests
+// book() — event-stream contract tests
 // ---------------------------------------------------------------------------
 
 const BASE_BOOK_PARAMS = {
@@ -291,98 +288,147 @@ const BASE_BOOK_PARAMS = {
   marketName: 'Söders Loppis',
 }
 
-describe('BookingService.book — free auto-accept', () => {
-  it('calls edge endpoint, skips payment gateway, emits telemetry', async () => {
+describe('BookingService.book — free booking', () => {
+  it('yields [submitted, created{requiresPayment:false}, succeeded{requiresPayment:false}]', async () => {
     const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-auto' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
-    const payment = makePaymentGateway()
-    const telemetry = makeTelemetry()
-
-    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment, telemetry })
-
-    expect(result).toEqual({ bookingId: 'b-free-auto' })
-    expect(bookingCreate).toHaveBeenCalledWith(expect.objectContaining({ marketTableId: 'tbl-1' }))
-    expect(payment.calls).toHaveLength(0)
-    expect(telemetry.events).toHaveLength(1)
-    expect(telemetry.events[0].name).toBe('booking_initiated')
-    expect(telemetry.events[0].properties).toMatchObject({
-      is_free: true,
-      price_sek: 0,
-      market_name: 'Söders Loppis',
-      table_label: 'Bord A',
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
     })
-  })
-})
-
-describe('BookingService.book — free manual-accept', () => {
-  it('calls edge endpoint without clientSecret, skips payment gateway', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free-manual' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
     const payment = makePaymentGateway()
-    const telemetry = makeTelemetry()
 
-    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment, telemetry })
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment }))
 
-    expect(result).toEqual({ bookingId: 'b-free-manual' })
+    expect(events).toHaveLength(3)
+    expect(events[0]).toMatchObject({ type: 'submitted', input: expect.objectContaining({ priceSek: 0 }) })
+    expect(events[1]).toMatchObject({ type: 'created', bookingId: 'b-free-auto', requiresPayment: false, amountOre: 0 })
+    expect(events[2]).toMatchObject({ type: 'succeeded', bookingId: 'b-free-auto', requiresPayment: false })
+
+    // Payment gateway must NOT be called for free bookings
     expect(payment.calls).toHaveLength(0)
   })
+
+  it('passes correct createParams to the API (strips telemetry-only fields)', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free' })
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway()
+
+    await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment }))
+
+    expect(bookingCreate).toHaveBeenCalledWith({
+      marketTableId: 'tbl-1',
+      fleaMarketId: 'mkt-1',
+      bookingDate: '2026-12-01',
+    })
+    // tableLabel and marketName must NOT be forwarded to the API
+    expect(bookingCreate).not.toHaveBeenCalledWith(expect.objectContaining({ tableLabel: expect.anything() }))
+    expect(bookingCreate).not.toHaveBeenCalledWith(expect.objectContaining({ marketName: expect.anything() }))
+  })
 })
 
-describe('BookingService.book — paid auto-accept', () => {
-  it('calls edge endpoint, confirms payment via gateway', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-auto', clientSecret: 'pi_auto_secret' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
-    const payment = makePaymentGateway({ status: 'succeeded' })
-    const telemetry = makeTelemetry()
+describe('BookingService.book — paid booking (happy path)', () => {
+  it('yields [submitted, created{requiresPayment:true}, payment-required, payment-confirmed, succeeded{requiresPayment:true}]', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid', clientSecret: 'pi_auto_secret' })
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway('succeed')
 
-    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry })
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment }))
 
-    expect(result).toEqual({ bookingId: 'b-paid-auto' })
+    expect(events).toHaveLength(5)
+    expect(events[0]).toMatchObject({ type: 'submitted' })
+    expect(events[1]).toMatchObject({ type: 'created', bookingId: 'b-paid', requiresPayment: true, amountOre: 22400 })
+    expect(events[2]).toMatchObject({ type: 'payment-required', bookingId: 'b-paid', clientSecret: 'pi_auto_secret', amountOre: 22400 })
+    expect(events[3]).toMatchObject({ type: 'payment-confirmed', bookingId: 'b-paid', amountOre: 22400 })
+    expect(events[4]).toMatchObject({ type: 'succeeded', bookingId: 'b-paid', requiresPayment: true })
+
     expect(payment.calls).toEqual(['pi_auto_secret'])
-    expect(telemetry.events[0].properties).toMatchObject({ is_free: false, price_sek: 200 })
-  })
-
-  it('throws an AppError when payment gateway returns failed', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-fail', clientSecret: 'pi_fail' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
-    // 'card_declined' in the error string maps via toAppError → stripe.card_declined
-    const payment = makePaymentGateway({ status: 'failed', error: 'card_declined' })
-    const telemetry = makeTelemetry()
-
-    let thrown: unknown
-    try {
-      await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment, telemetry })
-    } catch (e) {
-      thrown = e
-    }
-    expect(isAppError(thrown)).toBe(true)
-    if (isAppError(thrown)) expect(thrown.code).toBe('stripe.card_declined')
   })
 })
 
-describe('BookingService.book — paid manual-accept', () => {
-  it('calls edge endpoint, confirms payment via gateway (manual capture)', async () => {
-    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-paid-manual', clientSecret: 'pi_manual_secret' })
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
-    const payment = makePaymentGateway({ status: 'succeeded' })
-    const telemetry = makeTelemetry()
+describe('BookingService.book — API failure (booking.create throws)', () => {
+  it('yields [submitted, failed{stage:"create"}]', async () => {
+    const bookingCreate = vi.fn().mockRejectedValue(new Error('Stripe not configured'))
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway()
 
-    const result = await svc.book({ ...BASE_BOOK_PARAMS, priceSek: 500 }, { payment, telemetry })
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 500 }, { payment }))
 
-    expect(result).toEqual({ bookingId: 'b-paid-manual' })
-    expect(payment.calls).toEqual(['pi_manual_secret'])
-    expect(telemetry.events[0].name).toBe('booking_initiated')
+    expect(events).toHaveLength(2)
+    expect(events[0]).toMatchObject({ type: 'submitted' })
+    expect(events[1]).toMatchObject({ type: 'failed', stage: 'create' })
+    expect(isAppError((events[1] as { error: unknown }).error)).toBe(true)
+
+    // Payment gateway must NOT be called when the create call fails
+    expect(payment.calls).toHaveLength(0)
   })
 
-  it('does not confirm payment when edge function throws', async () => {
-    const bookingCreate = vi.fn().mockRejectedValue(new Error('Stripe not configured'))
-    const svc = createBookingService({ api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }) })
+  it('maps known error messages to specific AppError codes', async () => {
+    const bookingCreate = vi.fn().mockRejectedValue(new Error('network error'))
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
     const payment = makePaymentGateway()
-    const telemetry = makeTelemetry()
 
-    await expect(
-      svc.book({ ...BASE_BOOK_PARAMS, priceSek: 500 }, { payment, telemetry }),
-    ).rejects.toThrow('Stripe not configured')
-    expect(payment.calls).toHaveLength(0)
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment }))
+
+    const failed = events[1] as Extract<typeof events[1], { type: 'failed' }>
+    expect(failed.type).toBe('failed')
+    expect(failed.error.code).toBe('stripe.network_error')
+  })
+})
+
+describe('BookingService.book — Stripe payment failure', () => {
+  it('yields [submitted, created, payment-required, failed{stage:"payment"}]', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-fail', clientSecret: 'pi_fail' })
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway('fail')
+
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment }))
+
+    expect(events).toHaveLength(4)
+    expect(events[0]).toMatchObject({ type: 'submitted' })
+    expect(events[1]).toMatchObject({ type: 'created', bookingId: 'b-fail', requiresPayment: true })
+    expect(events[2]).toMatchObject({ type: 'payment-required', bookingId: 'b-fail' })
+    expect(events[3]).toMatchObject({ type: 'failed', stage: 'payment' })
+
+    const failed = events[3] as Extract<typeof events[3], { type: 'failed' }>
+    expect(isAppError(failed.error)).toBe(true)
+    expect(failed.error.code).toBe('stripe.card_declined')
+  })
+})
+
+describe('BookingService.book — amountOre calculation', () => {
+  it('computes amountOre as (price + commission) * 100', async () => {
+    // 200 SEK + 24 SEK commission = 224 SEK = 22400 öre
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-1', clientSecret: 'pi_1' })
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway('succeed')
+
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 200 }, { payment }))
+
+    const created = events.find((e) => e.type === 'created') as Extract<typeof events[0], { type: 'created' }>
+    expect(created.amountOre).toBe(22400)
+  })
+
+  it('sets amountOre to 0 for free bookings', async () => {
+    const bookingCreate = vi.fn().mockResolvedValue({ bookingId: 'b-free' })
+    const svc = createBookingService({
+      api: makeApi({ endpoints: { 'booking.create': { invoke: bookingCreate } } as unknown as Api['endpoints'] }),
+    })
+    const payment = makePaymentGateway()
+
+    const events = await collect(svc.book({ ...BASE_BOOK_PARAMS, priceSek: 0 }, { payment }))
+
+    const created = events.find((e) => e.type === 'created') as Extract<typeof events[0], { type: 'created' }>
+    expect(created.amountOre).toBe(0)
   })
 })
