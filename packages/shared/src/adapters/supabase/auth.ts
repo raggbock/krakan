@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { AuthPort, AuthUser } from '../ports/auth'
+import type { AuthPort, AuthUser } from '../../ports/auth'
 
 function toAuthUser(supabaseUser: { id: string; email?: string } | null): AuthUser | null {
   if (!supabaseUser) return null
