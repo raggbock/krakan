@@ -21,3 +21,18 @@ export function slugifyCity(city: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+/** Format meters to a human-readable string */
+export function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)} m`
+  return `${(meters / 1000).toFixed(1)} km`
+}
+
+/** Format seconds to a human-readable string */
+export function formatDuration(seconds: number): string {
+  const mins = Math.round(seconds / 60)
+  if (mins < 60) return `${mins} min`
+  const hours = Math.floor(mins / 60)
+  const rest = mins % 60
+  return rest > 0 ? `${hours} h ${rest} min` : `${hours} h`
+}

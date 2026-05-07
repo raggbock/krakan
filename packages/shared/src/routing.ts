@@ -1,4 +1,4 @@
-type Coordinate = { lat: number; lng: number }
+import type { Coord } from './types/domain'
 
 export type RouteLeg = {
   distance: number // meters
@@ -17,7 +17,7 @@ export type RoutingResult = {
  * Takes an ordered array of stops and returns the road geometry + leg info.
  */
 export async function fetchDrivingRoute(
-  stops: Coordinate[],
+  stops: Coord[],
 ): Promise<RoutingResult | null> {
   if (stops.length < 2) return null
 
@@ -39,7 +39,7 @@ export async function fetchDrivingRoute(
     const geometry: [number, number][] =
       route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]])
 
-    const legs: RouteLeg[] = route.legs.map((leg: any) => ({
+    const legs: RouteLeg[] = route.legs.map((leg: { distance: number; duration: number }) => ({
       distance: leg.distance,
       duration: leg.duration,
     }))
@@ -53,19 +53,4 @@ export async function fetchDrivingRoute(
   } catch {
     return null
   }
-}
-
-/** Format meters to a human-readable string */
-export function formatDistance(meters: number): string {
-  if (meters < 1000) return `${Math.round(meters)} m`
-  return `${(meters / 1000).toFixed(1)} km`
-}
-
-/** Format seconds to a human-readable string */
-export function formatDuration(seconds: number): string {
-  const mins = Math.round(seconds / 60)
-  if (mins < 60) return `${mins} min`
-  const hours = Math.floor(mins / 60)
-  const rest = mins % 60
-  return rest > 0 ? `${hours} h ${rest} min` : `${hours} h`
 }

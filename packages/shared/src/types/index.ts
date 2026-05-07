@@ -15,6 +15,7 @@ export type {
 } from './shared-enums'
 
 export type {
+  Coord,
   FleaMarketView,
   FleaMarketDetailsView,
   FleaMarketNearByView,
