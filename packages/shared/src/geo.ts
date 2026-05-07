@@ -1,9 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FleaMarketNearBy } from './types'
-import { fetchDrivingRoute, type RoutingResult } from './routing'
+import type { Coord } from './types/domain'
 import { optimizeRoute, type Stop } from './route-optimizer'
 
-export type LatLng = { lat: number; lng: number }
+/**
+ * @deprecated Use `Coord` from '@fyndstigen/shared' instead.
+ * Kept for one release to avoid breaking external imports.
+ */
+export type LatLng = Coord
 
 export class GeocodeError extends Error {
   constructor(address: string, cause?: unknown) {
@@ -22,13 +26,11 @@ export type GeoOptions = {
 
 export type GeoService = {
   /** Geocode a free-text address to coordinates. Throws GeocodeError on failure. */
-  geocode(address: string): Promise<LatLng>
+  geocode(address: string): Promise<Coord>
   /** Find published flea markets within radiusKm of a point. */
-  nearbyMarkets(center: LatLng, radiusKm: number): Promise<FleaMarketNearBy[]>
-  /** Get driving route through ordered stops. */
-  calculateRoute(stops: LatLng[]): Promise<RoutingResult | null>
+  nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearBy[]>
   /** Reorder stops for shortest path (nearest-neighbor). */
-  optimizeStops<T extends Stop>(stops: T[], startPoint?: LatLng): T[]
+  optimizeStops<T extends Stop>(stops: T[], startPoint?: Coord): T[]
 }
 
 export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoService {
@@ -36,7 +38,7 @@ export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoSe
   const userAgent = options?.userAgent ?? 'Fyndstigen/0.1'
 
   return {
-    async geocode(address: string): Promise<LatLng> {
+    async geocode(address: string): Promise<Coord> {
       try {
         const q = encodeURIComponent(address)
         const controller = new AbortController()
@@ -57,7 +59,7 @@ export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoSe
       }
     },
 
-    async nearbyMarkets(center: LatLng, radiusKm: number): Promise<FleaMarketNearBy[]> {
+    async nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearBy[]> {
       const { data, error } = await supabase.rpc('nearby_flea_markets', {
         lat: center.lat,
         lng: center.lng,
@@ -67,11 +69,7 @@ export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoSe
       return data as FleaMarketNearBy[]
     },
 
-    async calculateRoute(stops: LatLng[]): Promise<RoutingResult | null> {
-      return fetchDrivingRoute(stops)
-    },
-
-    optimizeStops<T extends Stop>(stops: T[], startPoint?: LatLng): T[] {
+    optimizeStops<T extends Stop>(stops: T[], startPoint?: Coord): T[] {
       return optimizeRoute(stops, startPoint) as T[]
     },
   }

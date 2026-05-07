@@ -10,6 +10,16 @@ import type { BookingStatus, PaymentStatus, RuleType } from './shared-enums'
 
 export type { BookingStatus, PaymentStatus, RuleType }
 
+// --- Geometry ---
+
+/**
+ * Canonical coordinate type. All callers should use this rather than ad-hoc
+ * `{ lat: number; lng: number }` definitions. The previous file-local aliases
+ * `Coordinate`, `Point`, and `LatLng` have been unified into this single type
+ * (see issue #85).
+ */
+export type Coord = { lat: number; lng: number }
+
 // --- Flea Markets ---
 
 export type FleaMarketView = {

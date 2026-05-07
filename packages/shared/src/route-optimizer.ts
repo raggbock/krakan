@@ -1,18 +1,13 @@
-export type Stop = {
-  id: string
-  lat: number
-  lng: number
-}
+import type { Coord } from './types/domain'
 
-type Point = {
-  lat: number
-  lng: number
+export type Stop = Coord & {
+  id: string
 }
 
 /**
  * Haversine distance in km between two points.
  */
-function distanceKm(a: Point, b: Point): number {
+function distanceKm(a: Coord, b: Coord): number {
   const R = 6371
   const dLat = ((b.lat - a.lat) * Math.PI) / 180
   const dLng = ((b.lng - a.lng) * Math.PI) / 180
@@ -32,7 +27,7 @@ function distanceKm(a: Point, b: Point): number {
  * If startPoint is provided, the first stop will be the one nearest to it.
  * Otherwise, the original first stop is used as the starting point.
  */
-export function optimizeRoute(stops: Stop[], startPoint?: Point): Stop[] {
+export function optimizeRoute(stops: Stop[], startPoint?: Coord): Stop[] {
   if (stops.length <= 1) return [...stops]
 
   const remaining = [...stops]
