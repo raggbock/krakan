@@ -52,6 +52,10 @@ export const queryKeys = {
   takeover: {
     info: (token: string | null) => ['takeover', 'info', token] as const,
   },
+  stripeConnect: {
+    status: (userId: string | undefined) =>
+      ['stripe-connect', 'status', userId] as const,
+  },
   blockSales: {
     all: () => ['blockSales'] as const,
     bySlug: (slug: string) => ['blockSales', 'slug', slug] as const,
