@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { ServerDataPort } from '../ports/server'
+import type { ServerDataPort } from '../../ports/server'
 
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
