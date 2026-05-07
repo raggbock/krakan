@@ -1,19 +1,11 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import React from 'react'
 import { useStripeConnect } from './use-stripe-connect'
 
 const mockInvokeStatus = vi.fn()
 const mockInvokeCreate = vi.fn()
 const mockInvokeRefresh = vi.fn()
-
-vi.mock('@/lib/api', () => ({
-  api: {
-    endpoints: {
-      'stripe.connect.status': { invoke: (...args: unknown[]) => mockInvokeStatus(...args) },
-      'stripe.connect.create': { invoke: (...args: unknown[]) => mockInvokeCreate(...args) },
-      'stripe.connect.refresh': { invoke: (...args: unknown[]) => mockInvokeRefresh(...args) },
-    },
-  },
-}))
 
 vi.mock('@/lib/edge', () => ({
   edge: { invoke: vi.fn(), invokePublic: vi.fn() },
@@ -24,6 +16,15 @@ vi.mock('@/lib/edge', () => ({
   },
 }))
 
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
 describe('useStripeConnect — edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -33,25 +34,27 @@ describe('useStripeConnect — edge cases', () => {
     mockInvokeRefresh.mockResolvedValue({ url: '' })
   })
 
-  it('does not fetch status when userId is undefined', async () => {
-    const { result } = renderHook(() => useStripeConnect(undefined))
+  it('does not fetch status when userId is undefined', () => {
+    const { result } = renderHook(() => useStripeConnect(undefined), { wrapper: createWrapper() })
 
     expect(result.current.loading).toBe(false)
     expect(mockInvokeStatus).not.toHaveBeenCalled()
   })
 
-  it('does not fetch status when userId is empty string', async () => {
-    const { result } = renderHook(() => useStripeConnect(undefined))
+  it('does not fetch status when enabled is false', () => {
+    const { result } = renderHook(
+      () => useStripeConnect('user-1', false),
+      { wrapper: createWrapper() },
+    )
 
     expect(result.current.loading).toBe(false)
-    expect(result.current.connected).toBe(false)
-    expect(result.current.onboardingComplete).toBe(false)
+    expect(mockInvokeStatus).not.toHaveBeenCalled()
   })
 
   it('does not redirect on startOnboarding failure', async () => {
     mockInvokeCreate.mockRejectedValueOnce(new Error('Stripe API down'))
 
-    const { result } = renderHook(() => useStripeConnect('user-1'))
+    const { result } = renderHook(() => useStripeConnect('user-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     const hrefBefore = window.location.href
@@ -65,7 +68,7 @@ describe('useStripeConnect — edge cases', () => {
     mockInvokeStatus.mockResolvedValue({ connected: true, onboarding_complete: false })
     mockInvokeRefresh.mockRejectedValueOnce(new Error('Account not found'))
 
-    const { result } = renderHook(() => useStripeConnect('user-1'))
+    const { result } = renderHook(() => useStripeConnect('user-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await act(async () => { await result.current.refreshOnboarding() })
@@ -76,7 +79,7 @@ describe('useStripeConnect — edge cases', () => {
   it('clears error when startOnboarding succeeds after failure', async () => {
     mockInvokeCreate.mockRejectedValueOnce(new Error('Temporary failure'))
 
-    const { result } = renderHook(() => useStripeConnect('user-1'))
+    const { result } = renderHook(() => useStripeConnect('user-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await act(async () => { await result.current.startOnboarding() })
@@ -89,7 +92,7 @@ describe('useStripeConnect — edge cases', () => {
   })
 
   it('invokes correct endpoint invokers for each action', async () => {
-    const { result } = renderHook(() => useStripeConnect('user-1'))
+    const { result } = renderHook(() => useStripeConnect('user-1'), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(mockInvokeStatus).toHaveBeenCalledWith({})
