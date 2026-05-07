@@ -87,7 +87,14 @@ export type BookingService = {
   applyEvent(current: Booking, event: BookingEvent): BookingPatch
 }
 
-export function createBookingService(deps: { api: Api }): BookingService {
+/**
+ * Structural subset of `Api` used by `createBookingService`. Defined here so
+ * web-side wiring can pass a `{ bookings, endpoints }` object directly
+ * without an `as never` cast (see web/src/lib/booking-service.ts).
+ */
+export type BookingServiceApi = Pick<Api, 'bookings' | 'endpoints'>
+
+export function createBookingService(deps: { api: BookingServiceApi }): BookingService {
   const { api } = deps
 
   return {

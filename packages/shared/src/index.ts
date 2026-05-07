@@ -30,7 +30,7 @@ export type { CreateBookingInput, CreateBookingDecision } from './booking'
 export { applyBookingEvent } from './booking-lifecycle'
 export type { BookingEvent, BookingPatch } from './booking-lifecycle'
 export { createBookingService } from './booking-service'
-export type { BookingService, CreateBookingParams, BookRequestParams, DateValidation } from './booking-service'
+export type { BookingService, BookingServiceApi, CreateBookingParams, BookRequestParams, DateValidation } from './booking-service'
 export type { OpeningHoursContext, BookingDateValidation } from './booking'
 
 // Ports

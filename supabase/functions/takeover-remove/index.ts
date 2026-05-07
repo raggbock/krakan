@@ -3,7 +3,7 @@ import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM, type SendEmailOpts } from '../_shared/email.ts'
 import { takeoverRemovedNotificationEmail } from '../_shared/email-templates/takeover-removed.ts'
 import { validateTakeoverToken } from '../_shared/takeover-token.ts'
-import { sha256Hex } from '../_shared/takeover-helpers.ts'
+import { sha256Hex } from '@fyndstigen/shared/crypto.ts'
 import {
   TakeoverRemoveInput,
   TakeoverRemoveOutput,

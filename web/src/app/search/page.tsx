@@ -8,7 +8,7 @@ import { getInitials } from '@fyndstigen/shared'
 import { useSearch } from '@/hooks/use-search'
 import { marketUrl } from '@/lib/urls'
 import { supabase } from '@/lib/supabase'
-import { safeFilterValue } from '@/lib/postgrest-utils'
+import { safeFilterValue } from './sanitize'
 
 type BlockSaleResult = {
   id: string
