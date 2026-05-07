@@ -29,6 +29,12 @@ jobs:
 
       - name: Run tests
         working-directory: web
+        env:
+          # Placeholders — tests don't make real Supabase calls, but module
+          # initialization in src/lib/supabase/browser.ts throws under jsdom
+          # when these are unset.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder
         run: npx vitest run
 
   # Typecheck all Supabase Edge Functions with Deno.
