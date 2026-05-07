@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { safeFilterValue } from '@/lib/postgrest-utils'
+import { safeFilterValue } from './sanitize'
 
 describe('safeFilterValue', () => {
   it('leaves a plain search term unchanged', () => {

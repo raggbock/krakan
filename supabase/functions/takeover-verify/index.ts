@@ -2,11 +2,8 @@ import { definePublicEndpoint } from '../_shared/public-endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { validateTakeoverToken } from '../_shared/takeover-token.ts'
 import { claimTakeover } from '../_shared/claim-takeover.ts'
-import {
-  MAX_CODE_ATTEMPTS,
-  sha256Hex,
-  timingSafeEqualHex,
-} from '../_shared/takeover-helpers.ts'
+import { sha256Hex, timingSafeEqualHex } from '@fyndstigen/shared/crypto.ts'
+import { MAX_CODE_ATTEMPTS } from '../_shared/takeover-constants.ts'
 import {
   TakeoverVerifyInput,
   TakeoverVerifyOutput,

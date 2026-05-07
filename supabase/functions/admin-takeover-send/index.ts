@@ -2,7 +2,7 @@ import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { sendEmail, DEFAULT_FROM } from '../_shared/email.ts'
 import { takeoverInviteEmail } from '../_shared/email-templates/takeover-invite.ts'
-import { sha256Hex } from '../_shared/takeover-helpers.ts'
+import { sha256Hex } from '@fyndstigen/shared/crypto.ts'
 import {
   AdminTakeoverSendInput,
   AdminTakeoverSendOutput,
