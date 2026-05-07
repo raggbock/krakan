@@ -9,7 +9,8 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const { updatePassword } = useAuth()
+  const { auth } = useAuth()
+  const { updatePassword } = auth
   const [ready, setReady] = useState(false)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
