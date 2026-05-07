@@ -30,9 +30,12 @@ jobs:
       - name: Run tests
         working-directory: web
         env:
-          # Placeholders — tests don't make real Supabase calls, but module
-          # initialization in src/lib/supabase/browser.ts throws under jsdom
-          # when these are unset.
+          # Placeholders — src/lib/supabase/browser.ts (since the @supabase/ssr
+          # switch in 696b8d5) throws at import time under jsdom when these are
+          # unset, breaking any test that transitively imports a page using
+          # the supabase client. Tests don't make real Supabase calls, so
+          # hardcoded placeholders are sufficient and avoid leaking real
+          # secrets into the unit-test job.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder
         run: npx vitest run

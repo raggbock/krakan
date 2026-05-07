@@ -7,6 +7,10 @@ import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { marketUrl } from '@/lib/urls'
 
+// ISR: revalidate every hour — city listing pages are stable; kvartersloppisar
+// are dated events so 1h staleness is acceptable.
+export const revalidate = 3600
+
 type Props = {
   params: Promise<{ city: string }>
 }
@@ -28,6 +32,13 @@ async function resolveCity(slug: string) {
     cityNames: matches.map((c) => c.city),
     marketCount: matches.reduce((sum, c) => sum + c.marketCount, 0),
   }
+}
+
+export async function generateStaticParams() {
+  // Pre-render all city pages at build time — city list is bounded and
+  // changes infrequently. ISR (revalidate = 3600) handles new cities.
+  const cities = await getServerData().listCitiesWithMarkets()
+  return cities.map((c) => ({ city: slugifyCity(c.city) }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

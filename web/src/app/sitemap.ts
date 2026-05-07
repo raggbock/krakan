@@ -19,7 +19,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/fragor-svar`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  const markets = await server.listPublishedMarketIds()
+  // Fetch all data sources in parallel — they are independent DB queries.
+  const [markets, cities, routes, blockSales] = await Promise.all([
+    server.listPublishedMarketIds(),
+    server.listCitiesWithMarkets(),
+    server.listPublishedRouteIds(),
+    server.listPublishedBlockSaleIds(),
+  ])
+
   // Prefer slug URLs — every published market has one (DB-enforced unique
   // index). The id-fallback is purely defensive in case a slugless row
   // sneaks through during a future migration; it 308-redirects to the
@@ -33,7 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }))
 
-  const cities = await server.listCitiesWithMarkets()
   const citySlugs = new Set<string>()
   for (const c of cities) citySlugs.add(slugifyCity(c.city))
   const cityPages: MetadataRoute.Sitemap = cities
@@ -46,7 +52,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-  const routes = await server.listPublishedRouteIds()
   const routePages: MetadataRoute.Sitemap = routes.map((r) => ({
     url: `${baseUrl}/rundor/${r.id}`,
     lastModified: new Date(r.updatedAt),
@@ -54,7 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  const blockSales = await server.listPublishedBlockSaleIds()
   const blockSalePages: MetadataRoute.Sitemap = blockSales.map((bs) => ({
     url: `${baseUrl}/kvartersloppis/${bs.slug}`,
     lastModified: new Date(bs.updatedAt),

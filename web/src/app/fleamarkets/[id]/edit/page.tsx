@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
@@ -167,7 +168,7 @@ export default function EditMarketPage() {
                   key={img.id}
                   className={`relative aspect-square rounded-lg overflow-hidden bg-cream-warm group ${isDeleted ? 'opacity-30' : ''}`}
                 >
-                  <img src={imagePort.publicUrl(img.storage_path)} alt="" className="w-full h-full object-cover" />
+                  <Image src={imagePort.publicUrl(img.storage_path)} alt="" fill sizes="96px" className="object-cover" />
                   {isDeleted ? (
                     <button
                       type="button"
@@ -192,7 +193,7 @@ export default function EditMarketPage() {
             })}
             {images.newPreviews.map((src, i) => (
               <div key={`new-${i}`} className="relative aspect-square rounded-lg overflow-hidden bg-cream-warm group">
-                <img src={src} alt="" className="w-full h-full object-cover" />
+                <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 <button
                   type="button"
                   onClick={() => images.removeNew(i)}

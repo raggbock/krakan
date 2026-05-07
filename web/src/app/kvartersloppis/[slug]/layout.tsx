@@ -1,9 +1,25 @@
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData } from '@fyndstigen/shared'
 import { expandEventDates } from '@fyndstigen/shared/block-sale'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+
+// ISR: revalidate every hour — kvartersloppis pages are stable once published.
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  // Pre-render all currently-published kvartersloppis at build time.
+  // Low volume initially; ISR (revalidate = 3600) handles any new ones.
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+  )
+  const server = createSupabaseServerData(sb)
+  const blockSales = await server.listPublishedBlockSaleIds()
+  return blockSales.map((bs) => ({ slug: bs.slug }))
+}
 
 type Props = { params: Promise<{ slug: string }>; children: React.ReactNode }
 

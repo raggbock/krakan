@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { withSentryConfig } from "@sentry/nextjs";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@fyndstigen/shared'],
@@ -68,7 +73,7 @@ const nextConfig: NextConfig = {
 
 initOpenNextCloudflareForDev();
 
-export default withSentryConfig(nextConfig, {
+export default withBundleAnalyzer(withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
 
@@ -83,4 +88,4 @@ export default withSentryConfig(nextConfig, {
 
   // Suppress non-CI output
   silent: !process.env.CI,
-});
+}));

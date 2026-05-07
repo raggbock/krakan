@@ -3,12 +3,13 @@ import { Fraunces, Nunito } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { Nav } from '@/components/nav'
-import { TrailBackground } from '@/components/trail-background'
+import { TrailBackgroundLazy } from '@/components/trail-background-lazy'
 import { PostHogProvider, PostHogPageview } from '@/lib/posthog'
 import { QueryProvider } from '@/providers/query-provider'
 import { Suspense } from 'react'
 import { CookieConsent } from '@/components/cookie-consent'
 import { CookieSettingsLink } from '@/components/cookie-settings-link'
+import { WebVitalsReporter } from '@/components/web-vitals-reporter'
 import Link from 'next/link'
 
 const fraunces = Fraunces({
@@ -25,6 +26,12 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fyndstigen.se'),
+  icons: {
+    // Explicit static icon prevents Next.js from generating a dynamic /icon
+    // route (which added ~863ms per takeover page load due to runtime overhead).
+    // Serving from /public gives full CDN cache with long max-age headers.
+    icon: '/icon.svg',
+  },
   title: {
     default: 'Hitta loppis — Loppisar och loppmarknader i hela Sverige | Fyndstigen',
     template: '%s | Fyndstigen',
@@ -112,6 +119,15 @@ export default function RootLayout({
       lang="sv"
       className={`${fraunces.variable} ${nunito.variable} h-full antialiased`}
     >
+      <head>
+        {/* Reduce connection latency to Supabase (auth + data) */}
+        <link rel="preconnect" href="https://yqeegfhwbjnlrdurstxp.supabase.co" />
+        {/* Reduce connection latency to PostHog analytics */}
+        <link rel="preconnect" href="https://eu.i.posthog.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://eu-assets.i.posthog.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for Sentry (error reporting — doesn't need full preconnect) */}
+        <link rel="dns-prefetch" href="https://o.ingest.sentry.io" />
+      </head>
       <body className="min-h-full flex flex-col font-body">
         <script
           type="application/ld+json"
@@ -122,12 +138,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <PostHogProvider>
+          <WebVitalsReporter />
           <QueryProvider>
           <AuthProvider>
             <Suspense fallback={null}>
               <PostHogPageview />
             </Suspense>
-            <TrailBackground />
+            <TrailBackgroundLazy />
             <Nav />
             <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
             <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
@@ -142,12 +159,16 @@ export default function RootLayout({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-espresso/60">
-                    <Link href="/fragor-svar" className="hover:text-espresso transition-colors">
+                    <Link href="/fragor-svar" prefetch={false} className="hover:text-espresso transition-colors">
                       Frågor & svar
                     </Link>
-                    <Link href="/integritetspolicy" className="hover:text-espresso transition-colors">
+                    <a
+                      href="https://fyndstigen.se/integritetspolicy"
+                      aria-label="Privacy Policy"
+                      className="hover:text-espresso transition-colors"
+                    >
                       Integritetspolicy
-                    </Link>
+                    </a>
                     <CookieSettingsLink />
                     <a
                       href="mailto:hej@fyndstigen.se"

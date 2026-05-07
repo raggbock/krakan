@@ -6,7 +6,7 @@ import type { MarketTable } from '@fyndstigen/shared'
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('@/hooks/use-booking', () => ({ useBooking: vi.fn() }))
-vi.mock('@/lib/stripe', () => ({ stripePromise: null }))
+vi.mock('@/lib/stripe', () => ({ getStripe: () => Promise.resolve(null) }))
 vi.mock('@stripe/react-stripe-js', () => ({
   Elements: ({ children }: any) => children,
   CardElement: () => <div data-testid="card-element" />,

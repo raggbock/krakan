@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData } from '@fyndstigen/shared'
 
+// ISR: revalidate every hour — organizer profiles are stable, public data.
+export const revalidate = 3600
+
 type Props = {
   params: Promise<{ id: string }>
   children: React.ReactNode
