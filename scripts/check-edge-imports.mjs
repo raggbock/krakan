@@ -66,6 +66,15 @@ const ALLOWED_SUBPATHS = new Set([
   'crypto',                                        // sha256Hex, generateCode, timingSafeEqualHex
   'adapters/supabase/booking-repo',                // Supabase DB adapter
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
+  'adapters/supabase/stripe-account-repo',         // Supabase DB adapter (Connect onboarding flag)
+  'adapters/supabase/subscription-repo',           // Supabase DB adapter (profiles.subscription_tier)
+  'stripe-webhook',                                // pure reducer mapping Stripe events → commands
+  'ports/booking-repo',                            // type-only port interface
+  'ports/stripe-account-repo',                     // type-only port interface
+  'ports/subscription-repo',                       // type-only port interface
+  'ports/logger',                                  // type-only port interface (structured logging)
+  'types',                                         // type-only domain types (Booking)
+  'contracts/route-create-anon',                   // zod schema (pre-existing miss)
 ]);
 
 /**

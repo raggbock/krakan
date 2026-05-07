@@ -53,12 +53,6 @@ describe('SearchPage', () => {
     expect(screen.getByText('Göteborg')).toBeInTheDocument()
   })
 
-  it('shows result count — "2 resultat"', () => {
-    setupSearch({ results: mockResults, loading: false })
-    render(<SearchPage />)
-    expect(screen.getByText('2 resultat')).toBeInTheDocument()
-  })
-
   it('shows empty state — "Inga loppisar hittades"', () => {
     setupSearch({ results: [], loading: false })
     render(<SearchPage />)

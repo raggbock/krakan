@@ -23,7 +23,7 @@ export type HandleBlockSaleDecideDeps = {
 
 export async function handleBlockSaleDecide(
   deps: HandleBlockSaleDecideDeps,
-): Promise<{ ok: true; decided: number }> {
+): Promise<{ ok: true; decided: number; emailFailures: number }> {
   const {
     admin,
     userId,

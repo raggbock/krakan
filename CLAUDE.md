@@ -6,10 +6,16 @@ Swedish flea market platform — discover markets, book tables, plan routes.
 
 ```
 packages/shared/    — Domain logic, types, ports & adapters (@fyndstigen/shared)
-web/                — Next.js frontend (Cloudflare Workers deploy)
+web/                — Next.js frontend (Cloudflare Workers deploy) — primary product
 supabase/functions/ — Supabase Edge Functions (Deno, Stripe payments)
 supabase/migrations — PostgreSQL migrations
+scripts/            — Seed-data scrapers + bulk-import (OSM, chain stores)
+app/                — React Native client (legacy, name still "loppan"; not in CI)
+mobile/             — Expo client (newer attempt; not in CI)
 ```
+
+The web app is the primary product. Both mobile clients import `@fyndstigen/shared`
+but are not built or deployed by CI; check with the maintainer before touching them.
 
 ## Key architecture decisions
 
@@ -49,6 +55,9 @@ node node_modules/wrangler/bin/wrangler.js deploy --config web/wrangler.staging.
 - Map markers use shared utilities from `web/src/lib/map-markers.ts`
 - React Query hooks follow the pattern: `queryKeys` in `web/src/lib/query-keys.ts`
 - Edge functions use `createHandler()` from `_shared/handler.ts`
+- **Tests are co-located with source.** `foo.ts` → `foo.test.ts` next to it.
+  No `__tests__/` directories. The lone `web/src/test/` directory holds
+  vitest setup only (`setup.ts`), not test cases.
 
 ## Important files
 

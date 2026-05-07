@@ -31,11 +31,15 @@ export function createSupabaseBookingRepo(admin: SupabaseClient): BookingRepo {
     async findByPaymentIntent(paymentIntentId) {
       const { data, error } = await admin
         .from('bookings')
-        .select(BookingQuery.core.select)
+        .select(`${BookingQuery.core.select}, flea_markets!inner(auto_accept_bookings)`)
         .eq('stripe_payment_intent_id', paymentIntentId)
         .single()
       if (error || !data) return null
-      return data as unknown as Booking
+      const { flea_markets, ...bookingData } = data as unknown as Record<string, unknown> & { flea_markets: { auto_accept_bookings: boolean } }
+      return {
+        booking: bookingData as unknown as Booking,
+        autoAccept: !!flea_markets?.auto_accept_bookings,
+      }
     },
 
     async applyEvent(id, event) {

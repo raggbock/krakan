@@ -15,11 +15,16 @@ Live: [fyndstigen.se](https://fyndstigen.se)
 
 ```
 packages/shared/    Domänlogik, kontrakt, errors (@fyndstigen/shared)
-web/                Next.js-appen
+web/                Next.js-appen — primärprodukt
 supabase/functions/ Edge functions (auth, betalningar, admin-actions, e-post)
 supabase/migrations PostgreSQL-migrations
 scripts/            Scrapers + bulk-import för seed-data (OSM, Erikshjälpen, Myrorna, PMU, m.fl.)
+app/                React Native-klient (legacy, namnet är fortfarande "loppan"; ingår ej i CI)
+mobile/             Expo-klient (nyare försök; ingår ej i CI)
 ```
+
+Webben är primärprodukten. Båda mobilklienterna importerar `@fyndstigen/shared`
+men byggs eller deployas inte automatiskt — kolla med ägaren innan du rör dem.
 
 ## Lokal utveckling
 

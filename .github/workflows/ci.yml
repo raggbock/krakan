@@ -29,14 +29,16 @@ jobs:
 
       - name: Run tests
         working-directory: web
-        run: npx vitest run
         env:
-          # Required since the switch to @supabase/ssr's createBrowserClient
-          # (commit 696b8d5) — it throws at import time if env vars are
-          # missing, breaking tests that transitively import any page that
-          # uses the supabase client. Lighthouse step already has these.
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Placeholders — src/lib/supabase/browser.ts (since the @supabase/ssr
+          # switch in 696b8d5) throws at import time under jsdom when these are
+          # unset, breaking any test that transitively imports a page using
+          # the supabase client. Tests don't make real Supabase calls, so
+          # hardcoded placeholders are sufficient and avoid leaking real
+          # secrets into the unit-test job.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.placeholder
+        run: npx vitest run
 
   # Typecheck all Supabase Edge Functions with Deno.
   # Pin to the Deno version shipped in Supabase Edge Runtime.
