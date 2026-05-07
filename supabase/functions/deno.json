@@ -2,7 +2,8 @@
   "imports": {
     "@fyndstigen/shared/": "../../packages/shared/src/",
     "zod": "https://esm.sh/zod@4.3.6",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "stripe": "https://esm.sh/stripe@17?target=deno"
   },
   "unstable": ["sloppy-imports"]
 }
