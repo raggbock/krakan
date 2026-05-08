@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useBooking } from './use-booking'
 import { isAppError } from '@fyndstigen/shared'
-import type { Deps } from '@fyndstigen/shared'
+import type { Deps, BookingProgress } from '@fyndstigen/shared'
 import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
 import { DepsProvider } from '@/providers/deps-provider'
 import React from 'react'
@@ -22,30 +22,38 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: 'card-element',
 }))
 
-// Mock booking-service (edge + bookingService facade — bookings now reach the
-// hook via Deps, so bookings is no longer mocked here).
-// vi.hoisted() runs before vi.mock() hoisting so the reference is safe.
-const { _mockedBookingCreate } = vi.hoisted(() => ({
-  _mockedBookingCreate: vi.fn().mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' }),
+// ---------------------------------------------------------------------------
+// Scripted async generator helpers
+// ---------------------------------------------------------------------------
+
+/** Build an async generator that yields a fixed sequence of BookingProgress events. */
+async function* makeStream(events: BookingProgress[]): AsyncIterable<BookingProgress> {
+  for (const e of events) yield e
+}
+
+// vi.hoisted() so the mock reference is available inside vi.mock() factory
+const { mockBook } = vi.hoisted(() => ({
+  mockBook: vi.fn(),
 }))
 
+// Mock the entire bookingService module. `book` is replaced with mockBook so
+// individual tests can script the event sequence via makeStream().
 vi.mock('@/lib/booking-service', async () => {
   const { createBookingService } = await import('@fyndstigen/shared')
   const mockedApi = {
-    endpoints: { 'booking.create': { invoke: _mockedBookingCreate } },
+    endpoints: { 'booking.create': { invoke: vi.fn().mockResolvedValue({ bookingId: 'b-1' }) } },
     edge: { invoke: vi.fn().mockResolvedValue({}) },
   }
+  const base = createBookingService({ api: mockedApi as never })
   return {
-    bookingService: createBookingService({ api: mockedApi as never }),
+    bookingService: {
+      ...base,
+      book: (...args: Parameters<typeof base.book>) => mockBook(...args),
+    },
   }
 })
 
-// Expose a handle so tests can assert on invoke calls.
-const api = { endpoints: { 'booking.create': { invoke: _mockedBookingCreate } } }
-
-// Booking adapter under test: vi.fn-backed so per-test resolveValue still works.
-// The Deps object is constructed ONCE at module load — DepsProvider expects a
-// stable reference, and recreating per render would re-fire effects forever.
+// Booking adapter under test
 const mockAvailableDates = vi.fn().mockResolvedValue([] as string[])
 const testDeps: Deps = (() => {
   const base = makeInMemoryDeps()
@@ -58,13 +66,13 @@ const testDeps: Deps = (() => {
 const wrapper = ({ children }: { children: React.ReactNode }) =>
   React.createElement(DepsProvider, { deps: testDeps }, children)
 
-// Mock shared imports
 vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual }
 })
 
 import type { OpeningHoursContext } from '@fyndstigen/shared'
+import { appError } from '@fyndstigen/shared'
 
 // Saturday-only market (day_of_week: 6)
 const saturdayOnlyHours: OpeningHoursContext = {
@@ -102,12 +110,32 @@ const mockFreeTable = {
   price_sek: 0,
 }
 
+/** Default happy-path stream for a paid booking. */
+function paidSuccessStream(bookingId = 'booking-1'): AsyncIterable<BookingProgress> {
+  return makeStream([
+    { type: 'submitted', input: {} as never },
+    { type: 'created', bookingId, requiresPayment: true, amountOre: 22400 },
+    { type: 'payment-required', bookingId, clientSecret: 'pi_test_secret', amountOre: 22400 },
+    { type: 'payment-confirmed', bookingId, amountOre: 22400 },
+    { type: 'succeeded', bookingId, requiresPayment: true },
+  ])
+}
+
+/** Default happy-path stream for a free booking. */
+function freeSuccessStream(bookingId = 'booking-free'): AsyncIterable<BookingProgress> {
+  return makeStream([
+    { type: 'submitted', input: {} as never },
+    { type: 'created', bookingId, requiresPayment: false, amountOre: 0 },
+    { type: 'succeeded', bookingId, requiresPayment: false },
+  ])
+}
+
 describe('useBooking', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(mockAvailableDates).mockResolvedValue([])
-    mockConfirmCardPayment.mockResolvedValue({ error: null })
-    vi.mocked(api.endpoints['booking.create'].invoke).mockResolvedValue({ clientSecret: 'pi_test_secret', bookingId: 'booking-1' })
+    // Default: paid booking success
+    mockBook.mockImplementation(() => paidSuccessStream())
   })
 
   it('starts with empty state', () => {
@@ -202,7 +230,9 @@ describe('useBooking', () => {
     })
   })
 
-  it('submit creates payment intent and confirms card', async () => {
+  it('submit sets isDone on success (paid booking)', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream())
+
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => {
@@ -213,26 +243,40 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    // Verify edge function was called
-    expect(api.endpoints['booking.create'].invoke).toHaveBeenCalledWith(expect.objectContaining({
-      marketTableId: 'table-1',
-      fleaMarketId: 'market-1',
-      bookingDate: '2026-12-01',
-    }))
-
-    // Verify Stripe card confirmation
-    expect(mockConfirmCardPayment).toHaveBeenCalledWith('pi_test_secret', {
-      payment_method: { card: {} },
-    })
-
     expect(result.current.isDone).toBe(true)
     expect(result.current.selectedTable).toBeNull()
   })
 
-  it('submit sets error on payment failure', async () => {
-    mockConfirmCardPayment.mockResolvedValue({
-      error: { message: 'Card declined' },
+  it('submit passes correct params to bookingService.book', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream())
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
     })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(mockBook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        marketTableId: 'table-1',
+        fleaMarketId: 'market-1',
+        bookingDate: '2026-12-01',
+      }),
+      expect.objectContaining({ payment: expect.anything() }),
+    )
+  })
+
+  it('submit sets error on failure (failed event)', async () => {
+    mockBook.mockImplementation(() => makeStream([
+      { type: 'submitted', input: {} as never },
+      { type: 'created', bookingId: 'b-1', requiresPayment: true, amountOre: 22400 },
+      { type: 'payment-required', bookingId: 'b-1', clientSecret: 'pi_fail', amountOre: 22400 },
+      { type: 'failed', stage: 'payment', error: appError('stripe.card_declined') },
+    ]))
 
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
@@ -245,12 +289,15 @@ describe('useBooking', () => {
     await act(async () => { await result.current.submit() })
 
     expect(isAppError(result.current.submitError)).toBe(true)
-    expect(result.current.submitError?.code).toBe('unknown')
+    expect(result.current.submitError?.code).toBe('stripe.card_declined')
     expect(result.current.isDone).toBe(false)
   })
 
-  it('submit sets error when edge function fails', async () => {
-    vi.mocked(api.endpoints['booking.create'].invoke).mockRejectedValue(new Error('Organizer has not completed Stripe setup'))
+  it('submit sets error when create fails', async () => {
+    mockBook.mockImplementation(() => makeStream([
+      { type: 'submitted', input: {} as never },
+      { type: 'failed', stage: 'create', error: appError('unknown') },
+    ]))
 
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
@@ -285,7 +332,7 @@ describe('useBooking', () => {
   })
 
   it('submit skips Stripe for free table', async () => {
-    vi.mocked(api.endpoints['booking.create'].invoke).mockResolvedValue({ bookingId: 'booking-free' })
+    mockBook.mockImplementation(() => freeSuccessStream())
 
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
@@ -297,15 +344,9 @@ describe('useBooking', () => {
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
     await act(async () => { await result.current.submit() })
 
-    // Edge function called with free table
-    expect(api.endpoints['booking.create'].invoke).toHaveBeenCalledWith(expect.objectContaining({
-      marketTableId: 'table-free',
-    }))
-
-    // Stripe NOT called — no clientSecret returned
-    expect(mockConfirmCardPayment).not.toHaveBeenCalled()
-
     expect(result.current.isDone).toBe(true)
+    // Stripe's confirmCardPayment must NOT be called for free bookings
+    expect(mockConfirmCardPayment).not.toHaveBeenCalled()
   })
 
   it('switching from paid to free table updates pricing', () => {
@@ -457,7 +498,10 @@ describe('useBooking', () => {
   })
 
   it('submitError is an AppError, not a plain string', async () => {
-    vi.mocked(api.endpoints['booking.create'].invoke).mockRejectedValue(new Error('network failure'))
+    mockBook.mockImplementation(() => makeStream([
+      { type: 'submitted', input: {} as never },
+      { type: 'failed', stage: 'create', error: appError('unknown') },
+    ]))
 
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
@@ -525,5 +569,257 @@ describe('useBooking', () => {
     })
 
     await waitFor(() => expect(result.current.canSubmit).toBe(true))
+  })
+
+  // ── Telemetry assertions ────────────────────────────────────────────────
+
+  it('fires booking_submitted telemetry on submit', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream())
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(mockCapture).toHaveBeenCalledWith('booking_submitted', expect.objectContaining({
+      market_id: 'market-1',
+      is_free: false,
+    }))
+  })
+
+  it('fires booking_payment_completed telemetry after payment-confirmed event', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream('b-paid-1'))
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(mockCapture).toHaveBeenCalledWith('booking_payment_completed', expect.objectContaining({
+      booking_id: 'b-paid-1',
+      market_id: 'market-1',
+      amount_ore: 22400,
+    }))
+  })
+
+  it('fires booking_succeeded telemetry on succeeded event', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream('b-ok'))
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(mockCapture).toHaveBeenCalledWith('booking_succeeded', expect.objectContaining({
+      booking_id: 'b-ok',
+      market_id: 'market-1',
+      requires_payment: true,
+    }))
+  })
+
+  it('fires booking_failed telemetry on failed event', async () => {
+    mockBook.mockImplementation(() => makeStream([
+      { type: 'submitted', input: {} as never },
+      { type: 'failed', stage: 'payment', error: appError('stripe.card_declined') },
+    ]))
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(mockCapture).toHaveBeenCalledWith('booking_failed', expect.objectContaining({
+      market_id: 'market-1',
+      stage: 'payment',
+      reason: 'stripe.card_declined',
+    }))
+  })
+
+  it('fires telemetry in correct order for paid booking', async () => {
+    mockBook.mockImplementation(() => paidSuccessStream('b-ordered'))
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    const calls = mockCapture.mock.calls.map(([name]: [string]) => name)
+    expect(calls).toEqual(['booking_submitted', 'booking_payment_completed', 'booking_succeeded'])
+  })
+
+  it('does NOT fire booking_payment_completed for free booking', async () => {
+    mockBook.mockImplementation(() => freeSuccessStream())
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockFreeTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    const calls = mockCapture.mock.calls.map(([name]: [string]) => name)
+    expect(calls).not.toContain('booking_payment_completed')
+    expect(calls).toContain('booking_succeeded')
+  })
+
+  // ── isSubmitting / canSubmit timing ────────────────────────────────────
+
+  it('isSubmitting is true during stream consumption', async () => {
+    let resolveStream!: () => void
+    mockBook.mockImplementation(() => {
+      return (async function* () {
+        yield { type: 'submitted', input: {} } as BookingProgress
+        // Pause until test resolves
+        await new Promise<void>((r) => { resolveStream = r })
+        yield { type: 'succeeded', bookingId: 'b-1', requiresPayment: false } as BookingProgress
+      })()
+    })
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+
+    let submitDone = false
+    result.current.submit().then(() => { submitDone = true })
+
+    await waitFor(() => expect(result.current.isSubmitting).toBe(true))
+
+    await act(async () => {
+      resolveStream()
+      await Promise.resolve()
+    })
+
+    await waitFor(() => expect(submitDone).toBe(true))
+    expect(result.current.isSubmitting).toBe(false)
+  })
+
+  it('canSubmit is false while submitting', async () => {
+    let resolveStream!: () => void
+    mockBook.mockImplementation(() => {
+      return (async function* () {
+        yield { type: 'submitted', input: {} } as BookingProgress
+        await new Promise<void>((r) => { resolveStream = r })
+        yield { type: 'succeeded', bookingId: 'b-1', requiresPayment: false } as BookingProgress
+      })()
+    })
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+
+    result.current.submit()
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(false))
+
+    await act(async () => {
+      resolveStream()
+      await Promise.resolve()
+    })
+
+    await waitFor(() => expect(result.current.isSubmitting).toBe(false))
+  })
+
+  it('clears previous error on new submit attempt', async () => {
+    mockBook.mockImplementationOnce(() => makeStream([
+      { type: 'submitted', input: {} as never },
+      { type: 'failed', stage: 'create', error: appError('unknown') },
+    ]))
+
+    const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-01')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+    expect(result.current.submitError).toBeTruthy()
+
+    // Second attempt succeeds
+    mockBook.mockImplementationOnce(() => paidSuccessStream())
+
+    act(() => {
+      result.current.selectTable(mockTable)
+      result.current.setDate('2026-12-02')
+    })
+
+    await waitFor(() => expect(result.current.canSubmit).toBe(true))
+    await act(async () => { await result.current.submit() })
+
+    expect(result.current.submitError).toBeNull()
+    expect(result.current.isDone).toBe(true)
+  })
+
+  it('different table prices produce different commissions', () => {
+    const { result: r1 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
+    const { result: r2 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
+
+    act(() => { r1.current.selectTable({ ...mockTable, price_sek: 100 }) })
+    act(() => { r2.current.selectTable({ ...mockTable, price_sek: 500 }) })
+
+    expect(r1.current.commission).toBe(12)
+    expect(r1.current.totalPrice).toBe(112)
+    expect(r2.current.commission).toBe(60)
+    expect(r2.current.totalPrice).toBe(560)
+  })
+
+  it('changing table recalculates prices', () => {
+    const { result } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
+
+    act(() => { result.current.selectTable({ ...mockTable, price_sek: 100 }) })
+    expect(result.current.totalPrice).toBe(112)
+
+    act(() => { result.current.selectTable({ ...mockTable, price_sek: 300 }) })
+    expect(result.current.totalPrice).toBe(336)
+  })
+
+  it('deselecting table zeros out prices', () => {
+    const { result } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
+
+    act(() => { result.current.selectTable(mockTable) })
+    expect(result.current.totalPrice).toBe(224)
+
+    act(() => { result.current.selectTable(null) })
+    expect(result.current.commission).toBe(0)
+    expect(result.current.totalPrice).toBe(0)
   })
 })

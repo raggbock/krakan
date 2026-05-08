@@ -13,13 +13,19 @@
 
 import type { Api } from './api'
 import type { Booking } from './types'
+
+/**
+ * Narrow API surface required by createBookingService.
+ * Callers can use this type to construct a minimal API object.
+ */
+export type BookingServiceApi = Pick<Api, 'bookings' | 'endpoints'>
 import type { BookingEvent, BookingPatch } from './booking-lifecycle'
 import { calculateCommission, validateBookingDate, isFreePriced } from './booking'
 import type { OpeningHoursContext, BookingDateValidation } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
 import { toAppError } from './errors'
+import type { AppError } from './errors'
 import type { PaymentGateway } from './ports/payment'
-import type { Telemetry } from './ports/telemetry'
 
 // Re-exported so callers need only this import surface.
 // OpeningHoursContext stays canonical in ./booking.ts — re-exported from the
@@ -45,6 +51,29 @@ export type BookRequestParams = CreateBookingParams & {
   priceSek: number
 }
 
+/** Alias so consumers can reference the input type by the name used in BookingProgress. */
+export type BookSubmitInput = BookRequestParams
+
+/**
+ * Event stream emitted by `BookingService.book()`.
+ *
+ * The terminal event is always `succeeded` or `failed`.
+ * Consumers should handle all variants exhaustively; new variants may be
+ * added in future minor versions — treat unknown types as ignorable no-ops.
+ */
+export type BookingProgress =
+  | { type: 'submitted';         input: BookSubmitInput }
+  | { type: 'created';           bookingId: string; requiresPayment: boolean; amountOre: number }
+  | { type: 'payment-required';  bookingId: string; clientSecret: string; amountOre: number }
+  | { type: 'payment-confirmed'; bookingId: string; amountOre: number }
+  | { type: 'succeeded';         bookingId: string; requiresPayment: boolean }
+  | { type: 'failed';            stage: 'submit' | 'create' | 'payment'; error: AppError }
+
+export interface BookOptions {
+  payment: PaymentGateway
+  signal?: AbortSignal
+}
+
 export type BookingService = {
   /**
    * Calculate price breakdown for a given table price.
@@ -68,14 +97,16 @@ export type BookingService = {
   createWithPayment(params: CreateBookingParams): Promise<{ clientSecret?: string; bookingId: string }>
 
   /**
-   * Full client-side booking orchestration:
-   *   1. Emits booking_initiated telemetry
-   *   2. Calls the edge endpoint
-   *   3. If clientSecret present, confirms payment via PaymentGateway
+   * Full client-side booking orchestration as an event stream.
    *
-   * Throws on network or payment failure so the caller can handle errors.
+   * Yields `BookingProgress` events in order:
+   *   submitted → created → [payment-required → payment-confirmed] → succeeded
+   *
+   * On any failure yields `failed` as the terminal event — never throws.
+   * Telemetry is the caller's responsibility (hook consumes the stream and
+   * fires posthog.capture per event type).
    */
-  book(params: BookRequestParams, ports: { payment: PaymentGateway; telemetry: Telemetry }): Promise<{ bookingId: string }>
+  book(params: BookRequestParams, opts: BookOptions): AsyncIterable<BookingProgress>
 
   /** Organizer approves a pending booking — triggers Stripe capture server-side. */
   capture(bookingId: string): Promise<void>
@@ -88,11 +119,15 @@ export type BookingService = {
 }
 
 /**
- * Structural subset of `Api` used by `createBookingService`. Defined here so
- * web-side wiring can pass a `{ bookings, endpoints }` object directly
- * without an `as never` cast (see web/src/lib/booking-service.ts).
+ * Classify which stage failed based on whether we have a bookingId yet.
+ *  - No bookingId: the create API call failed  → 'create'
+ *  - bookingId present: payment confirmation failed → 'payment'
+ *  - (The 'submit' stage is reserved for pre-API validation failures.)
  */
-export type BookingServiceApi = Pick<Api, 'bookings' | 'endpoints'>
+function classifyStage(bookingId: string | undefined): 'submit' | 'create' | 'payment' {
+  if (bookingId === undefined) return 'create'
+  return 'payment'
+}
 
 export function createBookingService(deps: { api: BookingServiceApi }): BookingService {
   const { api } = deps
@@ -120,31 +155,50 @@ export function createBookingService(deps: { api: BookingServiceApi }): BookingS
       return api.endpoints['booking.create'].invoke(params)
     },
 
-    async book(params, { payment, telemetry }) {
-      const { tableLabel, marketName, priceSek, ...createParams } = params
+    async *book(params, { payment }) {
+      yield { type: 'submitted', input: params }
+
+      const { tableLabel: _tableLabel, marketName: _marketName, priceSek, ...createParams } = params
       const isFree = isFreePriced(priceSek)
+      // amountOre is the total charged amount (price + commission) in öre.
+      // For free bookings this is 0.
+      const amountOre = isFree ? 0 : (calculateCommission(priceSek) + priceSek) * 100
 
-      telemetry.capture({
-        name: 'booking_initiated',
-        properties: {
-          flea_market_id: params.fleaMarketId,
-          market_name: marketName,
-          table_label: tableLabel,
-          price_sek: priceSek,
-          is_free: isFree,
-        },
-      })
+      let bookingId: string | undefined
+      try {
+        const data = await api.endpoints['booking.create'].invoke(createParams)
+        bookingId = data.bookingId
+        const requiresPayment = !!data.clientSecret
 
-      const data = await api.endpoints['booking.create'].invoke(createParams)
+        yield {
+          type: 'created',
+          bookingId,
+          requiresPayment,
+          amountOre,
+        }
 
-      if (data.clientSecret) {
-        const result = await payment.confirmCardPayment(data.clientSecret)
-        if (result.status === 'failed') {
-          throw toAppError(new Error(result.error))
+        if (requiresPayment && data.clientSecret) {
+          yield {
+            type: 'payment-required',
+            bookingId,
+            clientSecret: data.clientSecret,
+            amountOre,
+          }
+
+          // confirmCardPayment resolves on success; throws on failure.
+          await payment.confirmCardPayment(data.clientSecret)
+
+          yield { type: 'payment-confirmed', bookingId, amountOre }
+        }
+
+        yield { type: 'succeeded', bookingId, requiresPayment }
+      } catch (err) {
+        yield {
+          type: 'failed',
+          stage: classifyStage(bookingId),
+          error: toAppError(err),
         }
       }
-
-      return { bookingId: data.bookingId }
     },
 
     async capture(bookingId) {
