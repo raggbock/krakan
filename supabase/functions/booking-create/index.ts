@@ -4,7 +4,7 @@ import { stripe } from '../_shared/stripe.ts'
 import { calculateStripeAmounts, decideCreateBooking } from '@fyndstigen/shared/domain/booking.ts'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway.ts'
 import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create.ts'
-import { appError } from '@fyndstigen/shared/errors.ts'
+import { appError } from '@fyndstigen/shared/errors/index.ts'
 
 defineEndpoint({
   name: 'booking-create',

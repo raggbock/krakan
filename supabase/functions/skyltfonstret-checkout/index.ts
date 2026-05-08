@@ -1,6 +1,6 @@
 import { createHandler, HttpError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { appError } from '@fyndstigen/shared/errors.ts'
+import { appError } from '@fyndstigen/shared/errors/index.ts'
 
 createHandler(async ({ user, admin, origin }) => {
   const priceId = Deno.env.get('SKYLTFONSTRET_PRICE_ID')

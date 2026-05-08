@@ -62,7 +62,8 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/block-sale-stand-edit',               // zod schema
   'format',                                        // pure string utilities (slugifyCity)
   'domain/business-import',                        // pure validation/diff logic
-  'errors',                                        // AppError + error codes
+  'errors',                                        // AppError + error codes (dir-resolves)
+  'errors/index',                                  // explicit index path used by edge fns
   'crypto',                                        // sha256Hex, generateCode, timingSafeEqualHex
   'adapters/supabase/booking-repo',                // Supabase DB adapter
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
