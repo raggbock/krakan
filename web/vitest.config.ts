@@ -19,6 +19,8 @@ export default defineConfig({
       // domain/* and geo/* subpath aliases — resolves to worktree source, bypassing the
       // hoisted node_modules symlink that still points at main.
       '@fyndstigen/shared/domain/block-sale': path.resolve(__dirname, '../packages/shared/src/domain/block-sale.ts'),
+      '@fyndstigen/shared/domain/market-completeness': path.resolve(__dirname, '../packages/shared/src/domain/market-completeness.ts'),
+      '@fyndstigen/shared/contracts/admin-markets-overview': path.resolve(__dirname, '../packages/shared/src/contracts/admin-markets-overview.ts'),
       '@fyndstigen/shared': path.resolve(__dirname, '../packages/shared/src/index.ts'),
     },
   },

@@ -4,18 +4,11 @@ import { useState, lazy, Suspense } from 'react'
 import { useAdminMarketActivity, useAdminMarketEdit } from '@/hooks/use-admin-markets'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import type { AdminActivityRow } from '@fyndstigen/shared/contracts/admin-market-activity'
+import { buildPatch, type RuleDraft } from './patch-builder'
 
 // Address picker pulls in Leaflet (~100kB) — load only when the user opens
 // the map section.
 const AddressPicker = lazy(() => import('@/components/address-picker'))
-
-type RuleDraft = {
-  type: 'weekly' | 'biweekly' | 'date'
-  dayOfWeek: number | null
-  anchorDate: string | null
-  openTime: string
-  closeTime: string
-}
 
 const DAY_LABELS: Record<number, string> = {
   1: 'Mån', 2: 'Tis', 3: 'Ons', 4: 'Tor', 5: 'Fre', 6: 'Lör', 0: 'Sön',
@@ -87,75 +80,29 @@ export function EditMarketDrawer({
   }
 
   async function save() {
-    // Build patch. Only include sections that changed.
-    const patch: AdminMarketEditPatch = {}
+    const basePatch = buildPatch(market, {
+      name, website, facebook, instagram, phone, email,
+      street, zipCode, city, latitude, longitude,
+      weeklyRules, hoursTouched,
+    })
 
-    const trimmedName = name.trim()
-    if (trimmedName && trimmedName !== market.name) {
-      patch.name = trimmedName
-    }
-
-    const contactChanged =
-      website !== (market.contactWebsite ?? '') ||
-      facebook !== (market.contactFacebook ?? '') ||
-      instagram !== (market.contactInstagram ?? '') ||
-      phone !== (market.contactPhone ?? '') ||
-      email !== (market.contactEmail ?? '')
-    if (contactChanged) {
-      patch.contact = {
-        website: website || null,
-        facebook: facebook || null,
-        instagram: instagram || null,
-        phone: phone || null,
-        email: email || null,
-      }
-    }
-
-    const addressChanged =
-      street !== (market.street ?? '') ||
-      zipCode !== (market.zipCode ?? '') ||
-      city !== (market.city ?? '')
-    if (addressChanged) {
-      patch.address = {
-        street: street || null,
-        zipCode: zipCode || null,
-        city: city || null,
-      }
-    }
-
-    const locationChanged =
-      latitude !== market.latitude ||
-      longitude !== market.longitude
-    if (locationChanged && latitude != null && longitude != null) {
-      patch.location = { latitude, longitude }
-    }
-
-    // Opening hours: serialize current weekly rules + keep any non-weekly
-    // ones from the original (the drawer doesn't edit those). Compare by
-    // serialising both sides to a canonical key — the previous Set + every()
-    // pair was easy to get subtly wrong (one report of edits not saving).
-    const weeklySerialized = weeklyRules
-      .filter((r) => r.dayOfWeek != null)
-      .map((r) => ({
-        type: r.type,
-        dayOfWeek: r.dayOfWeek,
-        anchorDate: r.anchorDate,
-        openTime: r.openTime.length === 5 ? `${r.openTime}:00` : r.openTime,
-        closeTime: r.closeTime.length === 5 ? `${r.closeTime}:00` : r.closeTime,
-      }))
-    const allRules = [
-      ...weeklySerialized,
-      ...initialNonWeekly.map((r) => ({
-        type: r.type,
-        dayOfWeek: r.dayOfWeek,
-        anchorDate: r.anchorDate,
-        openTime: r.openTime,
-        closeTime: r.closeTime,
-      })),
-    ]
-    if (hoursTouched) {
-      patch.openingHourRules = allRules
-    }
+    // Merge non-weekly rules back in when hours were touched — the drawer
+    // only edits weekly rules, so non-weekly ones must be preserved.
+    const patch = hoursTouched
+      ? {
+          ...basePatch,
+          openingHourRules: [
+            ...(basePatch.openingHourRules ?? []),
+            ...initialNonWeekly.map((r) => ({
+              type: r.type,
+              dayOfWeek: r.dayOfWeek,
+              anchorDate: r.anchorDate,
+              openTime: r.openTime,
+              closeTime: r.closeTime,
+            })),
+          ],
+        }
+      : basePatch
 
     if (Object.keys(patch).length === 0) {
       onClose()
@@ -166,9 +113,6 @@ export function EditMarketDrawer({
       await editMut.mutateAsync({ marketId: market.id, patch })
       onClose()
     } catch (err) {
-      // Surface the failure inline. The mutation's isError state also
-      // renders a banner below, but logging here makes it visible in the
-      // browser console with full context for debugging.
       console.error('[admin-market-edit] save failed', { patch, err })
     }
   }
@@ -434,10 +378,3 @@ function Field({
   )
 }
 
-type AdminMarketEditPatch = {
-  name?: string
-  contact?: { website?: string | null; facebook?: string | null; instagram?: string | null; phone?: string | null; email?: string | null }
-  address?: { street?: string | null; zipCode?: string | null; city?: string | null; country?: string }
-  location?: { latitude: number; longitude: number }
-  openingHourRules?: Array<{ type: 'weekly' | 'biweekly' | 'date'; dayOfWeek: number | null; anchorDate: string | null; openTime: string; closeTime: string }>
-}
