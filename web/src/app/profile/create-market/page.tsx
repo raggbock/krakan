@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useStripeConnect } from '@/hooks/use-stripe-connect'
 import {

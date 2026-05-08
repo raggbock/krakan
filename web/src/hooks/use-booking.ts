@@ -8,7 +8,7 @@ import { isFreePriced, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
-import { resolvePaymentGateway } from '@/lib/adapters/payment-gateway-factory'
+import { resolvePaymentGateway } from '@/lib/stripe/gateway-factory'
 
 type BookingHook = {
   selectedTable: MarketTable | null

@@ -8,7 +8,7 @@ const mockTakeoverStart = vi.fn()
 const mockTakeoverFeedback = vi.fn()
 const mockTakeoverRemove = vi.fn()
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn(), invokePublic: vi.fn() },
   endpoints: {
     'takeover.info': { invoke: (...args: unknown[]) => mockTakeoverInfo(...args) },

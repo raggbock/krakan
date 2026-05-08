@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { OrganizerProfile, FleaMarket } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
 import { marketUrl } from '@/lib/urls'
 

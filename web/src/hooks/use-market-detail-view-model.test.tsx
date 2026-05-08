@@ -9,7 +9,7 @@ vi.mock('./use-market-details', () => ({
   useMarketDetails: (id: string) => mockUseMarketDetails(id),
 }))
 
-vi.mock('@/lib/auth-context', () => ({
+vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => mockUseAuth(),
 }))
 

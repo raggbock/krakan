@@ -5,14 +5,14 @@ import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
 import { DepsProvider } from '@/providers/deps-provider'
 import React from 'react'
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn() },
   endpoints: {
     'organizer.stats': { invoke: vi.fn() },
   },
 }))
 
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 
 // ─── Test deps wrapper ─────────────────────────────────────────────────────
 

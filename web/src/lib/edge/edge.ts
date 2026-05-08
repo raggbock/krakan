@@ -1,5 +1,5 @@
 import { createEdgeClient, createEndpointInvokers } from '@fyndstigen/shared'
-import { supabase } from './supabase'
+import { supabase } from '../supabase'
 
 /**
  * Raw EdgeClient — use when you need `edge.invoke` / `edge.invokePublic` directly.
@@ -11,7 +11,7 @@ export const edge = createEdgeClient(supabase)
  * Typed invokers for the flat ENDPOINTS registry.
  *
  * Usage:
- *   import { endpoints } from '@/lib/edge'
+ *   import { endpoints } from '@/lib/edge/edge'
  *   const res = await endpoints['stripe.payment.capture'].invoke({ bookingId })
  */
 export const endpoints = createEndpointInvokers(edge)

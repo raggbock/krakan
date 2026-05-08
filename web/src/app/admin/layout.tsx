@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useIsAdmin } from '@/hooks/use-admin'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 const navItems: { href: string; label: string; disabled?: boolean }[] = [

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDeps } from '@/providers/deps-provider'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 
 export const adminKeys = {
   all: ['admin'] as const,

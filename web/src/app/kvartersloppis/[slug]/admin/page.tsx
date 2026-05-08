@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useBlockSale } from '@/hooks/use-block-sale'
 import { BlockSaleQueue } from '@/components/block-sale-queue'
 

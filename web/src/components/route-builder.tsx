@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouteBuilder } from '@/hooks/use-route-builder'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { RouteFormFields } from './route-builder/route-form-fields'
 import { StopList, type RouteBuilderStop } from './route-builder/stop-list'

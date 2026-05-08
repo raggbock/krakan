@@ -1,7 +1,7 @@
 import React from 'react'
 import { render as rtlRender, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import type { Deps } from '@fyndstigen/shared'
 import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
@@ -25,7 +25,7 @@ vi.mock('next/link', () => ({
 }))
 
 // Mock auth
-vi.mock('@/lib/auth-context', () => ({
+vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: vi.fn(),
 }))
 
@@ -48,7 +48,7 @@ vi.mock('@/components/fyndstigen-logo', () => ({
 }))
 
 // Mock edge (for skyltfonstret.checkout endpoint)
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn() },
   endpoints: {
     'skyltfonstret.checkout': { invoke: vi.fn() },

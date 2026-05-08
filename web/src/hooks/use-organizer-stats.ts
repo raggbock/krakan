@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import { isAppError, messageFor } from '@fyndstigen/shared'
 import type { Deps } from '@fyndstigen/shared'
 import type { OrganizerBookingStatsRow } from '@fyndstigen/shared/ports/stats'

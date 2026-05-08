@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import type { RouteBuilderStop } from './stop-list'
 
 type Props = {

@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase } from '../supabase'
 
 /**
  * Thin wrapper around `supabase.functions.invoke()` that unwraps the

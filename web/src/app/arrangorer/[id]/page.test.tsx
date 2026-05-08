@@ -7,11 +7,11 @@ import { DepsProvider } from '@/providers/deps-provider'
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'org-1' }) }))
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }))
-vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
+vi.mock('@/lib/auth/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('@/components/fyndstigen-logo', () => ({ FyndstigenLogo: () => <div data-testid="loading" /> }))
 
 import OrganizerProfilePage from './page'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 
 const mockOrganizer = {
   id: 'org-1',

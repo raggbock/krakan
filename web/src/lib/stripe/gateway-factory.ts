@@ -3,7 +3,7 @@ import type { PaymentGateway } from '@fyndstigen/shared'
 import {
   createStripePaymentGateway,
   createNoOpPaymentGateway,
-} from './stripe-payment-gateway'
+} from './payment-gateway'
 
 export type ResolvePaymentGatewayOptions = {
   stripe: Stripe | null

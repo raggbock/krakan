@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { supabase } from '@/lib/supabase'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 

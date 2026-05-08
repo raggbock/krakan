@@ -2,11 +2,11 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useOrganizerStats } from '@/hooks/use-organizer-stats'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useEffect, useState } from 'react'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import { useFlag } from '@/lib/flags'
 import { useDeps } from '@/providers/deps-provider'
 

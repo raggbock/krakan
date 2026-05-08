@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { getInitials } from '@fyndstigen/shared'
 import { useMarketsByOrganizer } from '@/hooks/use-markets'
