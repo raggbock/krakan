@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import { queryKeys } from '@/lib/query-keys'
 
 export function useTakeoverInfo(token: string | null) {

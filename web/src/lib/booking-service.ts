@@ -1,6 +1,6 @@
 import { createBookingService, createSupabaseBookings, type BookingServiceApi } from '@fyndstigen/shared'
 import { supabase } from './supabase'
-import { endpoints } from './edge'
+import { endpoints } from './edge/edge'
 
 const bookingApi: BookingServiceApi = {
   bookings: createSupabaseBookings(supabase),

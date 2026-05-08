@@ -1,5 +1,5 @@
 import { createAuthWithRedirect, type AuthWithRedirect } from './auth-with-redirect'
-import { supabase } from './supabase'
+import { supabase } from '../supabase'
 
 export type { AuthWithRedirect }
 

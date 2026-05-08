@@ -6,7 +6,7 @@ import { BlockSaleStandForm } from './block-sale-stand-form'
 // Mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   endpoints: {
     'block-sale.stand.apply': {
       invoke: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock('posthog-js/react', () => ({
   usePostHog: () => null,
 }))
 
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 const mockInvoke = (endpoints as any)['block-sale.stand.apply'].invoke as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { BlockSaleForm } from '@/components/block-sale-form'
 import { useBlockSaleCreate } from '@/hooks/use-block-sale'
 

@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { Elements, CardElement } from '@stripe/react-stripe-js'
 import type { MarketTable } from '@fyndstigen/shared'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
 import { isFreePriced, messageFor } from '@fyndstigen/shared'
-import { getStripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe/stripe'
 import { useFlag } from '@/lib/flags'
 import { usePostHog } from 'posthog-js/react'
 

@@ -17,11 +17,11 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 
-vi.mock('@/lib/auth-context', () => ({
+vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn() },
   endpoints: {
     'skyltfonstret.checkout': { invoke: vi.fn() },
@@ -56,8 +56,8 @@ const render = (ui: React.ReactElement) =>
   })
 
 // Import mocked modules after vi.mock calls
-import { useAuth } from '@/lib/auth-context'
-import { endpoints } from '@/lib/edge'
+import { useAuth } from '@/lib/auth/auth-context'
+import { endpoints } from '@/lib/edge/edge'
 
 const freeProfile = {
   id: 'user-1',

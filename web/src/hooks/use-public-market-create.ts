@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 
 export function usePublicMarketCreate() {
   return useMutation({

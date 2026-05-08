@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 
 type Props = {
   blockSaleId: string

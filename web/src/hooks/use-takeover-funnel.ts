@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 
 export function useTakeoverFunnel() {
   return useQuery({

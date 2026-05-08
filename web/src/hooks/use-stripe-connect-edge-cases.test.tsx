@@ -7,7 +7,7 @@ const mockInvokeStatus = vi.fn()
 const mockInvokeCreate = vi.fn()
 const mockInvokeRefresh = vi.fn()
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn(), invokePublic: vi.fn() },
   endpoints: {
     'stripe.connect.status': { invoke: (...args: unknown[]) => mockInvokeStatus(...args) },

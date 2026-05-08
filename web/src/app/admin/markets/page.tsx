@@ -5,7 +5,7 @@ import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } 
 import { useTakeoverSend } from '@/hooks/use-takeover-admin'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'

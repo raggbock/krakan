@@ -16,7 +16,7 @@ vi.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }))
 
-vi.mock('@/lib/auth-context', () => ({
+vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: vi.fn(),
 }))
 
@@ -30,7 +30,7 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-vi.mock('@/lib/edge', () => ({
+vi.mock('@/lib/edge/edge', () => ({
   edge: { invoke: vi.fn().mockResolvedValue({}) },
   endpoints: {
     'stripe.payment.capture': { invoke: vi.fn().mockResolvedValue({ success: true }) },
@@ -63,8 +63,8 @@ vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading" />,
 }))
 
-import { useAuth } from '@/lib/auth-context'
-import { endpoints } from '@/lib/edge'
+import { useAuth } from '@/lib/auth/auth-context'
+import { endpoints } from '@/lib/edge/edge'
 
 const mockUser = { id: 'u1', email: 'organizer@test.se' }
 

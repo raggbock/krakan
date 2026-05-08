@@ -4,9 +4,9 @@ import { BookableTablesCard } from './bookable-tables-card'
 import type { MarketTable } from '@fyndstigen/shared'
 
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
-vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
+vi.mock('@/lib/auth/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('@/hooks/use-booking', () => ({ useBooking: vi.fn() }))
-vi.mock('@/lib/stripe', () => ({ getStripe: () => Promise.resolve(null) }))
+vi.mock('@/lib/stripe/stripe', () => ({ getStripe: () => Promise.resolve(null) }))
 vi.mock('@stripe/react-stripe-js', () => ({
   Elements: ({ children }: any) => children,
   CardElement: () => <div data-testid="card-element" />,
@@ -15,7 +15,7 @@ vi.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }))
 
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>

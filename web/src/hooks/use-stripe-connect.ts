@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { endpoints } from '@/lib/edge'
+import { endpoints } from '@/lib/edge/edge'
 import { queryKeys } from '@/lib/query-keys'
 
 const ERR_STATUS = 'Kunde inte hämta Stripe-status'

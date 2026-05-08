@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { resolvePaymentGateway } from './payment-gateway-factory'
+import { resolvePaymentGateway } from './gateway-factory'
 import type { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js'
 
 // Minimal stubs for Stripe types

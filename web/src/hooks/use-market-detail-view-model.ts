@@ -8,7 +8,7 @@ import type {
   OpeningHourRule,
   OpeningHourException,
 } from '@fyndstigen/shared'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth/auth-context'
 import { marketEditUrl } from '@/lib/urls'
 import { useMarketDetails } from './use-market-details'
 

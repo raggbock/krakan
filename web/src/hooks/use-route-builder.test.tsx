@@ -43,7 +43,7 @@ vi.mock('@/providers/deps-provider', () => ({
   }),
 }))
 
-vi.mock('@/lib/auth-context', () => ({
+vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({ user: null }),
 }))
 
