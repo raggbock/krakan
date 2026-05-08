@@ -9,7 +9,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { createFakeBookingStripeGateway } from './booking-stripe-gateway'
-import { calculateStripeAmounts } from '../../booking'
+import { calculateStripeAmounts } from '../../domain/booking'
 
 const baseArgs = {
   priceSek: 200,

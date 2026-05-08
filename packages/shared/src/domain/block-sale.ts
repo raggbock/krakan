@@ -1,4 +1,4 @@
-import type { BlockSaleStandStatus } from './types'
+import type { BlockSaleStandStatus } from '../types'
 
 export function generateBlockSaleSlug(name: string, city: string, startDate: string): string {
   const slugify = (s: string) => s

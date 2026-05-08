@@ -32,8 +32,8 @@ const functionsDir = join(repoRoot, 'supabase', 'functions');
  * a curated packages/shared/edge/ subdir (see issue #40).
  */
 const ALLOWED_SUBPATHS = new Set([
-  'booking',                                       // pure commission/outcome logic
-  'booking-lifecycle',                             // pure event-sourced reducer
+  'domain/booking',                                // pure commission/outcome logic
+  'domain/booking-lifecycle',                      // pure event-sourced reducer
   'contracts/booking-create',                      // zod schema
   'contracts/organizer-stats',                     // zod schema
   'contracts/stripe-connect-create',               // zod schema
@@ -54,14 +54,14 @@ const ALLOWED_SUBPATHS = new Set([
   'contracts/admin-takeover-funnel',                // zod schema
   'contracts/public-market-create',                // zod schema
   'contracts/takeover-request',                    // zod schema
-  'block-sale',                                    // pure block-sale domain logic (slug, transitions)
+  'domain/block-sale',                             // pure block-sale domain logic (slug, transitions)
   'contracts/block-sale-create',                   // zod schema
   'contracts/block-sale-stand-apply',              // zod schema
   'contracts/block-sale-stand-confirm',            // zod schema
   'contracts/block-sale-decide',                   // zod schema
   'contracts/block-sale-stand-edit',               // zod schema
   'format',                                        // pure string utilities (slugifyCity)
-  'business-import',                               // pure validation/diff logic
+  'domain/business-import',                        // pure validation/diff logic
   'errors',                                        // AppError + error codes
   'crypto',                                        // sha256Hex, generateCode, timingSafeEqualHex
   'adapters/supabase/booking-repo',                // Supabase DB adapter
@@ -73,7 +73,8 @@ const ALLOWED_SUBPATHS = new Set([
   'ports/stripe-account-repo',                     // type-only port interface
   'ports/subscription-repo',                       // type-only port interface
   'ports/logger',                                  // type-only port interface (structured logging)
-  'types',                                         // type-only domain types (Booking)
+  'types',                                         // type-only domain types (Booking) — dir resolution
+  'types/index',                                   // explicit path after types.ts shim removed
   'contracts/route-create-anon',                   // zod schema (pre-existing miss)
 ]);
 

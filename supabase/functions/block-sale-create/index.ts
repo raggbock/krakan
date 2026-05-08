@@ -1,6 +1,6 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
-import { generateBlockSaleSlug, validateBlockSaleInput } from '@fyndstigen/shared/block-sale.ts'
+import { generateBlockSaleSlug, validateBlockSaleInput } from '@fyndstigen/shared/domain/block-sale.ts'
 import {
   BlockSaleCreateInput,
   BlockSaleCreateOutput,

@@ -1,7 +1,7 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError, NotFoundError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { calculateStripeAmounts, decideCreateBooking } from '@fyndstigen/shared/booking.ts'
+import { calculateStripeAmounts, decideCreateBooking } from '@fyndstigen/shared/domain/booking.ts'
 import { createStripeBookingGateway } from '@fyndstigen/shared/adapters/stripe/booking-stripe-gateway.ts'
 import { BookingCreateInput, BookingCreateOutput } from '@fyndstigen/shared/contracts/booking-create.ts'
 import { appError } from '@fyndstigen/shared/errors.ts'

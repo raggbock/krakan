@@ -6,7 +6,7 @@ import {
   validateSoft,
   type ImportableMarketRow,
 } from './business-import'
-import type { ImportBusiness } from './contracts/admin-business-import'
+import type { ImportBusiness } from '../contracts/admin-business-import'
 
 const validBusiness: ImportBusiness = {
   slug: 'test-loppis',

@@ -10,7 +10,7 @@
  * supabase/functions/deno.json — no mirror needed.
  */
 
-import type { Booking, BookingStatus, PaymentStatus } from './types'
+import type { Booking, BookingStatus, PaymentStatus } from '../types'
 import { decidePaidBooking } from './booking'
 
 // Events that drive the lifecycle.

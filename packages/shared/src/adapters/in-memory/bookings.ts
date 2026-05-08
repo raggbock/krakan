@@ -1,4 +1,4 @@
-import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../booking'
+import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../domain/booking'
 import type { BookingStatus, CreateBookingPayload } from '../../types'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'

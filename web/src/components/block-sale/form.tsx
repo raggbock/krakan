@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { validateBlockSaleInput } from '@fyndstigen/shared/block-sale'
+import { validateBlockSaleInput } from '@fyndstigen/shared/domain/block-sale'
 
 const REASON_LABEL: Record<string, string> = {
   name_length: 'Namnet måste vara 3–120 tecken.',

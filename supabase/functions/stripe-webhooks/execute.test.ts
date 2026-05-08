@@ -13,7 +13,7 @@ import { assertEquals, assertRejects } from 'https://deno.land/std@0.177.0/testi
 import { executeCommand, type WebhookRepos } from './execute.ts'
 import type { WebhookCommand } from '@fyndstigen/shared/stripe-webhook.ts'
 import type { Logger } from '@fyndstigen/shared/ports/logger.ts'
-import type { Booking } from '@fyndstigen/shared/types.ts'
+import type { Booking } from '@fyndstigen/shared/types/index.ts'
 
 // ---------------------------------------------------------------------------
 // In-memory repo stubs

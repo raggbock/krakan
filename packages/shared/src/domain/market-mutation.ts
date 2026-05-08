@@ -17,11 +17,11 @@ import type {
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   FleaMarketImage,
-} from './types'
-import type { FleaMarketRepository, MarketTableRepository } from './ports/flea-markets'
-import type { ImagePort } from './ports/images'
-import { GeocodeError } from './geo'
-import { appError, isAppError, type AppError } from './errors'
+} from '../types'
+import type { FleaMarketRepository, MarketTableRepository } from '../ports/flea-markets'
+import type { ImagePort } from '../ports/images'
+import { GeocodeError } from '../geo'
+import { appError, isAppError, type AppError } from '../errors'
 
 // ---------- Draft types (owned here; shared with web hooks) ----------
 

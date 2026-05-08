@@ -1,4 +1,4 @@
-import type { ImportBusiness, ImportRowResult } from './contracts/admin-business-import'
+import type { ImportBusiness, ImportRowResult } from '../contracts/admin-business-import'
 
 /**
  * Subset of flea_markets columns we manage via import. Matches what

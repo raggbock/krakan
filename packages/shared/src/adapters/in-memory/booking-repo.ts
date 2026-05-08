@@ -6,8 +6,8 @@
  * store), which is correct for unit tests.
  */
 
-import { applyBookingEvent } from '../../booking-lifecycle'
-import type { BookingEvent } from '../../booking-lifecycle'
+import { applyBookingEvent } from '../../domain/booking-lifecycle'
+import type { BookingEvent } from '../../domain/booking-lifecycle'
 import type { Booking } from '../../types'
 import type { BookingRepo } from '../../ports/booking-repo'
 

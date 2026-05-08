@@ -7,8 +7,8 @@
  * Supabase, React, or Next.js — tests drive it with in-memory stubs.
  */
 
-import type { CreateRoutePayload, UpdateRoutePayload } from './types'
-import { appError, isAppError, type AppError } from './errors'
+import type { CreateRoutePayload, UpdateRoutePayload } from '../types'
+import { appError, isAppError, type AppError } from '../errors'
 
 // ---------- Plan shape ----------
 

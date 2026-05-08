@@ -1,4 +1,4 @@
-import type { OpeningHourRule, OpeningHourException } from './types'
+import type { OpeningHourRule, OpeningHourException } from '../types'
 
 export type TimeSlot = { open_time: string; close_time: string }
 

@@ -1,4 +1,4 @@
-import type { Coord } from './types/domain'
+import type { Coord } from '../types/domain'
 
 export type RouteLeg = {
   distance: number // meters

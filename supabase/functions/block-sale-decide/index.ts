@@ -1,6 +1,6 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
-import { canTransitionStandStatus } from '@fyndstigen/shared/block-sale.ts'
+import { canTransitionStandStatus } from '@fyndstigen/shared/domain/block-sale.ts'
 import {
   BlockSaleDecideInput,
   BlockSaleDecideOutput,

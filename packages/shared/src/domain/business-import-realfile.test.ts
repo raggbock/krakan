@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { AdminBusinessImportInput } from './contracts/admin-business-import'
+import { AdminBusinessImportInput } from '../contracts/admin-business-import'
 import { buildDryRunReport } from './business-import'
 
 describe('real fyndstigen_import.json', () => {
   const raw = readFileSync(
-    resolve(__dirname, '../../../supabase/seed/fyndstigen_import.json'),
+    resolve(__dirname, '../../../../supabase/seed/fyndstigen_import.json'),
     'utf-8',
   )
   const parsed = JSON.parse(raw) as { businesses: unknown[] }

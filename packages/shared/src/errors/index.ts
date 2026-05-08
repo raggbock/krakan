@@ -204,7 +204,7 @@ export function interpolate(template: string, params?: Record<string, string | n
 // Edge bundler doesn't honour it — extensionless paths cause BOOT_ERROR
 // on any function that transitively imports this file. Burned admin-market-edit
 // v7-v9 with this. Always include .ts on cross-file shared/ imports.
-import { MESSAGES_SV } from './errors/messages.sv.ts'
+import { MESSAGES_SV } from './messages.sv.ts'
 
 /**
  * Return a Swedish user-facing message for an ErrorCode or AppError.

@@ -1,6 +1,6 @@
-import type { BookingStatus, OpeningHourRule, OpeningHourException } from './types'
+import type { BookingStatus, OpeningHourRule, OpeningHourException } from '../types'
 import { checkOpeningHours } from './opening-hours'
-import type { ErrorCode } from './errors'
+import type { ErrorCode } from '../errors'
 
 export type OpeningHoursContext = {
   rules: OpeningHourRule[]

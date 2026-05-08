@@ -7,6 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./deps-factory": "./src/deps-factory.ts",
+    "./domain/*": "./src/domain/*.ts",
+    "./geo/*": "./src/geo/*.ts",
+    "./types/*": "./src/types/*.ts",
     "./*": "./src/*.ts"
   },
   "dependencies": {
