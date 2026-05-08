@@ -25,11 +25,11 @@ export {
   generateBatchLabels,
   isFreePriced,
   decideCreateBooking,
-} from './booking'
-export type { CreateBookingInput, CreateBookingDecision } from './booking'
-export { applyBookingEvent } from './booking-lifecycle'
-export type { BookingEvent, BookingPatch } from './booking-lifecycle'
-export { createBookingService } from './booking-service'
+} from './domain/booking'
+export type { CreateBookingInput, CreateBookingDecision } from './domain/booking'
+export { applyBookingEvent } from './domain/booking-lifecycle'
+export type { BookingEvent, BookingPatch } from './domain/booking-lifecycle'
+export { createBookingService } from './domain/booking-service'
 export type {
   BookingService,
   BookingServiceApi,
@@ -39,8 +39,8 @@ export type {
   BookingProgress,
   BookOptions,
   DateValidation,
-} from './booking-service'
-export type { OpeningHoursContext, BookingDateValidation } from './booking'
+} from './domain/booking-service'
+export type { OpeningHoursContext, BookingDateValidation } from './domain/booking'
 
 // Ports
 export * from './ports'
@@ -79,7 +79,7 @@ export { appError, isAppError, toAppError, messageFor, interpolate } from './err
 export type { AppError, ErrorCode, ErrorParams, ParamsFor } from './errors'
 
 // Market mutation saga
-export { runMarketMutation, collectMarketEvents } from './market-mutation'
+export { runMarketMutation, collectMarketEvents } from './domain/market-mutation'
 export type {
   MarketPlan,
   MarketEvent,
@@ -95,10 +95,10 @@ export type {
   MarketUpdateFields,
   RuleDraft,
   ExceptionDraft,
-} from './market-mutation'
+} from './domain/market-mutation'
 
 // Route mutation saga
-export { runRouteMutation, collectRouteEvents } from './route-mutation'
+export { runRouteMutation, collectRouteEvents } from './domain/route-mutation'
 export type {
   RoutePlan,
   RouteEvent,
@@ -108,7 +108,7 @@ export type {
   StopDraft,
   RouteCreateFields,
   RouteUpdateFields,
-} from './route-mutation'
+} from './domain/route-mutation'
 
 // Deps container
 export type { Deps } from './deps'
@@ -120,10 +120,10 @@ export { interpretWebhookEvent } from './stripe-webhook'
 export type { WebhookCommand, WebhookLookups, InterpretInput } from './stripe-webhook'
 
 // Utilities
-export { checkOpeningHours, getUpcomingOpenDates } from './opening-hours'
-export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './opening-hours'
-export { optimizeRoute } from './route-optimizer'
-export type { Stop } from './route-optimizer'
-export { fetchDrivingRoute } from './routing'
-export type { RoutingResult, RouteLeg } from './routing'
+export { checkOpeningHours, getUpcomingOpenDates } from './domain/opening-hours'
+export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './domain/opening-hours'
+export { optimizeRoute } from './domain/route-optimizer'
+export type { Stop } from './domain/route-optimizer'
+export { fetchDrivingRoute } from './geo/routing'
+export type { RoutingResult, RouteLeg } from './geo/routing'
 export { getInitials, slugifyCity, formatDistance, formatDuration } from './format'

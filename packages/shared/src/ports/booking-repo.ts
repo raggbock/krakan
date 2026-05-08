@@ -14,7 +14,7 @@
  */
 
 import type { Booking } from '../types'
-import type { BookingEvent } from '../booking-lifecycle'
+import type { BookingEvent } from '../domain/booking-lifecycle'
 
 export interface BookingRepo {
   /**

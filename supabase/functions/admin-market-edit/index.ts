@@ -1,7 +1,7 @@
 import { defineAdminEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { pickUniqueSlug } from '../_shared/slug.ts'
-import { appError } from '@fyndstigen/shared/errors.ts'
+import { appError } from '@fyndstigen/shared/errors/index.ts'
 import {
   AdminMarketEditInput,
   AdminMarketEditOutput,

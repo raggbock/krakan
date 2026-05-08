@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createFleaMarketsApi } from './api/flea-markets'
-import { createBookingsApi } from './api/bookings'
-import { createRoutesApi } from './api/routes'
-import { createProfilesApi } from './api/profiles'
-import { createImageService } from './api/images'
-import { createEdgeApi } from './api/edge'
+import { createFleaMarketsApi } from './flea-markets'
+import { createBookingsApi } from './bookings'
+import { createRoutesApi } from './routes'
+import { createProfilesApi } from './profiles'
+import { createImageService } from './images'
+import { createEdgeApi } from './edge'
 
 export type CreateApiOptions = {
   /**

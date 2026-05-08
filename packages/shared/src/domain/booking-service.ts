@@ -11,8 +11,8 @@
  * No new runtime dependencies — this is a pure composition layer.
  */
 
-import type { Api } from './api'
-import type { Booking } from './types'
+import type { Api } from '../api'
+import type { Booking } from '../types'
 
 /**
  * Narrow API surface required by createBookingService.
@@ -23,9 +23,9 @@ import type { BookingEvent, BookingPatch } from './booking-lifecycle'
 import { calculateCommission, validateBookingDate, isFreePriced } from './booking'
 import type { OpeningHoursContext, BookingDateValidation } from './booking'
 import { applyBookingEvent } from './booking-lifecycle'
-import { toAppError } from './errors'
-import type { AppError } from './errors'
-import type { PaymentGateway } from './ports/payment'
+import { toAppError } from '../errors'
+import type { AppError } from '../errors'
+import type { PaymentGateway } from '../ports/payment'
 
 // Re-exported so callers need only this import surface.
 // OpeningHoursContext stays canonical in ./booking.ts — re-exported from the

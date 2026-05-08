@@ -1,6 +1,6 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { ForbiddenError, HttpError } from '../_shared/handler.ts'
-import { appError } from '@fyndstigen/shared/errors.ts'
+import { appError } from '@fyndstigen/shared/errors/index.ts'
 import { OrganizerStatsInput, OrganizerStatsOutput } from '@fyndstigen/shared/contracts/organizer-stats.ts'
 
 defineEndpoint({

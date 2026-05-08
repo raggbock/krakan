@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData } from '@fyndstigen/shared'
-import { expandEventDates } from '@fyndstigen/shared/block-sale'
+import { expandEventDates } from '@fyndstigen/shared/domain/block-sale'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 // ISR: revalidate every hour — kvartersloppis pages are stable once published.

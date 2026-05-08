@@ -11,7 +11,7 @@ import type { BookingRepo } from '@fyndstigen/shared/ports/booking-repo.ts'
 import type { StripeAccountRepo } from '@fyndstigen/shared/ports/stripe-account-repo.ts'
 import type { SubscriptionRepo } from '@fyndstigen/shared/ports/subscription-repo.ts'
 import type { Logger } from '@fyndstigen/shared/ports/logger.ts'
-import type { BookingEvent } from '@fyndstigen/shared/booking-lifecycle.ts'
+import type { BookingEvent } from '@fyndstigen/shared/domain/booking-lifecycle.ts'
 
 export interface WebhookRepos {
   bookings: BookingRepo

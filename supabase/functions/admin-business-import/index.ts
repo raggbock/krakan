@@ -10,7 +10,7 @@ import {
   IMPORTABLE_COLUMNS,
   normalizeForDb,
   type ImportableMarketRow,
-} from '@fyndstigen/shared/business-import.ts'
+} from '@fyndstigen/shared/domain/business-import.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { SYSTEM_OWNER_ID } from '../_shared/constants.ts'
 

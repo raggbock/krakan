@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { runMarketMutation, type MarketMutationDeps, type MarketEvent, type MarketPlan } from './market-mutation'
-import { GeocodeError } from './geo'
+import { GeocodeError } from '../geo'
 
 function makeFile(name = 'pic.jpg'): File {
   return new File(['x'], name, { type: 'image/jpeg' })

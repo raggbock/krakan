@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createBookingService } from './booking-service'
 import type { BookingProgress, OpeningHoursContext } from './booking-service'
-import { isAppError } from './errors'
-import type { Api } from './api'
-import type { Booking } from './types'
-import type { PaymentGateway } from './ports/payment'
+import { isAppError } from '../errors'
+import type { Api } from '../api'
+import type { Booking } from '../types'
+import type { PaymentGateway } from '../ports/payment'
 
 // ---------------------------------------------------------------------------
 // Helpers

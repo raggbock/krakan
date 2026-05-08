@@ -1,7 +1,7 @@
 import { defineEndpoint } from '../_shared/endpoint.ts'
 import { HttpError } from '../_shared/handler.ts'
 import { stripe } from '../_shared/stripe.ts'
-import { appError } from '@fyndstigen/shared/errors.ts'
+import { appError } from '@fyndstigen/shared/errors/index.ts'
 import { StripeConnectCreateInput, StripeConnectCreateOutput } from '@fyndstigen/shared/contracts/stripe-connect-create.ts'
 
 defineEndpoint({

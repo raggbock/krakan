@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { FleaMarketNearBy } from './types'
-import type { Coord } from './types/domain'
-import { optimizeRoute, type Stop } from './route-optimizer'
+import type { FleaMarketNearBy } from '../types'
+import type { Coord } from '../types/domain'
+import { optimizeRoute, type Stop } from '../domain/route-optimizer'
 
 /**
  * @deprecated Use `Coord` from '@fyndstigen/shared' instead.

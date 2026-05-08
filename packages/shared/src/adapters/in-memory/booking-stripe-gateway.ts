@@ -5,7 +5,7 @@
  * application-fee math, and capture_method.
  */
 
-import { calculateStripeAmounts } from '../../booking'
+import { calculateStripeAmounts } from '../../domain/booking'
 import type { BookingStripeGateway, CreatePaymentIntentArgs } from '../../ports/booking-stripe-gateway'
 
 let _piId = 1

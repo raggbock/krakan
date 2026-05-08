@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isValidStatusTransition } from '../../booking'
+import { isValidStatusTransition } from '../../domain/booking'
 import type { BookingStatus } from '../../types'
 import type { BookingView } from '../../types/domain'
 import type { BookingRepository } from '../../ports/bookings'

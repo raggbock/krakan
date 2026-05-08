@@ -10,8 +10,8 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { applyBookingEvent } from '../../booking-lifecycle'
-import type { BookingEvent } from '../../booking-lifecycle'
+import { applyBookingEvent } from '../../domain/booking-lifecycle'
+import type { BookingEvent } from '../../domain/booking-lifecycle'
 import type { Booking } from '../../types'
 import type { BookingRepo } from '../../ports/booking-repo'
 import { BookingQuery } from '../../query/booking'

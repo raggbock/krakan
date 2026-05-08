@@ -10,7 +10,7 @@
  * pulling the Stripe SDK into the shared package's Node dependencies.
  */
 
-import { calculateStripeAmounts } from '../../booking'
+import { calculateStripeAmounts } from '../../domain/booking'
 import type { BookingStripeGateway, CreatePaymentIntentArgs } from '../../ports/booking-stripe-gateway'
 
 /** Minimal Stripe client interface this adapter needs. */
