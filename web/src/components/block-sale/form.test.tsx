@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BlockSaleForm } from './block-sale-form'
+import { BlockSaleForm } from './form'
 
 // No external module mocks needed — the form only uses validateBlockSaleInput
 // from @fyndstigen/shared (resolved via vitest.config.ts alias) and React state.

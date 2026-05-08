@@ -38,7 +38,7 @@ vi.mock('@/components/fyndstigen-logo', () => ({
   FyndstigenLogo: () => <div data-testid="loading" />,
 }))
 
-vi.mock('@/components/bookable-tables-card', () => ({
+vi.mock('@/components/booking/tables-card', () => ({
   BookableTablesCard: () => <div data-testid="bookable-tables" />,
 }))
 
@@ -63,7 +63,7 @@ vi.mock('@/components/organizer-card', () => ({
 }))
 
 import { useMarketDetails } from '@/hooks/use-market-details'
-import { MarketDetail } from './market-detail'
+import { MarketDetail } from './detail'
 
 const mockMarket = {
   id: 'market-1',

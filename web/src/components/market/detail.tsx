@@ -6,10 +6,10 @@ import { BackLink } from '@/components/back-link'
 import { AddressCard } from '@/components/address-card'
 import { OpeningHoursCard } from '@/components/opening-hours-card'
 import { OrganizerCard } from '@/components/organizer-card'
-import { BookableTablesCard } from '@/components/bookable-tables-card'
+import { BookableTablesCard } from '@/components/booking/tables-card'
 import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
-import { MarketImageGallery } from '@/components/market-image-gallery'
+import { MarketImageGallery } from '@/components/market/image-gallery'
 import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
 
 export function MarketDetail({ id }: { id: string }) {

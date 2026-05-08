@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BlockSaleQueue } from './block-sale-queue'
+import { BlockSaleQueue } from './queue'
 import type { StandRow } from '@/hooks/use-block-sale-stands'
 
 // ---------------------------------------------------------------------------

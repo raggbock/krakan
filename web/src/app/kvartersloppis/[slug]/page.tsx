@@ -5,8 +5,8 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
 import { useBlockSale } from '@/hooks/use-block-sale'
-import { BlockSalePublicMap } from '@/components/block-sale-public-map'
-import { BlockSaleStandPanel } from '@/components/block-sale-stand-panel'
+import { BlockSalePublicMap } from '@/components/block-sale/public-map'
+import { BlockSaleStandPanel } from '@/components/block-sale/stand-panel'
 
 export default function Page() {
   const params = useParams<{ slug: string }>()

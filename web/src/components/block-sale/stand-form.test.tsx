@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BlockSaleStandForm } from './block-sale-stand-form'
+import { BlockSaleStandForm } from './stand-form'
 
 // ---------------------------------------------------------------------------
 // Mocks
