@@ -9,7 +9,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useRoute } from '@/hooks/use-routes'
 import { marketUrl } from '@/lib/urls'
 
-const RouteMap = dynamic(() => import('@/components/route-map'), { ssr: false })
+const RouteMap = dynamic(() => import('@/components/route-view/route-view-map'), { ssr: false })
 
 function buildGoogleMapsUrl(stops: { fleaMarket?: { latitude: number; longitude: number } | null }[]) {
   const coords = stops

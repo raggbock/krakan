@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { RouteStop } from '@fyndstigen/shared'
 import { fetchDrivingRoute, type RoutingResult } from '@fyndstigen/shared'
-import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
+import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
 
 type Props = {
   stops: RouteStop[]

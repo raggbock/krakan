@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { useBlockSale } from '@/hooks/use-block-sale'
-import { BlockSaleStandForm } from '@/components/block-sale-stand-form'
+import { BlockSaleStandForm } from '@/components/block-sale/stand-form'
 
 export default function ApplyPage() {
   const params = useParams<{ slug: string }>()

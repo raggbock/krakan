@@ -5,7 +5,7 @@
  * Loaded client-side only via dynamic() in block-sale-public-map.tsx.
  */
 
-import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
+import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
 
 type Stand = {
   id: string

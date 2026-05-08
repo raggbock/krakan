@@ -19,7 +19,7 @@ type Props = {
 }
 
 // Dynamic import to keep Leaflet out of the SSR pass
-const BlockSaleMapInner = dynamic(() => import('./block-sale-map-inner'), { ssr: false })
+const BlockSaleMapInner = dynamic(() => import('./map-inner'), { ssr: false })
 
 export function BlockSalePublicMap(props: Props) {
   if (props.stands.length === 0) {

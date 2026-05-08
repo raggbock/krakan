@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 
-const RouteBuilder = dynamic(() => import('@/components/route-builder'), {
+const RouteBuilder = dynamic(() => import('@/components/route-builder/route-builder'), {
   ssr: false,
 })
 
