@@ -1,28 +1,19 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useAdminMarketsBulkEdit, useAdminMarketEdit, useAdminMarketsOverview } from '@/hooks/use-admin-markets'
 import { useTakeoverSend } from '@/hooks/use-takeover-admin'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
 import { endpoints } from '@/lib/edge/edge'
 import type { AdminMarketRow } from '@fyndstigen/shared/contracts/admin-markets-overview'
+import { marketCompleteness } from '@fyndstigen/shared/domain/market-completeness'
 import { EditMarketDrawer } from './edit-market-drawer'
 import { bulkGeocode } from './bulk-geocode'
+import { runGeocodeSession } from './geocode-session'
+import { useMarketCuration, type FilterKey, type SortKey, type SortDir } from '@/hooks/use-market-curation'
 
-type Filter =
-  | 'unpublished' | 'system_owned' | 'claimed' | 'unverified' | 'closed'
-  | 'complete' | 'almost_complete' | 'published_no_takeover'
-  | 'missing_street' | 'missing_zip' | 'missing_coords'
-  | 'missing_website' | 'missing_phone' | 'missing_email' | 'missing_hours'
-  | 'has_street' | 'has_zip' | 'has_coords'
-  | 'has_website' | 'has_phone' | 'has_email' | 'has_hours'
-type SortKey = 'name' | 'city' | 'updated' | 'status'
-type SortDir = 'asc' | 'desc'
-
-// Grouped so the chip-row can render section labels — makes it obvious which
-// filters are state-style ("system-owned") vs missing-field-style ("saknar email").
-const FILTER_GROUPS: { label: string; filters: { key: Filter; label: string }[] }[] = [
+const FILTER_GROUPS: { label: string; filters: { key: FilterKey; label: string }[] }[] = [
   {
     label: 'Status',
     filters: [
@@ -62,72 +53,39 @@ const FILTER_GROUPS: { label: string; filters: { key: Filter; label: string }[] 
   },
 ]
 
-/** All seven info-fields filled — used by both the 'Komplett'-filter and the row badge. */
-function isComplete(m: AdminMarketRow): boolean {
-  return !!m.street && !!m.zipCode && !!m.city
-    && m.hasCoordinates
-    && m.hasOpeningHours
-    && m.hasWebsite && m.hasPhone && m.hasEmail
-}
-
-/** All-but-one: at most one info-field missing. Useful for "nästan klar"-curation. */
-function isAlmostComplete(m: AdminMarketRow): boolean {
-  const checks = [
-    !!m.street, !!m.zipCode, !!m.city,
-    m.hasCoordinates, m.hasOpeningHours,
-    m.hasWebsite, m.hasPhone, m.hasEmail,
-  ]
-  return checks.filter((x) => !x).length <= 1
-}
-
 export default function AdminMarketsPage() {
   const { data, isLoading, error } = useAdminMarketsOverview()
   const editMut = useAdminMarketEdit()
   const bulkMut = useAdminMarketsBulkEdit()
   const takeoverMut = useTakeoverSend()
-  const [filters, setFilters] = useState<Set<Filter>>(new Set())
-  const [search, setSearch] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [lastTakeoverSummary, setLastTakeoverSummary] = useState<{ sent: number; skipped: number; errors: number } | null>(null)
-  const [sortKey, setSortKey] = useState<SortKey>('updated')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [geocodeProgress, setGeocodeProgress] = useState<{ done: number; total: number; ok: number; skipped: number } | null>(null)
   const geocodeAbortRef = useRef<AbortController | null>(null)
   const qc = useQueryClient()
 
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir(key === 'updated' ? 'desc' : 'asc') }
-  }
-
   const rows = data?.markets ?? []
+  const curation = useMarketCuration(rows)
+  const { filtered, counts, selection, activeFilters, sortKey, sortDir, search, setFilter, setSort, setSearch, toggleSelection, selectAll, clearSelection } = curation
+
   const editingMarket = editingId ? rows.find((m) => m.id === editingId) ?? null : null
   const busy = editMut.isPending || bulkMut.isPending || takeoverMut.isPending
 
-  // Selected rows that are eligible for takeover (system-owned + has email).
-  const selectedTakeoverEligible = useMemo(() => {
-    return rows.filter((m) => selectedIds.has(m.id) && m.isSystemOwned && m.hasEmail && !m.takeover?.used)
-  }, [rows, selectedIds])
+  const selectedTakeoverEligible = rows.filter(
+    (m) => selection.has(m.id) && m.isSystemOwned && m.hasEmail && !m.takeover?.used,
+  )
 
-  function toggleSelect(id: string, on: boolean) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (on) next.add(id)
-      else next.delete(id)
-      return next
-    })
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSort(key, sortDir === 'asc' ? 'desc' : 'asc')
+    else setSort(key, key === 'updated' ? 'desc' : 'asc')
   }
 
   async function bulkApply(patch: Parameters<typeof bulkMut.mutateAsync>[0]['patch'], confirmMsg: string) {
-    if (selectedIds.size === 0) return
-    if (!confirm(`${confirmMsg} ${selectedIds.size} loppisar?`)) return
-    // Catch so a server-side 4xx (validation, RLS, etc) doesn't surface as
-    // an unhandled rejection — the mutation hook already exposes isError +
-    // the inline banner below the table for user feedback.
+    if (selection.size === 0) return
+    if (!confirm(`${confirmMsg} ${selection.size} loppisar?`)) return
     try {
-      await bulkMut.mutateAsync({ marketIds: Array.from(selectedIds), patch })
-      setSelectedIds(new Set())
+      await bulkMut.mutateAsync({ marketIds: Array.from(selection), patch })
+      clearSelection()
     } catch { /* surfaced via bulkMut.isError */ }
   }
 
@@ -149,21 +107,17 @@ export default function AdminMarketsPage() {
     geocodeAbortRef.current = ctrl
     setGeocodeProgress({ done: 0, total: targets.length, ok: 0, skipped: 0 })
 
-    let done = 0, ok = 0, skipped = 0
     try {
-      for await (const result of bulkGeocode(targets, ctrl.signal)) {
-        done++
-        if (result.ok) {
-          ok++
-          await endpoints['admin.market.edit'].invoke({
-            marketId: result.marketId,
-            patch: { location: { latitude: result.latitude, longitude: result.longitude } },
-          })
-        } else {
-          skipped++
-        }
-        setGeocodeProgress({ done, total: targets.length, ok, skipped })
-      }
+      const result = await runGeocodeSession(
+        targets,
+        (markets, signal) => bulkGeocode(markets, signal),
+        (p) => setGeocodeProgress({ done: p.done, total: p.total, ok: p.succeeded, skipped: p.failed }),
+        async (id, patch) => {
+          await endpoints['admin.market.edit'].invoke({ marketId: id, patch })
+        },
+        ctrl.signal,
+      )
+      setGeocodeProgress({ done: result.succeeded + result.failed, total: targets.length, ok: result.succeeded, skipped: result.failed })
     } finally {
       geocodeAbortRef.current = null
       qc.invalidateQueries({ queryKey: queryKeys.admin.marketsOverview() })
@@ -181,81 +135,9 @@ export default function AdminMarketsPage() {
     try {
       const res = await takeoverMut.mutateAsync(marketIds)
       setLastTakeoverSummary(res.summary)
-      setSelectedIds(new Set())
+      clearSelection()
     } catch { /* surfaced via takeoverMut.isError */ }
   }
-
-  const filtered = useMemo(() => {
-    let r = rows
-    // Closed markets are hidden by default — opt in via the 'closed' chip
-    // to audit/restore them. Other filters use AND-semantics on top of
-    // this base filter.
-    if (!filters.has('closed')) r = r.filter((m) => m.status !== 'closed')
-    if (filters.has('unpublished')) r = r.filter((m) => !m.isPublished)
-    if (filters.has('system_owned')) r = r.filter((m) => m.isSystemOwned)
-    if (filters.has('claimed')) r = r.filter((m) => !m.isSystemOwned)
-    if (filters.has('unverified')) r = r.filter((m) => m.status === 'unverified')
-    if (filters.has('complete')) r = r.filter(isComplete)
-    if (filters.has('almost_complete')) r = r.filter((m) => isAlmostComplete(m) && !isComplete(m))
-    if (filters.has('published_no_takeover')) {
-      r = r.filter((m) => m.isPublished && m.isSystemOwned && !m.takeover?.sentAt)
-    }
-    if (filters.has('missing_street')) r = r.filter((m) => !m.street)
-    if (filters.has('missing_zip')) r = r.filter((m) => !m.zipCode)
-    if (filters.has('missing_coords')) r = r.filter((m) => !m.hasCoordinates)
-    if (filters.has('missing_website')) r = r.filter((m) => !m.hasWebsite)
-    if (filters.has('missing_phone')) r = r.filter((m) => !m.hasPhone)
-    if (filters.has('missing_email')) r = r.filter((m) => !m.hasEmail)
-    if (filters.has('missing_hours')) r = r.filter((m) => !m.hasOpeningHours)
-    if (filters.has('has_street')) r = r.filter((m) => !!m.street)
-    if (filters.has('has_zip')) r = r.filter((m) => !!m.zipCode)
-    if (filters.has('has_coords')) r = r.filter((m) => m.hasCoordinates)
-    if (filters.has('has_website')) r = r.filter((m) => m.hasWebsite)
-    if (filters.has('has_phone')) r = r.filter((m) => m.hasPhone)
-    if (filters.has('has_email')) r = r.filter((m) => m.hasEmail)
-    if (filters.has('has_hours')) r = r.filter((m) => m.hasOpeningHours)
-    const q = search.trim().toLowerCase()
-    if (q) {
-      r = r.filter((m) =>
-        m.name.toLowerCase().includes(q) ||
-        (m.slug ?? '').toLowerCase().includes(q) ||
-        (m.city ?? '').toLowerCase().includes(q),
-      )
-    }
-    const dirMul = sortDir === 'asc' ? 1 : -1
-    const sorted = [...r].sort((a, b) => {
-      switch (sortKey) {
-        case 'name': return dirMul * a.name.localeCompare(b.name, 'sv')
-        case 'city': return dirMul * (a.city ?? '').localeCompare(b.city ?? '', 'sv')
-        case 'updated': return dirMul * ((a.updatedAt ?? '').localeCompare(b.updatedAt ?? ''))
-        case 'status': {
-          // Sort by published-then-system rank: claimed-published < system-published < claimed-unpublished < system-unpublished.
-          const rank = (m: AdminMarketRow) => (m.isPublished ? 0 : 2) + (m.isSystemOwned ? 1 : 0)
-          return dirMul * (rank(a) - rank(b))
-        }
-      }
-    })
-    return sorted
-  }, [rows, filters, search, sortKey, sortDir])
-
-  function toggleFilter(key: Filter) {
-    setFilters((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  const counts = useMemo(() => ({
-    total: rows.length,
-    complete: rows.filter(isComplete).length,
-    unpublished: rows.filter((m) => !m.isPublished).length,
-    systemOwned: rows.filter((m) => m.isSystemOwned).length,
-    claimed: rows.filter((m) => !m.isSystemOwned).length,
-    missingContact: rows.filter((m) => !m.hasWebsite && !m.hasPhone && !m.hasEmail).length,
-    missingHours: rows.filter((m) => !m.hasOpeningHours).length,
-  }), [rows])
 
   return (
     <div className="space-y-6">
@@ -287,9 +169,9 @@ export default function AdminMarketsPage() {
           />
           <button
             type="button"
-            onClick={() => setFilters(new Set())}
-            disabled={filters.size === 0}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${filters.size === 0 ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
+            onClick={() => { FILTER_GROUPS.flatMap((g) => g.filters).forEach((f) => { if (activeFilters.has(f.key)) setFilter(f.key) }) }}
+            disabled={activeFilters.size === 0}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${activeFilters.size === 0 ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
           >
             Alla
           </button>
@@ -304,18 +186,18 @@ export default function AdminMarketsPage() {
           </button>
           <span className="ml-auto text-sm text-espresso/60">
             {filtered.length} av {rows.length}
-            {filters.size > 0 && <span className="text-espresso/45"> · {filters.size} filter aktiva</span>}
+            {activeFilters.size > 0 && <span className="text-espresso/45"> · {activeFilters.size} filter aktiva</span>}
           </span>
         </div>
         {FILTER_GROUPS.map((g) => (
           <div key={g.label} className="flex flex-wrap items-center gap-1">
             <span className="text-[11px] uppercase tracking-wide text-espresso/45 w-16">{g.label}</span>
             {g.filters.map((f) => {
-              const active = filters.has(f.key)
+              const active = activeFilters.has(f.key)
               return (
                 <button
                   key={f.key}
-                  onClick={() => toggleFilter(f.key)}
+                  onClick={() => setFilter(f.key)}
                   className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${active ? 'bg-rust text-white border-rust' : 'border-cream-warm text-espresso/75 hover:bg-cream-warm'}`}
                 >
                   {f.label}
@@ -351,9 +233,9 @@ export default function AdminMarketsPage() {
       {isLoading && <p className="text-espresso/60">Laddar…</p>}
       {error && <p className="text-red-700 text-sm">Kunde inte hämta: {String(error)}</p>}
 
-      {selectedIds.size > 0 && (
+      {selection.size > 0 && (
         <section className="sticky top-2 z-10 flex flex-wrap items-center gap-2 px-4 py-2 bg-rust text-white rounded-md shadow">
-          <span className="text-sm font-semibold">{selectedIds.size} valda</span>
+          <span className="text-sm font-semibold">{selection.size} valda</span>
           <div className="flex flex-wrap gap-1 ml-2">
             <BulkBtn onClick={() => bulkApply({ publish: true }, 'Publicera')}>Publicera</BulkBtn>
             <BulkBtn onClick={() => bulkApply({ publish: false }, 'Avpublicera')}>Avpublicera</BulkBtn>
@@ -366,7 +248,7 @@ export default function AdminMarketsPage() {
               Skicka takeover ({selectedTakeoverEligible.length})
             </BulkBtn>
           </div>
-          <button onClick={() => setSelectedIds(new Set())} className="ml-auto text-xs underline">
+          <button onClick={clearSelection} className="ml-auto text-xs underline">
             Avmarkera alla
           </button>
         </section>
@@ -390,12 +272,10 @@ export default function AdminMarketsPage() {
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={filtered.length > 0 && filtered.every((m) => selectedIds.has(m.id))}
+                    checked={filtered.length > 0 && filtered.every((m) => selection.has(m.id))}
                     onChange={(e) => {
-                      const next = new Set(selectedIds)
-                      if (e.target.checked) filtered.forEach((m) => next.add(m.id))
-                      else filtered.forEach((m) => next.delete(m.id))
-                      setSelectedIds(next)
+                      if (e.target.checked) selectAll()
+                      else filtered.forEach((m) => toggleSelection(m.id, false))
                     }}
                     aria-label="Välj alla synliga"
                   />
@@ -414,9 +294,9 @@ export default function AdminMarketsPage() {
                 <MarketRow
                   key={m.id}
                   market={m}
-                  selected={selectedIds.has(m.id)}
+                  selected={selection.has(m.id)}
                   busy={busy}
-                  onSelect={(on) => toggleSelect(m.id, on)}
+                  onSelect={(on) => toggleSelection(m.id, on)}
                   onEdit={() => setEditingId(m.id)}
                   onTogglePublish={() => rowToggle(m, { publish: !m.isPublished })}
                   onToggleClosed={() => rowToggle(m, { status: m.status === 'closed' ? 'confirmed' : 'closed' })}
@@ -585,21 +465,31 @@ function BulkBtn({ children, onClick, disabled }: { children: React.ReactNode; o
 }
 
 function MissingBadges({ m }: { m: AdminMarketRow }) {
-  const missing: { label: string; key: string }[] = []
-  if (!m.street) missing.push({ label: '🛣 gata', key: 'street' })
-  if (!m.zipCode) missing.push({ label: '📮 postnr', key: 'zip' })
-  if (!m.hasWebsite) missing.push({ label: '🌐 webb', key: 'web' })
-  if (!m.hasPhone) missing.push({ label: '📞 tfn', key: 'phone' })
-  if (!m.hasEmail) missing.push({ label: '📧 epost', key: 'email' })
-  if (!m.hasOpeningHours) missing.push({ label: '🕐 öppet', key: 'hours' })
-  if (!m.hasCoordinates) missing.push({ label: '📍 koord', key: 'geo' })
+  const { missingFields } = marketCompleteness(m)
 
-  if (missing.length === 0) {
+  if (missingFields.length === 0) {
     return <span className="text-emerald-700 text-xs font-semibold">✓ allt</span>
   }
+
+  const labels: Record<string, { label: string; key: string }[]> = {
+    address: [
+      ...(!m.street ? [{ label: '🛣 gata', key: 'street' }] : []),
+      ...(!m.zipCode ? [{ label: '📮 postnr', key: 'zip' }] : []),
+    ],
+    lat_lng: [{ label: '📍 koord', key: 'geo' }],
+    opening_hours: [{ label: '🕐 öppet', key: 'hours' }],
+    organizer: [
+      ...(!m.hasWebsite ? [{ label: '🌐 webb', key: 'web' }] : []),
+      ...(!m.hasPhone ? [{ label: '📞 tfn', key: 'phone' }] : []),
+      ...(!m.hasEmail ? [{ label: '📧 epost', key: 'email' }] : []),
+    ],
+  }
+
+  const badges = missingFields.flatMap((f) => labels[f] ?? [])
+
   return (
     <div className="flex flex-wrap gap-1">
-      {missing.map((x) => (
+      {badges.map((x) => (
         <span key={x.key} className="text-xs bg-red-50 text-red-800 border border-red-200 px-1.5 py-0.5 rounded">
           {x.label}
         </span>
