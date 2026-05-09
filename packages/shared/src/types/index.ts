@@ -68,7 +68,6 @@ import type {
   MarketTableRow,
   BookingRow as BookingDbRow,
   RouteRow,
-  StripeAccountRow,
 } from './db'
 import type {
   BookingStatus,
@@ -115,19 +114,11 @@ export type OrganizerStats = {
   total_commission_sek: number
 }
 
-// Stripe
-export type StripeAccount = StripeAccountRow
-
 // Market tables
 export type MarketTable = MarketTableRow
 
 // Bookings
 export type Booking = BookingDbRow
-export type BookingWithDetails = BookingDbRow & {
-  market_table: { label: string; description: string | null; size_description: string | null } | null
-  flea_market: { name: string; city: string } | null
-  booker: { first_name: string | null; last_name: string | null } | null
-}
 
 // Routes
 export type Route = RouteRow
