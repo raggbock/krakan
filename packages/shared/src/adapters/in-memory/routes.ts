@@ -12,7 +12,7 @@ import type {
   UpdateRoutePayload,
   RouteWithStops,
   RouteSummary,
-  PopularRoute,
+  PopularRouteView,
 } from '../../types'
 import type { RouteRepository } from '../../ports/routes'
 
@@ -158,7 +158,7 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
      * Seam tests that call this will get a silent false-negative.
      * Provide real data via seed and a custom implementation if you need to assert against results.
      */
-    async listPopular(_params): Promise<PopularRoute[]> {
+    async listPopular(_params): Promise<PopularRouteView[]> {
       console.warn('[in-memory] listPopular() is a stub and always returns []. Seed the repo if you need results.')
       return []
     },

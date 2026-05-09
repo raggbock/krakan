@@ -137,18 +137,6 @@ export type RouteWithStops = RouteRow & {
 export type RouteSummary = RouteRow & {
   stopCount: number
 }
-export type PopularRoute = {
-  id: string
-  name: string
-  description: string | null
-  created_by: string
-  planned_date: string | null
-  published_at: string | null
-  stop_count: number
-  creator_first_name: string | null
-  creator_last_name: string | null
-}
-
 // Payloads (these were already camelCase — no aliases needed)
 export type AddressPayload = {
   street: string
