@@ -6,7 +6,7 @@ import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
 import { useAuth } from '@/lib/auth/auth-context'
 import { geo as defaultGeo } from '@/lib/geo'
-import type { FleaMarketNearBy, GeoService, LatLng, AuthUser } from '@fyndstigen/shared'
+import type { FleaMarketNearBy, GeoService, Coord, AuthUser } from '@fyndstigen/shared'
 import type { RouteRepository } from '@fyndstigen/shared'
 import type { Stop } from '@fyndstigen/shared'
 import type { RouteBuilderStop } from '@/components/route-builder/stop-list'
@@ -42,8 +42,8 @@ export interface RouteBuilderState {
   setPlannedDate: (v: string) => void
   useGps: boolean
   setUseGps: (v: boolean) => void
-  customStart: LatLng | null
-  setCustomStart: (v: LatLng | null) => void
+  customStart: Coord | null
+  setCustomStart: (v: Coord | null) => void
   stops: RouteBuilderStop[]
   toggleStop: (marketId: string) => void
   reorderStops: (from: number, to: number) => void
@@ -58,7 +58,7 @@ export interface RouteBuilderState {
   saveProgress: RouteSaveProgress | null
   gpsError: string | null
   /** GPS-resolved user position (set when useGps=true and permission granted) */
-  userPos: LatLng | null
+  userPos: Coord | null
 }
 
 export interface RouteBuilderOptions {
@@ -114,7 +114,7 @@ export function useRouteBuilder(opts?: RouteBuilderOptions): RouteBuilderState {
   const [name, setName] = useState('')
   const [plannedDate, setPlannedDate] = useState('')
   const [useGps, setUseGps] = useState(true)
-  const [customStart, setCustomStart] = useState<LatLng | null>(null)
+  const [customStart, setCustomStart] = useState<Coord | null>(null)
   const [stops, setStops] = useState<RouteBuilderStop[]>([])
   const [isOptimizing, setIsOptimizing] = useState(false)
 

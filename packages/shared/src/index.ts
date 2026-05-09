@@ -72,7 +72,7 @@ export type { InMemorySubscriptionRepo } from './adapters/in-memory/subscription
 
 // Geo
 export { createGeo, GeocodeError } from './geo'
-export type { LatLng, GeoService, GeoOptions } from './geo'
+export type { GeoService, GeoOptions } from './geo'
 
 // Errors
 export { appError, isAppError, toAppError, messageFor, interpolate } from './errors'

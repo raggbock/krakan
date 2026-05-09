@@ -10,21 +10,12 @@
  *   - `nearbyMarkets(center, radiusKm)` — calls the `nearby_flea_markets` Supabase
  *       RPC; returns published markets within the given radius.
  *   - `optimizeStops(stops, startPoint?)` — thin wrapper over `domain/route-optimizer`.
- *
- * Note: `LatLng` is a deprecated alias for `Coord` kept for back-compat.
- * New code should import `Coord` from '@fyndstigen/shared' directly.
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FleaMarketNearBy } from '../types'
 import type { Coord } from '../types/domain'
 import { optimizeRoute, type Stop } from '../domain/route-optimizer'
-
-/**
- * @deprecated Use `Coord` from '@fyndstigen/shared' instead.
- * Kept for one release to avoid breaking external imports.
- */
-export type LatLng = Coord
 
 export class GeocodeError extends Error {
   constructor(address: string, cause?: unknown) {

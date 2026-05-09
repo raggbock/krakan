@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { runRouteMutation } from '@fyndstigen/shared'
 import type { RouteEvent } from '@fyndstigen/shared'
-import type { LatLng, AuthUser } from '@fyndstigen/shared'
+import type { Coord, AuthUser } from '@fyndstigen/shared'
 import type { RouteRepository } from '@fyndstigen/shared'
 import type { RouteBuilderStop } from '@/components/route-builder/stop-list'
 
@@ -27,8 +27,8 @@ export function useRouteSave(deps: SaveDeps) {
     name: string,
     plannedDate: string,
     useGps: boolean,
-    customStart: LatLng | null,
-    userPos: LatLng | null,
+    customStart: Coord | null,
+    userPos: Coord | null,
     stops: RouteBuilderStop[],
   ) {
     const { routes, posthog, router, user, onClearDraft } = deps
