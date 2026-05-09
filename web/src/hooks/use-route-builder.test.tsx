@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { useRouteBuilder } from './use-route-builder'
 import type { RouteBuilderDeps } from './use-route-builder'
-import type { FleaMarketNearBy, GeoService } from '@fyndstigen/shared'
+import type { FleaMarketNearByView, GeoService } from '@fyndstigen/shared'
 
 // ---------------------------------------------------------------------------
 // Mock next/navigation — must be hoisted
@@ -61,28 +61,28 @@ vi.mock('@/lib/geo', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SEED_MARKET: FleaMarketNearBy = {
+const SEED_MARKET: FleaMarketNearByView = {
   id: 'm1',
   name: 'Loppis A',
   description: '',
   city: 'Testköping',
-  is_permanent: false,
+  isPermanent: false,
   latitude: 59.3,
   longitude: 18.0,
-  distance_km: 1,
-  published_at: '2024-01-01T00:00:00Z',
+  distanceKm: 1,
+  publishedAt: '2024-01-01T00:00:00Z',
 }
 
-const SEED_MARKET_2: FleaMarketNearBy = {
+const SEED_MARKET_2: FleaMarketNearByView = {
   id: 'm2',
   name: 'Loppis B',
   description: '',
   city: 'Testköping',
-  is_permanent: false,
+  isPermanent: false,
   latitude: 59.4,
   longitude: 18.1,
-  distance_km: 2,
-  published_at: '2024-01-01T00:00:00Z',
+  distanceKm: 2,
+  publishedAt: '2024-01-01T00:00:00Z',
 }
 
 function makeStorage(): Storage & { _data: Map<string, string> } {

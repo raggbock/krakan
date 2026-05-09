@@ -56,6 +56,7 @@ export type FleaMarketNearByView = {
   longitude: number
   distanceKm: number
   publishedAt: string | null
+  slug?: string | null
 }
 
 // --- Opening Hours ---

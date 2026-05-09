@@ -58,8 +58,24 @@ describe('createGeo', () => {
   })
 
   describe('nearbyMarkets', () => {
-    it('calls supabase rpc with correct params', async () => {
-      mockSupabase.rpc.mockResolvedValue({ data: [{ id: 'm1' }], error: null })
+    it('calls supabase rpc and maps snake_case rows to camelCase view', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [
+          {
+            id: 'm1',
+            name: 'Stortorget',
+            description: '',
+            city: 'Stockholm',
+            is_permanent: true,
+            latitude: 59.3,
+            longitude: 18.0,
+            distance_km: 0.5,
+            published_at: '2024-01-01T00:00:00Z',
+            slug: 'stortorget',
+          },
+        ],
+        error: null,
+      })
 
       const geo = createGeo(mockSupabase)
       const result = await geo.nearbyMarkets({ lat: 59.0, lng: 18.0 }, 30)
@@ -69,7 +85,20 @@ describe('createGeo', () => {
         lng: 18.0,
         radius_km: 30,
       })
-      expect(result).toEqual([{ id: 'm1' }])
+      expect(result).toEqual([
+        {
+          id: 'm1',
+          name: 'Stortorget',
+          description: '',
+          city: 'Stockholm',
+          isPermanent: true,
+          latitude: 59.3,
+          longitude: 18.0,
+          distanceKm: 0.5,
+          publishedAt: '2024-01-01T00:00:00Z',
+          slug: 'stortorget',
+        },
+      ])
     })
   })
 

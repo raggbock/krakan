@@ -17,13 +17,13 @@
 import type {
   FleaMarket,
   FleaMarketDetails,
-  FleaMarketNearBy,
   MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
 } from '../types'
+import type { FleaMarketNearByView } from '../types/domain'
 import type { Publishable } from './publishable'
 
 export type WeekendOpenSlot = {
@@ -41,7 +41,7 @@ export type WeekendOpenSlot = {
 export interface FleaMarketRepository extends Publishable {
   list(params?: { page?: number; pageSize?: number }): Promise<{ items: FleaMarket[]; count: number }>
   details(id: string): Promise<FleaMarketDetails>
-  nearBy(params: { latitude: number; longitude: number; radiusKm: number }): Promise<FleaMarketNearBy[]>
+  nearBy(params: { latitude: number; longitude: number; radiusKm: number }): Promise<FleaMarketNearByView[]>
   create(payload: CreateFleaMarketPayload): Promise<{ id: string }>
   update(id: string, payload: UpdateFleaMarketPayload): Promise<void>
   delete(id: string): Promise<void>

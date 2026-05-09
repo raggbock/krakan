@@ -61,7 +61,7 @@ export default function ExplorePage() {
     name: string
     city: string | null
     description: string | null
-    is_permanent: boolean
+    isPermanent: boolean
     latitude: number | null
     longitude: number | null
     slug?: string | null
@@ -69,12 +69,12 @@ export default function ExplorePage() {
   const allMarkets: CardMarket[] = useNearby
     ? nearby.markets.map((m) => ({
         id: m.id, name: m.name, city: m.city, description: m.description,
-        is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+        isPermanent: m.isPermanent, latitude: m.latitude, longitude: m.longitude,
         slug: m.slug,
       }))
     : fallback.markets.map((m) => ({
         id: m.id, name: m.name, city: m.city, description: m.description,
-        is_permanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+        isPermanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
         slug: m.slug,
       }))
   const totalCount = useNearby ? nearby.markets.length : fallback.count
@@ -338,10 +338,10 @@ export default function ExplorePage() {
                   <div className="absolute top-2.5 right-2.5">
                     <span
                       className={`stamp text-[10px] ${
-                        market.is_permanent ? 'text-forest' : 'text-mustard'
+                        market.isPermanent ? 'text-forest' : 'text-mustard'
                       }`}
                     >
-                      {market.is_permanent ? 'Permanent' : 'Tillfällig'}
+                      {market.isPermanent ? 'Permanent' : 'Tillfällig'}
                     </span>
                   </div>
                 </div>

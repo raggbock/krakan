@@ -6,7 +6,7 @@ import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
 import { useAuth } from '@/lib/auth/auth-context'
 import { geo as defaultGeo } from '@/lib/geo'
-import type { FleaMarketNearBy, GeoService, Coord, AuthUser } from '@fyndstigen/shared'
+import type { FleaMarketNearByView, GeoService, Coord, AuthUser } from '@fyndstigen/shared'
 import type { RouteRepository } from '@fyndstigen/shared'
 import type { Stop } from '@fyndstigen/shared'
 import type { RouteBuilderStop } from '@/components/route-builder/stop-list'
@@ -52,7 +52,7 @@ export interface RouteBuilderState {
   save: () => void
   saveAnon: (email: string) => void
   clearDraft: () => void
-  markets: FleaMarketNearBy[] | undefined
+  markets: FleaMarketNearByView[] | undefined
   isOptimizing: boolean
   isSaving: boolean
   saveProgress: RouteSaveProgress | null
