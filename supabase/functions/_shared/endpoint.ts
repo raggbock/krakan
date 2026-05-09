@@ -9,15 +9,20 @@ import { createHandler, HttpError, type RequestContext } from './handler.ts'
  *     Invalid input short-circuits with an AppError-shaped payload
  *     ({ error: 'input.invalid', detail: { issues } }) and HTTP 400.
  *   - Runs the typed handler.
- *   - Validates the handler's return value against `config.output`. When
- *     SUPABASE_ENVIRONMENT === 'development' a contract violation throws so
- *     the mismatch is loud during local work / CI; otherwise (including when
- *     the variable is unset) we log and return the value to avoid breaking
- *     clients on schema drift. Defaults to production-safe (warn) mode.
+ *   - Validates the handler's return value against `config.output`.
  *
- * The return type of `defineEndpoint` is intentionally void — the call
- * registers a Deno HTTP server side-effectfully, matching `serve()` /
- * `createHandler()` ergonomics.
+ * Output-contract mode is controlled by `OUTPUT_CONTRACT_MODE`:
+ *   - `'strict'`        → throw on violation (use in CI + local dev)
+ *   - unset or `'warn'` → console.error and return the value (production
+ *                         default — never break clients on schema drift)
+ *
+ * Set `OUTPUT_CONTRACT_MODE=strict` in CI (.github/workflows/ci.yml) and
+ * locally via `supabase/.env.local` to catch violations during development.
+ *
+ * The legacy `SUPABASE_ENVIRONMENT=development` flag is still honoured for
+ * back-compat — remove once all setups have migrated to the new name.
+ *
+ * Alerting on warnings is tracked separately in #113.
  */
 export type EndpointConfig<I, O> = {
   name: string
@@ -40,21 +45,13 @@ export function defineEndpoint<I, O>(config: EndpointConfig<I, O>): void {
 
     const parsedOutput = config.output.safeParse(result)
     if (!parsedOutput.success) {
-      // Contract-drift gate: default to prod-style behavior (warn, don't throw)
-      // so an unset env never causes an outage. Supabase Edge does NOT auto-set
-      // SUPABASE_ENVIRONMENT — it must be explicitly set to 'development' in
-      // local `supabase/.env.local` or CI to opt into loud failures. If nobody
-      // sets it, both prod and CI warn silently — accept this as the safer
-      // default; drift still surfaces as console.error in logs.
-      const supabaseEnv = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno
-        ?.env.get('SUPABASE_ENVIRONMENT') ?? 'production'
-      const isProd = supabaseEnv !== 'development'
+      const env = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env
+      const mode = env?.get('OUTPUT_CONTRACT_MODE')
+        ?? (env?.get('SUPABASE_ENVIRONMENT') === 'development' ? 'strict' : 'warn')
       const msg = `[endpoint:${config.name}] output contract violation: ${JSON.stringify(parsedOutput.error.issues)}`
-      if (isProd) {
-        console.error(msg)
-        return result
-      }
-      throw new Error(msg)
+      if (mode === 'strict') throw new Error(msg)
+      console.error(msg)
+      return result
     }
 
     return parsedOutput.data
