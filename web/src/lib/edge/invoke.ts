@@ -1,3 +1,20 @@
+/**
+ * invokeEdgeFn — raw escape hatch for calling edge functions not yet in the
+ * typed `endpoints` registry.
+ *
+ * Prefer `endpoints[key].invoke(body)` from `@/lib/edge/edge` for any function
+ * that has a registered contract — that path gives static types, Zod validation,
+ * and structured error unwrapping.
+ *
+ * Use this function only for functions not yet in the registry (RFC #39).
+ * It unwraps the structured error body that the edge-function handlers return
+ * so callers receive an `EdgeFnError` with `.code` / `.detail` instead of the
+ * generic Supabase "non-2xx" message.
+ *
+ * The eslint-disable on the supabase.functions.invoke call is intentional —
+ * see the inline comment for the rationale.
+ */
+
 import { supabase } from '../supabase'
 
 /**

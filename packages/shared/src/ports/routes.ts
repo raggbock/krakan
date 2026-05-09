@@ -1,3 +1,13 @@
+/**
+ * RouteRepository — port for loppisrunda (route) persistence.
+ *
+ * Extends Publishable (publish / unpublish). All mutations go through the
+ * `runRouteMutation` saga; callers should not call `create` / `update` directly
+ * from UI components.
+ *
+ * Implementations: adapters/supabase/routes.ts, adapters/in-memory/routes.ts.
+ */
+
 import type {
   CreateRoutePayload,
   UpdateRoutePayload,

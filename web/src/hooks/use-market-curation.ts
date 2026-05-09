@@ -1,3 +1,17 @@
+/**
+ * useMarketCuration — client-side filter/sort for the admin markets list.
+ *
+ * Accepts the full `AdminMarketRow[]` array and returns a derived view with:
+ *   - `filtered`  — rows matching the active filter set
+ *   - `sorted`    — filtered rows in the requested sort order
+ *   - `counts`    — pre-computed aggregate counts for the filter badges
+ *   - state setters for activeFilters, sortKey, sortDir, and search query
+ *
+ * All filtering and sorting is pure client-side (no re-fetch). The hook
+ * composes `marketCompleteness` from the domain layer to compute missing-
+ * field counts for each market row.
+ */
+
 'use client'
 
 import { useMemo, useState } from 'react'

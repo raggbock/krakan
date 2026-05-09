@@ -1,3 +1,16 @@
+/**
+ * Edge client singletons for the web app.
+ *
+ * Two exports:
+ *   - `edge`      — raw EdgeClient (use `edge.invoke` / `edge.invokePublic` when you need
+ *                   direct control over the call; rare — prefer `endpoints` instead).
+ *   - `endpoints` — typed invoker map for the flat ENDPOINTS registry in
+ *                   @fyndstigen/shared/api/endpoints. Provides static types and Zod
+ *                   contract validation for all registered functions.
+ *
+ * For functions NOT yet in the registry, use `invokeEdgeFn` from `./invoke.ts`.
+ */
+
 import { createEdgeClient, createEndpointInvokers } from '@fyndstigen/shared'
 import { supabase } from '../supabase'
 

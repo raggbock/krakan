@@ -1,3 +1,20 @@
+/**
+ * DepsProvider — React context that publishes the `Deps` container to the
+ * component tree.
+ *
+ * Why at the React root: `Deps` bundles all I/O adapters (DB, images, etc.).
+ * Placing it at the root lets every hook call `useDeps()` without prop-drilling
+ * and lets E2E tests substitute `createE2EInMemoryDeps()` for the production
+ * Supabase adapters by swapping the `deps` prop at the `QueryProvider` level.
+ *
+ * Stability contract: `deps` must be constructed ONCE (e.g. at module scope in
+ * `query-provider.tsx`). Recreating the object on every render triggers
+ * unnecessary re-renders in all consumers — that is a caller bug.
+ *
+ * `useDeps()` throws a programming-error exception if called outside a
+ * `<DepsProvider>` — this is intentional (invariant, not user-facing).
+ */
+
 'use client'
 
 import { createContext, useContext } from 'react'

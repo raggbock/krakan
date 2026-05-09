@@ -1,3 +1,21 @@
+/**
+ * DepsFactory — wiring layer that constructs Deps from concrete adapters.
+ *
+ * Three factories:
+ *   - makeSupabaseDeps(supabaseClient, options?)
+ *       Production. Construct ONCE at app bootstrap (e.g. in query-provider.tsx).
+ *       Accepts optional `compressImage` hook so the web layer can inject
+ *       client-side compression; callers without a DOM omit it.
+ *
+ *   - makeInMemoryDeps(seed?, routes?, profiles?)
+ *       Unit tests. Synchronous, no network. Pass seed data to pre-populate stores.
+ *
+ *   - createE2EInMemoryDeps()
+ *       E2E tests (Playwright). Same as in-memory but returns a `control` handle
+ *       so tests can mutate the market store after construction and expose
+ *       `window.__e2eBridge__` to seed data without touching the real database.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Deps } from './deps'
 import type { FleaMarket, OpeningHourRule, UserProfile } from './types'

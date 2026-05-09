@@ -1,3 +1,11 @@
+/**
+ * Supabase adapter for StatsPort — production implementation.
+ *
+ * Calls Supabase RPCs (`organizer_booking_stats`, `organizer_route_stats`)
+ * that aggregate in SQL — no raw booking/route rows are transferred.
+ * The optional `since` date is forwarded to the RPC as `p_since`.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   StatsPort,

@@ -1,3 +1,15 @@
+/**
+ * Supabase adapter for BookingRepository — production implementation.
+ *
+ * All read queries use `BookingQuery` select strings from `query/booking.ts`
+ * to keep the column list in one place. `updateStatus` enforces valid
+ * transitions via `isValidStatusTransition` before writing.
+ *
+ * Note: `create` is absent from this adapter — booking creation must go through
+ * the `booking-create` edge function so Stripe + idempotency + auto-accept rules
+ * stay enforced centrally.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isValidStatusTransition } from '../../domain/booking'
 import type { BookingStatus } from '../../types'
