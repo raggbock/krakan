@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { RouteWithStops, RouteSummary, PopularRoute, CreateRoutePayload, UpdateRoutePayload } from '@fyndstigen/shared'
+import type { RouteWithStops, RouteSummary, PopularRouteView, CreateRoutePayload, UpdateRoutePayload } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 
@@ -40,7 +40,7 @@ export function usePopularRoutes(params: { latitude: number; longitude: number; 
     queryFn: () => routes.listPopular(params),
   })
   return {
-    routes: data ?? ([] as PopularRoute[]),
+    routes: data ?? ([] as PopularRouteView[]),
     loading: isLoading,
     error: error?.message ?? null,
   }

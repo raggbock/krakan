@@ -62,7 +62,7 @@ export default function RoutesDiscoveryPage() {
         <div className="space-y-3">
           {routes.map((route, i) => {
             const creatorName =
-              [route.creator_first_name, route.creator_last_name]
+              [route.creatorFirstName, route.creatorLastName]
                 .filter(Boolean)
                 .join(' ') || 'Anonym'
 
@@ -101,11 +101,11 @@ export default function RoutesDiscoveryPage() {
                     {route.name}
                   </h3>
                   <div className="flex items-center gap-3 mt-1 text-xs text-espresso/60">
-                    <span>{route.stop_count} stopp</span>
+                    <span>{route.stopCount} stopp</span>
                     <span>Av {creatorName}</span>
-                    {route.planned_date && (
+                    {route.plannedDate && (
                       <span>
-                        {new Date(route.planned_date).toLocaleDateString(
+                        {new Date(route.plannedDate).toLocaleDateString(
                           'sv-SE',
                           { day: 'numeric', month: 'short' },
                         )}

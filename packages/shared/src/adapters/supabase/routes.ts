@@ -14,8 +14,34 @@ import type {
   UpdateRoutePayload,
   RouteWithStops,
   RouteSummary,
-  PopularRoute,
+  PopularRouteView,
 } from '../../types'
+
+type PopularRouteRpcRow = {
+  id: string
+  name: string
+  description: string | null
+  created_by: string
+  planned_date: string | null
+  published_at: string | null
+  stop_count: number
+  creator_first_name: string | null
+  creator_last_name: string | null
+}
+
+function mapPopularRoute(r: PopularRouteRpcRow): PopularRouteView {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    createdBy: r.created_by,
+    plannedDate: r.planned_date,
+    publishedAt: r.published_at,
+    stopCount: r.stop_count,
+    creatorFirstName: r.creator_first_name,
+    creatorLastName: r.creator_last_name,
+  }
+}
 import type { RouteDetailsRow, RouteSummaryRow } from '../../api/mappers'
 import type { RouteRepository } from '../../ports/routes'
 import { RouteQuery } from '../../query/route'
@@ -138,7 +164,7 @@ export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository 
         radius_km: params.radiusKm ?? 30,
       })
       if (error) throw error
-      return (data ?? []) as PopularRoute[]
+      return (data as PopularRouteRpcRow[] ?? []).map(mapPopularRoute)
     },
   }
 }

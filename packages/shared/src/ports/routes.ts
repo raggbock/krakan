@@ -13,7 +13,7 @@ import type {
   UpdateRoutePayload,
   RouteWithStops,
   RouteSummary,
-  PopularRoute,
+  PopularRouteView,
 } from '../types'
 import type { Publishable } from './publishable'
 
@@ -23,5 +23,5 @@ export interface RouteRepository extends Publishable {
   update(id: string, payload: UpdateRoutePayload): Promise<void>
   delete(id: string): Promise<void>
   listByUser(userId: string): Promise<RouteSummary[]>
-  listPopular(params: { latitude: number; longitude: number; radiusKm?: number }): Promise<PopularRoute[]>
+  listPopular(params: { latitude: number; longitude: number; radiusKm?: number }): Promise<PopularRouteView[]>
 }
