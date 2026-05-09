@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { LatLng } from '@fyndstigen/shared'
+import type { Coord } from '@fyndstigen/shared'
 
 /**
  * Watches the `useGps` flag and fires `getCurrentPosition` only on the
@@ -10,8 +10,8 @@ import type { LatLng } from '@fyndstigen/shared'
 export function useGpsReader(
   useGps: boolean,
   geolocation: Geolocation | undefined,
-): { userPos: LatLng | null; gpsError: string | null } {
-  const [userPos, setUserPos] = useState<LatLng | null>(null)
+): { userPos: Coord | null; gpsError: string | null } {
+  const [userPos, setUserPos] = useState<Coord | null>(null)
   const [gpsError, setGpsError] = useState<string | null>(null)
   const prevUseGpsRef = useRef<boolean | null>(null)
 
