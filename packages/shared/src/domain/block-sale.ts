@@ -1,3 +1,20 @@
+/**
+ * BlockSale domain — pure logic for kvartersloppis (block-sale) events.
+ *
+ * Covers:
+ *   - Slug generation: deterministic from (name, city, startDate); Swedish
+ *     characters (å/ä/ö) are transliterated to ASCII.
+ *   - Date expansion: `expandEventDates` returns every calendar date in the
+ *     [startDate, endDate] range — used to generate per-day stand slots.
+ *   - Stand status transitions: pending → confirmed → approved|rejected.
+ *     `canTransitionStandStatus` is the single gatekeeper; edge functions call
+ *     it before any UPDATE so illegal transitions are rejected uniformly.
+ *   - Input validation: `validateBlockSaleInput` returns a typed result with a
+ *     string reason code (not a Swedish message — callers resolve via messageFor).
+ *
+ * No I/O — all functions are pure and synchronous.
+ */
+
 import type { BlockSaleStandStatus } from '../types'
 
 export function generateBlockSaleSlug(name: string, city: string, startDate: string): string {

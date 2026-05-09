@@ -1,3 +1,12 @@
+/**
+ * In-memory adapter for RouteRepository — test double.
+ *
+ * Non-atomic: synchronous Map mutations. `StoredRoute` is exported so
+ * `makeInMemoryDeps` can accept route seed data directly.
+ * `listPopular` always returns an empty array — no SQL aggregation available
+ * in the in-memory store.
+ */
+
 import type {
   CreateRoutePayload,
   UpdateRoutePayload,

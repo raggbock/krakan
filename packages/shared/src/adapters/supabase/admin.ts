@@ -1,3 +1,15 @@
+/**
+ * Supabase adapter for AdminPort — production implementation.
+ *
+ * `listAdmins()` performs a two-step fetch: first reads admin rows, then calls
+ * the `admin_user_emails` security-definer RPC to bulk-fetch email addresses
+ * (direct SELECT on auth.users is not grantable to authenticated role since
+ * migration 00024 — direct access was revoked after the admin_user_email_view
+ * was broken by a schema change).
+ *
+ * All methods throw on Supabase errors.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   AdminPort,

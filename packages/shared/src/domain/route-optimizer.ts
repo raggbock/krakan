@@ -1,3 +1,19 @@
+/**
+ * Route optimizer — nearest-neighbor TSP heuristic for stop reordering.
+ *
+ * Complexity: O(n²) — acceptable for typical route sizes (2–20 stops).
+ * Does not attempt to find a global optimum; nearest-neighbor gives a
+ * reasonable short path for geographically clustered flea markets.
+ *
+ * Start-point semantics:
+ *   - If `startPoint` is provided, the first stop will be the one nearest
+ *     to that coordinate (typically the user's GPS location or a custom pin).
+ *   - If `startPoint` is omitted, the original first stop is used as the
+ *     starting anchor, preserving manual ordering for the first element.
+ *
+ * The returned array is always a new copy — input is not mutated.
+ */
+
 import type { Coord } from '../types/domain'
 
 export type Stop = Coord & {

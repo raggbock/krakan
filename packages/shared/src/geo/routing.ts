@@ -1,3 +1,20 @@
+/**
+ * Routing — driving-route fetch from the OSRM public API.
+ *
+ * `fetchDrivingRoute(stops)` calls router.project-osrm.org with the ordered
+ * stop coordinates and returns the road geometry and per-leg stats.
+ *
+ * Usage notes:
+ *   - OSRM is a free public API with no API key; it may throttle heavy use.
+ *     Do not call on every keystroke — debounce or call only on explicit user
+ *     action (e.g. "Optimera rutt" button).
+ *   - Returns null (not throws) on network failure or non-2xx response so
+ *     callers can degrade gracefully without a try/catch wrapper.
+ *   - Coordinates are passed as lng,lat (OSRM convention) but returned as
+ *     [lat, lng] pairs (Leaflet convention) — the flip is done internally.
+ *   - Requires at least 2 stops; returns null for 0 or 1 stops.
+ */
+
 import type { Coord } from '../types/domain'
 
 export type RouteLeg = {

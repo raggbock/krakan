@@ -1,3 +1,13 @@
+/**
+ * In-memory adapter for AdminPort — test double.
+ *
+ * Returns a `{ repo, control }` pair. The `control` handle lets tests seed
+ * admins, set the current user identity, and inspect tokens generated during
+ * the invite flow — without any database or JWT dependency.
+ *
+ * Non-atomic: all operations are synchronous Map mutations.
+ */
+
 import type {
   AdminPort,
   AdminRecord,

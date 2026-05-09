@@ -1,3 +1,15 @@
+/**
+ * In-memory adapter for BookingRepository — test double.
+ *
+ * Implements `BookingRepository` plus a `create()` helper (not on the port)
+ * for seeding test data without going through the booking-create edge function.
+ *
+ * Non-atomic: all operations are synchronous Map mutations. Correct for
+ * single-process unit tests; do not use in production or concurrency scenarios.
+ * `pendingCountForOrganizer` always returns 0 — tests that need it must compose
+ * with FleaMarketRepository.listByOrganizer or override the method directly.
+ */
+
 import { calculateCommission, COMMISSION_RATE, isValidStatusTransition } from '../../domain/booking'
 import type { BookingStatus, CreateBookingPayload } from '../../types'
 import type { BookingView } from '../../types/domain'

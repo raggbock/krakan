@@ -1,3 +1,20 @@
+/**
+ * GeoService — geocoding, nearby-market lookup, and stop optimization.
+ *
+ * `createGeo(supabaseClient, options?)` returns a `GeoService` instance that:
+ *   - `geocode(address)` — calls Nominatim (openstreetmap.org). Rate-limit policy:
+ *       one request at a time, 5-second timeout (configurable). The User-Agent
+ *       header is required by the Nominatim usage policy; it defaults to
+ *       'Fyndstigen/0.1'. Do not parallelize geocode calls from the same IP.
+ *       Throws `GeocodeError` on failure.
+ *   - `nearbyMarkets(center, radiusKm)` — calls the `nearby_flea_markets` Supabase
+ *       RPC; returns published markets within the given radius.
+ *   - `optimizeStops(stops, startPoint?)` — thin wrapper over `domain/route-optimizer`.
+ *
+ * Note: `LatLng` is a deprecated alias for `Coord` kept for back-compat.
+ * New code should import `Coord` from '@fyndstigen/shared' directly.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FleaMarketNearBy } from '../types'
 import type { Coord } from '../types/domain'

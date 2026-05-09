@@ -1,3 +1,19 @@
+/**
+ * FleaMarket ports — repository interfaces for markets, market tables, and search.
+ *
+ * Three interfaces:
+ *   - FleaMarketRepository  — full CRUD + publish + nearby/weekend-open queries.
+ *   - MarketTableRepository — table-level CRUD (list, create, update, delete).
+ *   - SearchRepository      — free-text search over markets and related entities.
+ *
+ * Implementations live in:
+ *   adapters/supabase/flea-markets.ts  (production)
+ *   adapters/in-memory/flea-markets.ts (tests)
+ *
+ * All methods are async; callers should expect Supabase errors to propagate as
+ * thrown Error instances (not typed — wrap with toAppError if needed).
+ */
+
 import type {
   FleaMarket,
   FleaMarketDetails,

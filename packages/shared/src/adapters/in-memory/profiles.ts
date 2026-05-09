@@ -1,3 +1,12 @@
+/**
+ * In-memory adapters for ProfileRepository and OrganizerRepository — test doubles.
+ *
+ * Non-atomic: synchronous Map mutations. Throws on missing IDs (programmer
+ * error in test setup, not a user-facing condition).
+ * `OrganizerRepository.stats()` returns empty stats — override in tests
+ * that need specific organizer stat values.
+ */
+
 import type { UserProfile, OrganizerProfile, OrganizerStats } from '../../types'
 import type { ProfileRepository, OrganizerRepository } from '../../ports/profiles'
 

@@ -1,3 +1,21 @@
+/**
+ * BusinessImport — pure diff/upsert logic for bulk organizer import.
+ *
+ * Used by the admin-business-import edge function to ingest a curated JSON
+ * catalogue of flea market organizers. Semantics:
+ *
+ *   - `normalizeForDb` maps an ImportBusiness to the importable columns subset.
+ *   - `validateRequired` / `validateSoft` separate hard errors (row skipped) from
+ *     soft warnings (row imported with a flag). Error messages are in Swedish.
+ *   - `rowsEqual` compares the normalized row against the existing DB row to decide
+ *     create / update / unchanged — avoids unnecessary writes on re-imports.
+ *   - `buildDryRunReport` computes the full diff without writing anything; the
+ *     edge function runs a dry-run first, then executes the real write in a
+ *     second pass when the caller confirms.
+ *
+ * No I/O — all functions are pure; the DB round-trips live in the edge function.
+ */
+
 import type { ImportBusiness, ImportRowResult } from '../contracts/admin-business-import'
 
 /**

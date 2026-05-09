@@ -1,3 +1,23 @@
+/**
+ * useBooking — React hook that drives the full booking flow for a market.
+ *
+ * Consumes `BookingService.book()` as an `AsyncIterable<BookingProgress>` event
+ * stream. Each event is handled:
+ *   submitted       → set isSubmitting
+ *   created         → record bookingId; branch on requiresPayment
+ *   payment-required → Stripe card confirmation in-flight
+ *   payment-confirmed → card captured
+ *   succeeded       → setIsDone; PostHog capture
+ *   failed          → setSubmitError; PostHog capture
+ *
+ * Telemetry: the hook fires `posthog.capture` per event type. The service
+ * itself never captures — that is intentionally the hook's responsibility.
+ *
+ * Stripe elements (useStripe, useElements) must be mounted by the parent
+ * (e.g. wrapped in `<Elements stripe={...}>`); the hook resolves the payment
+ * gateway via `resolvePaymentGateway` which falls back to a no-op if missing.
+ */
+
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'

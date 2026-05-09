@@ -1,3 +1,13 @@
+/**
+ * Supabase adapter for RouteRepository — production implementation.
+ *
+ * `create` and `update` both accept a `stops` array and handle the stop
+ * rows atomically alongside the route row via the `create_route_with_stops`
+ * and `update_route_with_stops` Supabase RPCs.
+ *
+ * All methods throw on Supabase errors.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   CreateRoutePayload,

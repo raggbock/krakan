@@ -1,3 +1,12 @@
+/**
+ * Supabase adapter for AuthPort — production implementation.
+ *
+ * Thin wrapper over `supabase.auth.*`. `toAuthUser` normalizes the Supabase
+ * user object to the minimal `AuthUser` shape (id + email).
+ * The web app uses `AuthWithRedirect` (web/src/lib/auth/auth-with-redirect.ts)
+ * which wraps this adapter to inject `redirectTo` from the caller's origin.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AuthPort, AuthUser } from '../../ports/auth'
 

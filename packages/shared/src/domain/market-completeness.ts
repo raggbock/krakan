@@ -1,3 +1,17 @@
+/**
+ * MarketCompleteness — scoring function for admin market curation.
+ *
+ * `marketCompleteness(row)` inspects an AdminMarketRow and returns:
+ *   - `isComplete`       — all tracked fields are present
+ *   - `isAlmostComplete` — at most one field missing (highlight in admin UI)
+ *   - `missingFields`    — typed list of gap categories (address, lat_lng, etc.)
+ *
+ * Tracked fields: address (street + zip + city), coordinates, opening hours,
+ * and organizer contact info (website + phone + email).
+ *
+ * Pure function — no I/O, no side effects.
+ */
+
 import type { AdminMarketRow } from '../contracts/admin-markets-overview'
 
 export type MissingField =

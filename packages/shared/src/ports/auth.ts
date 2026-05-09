@@ -1,3 +1,11 @@
+/**
+ * AuthPort — abstraction over Supabase Auth for session management.
+ *
+ * The web app uses `AuthWithRedirect` (web/src/lib/auth/auth-with-redirect.ts),
+ * which wraps this port and injects `redirectTo` from `window.location.origin`.
+ * Tests and edge functions use the raw `AuthPort` (supabase adapter).
+ */
+
 export type AuthUser = {
   id: string
   email: string

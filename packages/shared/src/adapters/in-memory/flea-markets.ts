@@ -1,3 +1,18 @@
+/**
+ * In-memory adapter for FleaMarketRepository, MarketTableRepository, and
+ * SearchRepository — test doubles.
+ *
+ * Two factory variants:
+ *   - createInMemoryFleaMarkets(seed) — standard; private store.
+ *   - createE2EInMemoryFleaMarkets()  — E2E; returns { repo, control } so
+ *       Playwright tests can mutate the store via window.__e2eBridge__ after
+ *       the DepsProvider has been mounted.
+ *
+ * Visibility logic mirrors the Postgres `is_market_visible()` function:
+ * published + not-deleted + (permanent OR has a future date-type rule).
+ * Non-atomic: synchronous Map mutations; safe for single-process tests only.
+ */
+
 import type {
   FleaMarket,
   FleaMarketDetails,

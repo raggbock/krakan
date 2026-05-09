@@ -1,3 +1,13 @@
+/**
+ * AdminPort — operations available to platform admins.
+ *
+ * Covers invite lifecycle (invite → accept → revoke), admin list management,
+ * and the admin action log. Implementations: supabase/admin.ts (production),
+ * in-memory/admin.ts (tests — includes a control handle for seeding).
+ *
+ * Authorization: callers must have a valid admin session; edge functions
+ * enforce this via `defineEndpoint` + `isAdmin` guard.
+ */
 // packages/shared/src/ports/admin.ts
 
 export type AdminRecord = {

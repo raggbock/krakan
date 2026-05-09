@@ -1,3 +1,14 @@
+/**
+ * Pure string / formatting utilities.
+ *
+ *   - getInitials    — first letter of up to the first two name words, uppercased.
+ *   - slugifyCity    — URL-safe slug from a city name; handles Swedish characters.
+ *   - formatDistance — meters → "N m" or "N.N km" (Swedish conventions).
+ *   - formatDuration — seconds → "N min" or "N h M min".
+ *
+ * No side effects. All functions are safe to call in any runtime (browser, Node, Deno).
+ */
+
 export function getInitials(name: string) {
   return name
     .split(' ')

@@ -1,3 +1,15 @@
+/**
+ * Supabase adapter for FleaMarketRepository, MarketTableRepository, and
+ * SearchRepository — production implementations.
+ *
+ * Queries use `FleaMarketQuery` select strings from `query/flea-market.ts`.
+ * The `nearBy` method delegates to the `nearby_flea_markets` Supabase RPC
+ * (PostGIS ST_DWithin). The `search` adapter calls the `fts_search` RPC.
+ *
+ * All methods throw on Supabase errors; callers should wrap with toAppError
+ * or let the error propagate to the React Query error boundary.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,

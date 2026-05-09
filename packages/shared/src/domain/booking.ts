@@ -1,3 +1,19 @@
+/**
+ * Booking domain — commission math, date validation, and creation decisions.
+ *
+ * Key exports:
+ *   - COMMISSION_RATE (0.12) — 12% platform fee applied to every paid booking.
+ *   - calculateCommission / calculateStripeAmounts — translate a SEK price into
+ *     the amounts sent to Stripe (total in öre, application_fee in öre).
+ *   - isFreePriced — true iff priceSek === 0; free bookings skip Stripe entirely.
+ *   - decideCreateBooking — single source of truth for the (price, autoAccept)
+ *     truth-table that produces initial booking status, paymentStatus, and expiresAt.
+ *     Both the booking-create edge function and the booking-lifecycle reducer delegate
+ *     here so the rules live in exactly one place.
+ *   - validateBookingDate — pure validation; returns a typed BookingDateValidation so
+ *     callers can call messageFor(code) for a Swedish user-facing string.
+ */
+
 import type { BookingStatus, OpeningHourRule, OpeningHourException } from '../types'
 import { checkOpeningHours } from './opening-hours'
 import type { ErrorCode } from '../errors'

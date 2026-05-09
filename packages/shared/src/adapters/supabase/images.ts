@@ -1,3 +1,18 @@
+/**
+ * Supabase adapter for ImagePort — production implementation.
+ *
+ * Bucket: `flea-market-images`. Storage path pattern:
+ *   `<marketId>/<timestamp>-<filename>`
+ *
+ * Optional `compress` hook (injected by the web layer at construction time)
+ * runs before upload to reduce file size on the client. When omitted the
+ * file is uploaded untouched (safe for server-side or test callers).
+ *
+ * `add` uploads to Storage then calls the `add_market_image` RPC to insert
+ * the DB row. `remove` calls the RPC first (authoritative), then best-effort
+ * deletes from Storage — storage failure is logged but not thrown.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FleaMarketImage } from '../../types'
 import type { ImagePort } from '../../ports/images'

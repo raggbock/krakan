@@ -102,7 +102,10 @@ export default function CreateMarketPage() {
       if (hasContent) setRestoredAgeLabel(formatDraftAge(existing.savedAt))
     }
     setHydrated(true)
-    // Intentionally run once.
+    // Intentionally run once on mount: one-shot localStorage hydration.
+    // All referenced mutations (fields.set*, openingHours.reset, tables.addBatch)
+    // are stable function references from custom hooks — adding them to deps
+    // would cause the draft to re-apply on every render, overwriting user edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

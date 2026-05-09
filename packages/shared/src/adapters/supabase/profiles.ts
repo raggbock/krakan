@@ -1,3 +1,13 @@
+/**
+ * Supabase adapters for ProfileRepository and OrganizerRepository —
+ * production implementations.
+ *
+ * `OrganizerRepository.stats()` calls the `organizer_stats` Supabase RPC
+ * which aggregates market + booking counts in SQL (no raw rows transferred).
+ *
+ * All methods throw on Supabase errors.
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { UserProfile, OrganizerProfile, OrganizerStats } from '../../types'
 import type { ProfileRepository, OrganizerRepository } from '../../ports/profiles'
