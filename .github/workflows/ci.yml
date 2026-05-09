@@ -58,6 +58,10 @@ jobs:
         shell: bash
         # Use `find` instead of bash `**` so nested subdirs under
         # supabase/functions/<name>/ also get checked.
+        env:
+          # When deno test gets wired into CI, this catches output-contract
+          # violations as failures (see supabase/functions/_shared/endpoint.ts).
+          OUTPUT_CONTRACT_MODE: strict
         run: find supabase/functions -name '*.ts' -print0 | xargs -0 deno check --config=supabase/functions/deno.json
 
   # Verify no edge function imports a non-allow-listed @fyndstigen/shared subpath.
