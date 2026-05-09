@@ -13,9 +13,36 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { FleaMarketNearBy } from '../types'
-import type { Coord } from '../types/domain'
+import type { Coord, FleaMarketNearByView } from '../types/domain'
 import { optimizeRoute, type Stop } from '../domain/route-optimizer'
+
+type NearbyFleaMarketRpcRow = {
+  id: string
+  name: string
+  description: string
+  city: string
+  is_permanent: boolean
+  latitude: number
+  longitude: number
+  distance_km: number
+  published_at: string | null
+  slug?: string | null
+}
+
+function mapNearbyFleaMarket(r: NearbyFleaMarketRpcRow): FleaMarketNearByView {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    city: r.city,
+    isPermanent: r.is_permanent,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    distanceKm: r.distance_km,
+    publishedAt: r.published_at,
+    slug: r.slug ?? null,
+  }
+}
 
 export class GeocodeError extends Error {
   constructor(address: string, cause?: unknown) {
@@ -36,7 +63,7 @@ export type GeoService = {
   /** Geocode a free-text address to coordinates. Throws GeocodeError on failure. */
   geocode(address: string): Promise<Coord>
   /** Find published flea markets within radiusKm of a point. */
-  nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearBy[]>
+  nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearByView[]>
   /** Reorder stops for shortest path (nearest-neighbor). */
   optimizeStops<T extends Stop>(stops: T[], startPoint?: Coord): T[]
 }
@@ -67,14 +94,14 @@ export function createGeo(supabase: SupabaseClient, options?: GeoOptions): GeoSe
       }
     },
 
-    async nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearBy[]> {
+    async nearbyMarkets(center: Coord, radiusKm: number): Promise<FleaMarketNearByView[]> {
       const { data, error } = await supabase.rpc('nearby_flea_markets', {
         lat: center.lat,
         lng: center.lng,
         radius_km: radiusKm,
       })
       if (error) throw error
-      return data as FleaMarketNearBy[]
+      return (data as NearbyFleaMarketRpcRow[] ?? []).map(mapNearbyFleaMarket)
     },
 
     optimizeStops<T extends Stop>(stops: T[], startPoint?: Coord): T[] {

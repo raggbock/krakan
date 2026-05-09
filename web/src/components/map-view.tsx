@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
 import { geo } from '@/lib/geo'
 import { supabase } from '@/lib/supabase'
-import type { FleaMarketNearBy } from '@fyndstigen/shared'
+import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import { marketUrl } from '@/lib/urls'
 import { FyndstigenLogo } from './fyndstigen-logo'
 import { FyndstigenMap, type MapMarker } from './fyndstigen-map'
@@ -44,7 +44,7 @@ export default function MapView() {
   const targetName = params.get('name')
   const targetSlug = params.get('slug')
 
-  const [markets, setMarkets] = useState<FleaMarketNearBy[]>([])
+  const [markets, setMarkets] = useState<FleaMarketNearByView[]>([])
   const [blockSales, setBlockSales] = useState<BlockSalePin[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

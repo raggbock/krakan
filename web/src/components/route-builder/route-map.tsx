@@ -10,11 +10,11 @@
  */
 
 import { useMapEvents } from 'react-leaflet'
-import type { FleaMarketNearBy } from '@fyndstigen/shared'
+import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
 import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
 
-type MarketWithHours = FleaMarketNearBy & {
+type MarketWithHours = FleaMarketNearByView & {
   opening_hour_rules?: OpeningHourRule[]
   opening_hour_exceptions?: OpeningHourException[]
 }

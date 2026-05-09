@@ -14,15 +14,43 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,
   FleaMarketDetails,
-  FleaMarketNearBy,
   MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
 } from '../../types'
+import type { FleaMarketNearByView } from '../../types/domain'
 import { FleaMarketQuery, type FleaMarketDetailsRow } from '../../query/flea-market'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository, WeekendOpenSlot } from '../../ports/flea-markets'
+
+type NearbyFleaMarketRpcRow = {
+  id: string
+  name: string
+  description: string
+  city: string
+  is_permanent: boolean
+  latitude: number
+  longitude: number
+  distance_km: number
+  published_at: string | null
+  slug?: string | null
+}
+
+function mapNearbyFleaMarket(r: NearbyFleaMarketRpcRow): FleaMarketNearByView {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    city: r.city,
+    isPermanent: r.is_permanent,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    distanceKm: r.distance_km,
+    publishedAt: r.published_at,
+    slug: r.slug ?? null,
+  }
+}
 
 export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketRepository {
   return {
@@ -60,7 +88,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         radius_km: params.radiusKm,
       })
       if (error) throw error
-      return data as FleaMarketNearBy[]
+      return (data as NearbyFleaMarketRpcRow[] ?? []).map(mapNearbyFleaMarket)
     },
 
     async create(payload) {

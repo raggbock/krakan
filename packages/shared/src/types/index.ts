@@ -83,19 +83,6 @@ export type FleaMarketDetails = FleaMarketRow & {
   opening_hour_exceptions: OpeningHourExceptionRow[]
   flea_market_images: FleaMarketImageRow[]
 }
-export type FleaMarketNearBy = {
-  id: string
-  name: string
-  description: string
-  city: string
-  is_permanent: boolean
-  latitude: number
-  longitude: number
-  distance_km: number
-  published_at: string | null
-  slug?: string | null
-}
-
 // Opening hours (unchanged shapes)
 export type OpeningHourRule = OpeningHourRuleRow & { type: RuleType }
 export type OpeningHourException = OpeningHourExceptionRow

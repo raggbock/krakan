@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { FleaMarketNearBy } from '@fyndstigen/shared'
+import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import type { RouteBuilderStop } from '@/components/route-builder/stop-list'
 import { readDraft, writeDraft, clearDraft as clearDraftFn, DRAFT_KEY } from './draft'
 import type { RouteDraft } from './draft'
@@ -20,7 +20,7 @@ type DraftState = {
 }
 
 export function useDraftPersistence(
-  markets: FleaMarketNearBy[] | undefined,
+  markets: FleaMarketNearByView[] | undefined,
   state: DraftState,
   setName: (v: string) => void,
   setPlannedDate: (v: string) => void,

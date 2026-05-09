@@ -16,7 +16,6 @@
 import type {
   FleaMarket,
   FleaMarketDetails,
-  FleaMarketNearBy,
   MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
@@ -24,6 +23,7 @@ import type {
   SearchResult,
   OpeningHourRule,
 } from '../../types'
+import type { FleaMarketNearByView } from '../../types/domain'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 import type { ProfileRepository } from '../../ports/profiles'
 
@@ -103,7 +103,7 @@ function buildRepo(
      */
     async nearBy(_params) {
       console.warn('[in-memory] nearBy() is a stub and always returns []. Seed the repo if you need results.')
-      return [] as FleaMarketNearBy[]
+      return [] as FleaMarketNearByView[]
     },
 
     async create(payload) {
