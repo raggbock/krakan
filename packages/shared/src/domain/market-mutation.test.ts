@@ -29,7 +29,7 @@ function makeMarketTables(overrides: Partial<TablesDeps> = {}): TablesDeps {
 
 function makeImages(overrides: Partial<ImagesDeps> = {}): ImagesDeps {
   return {
-    add: vi.fn().mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 }),
+    add: vi.fn().mockResolvedValue({ id: 'img-1', storagePath: 'p/1.jpg', sortOrder: 0 }),
     remove: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
@@ -172,7 +172,7 @@ describe('runMarketMutation — failures', () => {
     const addMock = vi
       .fn()
       .mockRejectedValueOnce(new Error('Storage error'))
-      .mockResolvedValueOnce({ id: 'img-2', storage_path: 'p/2.jpg', sort_order: 1 })
+      .mockResolvedValueOnce({ id: 'img-2', storagePath: 'p/2.jpg', sortOrder: 1 })
     const deps = makeDeps({
       images: { add: addMock, remove: vi.fn().mockResolvedValue(undefined) },
     })
@@ -240,7 +240,7 @@ describe('runMarketMutation — edit existing market', () => {
     },
     images: {
       add: [makeFile('new.jpg')],
-      remove: [{ id: 'old-img', storage_path: 'p/old.jpg', sort_order: 0 }],
+      remove: [{ id: 'old-img', storagePath: 'p/old.jpg', sortOrder: 0 }],
     },
     tables: {
       add: [{ label: 'N', description: '', priceSek: 50, sizeDescription: '' }],

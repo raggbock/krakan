@@ -36,7 +36,7 @@ describe('useMarketForm — create mode', () => {
     vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
     vi.spyOn(testDeps.marketTables, 'create').mockResolvedValue({ id: 'table-1' })
     vi.spyOn(testDeps.marketTables, 'delete').mockResolvedValue(undefined)
-    vi.spyOn(testDeps.images, 'add').mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 })
+    vi.spyOn(testDeps.images, 'add').mockResolvedValue({ id: 'img-1', storagePath: 'p/1.jpg', sortOrder: 0 })
     vi.spyOn(testDeps.images, 'remove').mockResolvedValue(undefined)
   })
 
@@ -114,7 +114,7 @@ describe('useMarketForm — edit mode', () => {
     vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
     vi.spyOn(testDeps.marketTables, 'create').mockResolvedValue({ id: 'table-1' })
     vi.spyOn(testDeps.marketTables, 'delete').mockResolvedValue(undefined)
-    vi.spyOn(testDeps.images, 'add').mockResolvedValue({ id: 'img-1', storage_path: 'p/1.jpg', sort_order: 0 })
+    vi.spyOn(testDeps.images, 'add').mockResolvedValue({ id: 'img-1', storagePath: 'p/1.jpg', sortOrder: 0 })
     vi.spyOn(testDeps.images, 'remove').mockResolvedValue(undefined)
   })
 

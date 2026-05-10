@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import type {
   FleaMarketDetails,
-  FleaMarketImage,
+  FleaMarketImageView,
   MarketTable,
   OpeningHourRuleView,
   OpeningHourExceptionView,
@@ -15,8 +15,8 @@ import { useMarketDetails } from './use-market-details'
 export type MarketDetailViewModel = {
   market: FleaMarketDetails | null
   tables: MarketTable[]
-  /** Sorted by sort_order ascending. Empty array if the market has no images. */
-  images: FleaMarketImage[]
+  /** Sorted by sortOrder ascending. Empty array if the market has no images. */
+  images: FleaMarketImageView[]
   /** Undefined when the market has neither rules nor exceptions. */
   openingHours: { rules: OpeningHourRuleView[]; exceptions: OpeningHourExceptionView[] } | undefined
   isOwner: boolean
@@ -35,9 +35,9 @@ export function useMarketDetailViewModel(id: string): MarketDetailViewModel {
   const { market, tables, loading, error } = useMarketDetails(id)
 
   return useMemo<MarketDetailViewModel>(() => {
-    const images = [...(market?.flea_market_images ?? [])].sort(
-      (a, b) => a.sort_order - b.sort_order,
-    )
+    const images: FleaMarketImageView[] = [...(market?.flea_market_images ?? [])]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((img) => ({ id: img.id, storagePath: img.storage_path, sortOrder: img.sort_order }))
 
     const rules: OpeningHourRuleView[] = (market?.opening_hour_rules ?? []).map((r) => ({
       id: r.id,

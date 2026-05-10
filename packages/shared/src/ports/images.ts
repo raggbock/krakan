@@ -1,4 +1,4 @@
-import type { FleaMarketImage } from '../types'
+import type { FleaMarketImageView } from '../types'
 
 /**
  * Port for flea-market image storage operations.
@@ -18,13 +18,13 @@ export type ImagePort = {
 
   /**
    * Upload a File to the market's image folder, then persist the row via RPC.
-   * Returns the inserted `flea_market_images` row.
+   * Returns the inserted `flea_market_images` row as a camelCase view.
    */
-  add(marketId: string, file: File): Promise<FleaMarketImage>
+  add(marketId: string, file: File): Promise<FleaMarketImageView>
 
   /**
    * Delete the DB row and best-effort remove the storage object.
    * DB deletion is authoritative; storage failure is logged but not thrown.
    */
-  remove(image: FleaMarketImage): Promise<void>
+  remove(image: FleaMarketImageView): Promise<void>
 }

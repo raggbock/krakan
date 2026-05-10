@@ -168,7 +168,7 @@ export default function EditMarketPage() {
                   key={img.id}
                   className={`relative aspect-square rounded-lg overflow-hidden bg-cream-warm group ${isDeleted ? 'opacity-30' : ''}`}
                 >
-                  <Image src={imagePort.publicUrl(img.storage_path)} alt="" fill sizes="96px" className="object-cover" />
+                  <Image src={imagePort.publicUrl(img.storagePath)} alt="" fill sizes="96px" className="object-cover" />
                   {isDeleted ? (
                     <button
                       type="button"

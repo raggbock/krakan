@@ -1,11 +1,11 @@
 'use client'
 
 import Image from 'next/image'
-import type { FleaMarketImage } from '@fyndstigen/shared'
+import type { FleaMarketImageView } from '@fyndstigen/shared'
 import { useDeps } from '@/providers/deps-provider'
 
 type Props = {
-  images: FleaMarketImage[]
+  images: FleaMarketImageView[]
   marketName: string
 }
 
@@ -33,7 +33,7 @@ export function MarketImageGallery({ images, marketName }: Props) {
             }`}
           >
             <Image
-              src={imagesPort.publicUrl(img.storage_path)}
+              src={imagesPort.publicUrl(img.storagePath)}
               alt={marketName}
               fill
               sizes={single ? '100vw' : '(min-width: 640px) 33vw, 50vw'}

@@ -94,20 +94,20 @@ function fakeFile(name = 'photo.jpg', size = 100): File {
 }
 
 describe('createImageService', () => {
-  it('happy path: uploads blob and inserts row with computed path and sort_order', async () => {
+  it('happy path: uploads blob and inserts row with computed path and sortOrder', async () => {
     const stub = createStubSupabase()
     const svc = createImageService({ supabase: stub.supabase })
 
     const result = await svc.add('market-1', fakeFile('beach.jpg'))
 
-    expect(result.sort_order).toBe(0)
-    expect(result.storage_path).toMatch(/^market-1\/[0-9a-f-]+\.jpg$/)
+    expect(result.sortOrder).toBe(0)
+    expect(result.storagePath).toMatch(/^market-1\/[0-9a-f-]+\.jpg$/)
     expect(stub.spies.uploadSpy).toHaveBeenCalledTimes(1)
     expect(stub.spies.rpcSpy).toHaveBeenCalledWith('insert_flea_market_image', {
       p_flea_market_id: 'market-1',
-      p_storage_path: result.storage_path,
+      p_storage_path: result.storagePath,
     })
-    expect(stub.uploads.has(result.storage_path)).toBe(true)
+    expect(stub.uploads.has(result.storagePath)).toBe(true)
   })
 
   it('orphan rescue: when INSERT rejects, the uploaded blob is removed', async () => {
@@ -121,15 +121,15 @@ describe('createImageService', () => {
     expect(stub.spies.removeSpy).toHaveBeenCalledWith([uploadedPath])
   })
 
-  it('sort_order assignment: two sequential adds get 0 then 1 via the RPC', async () => {
+  it('sortOrder assignment: two sequential adds get 0 then 1 via the RPC', async () => {
     const stub = createStubSupabase()
     const svc = createImageService({ supabase: stub.supabase })
 
     const first = await svc.add('market-1', fakeFile('a.jpg'))
     const second = await svc.add('market-1', fakeFile('b.jpg'))
 
-    expect(first.sort_order).toBe(0)
-    expect(second.sort_order).toBe(1)
+    expect(first.sortOrder).toBe(0)
+    expect(second.sortOrder).toBe(1)
     // Both went through the atomic RPC — not a read-then-write.
     expect(stub.spies.rpcSpy).toHaveBeenCalledTimes(2)
     for (const call of stub.spies.rpcSpy.mock.calls) {
@@ -167,9 +167,9 @@ describe('createImageService', () => {
 
       // Both deleted
       expect(stub.spies.deleteSpy).toHaveBeenCalledWith(created.id)
-      expect(stub.spies.removeSpy).toHaveBeenCalledWith([created.storage_path])
+      expect(stub.spies.removeSpy).toHaveBeenCalledWith([created.storagePath])
       expect(stub.rows).toHaveLength(0)
-      expect(stub.uploads.has(created.storage_path)).toBe(false)
+      expect(stub.uploads.has(created.storagePath)).toBe(false)
 
       // DB delete must have been called before storage remove
       const deleteOrder = stub.spies.deleteSpy.mock.invocationCallOrder[0]
@@ -191,7 +191,7 @@ describe('createImageService', () => {
       // Storage must not have been touched
       expect(stub.spies.removeSpy).not.toHaveBeenCalled()
       // The blob is still in storage
-      expect(stub.uploads.has(created.storage_path)).toBe(true)
+      expect(stub.uploads.has(created.storagePath)).toBe(true)
     })
 
     it('storage remove fails: DB row is deleted, no throw, warning is logged', async () => {
@@ -213,7 +213,7 @@ describe('createImageService', () => {
       // Warning was logged with expected marker and path
       expect(warnSpy).toHaveBeenCalledWith(
         '[ImageService] orphaned storage blob:',
-        created.storage_path,
+        created.storagePath,
         storageError,
       )
     })

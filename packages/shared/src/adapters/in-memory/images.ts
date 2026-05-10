@@ -1,4 +1,4 @@
-import type { FleaMarketImage } from '../../types'
+import type { FleaMarketImageView } from '../../types'
 import type { ImagePort } from '../../ports/images'
 
 /**
@@ -13,7 +13,7 @@ import type { ImagePort } from '../../ports/images'
  * to assert that the port was called with the right arguments.
  */
 export function createInMemoryImages(): ImagePort {
-  const store = new Map<string, FleaMarketImage>()
+  const store = new Map<string, FleaMarketImageView>()
   let _id = 1
 
   return {
@@ -21,20 +21,20 @@ export function createInMemoryImages(): ImagePort {
       return `https://in-memory/${storagePath}`
     },
 
-    async add(marketId: string, file: File): Promise<FleaMarketImage> {
+    async add(marketId: string, file: File): Promise<FleaMarketImageView> {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const storagePath = `${marketId}/in-memory-${_id}.${ext}`
-      const row: FleaMarketImage = {
+      const view: FleaMarketImageView = {
         id: `img-${_id++}`,
-        storage_path: storagePath,
-        sort_order: store.size,
+        storagePath,
+        sortOrder: store.size,
       }
-      store.set(storagePath, row)
-      return { ...row }
+      store.set(storagePath, view)
+      return { ...view }
     },
 
-    async remove(image: FleaMarketImage): Promise<void> {
-      store.delete(image.storage_path)
+    async remove(image: FleaMarketImageView): Promise<void> {
+      store.delete(image.storagePath)
     },
   }
 }

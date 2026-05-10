@@ -39,7 +39,13 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
     })) ?? [],
   )
 
-  const images = useImageDraft(initial?.flea_market_images ?? [])
+  const images = useImageDraft(
+    (initial?.flea_market_images ?? []).map((img) => ({
+      id: img.id,
+      storagePath: img.storage_path,
+      sortOrder: img.sort_order,
+    })),
+  )
 
   const tables = useTableDraft(initial?.market_tables ?? [])
 
@@ -77,7 +83,13 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
         reason: ex.reason,
       })) ?? [],
     )
-    images.reset(initial.flea_market_images ?? [])
+    images.reset(
+      (initial.flea_market_images ?? []).map((img) => ({
+        id: img.id,
+        storagePath: img.storage_path,
+        sortOrder: img.sort_order,
+      })),
+    )
     tables.reset(initial.market_tables ?? [])
   }, [initial, fields, openingHours, images, tables])
 
