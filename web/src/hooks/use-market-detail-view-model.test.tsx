@@ -53,23 +53,28 @@ describe('useMarketDetailViewModel', () => {
       expect(result.current.openingHours).toBeUndefined()
     })
 
-    it('returns rules when only rules are present', () => {
+    it('returns rules (mapped to camelCase) when only rules are present', () => {
       mockUseMarketDetails.mockReturnValue({
-        market: { ...baseMarket, opening_hour_rules: [{ id: 'r1' }] },
+        market: {
+          ...baseMarket,
+          opening_hour_rules: [
+            { id: 'r1', type: 'weekly', day_of_week: 6, anchor_date: null, open_time: '10:00', close_time: '16:00' },
+          ],
+        },
         tables: [],
         loading: false,
         error: null,
       })
       const { result } = renderHook(() => useMarketDetailViewModel('fm-1'))
       expect(result.current.openingHours).toEqual({
-        rules: [{ id: 'r1' }],
+        rules: [{ id: 'r1', type: 'weekly', dayOfWeek: 6, anchorDate: null, openTime: '10:00', closeTime: '16:00' }],
         exceptions: [],
       })
     })
 
     it('returns exceptions when only exceptions are present', () => {
       mockUseMarketDetails.mockReturnValue({
-        market: { ...baseMarket, opening_hour_exceptions: [{ id: 'e1' }] },
+        market: { ...baseMarket, opening_hour_exceptions: [{ id: 'e1', date: '2026-06-01', reason: null }] },
         tables: [],
         loading: false,
         error: null,
@@ -77,7 +82,7 @@ describe('useMarketDetailViewModel', () => {
       const { result } = renderHook(() => useMarketDetailViewModel('fm-1'))
       expect(result.current.openingHours).toEqual({
         rules: [],
-        exceptions: [{ id: 'e1' }],
+        exceptions: [{ id: 'e1', date: '2026-06-01', reason: null }],
       })
     })
 

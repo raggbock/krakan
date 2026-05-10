@@ -1,20 +1,20 @@
-import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
+import type { OpeningHourRuleView, OpeningHourExceptionView } from '@fyndstigen/shared'
 import { getUpcomingOpenDates } from '@fyndstigen/shared'
 import { DAY_NAMES } from '@/components/opening-hours-editor'
 
-function formatRuleSummary(rule: OpeningHourRule, upcoming: { date: string }[]): string {
-  if (rule.type === 'weekly') return `Varje ${DAY_NAMES[rule.day_of_week!]?.toLowerCase()}`
+function formatRuleSummary(rule: OpeningHourRuleView, upcoming: { date: string }[]): string {
+  if (rule.type === 'weekly') return `Varje ${DAY_NAMES[rule.dayOfWeek!]?.toLowerCase()}`
   if (rule.type === 'biweekly') {
     const next = upcoming.find((u) => {
       const d = new Date(u.date + 'T12:00:00')
-      return d.getDay() === rule.day_of_week && d > new Date()
+      return d.getDay() === rule.dayOfWeek && d > new Date()
     })
     const nextStr = next
       ? ` (nästa: ${new Date(next.date + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })})`
       : ''
-    return `Varannan ${DAY_NAMES[rule.day_of_week!]?.toLowerCase()}${nextStr}`
+    return `Varannan ${DAY_NAMES[rule.dayOfWeek!]?.toLowerCase()}${nextStr}`
   }
-  return new Date(rule.anchor_date + 'T12:00:00').toLocaleDateString('sv-SE', {
+  return new Date(rule.anchorDate + 'T12:00:00').toLocaleDateString('sv-SE', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -25,8 +25,8 @@ export function OpeningHoursCard({
   rules,
   exceptions,
 }: {
-  rules: OpeningHourRule[]
-  exceptions: OpeningHourException[]
+  rules: OpeningHourRuleView[]
+  exceptions: OpeningHourExceptionView[]
 }) {
   const today = new Date().toISOString().slice(0, 10)
   const upcoming = getUpcomingOpenDates(rules, exceptions, today, 90)
@@ -54,14 +54,14 @@ export function OpeningHoursCard({
           {(() => {
             const groups = new Map<string, { label: string; times: string[] }>()
             for (const rule of recurringRules) {
-              const key = `${rule.type}-${rule.day_of_week}-${rule.anchor_date ?? ''}`
+              const key = `${rule.type}-${rule.dayOfWeek}-${rule.anchorDate ?? ''}`
               const existing = groups.get(key)
               if (existing) {
-                existing.times.push(`${rule.open_time.slice(0, 5)} – ${rule.close_time.slice(0, 5)}`)
+                existing.times.push(`${rule.openTime.slice(0, 5)} – ${rule.closeTime.slice(0, 5)}`)
               } else {
                 groups.set(key, {
                   label: formatRuleSummary(rule, upcoming),
-                  times: [`${rule.open_time.slice(0, 5)} – ${rule.close_time.slice(0, 5)}`],
+                  times: [`${rule.openTime.slice(0, 5)} – ${rule.closeTime.slice(0, 5)}`],
                 })
               }
             }
@@ -92,7 +92,7 @@ export function OpeningHoursCard({
                   <span className="text-rust font-medium">Stängt{d.reason ? ` (${d.reason})` : ''}</span>
                 ) : (
                   <span className="tabular-nums text-espresso/80">
-                    {d.hours.map((h) => `${h.open_time.slice(0, 5)} – ${h.close_time.slice(0, 5)}`).join(', ')}
+                    {d.hours.map((h) => `${h.openTime.slice(0, 5)} – ${h.closeTime.slice(0, 5)}`).join(', ')}
                   </span>
                 )}
               </div>

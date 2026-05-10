@@ -14,13 +14,14 @@
  *     callers can call messageFor(code) for a Swedish user-facing string.
  */
 
-import type { BookingStatus, OpeningHourRule, OpeningHourException } from '../types'
+import type { BookingStatus } from '../types'
+import type { OpeningHourRuleView, OpeningHourExceptionView } from '../types/domain'
 import { checkOpeningHours } from './opening-hours'
 import type { ErrorCode } from '../errors'
 
 export type OpeningHoursContext = {
-  rules: OpeningHourRule[]
-  exceptions: OpeningHourException[]
+  rules: OpeningHourRuleView[]
+  exceptions: OpeningHourExceptionView[]
 }
 
 export const COMMISSION_RATE = 0.12

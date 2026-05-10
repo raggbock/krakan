@@ -21,9 +21,8 @@ import type {
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
-  OpeningHourRule,
 } from '../../types'
-import type { FleaMarketNearByView } from '../../types/domain'
+import type { FleaMarketNearByView, OpeningHourRuleView } from '../../types/domain'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 import type { ProfileRepository } from '../../ports/profiles'
 
@@ -36,7 +35,7 @@ export type StoredMarket = FleaMarket & {
   is_deleted: boolean
   updated_at: string
   /** Opening hour rules stored alongside market for visibility checks */
-  opening_hour_rules?: OpeningHourRule[]
+  opening_hour_rules?: OpeningHourRuleView[]
 }
 
 /**
@@ -50,7 +49,7 @@ function isMarketVisible(m: StoredMarket): boolean {
   if (m.is_permanent) return true
   const today = new Date().toISOString().slice(0, 10)
   return (m.opening_hour_rules ?? []).some(
-    (r) => r.type === 'date' && r.anchor_date != null && r.anchor_date >= today,
+    (r) => r.type === 'date' && r.anchorDate != null && r.anchorDate >= today,
   )
 }
 
@@ -141,19 +140,18 @@ function buildRepo(
       const previousRules = existing.opening_hour_rules
 
       // Validate new rules before mutating — all-or-nothing like the RPC.
-      const newRules: OpeningHourRule[] = (payload.openingHours ?? []).map((oh, i) => {
+      const newRules: OpeningHourRuleView[] = (payload.openingHours ?? []).map((oh, i) => {
         if (!oh.openTime || !oh.closeTime) {
-          throw new Error(`Opening hour rule at index ${i} is missing open_time or close_time`)
+          throw new Error(`Opening hour rule at index ${i} is missing openTime or closeTime`)
         }
         return {
           id: `ohr-${id}-${i}`,
-          flea_market_id: id,
           type: oh.type,
-          day_of_week: oh.dayOfWeek ?? null,
-          anchor_date: oh.anchorDate ?? null,
-          open_time: oh.openTime,
-          close_time: oh.closeTime,
-        } as OpeningHourRule
+          dayOfWeek: oh.dayOfWeek ?? null,
+          anchorDate: oh.anchorDate ?? null,
+          openTime: oh.openTime,
+          closeTime: oh.closeTime,
+        }
       })
 
       try {
