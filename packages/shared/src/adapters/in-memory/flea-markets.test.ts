@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { createInMemoryFleaMarkets, createInMemoryMarketTables } from './flea-markets'
-import type { FleaMarket, OpeningHourRule } from '../../types'
+import type { FleaMarket } from '../../types'
+import type { OpeningHourRuleView } from '../../types/domain'
 
-type SeedMarket = FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRule[] }
+type SeedMarket = FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRuleView[] }
 
 function makeMarket(overrides: Partial<SeedMarket> = {}): SeedMarket {
   return {
@@ -122,7 +123,7 @@ describe('createInMemoryFleaMarkets', () => {
         published_at: '2026-01-01T00:00:00Z',
         is_permanent: false,
         opening_hour_rules: [
-          { id: 'r-1', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+          { id: 'r-1', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
       // Published temporary market with no rules at all — should be hidden
@@ -138,7 +139,7 @@ describe('createInMemoryFleaMarkets', () => {
         published_at: '2026-01-01T00:00:00Z',
         is_permanent: false,
         opening_hour_rules: [
-          { id: 'r-2', type: 'date', anchor_date: today, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+          { id: 'r-2', type: 'date', anchorDate: today, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
     ])
@@ -170,7 +171,7 @@ describe('createInMemoryFleaMarkets', () => {
         published_at: '2026-01-01T00:00:00Z',
         is_permanent: false,
         opening_hour_rules: [
-          { id: 'r-3', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+          { id: 'r-3', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
     ])
@@ -193,7 +194,7 @@ describe('createInMemoryFleaMarkets', () => {
         published_at: '2026-01-01T00:00:00Z',
         is_permanent: false,
         opening_hour_rules: [
-          { id: 'r-h', type: 'date', anchor_date: yesterday, day_of_week: null, open_time: '10:00', close_time: '16:00' },
+          { id: 'r-h', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
       makeMarket({

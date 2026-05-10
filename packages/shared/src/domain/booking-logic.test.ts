@@ -98,10 +98,10 @@ describe('validateBookingDate', () => {
         {
           id: 'r1',
           type: 'weekly',
-          day_of_week: 6, // Saturday
-          anchor_date: null,
-          open_time: '09:00',
-          close_time: '15:00',
+          dayOfWeek: 6, // Saturday
+          anchorDate: null,
+          openTime: '09:00',
+          closeTime: '15:00',
         },
       ],
       exceptions: [],
@@ -126,10 +126,10 @@ describe('validateBookingDate', () => {
           {
             id: 'r1',
             type: 'weekly',
-            day_of_week: 6,
-            anchor_date: null,
-            open_time: '09:00',
-            close_time: '15:00',
+            dayOfWeek: 6,
+            anchorDate: null,
+            openTime: '09:00',
+            closeTime: '15:00',
           },
         ],
         exceptions: [{ id: 'e1', date: '2026-04-11', reason: 'Stängt för helgdag' }],

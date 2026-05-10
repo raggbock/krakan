@@ -74,16 +74,16 @@ vi.mock(import('@fyndstigen/shared'), async (importOriginal) => {
 import type { OpeningHoursContext } from '@fyndstigen/shared'
 import { appError } from '@fyndstigen/shared'
 
-// Saturday-only market (day_of_week: 6)
+// Saturday-only market (dayOfWeek: 6)
 const saturdayOnlyHours: OpeningHoursContext = {
   rules: [
     {
       id: 'r1',
       type: 'weekly' as const,
-      day_of_week: 6,
-      anchor_date: null,
-      open_time: '09:00',
-      close_time: '15:00',
+      dayOfWeek: 6,
+      anchorDate: null,
+      openTime: '09:00',
+      closeTime: '15:00',
     },
   ],
   exceptions: [],

@@ -108,11 +108,11 @@ export function MarketDetail({ id }: { id: string }) {
           )}
         </div>
 
-        {market.opening_hour_rules?.length > 0 && (
+        {openingHours && (
           <div>
             <OpeningHoursCard
-              rules={market.opening_hour_rules}
-              exceptions={market.opening_hour_exceptions ?? []}
+              rules={openingHours.rules}
+              exceptions={openingHours.exceptions}
             />
             {market.is_system_owned && (
               <AutoImportedNotice

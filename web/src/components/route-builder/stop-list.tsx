@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { checkOpeningHours, type OpeningHourRule, type OpeningHourException } from '@fyndstigen/shared'
+import { checkOpeningHours } from '@fyndstigen/shared'
+import type { OpeningHourRuleView, OpeningHourExceptionView, FleaMarketNearByView } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '../fyndstigen-logo'
-import type { FleaMarketNearByView } from '@fyndstigen/shared'
 
 type MarketWithHours = FleaMarketNearByView & {
-  opening_hour_rules?: OpeningHourRule[]
-  opening_hour_exceptions?: OpeningHourException[]
+  opening_hour_rules?: OpeningHourRuleView[]
+  opening_hour_exceptions?: OpeningHourExceptionView[]
 }
 
 export type RouteBuilderStop = {
@@ -117,7 +117,7 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
                 )}
                 {oh && oh.isOpen && oh.hours.length > 0 && (
                   <span className="text-forest text-xs font-medium shrink-0 tabular-nums">
-                    {oh.hours.map((h) => `${h.open_time}–${h.close_time}`).join(', ')}
+                    {oh.hours.map((h) => `${h.openTime}–${h.closeTime}`).join(', ')}
                   </span>
                 )}
 

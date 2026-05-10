@@ -5,8 +5,8 @@ import type {
   FleaMarketDetails,
   FleaMarketImage,
   MarketTable,
-  OpeningHourRule,
-  OpeningHourException,
+  OpeningHourRuleView,
+  OpeningHourExceptionView,
 } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth/auth-context'
 import { marketEditUrl } from '@/lib/urls'
@@ -18,7 +18,7 @@ export type MarketDetailViewModel = {
   /** Sorted by sort_order ascending. Empty array if the market has no images. */
   images: FleaMarketImage[]
   /** Undefined when the market has neither rules nor exceptions. */
-  openingHours: { rules: OpeningHourRule[]; exceptions: OpeningHourException[] } | undefined
+  openingHours: { rules: OpeningHourRuleView[]; exceptions: OpeningHourExceptionView[] } | undefined
   isOwner: boolean
   editUrl: string
   /**
@@ -39,8 +39,15 @@ export function useMarketDetailViewModel(id: string): MarketDetailViewModel {
       (a, b) => a.sort_order - b.sort_order,
     )
 
-    const rules = market?.opening_hour_rules ?? []
-    const exceptions = market?.opening_hour_exceptions ?? []
+    const rules: OpeningHourRuleView[] = (market?.opening_hour_rules ?? []).map((r) => ({
+      id: r.id,
+      type: r.type,
+      dayOfWeek: r.day_of_week,
+      anchorDate: r.anchor_date,
+      openTime: r.open_time,
+      closeTime: r.close_time,
+    }))
+    const exceptions: OpeningHourExceptionView[] = market?.opening_hour_exceptions ?? []
     const openingHours =
       rules.length === 0 && exceptions.length === 0
         ? undefined

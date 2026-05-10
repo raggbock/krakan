@@ -83,9 +83,6 @@ export type FleaMarketDetails = FleaMarketRow & {
   opening_hour_exceptions: OpeningHourExceptionRow[]
   flea_market_images: FleaMarketImageRow[]
 }
-// Opening hours (unchanged shapes)
-export type OpeningHourRule = OpeningHourRuleRow & { type: RuleType }
-export type OpeningHourException = OpeningHourExceptionRow
 
 // Images
 export type FleaMarketImage = FleaMarketImageRow

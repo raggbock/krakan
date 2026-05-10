@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createE2EBridge } from './bridge'
 import { createE2EInMemoryDeps } from '@fyndstigen/shared/deps-factory'
-import type { FleaMarket, OpeningHourRule } from '@fyndstigen/shared'
+import type { FleaMarket, OpeningHourRuleView } from '@fyndstigen/shared'
 
 function makeMarket(id: string, name = `M ${id}`) {
   return {
@@ -23,7 +23,7 @@ function makeMarket(id: string, name = `M ${id}`) {
   } as FleaMarket & {
     is_deleted: boolean
     updated_at: string
-    opening_hour_rules?: OpeningHourRule[]
+    opening_hour_rules?: OpeningHourRuleView[]
   }
 }
 

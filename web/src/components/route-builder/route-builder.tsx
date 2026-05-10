@@ -9,12 +9,11 @@ import { StopList, type RouteBuilderStop } from './stop-list'
 import { RouteMap } from './route-map'
 import { SaveRouteButton } from './save-route-button'
 import { AnonSaveForm } from './anon-save-form'
-import type { FleaMarketNearByView } from '@fyndstigen/shared'
-import type { OpeningHourRule, OpeningHourException } from '@fyndstigen/shared'
+import type { FleaMarketNearByView, OpeningHourRuleView, OpeningHourExceptionView } from '@fyndstigen/shared'
 
 type MarketWithHours = FleaMarketNearByView & {
-  opening_hour_rules?: OpeningHourRule[]
-  opening_hour_exceptions?: OpeningHourException[]
+  opening_hour_rules?: OpeningHourRuleView[]
+  opening_hour_exceptions?: OpeningHourExceptionView[]
 }
 
 export default function RouteBuilder() {

@@ -18,7 +18,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Deps } from './deps'
-import type { FleaMarket, OpeningHourRule, UserProfile } from './types'
+import type { FleaMarket, UserProfile } from './types'
+import type { OpeningHourRuleView } from './types/domain'
 import type { StoredRoute } from './adapters/in-memory/routes'
 import {
   createInMemoryFleaMarkets,
@@ -48,7 +49,7 @@ import { createSupabaseImages } from './adapters/supabase/images'
 type StoredMarket = FleaMarket & {
   is_deleted: boolean
   updated_at: string
-  opening_hour_rules?: OpeningHourRule[]
+  opening_hour_rules?: OpeningHourRuleView[]
 }
 
 export type { StoredRoute }

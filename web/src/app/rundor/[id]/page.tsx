@@ -169,7 +169,14 @@ export default function RouteViewerPage() {
             const fm = stop.fleaMarket!
             const oh = route.planned_date
               ? checkOpeningHours(
-                  fm.opening_hour_rules ?? [],
+                  (fm.opening_hour_rules ?? []).map((r) => ({
+                    id: r.id,
+                    type: r.type,
+                    dayOfWeek: r.day_of_week,
+                    anchorDate: r.anchor_date,
+                    openTime: r.open_time,
+                    closeTime: r.close_time,
+                  })),
                   fm.opening_hour_exceptions ?? [],
                   route.planned_date,
                 )
@@ -218,7 +225,7 @@ export default function RouteViewerPage() {
                   )}
                   {oh && oh.isOpen && oh.hours.length > 0 && (
                     <span className="text-forest text-sm font-medium tabular-nums">
-                      {oh.hours.map((h) => `${h.open_time}–${h.close_time}`).join(', ')}
+                      {oh.hours.map((h) => `${h.openTime}–${h.closeTime}`).join(', ')}
                     </span>
                   )}
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { makeInMemoryDeps, createE2EInMemoryDeps } from './deps-factory'
-import type { FleaMarket, OpeningHourRule } from './types'
+import type { FleaMarket } from './types'
+import type { OpeningHourRuleView } from './types/domain'
 
 const seedMarket = {
   id: 'fm-test-1',
@@ -18,7 +19,7 @@ const seedMarket = {
   latitude: 59.3,
   longitude: 18.0,
   auto_accept_bookings: false,
-} as FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRule[] }
+} as FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRuleView[] }
 
 const seedRoute = {
   id: 'rt-test-1',
