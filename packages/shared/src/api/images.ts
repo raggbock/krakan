@@ -1,11 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { FleaMarketImage } from '../types'
+import type { FleaMarketImageView } from '../types'
 
 const BUCKET = 'flea-market-images'
 
 export type ImageService = {
-  add(marketId: string, file: File): Promise<FleaMarketImage>
-  remove(image: FleaMarketImage): Promise<void>
+  add(marketId: string, file: File): Promise<FleaMarketImageView>
+  remove(image: FleaMarketImageView): Promise<void>
   publicUrl(storagePath: string): string
 }
 
@@ -24,7 +24,7 @@ export function createImageService(deps: ImageServiceDeps): ImageService {
   const { supabase, compress } = deps
 
   return {
-    async add(marketId: string, file: File): Promise<FleaMarketImage> {
+    async add(marketId: string, file: File): Promise<FleaMarketImageView> {
       const toUpload = compress ? await compress(file) : file
       const ext = toUpload.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = `${marketId}/${crypto.randomUUID()}.${ext}`
@@ -60,12 +60,12 @@ export function createImageService(deps: ImageServiceDeps): ImageService {
       const row = Array.isArray(data) ? data[0] : data
       return {
         id: row.id,
-        storage_path: row.storage_path,
-        sort_order: row.sort_order,
+        storagePath: row.storage_path,
+        sortOrder: row.sort_order,
       }
     },
 
-    async remove(image: FleaMarketImage): Promise<void> {
+    async remove(image: FleaMarketImageView): Promise<void> {
       // DB-first: delete the row before touching storage. If the DB delete
       // fails the blob is still intact — safe failure with no broken image.
       const { error } = await supabase
@@ -78,9 +78,9 @@ export function createImageService(deps: ImageServiceDeps): ImageService {
       // (source of truth is correct) and the orphaned blob can be swept later.
       const { error: storageErr } = await supabase.storage
         .from(BUCKET)
-        .remove([image.storage_path])
+        .remove([image.storagePath])
       if (storageErr) {
-        console.warn('[ImageService] orphaned storage blob:', image.storage_path, storageErr)
+        console.warn('[ImageService] orphaned storage blob:', image.storagePath, storageErr)
       }
     },
 

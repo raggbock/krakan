@@ -1,13 +1,13 @@
 import { renderHook, act } from '@testing-library/react'
 import { useImageDraft } from './use-image-draft'
-import type { FleaMarketImage } from '@fyndstigen/shared'
+import type { FleaMarketImageView } from '@fyndstigen/shared'
 
 // jsdom doesn't implement createObjectURL
 global.URL.createObjectURL = vi.fn((f: File) => `blob:${f.name}`)
 global.URL.revokeObjectURL = vi.fn()
 
-const img1: FleaMarketImage = { id: 'img-1', storage_path: 'a/1.jpg', sort_order: 0 }
-const img2: FleaMarketImage = { id: 'img-2', storage_path: 'a/2.jpg', sort_order: 1 }
+const img1: FleaMarketImageView = { id: 'img-1', storagePath: 'a/1.jpg', sortOrder: 0 }
+const img2: FleaMarketImageView = { id: 'img-2', storagePath: 'a/2.jpg', sortOrder: 1 }
 
 function makeFile(name: string) {
   return new File(['x'], name, { type: 'image/jpeg' })
@@ -28,7 +28,7 @@ describe('useImageDraft', () => {
   })
 
   it('addFiles respects MAX_IMAGES = 6 cap', () => {
-    const existing = Array.from({ length: 5 }, (_, i) => ({ ...img1, id: `img-${i}`, sort_order: i }))
+    const existing = Array.from({ length: 5 }, (_, i) => ({ ...img1, id: `img-${i}`, sortOrder: i }))
     const { result } = renderHook(() => useImageDraft(existing))
     act(() => result.current.addFiles([makeFile('x.jpg'), makeFile('y.jpg')]))
     expect(result.current.newFiles).toHaveLength(1)

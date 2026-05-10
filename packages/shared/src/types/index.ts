@@ -84,9 +84,6 @@ export type FleaMarketDetails = FleaMarketRow & {
   flea_market_images: FleaMarketImageRow[]
 }
 
-// Images
-export type FleaMarketImage = FleaMarketImageRow
-
 // Profiles
 export type UserProfile = ProfileRow
 export type OrganizerProfile = OrganizerProfileRow

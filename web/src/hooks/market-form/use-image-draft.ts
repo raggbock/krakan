@@ -1,12 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { FleaMarketImage } from '@fyndstigen/shared'
+import type { FleaMarketImageView } from '@fyndstigen/shared'
 
-export type ImageDraftExisting = FleaMarketImage & { _deleted?: boolean }
+export type ImageDraftExisting = FleaMarketImageView & { _deleted?: boolean }
 
 export type ImageDraftResult = {
-  /** Existing images from DB, sorted by sort_order */
+  /** Existing images from DB, sorted by sortOrder */
   existingImages: ImageDraftExisting[]
   /** Newly selected files (not yet uploaded) */
   newFiles: File[]
@@ -18,19 +18,19 @@ export type ImageDraftResult = {
   removeExisting: (id: string) => void
   undoRemoveExisting: (id: string) => void
   removeNew: (index: number) => void
-  reset: (images: FleaMarketImage[]) => void
+  reset: (images: FleaMarketImageView[]) => void
   resetNew: () => void
   serialize: () => {
     add: File[]
-    remove: { id: string; storage_path: string; sort_order: number }[]
+    remove: FleaMarketImageView[]
   }
 }
 
 const MAX_IMAGES = 6
 
-export function useImageDraft(initialImages: FleaMarketImage[] = []): ImageDraftResult {
+export function useImageDraft(initialImages: FleaMarketImageView[] = []): ImageDraftResult {
   const [existingImages, setExistingImages] = useState<ImageDraftExisting[]>(
-    () => [...initialImages].sort((a, b) => a.sort_order - b.sort_order),
+    () => [...initialImages].sort((a, b) => a.sortOrder - b.sortOrder),
   )
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [newPreviews, setNewPreviews] = useState<string[]>([])
@@ -82,8 +82,8 @@ export function useImageDraft(initialImages: FleaMarketImage[] = []): ImageDraft
     })
   }, [])
 
-  const reset = useCallback((images: FleaMarketImage[]) => {
-    setExistingImages([...images].sort((a, b) => a.sort_order - b.sort_order))
+  const reset = useCallback((images: FleaMarketImageView[]) => {
+    setExistingImages([...images].sort((a, b) => a.sortOrder - b.sortOrder))
     setNewFiles([])
     setNewPreviews((prev) => {
       prev.forEach(URL.revokeObjectURL)
@@ -115,7 +115,7 @@ export function useImageDraft(initialImages: FleaMarketImage[] = []): ImageDraft
       add: newFiles,
       remove: existingImages
         .filter((img) => img._deleted)
-        .map((img) => ({ id: img.id, storage_path: img.storage_path, sort_order: img.sort_order })),
+        .map((img) => ({ id: img.id, storagePath: img.storagePath, sortOrder: img.sortOrder })),
     }),
     [newFiles, existingImages],
   )

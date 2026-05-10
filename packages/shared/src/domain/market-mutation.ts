@@ -16,7 +16,7 @@ import type {
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
-  FleaMarketImage,
+  FleaMarketImageView,
 } from '../types'
 import type { FleaMarketRepository, MarketTableRepository } from '../ports/flea-markets'
 import type { ImagePort } from '../ports/images'
@@ -95,7 +95,7 @@ export type MarketPlan = {
   market:
     | { create: MarketCreateFields }
     | { update: { id: string; patch: MarketUpdateFields } }
-  images: { add: File[]; remove: FleaMarketImage[] }
+  images: { add: File[]; remove: FleaMarketImageView[] }
   tables: { add: MarketPlanTableDraft[]; remove: string[] }
   opening: { rules: MarketPlanRuleDraft[]; exceptions: MarketPlanExceptionDraft[] }
 }
