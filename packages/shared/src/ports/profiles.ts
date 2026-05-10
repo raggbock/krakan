@@ -8,18 +8,18 @@
  * Implementations: adapters/supabase/profiles.ts, adapters/in-memory/profiles.ts.
  */
 
-import type { UserProfile, OrganizerProfile, OrganizerStats } from '../types'
+import type { UserProfileView, OrganizerProfileView, OrganizerStats } from '../types'
 
 export interface ProfileRepository {
-  get(userId: string): Promise<UserProfile>
-  update(userId: string, updates: Partial<UserProfile>): Promise<void>
+  get(userId: string): Promise<UserProfileView>
+  update(userId: string, updates: Partial<UserProfileView>): Promise<void>
 }
 
 export interface OrganizerRepository {
-  get(userId: string): Promise<OrganizerProfile>
+  get(userId: string): Promise<OrganizerProfileView>
   update(
     userId: string,
-    updates: Partial<Pick<OrganizerProfile, 'bio' | 'website' | 'first_name' | 'last_name' | 'phone_number'>>,
+    updates: Partial<Pick<OrganizerProfileView, 'bio' | 'website' | 'firstName' | 'lastName' | 'phoneNumber'>>,
   ): Promise<void>
   stats(userId: string): Promise<OrganizerStats>
 }

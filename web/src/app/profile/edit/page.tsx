@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { OrganizerProfile } from '@fyndstigen/shared'
+import type { OrganizerProfileView } from '@fyndstigen/shared'
 import { endpoints } from '@/lib/edge/edge'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
@@ -28,7 +28,7 @@ function EditProfilePageInner() {
   const { user, loading: authLoading } = useAuth()
   const { organizers } = useDeps()
   const skyltfonstretEnabled = useFlag('skyltfonstret')
-  const [profile, setProfile] = useState<OrganizerProfile | null>(null)
+  const [profile, setProfile] = useState<OrganizerProfileView | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -83,11 +83,11 @@ function EditProfilePageInner() {
       .get(user.id)
       .then((p) => {
         setProfile(p)
-        setFirstName(p.first_name ?? '')
-        setLastName(p.last_name ?? '')
+        setFirstName(p.firstName ?? '')
+        setLastName(p.lastName ?? '')
         setBio(p.bio ?? '')
         setWebsite(p.website ?? '')
-        setPhone(p.phone_number ?? '')
+        setPhone(p.phoneNumber ?? '')
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -101,11 +101,11 @@ function EditProfilePageInner() {
     setSaveError('')
     try {
       await organizers.update(user.id, {
-        first_name: firstName || null,
-        last_name: lastName || null,
+        firstName: firstName || null,
+        lastName: lastName || null,
         bio: bio || null,
         website: website || null,
-        phone_number: phone || null,
+        phoneNumber: phone || null,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
@@ -124,7 +124,7 @@ function EditProfilePageInner() {
     )
   }
 
-  const isPremium = (profile?.subscription_tier ?? 0) >= 1
+  const isPremium = (profile?.subscriptionTier ?? 0) >= 1
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">

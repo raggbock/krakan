@@ -18,7 +18,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Deps } from './deps'
-import type { FleaMarket, UserProfile } from './types'
+import type { FleaMarket, UserProfileView } from './types'
 import type { OpeningHourRuleView } from './types/domain'
 import type { StoredRoute } from './adapters/in-memory/routes'
 import {
@@ -61,7 +61,7 @@ export type { StoredRoute }
 export function makeInMemoryDeps(
   seed: StoredMarket[] = [],
   routes: StoredRoute[] = [],
-  profiles: UserProfile[] = [],
+  profiles: UserProfileView[] = [],
 ): Deps {
   const fleaMarkets = createInMemoryFleaMarkets(seed)
   const marketTables = createInMemoryMarketTables()

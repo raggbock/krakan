@@ -138,7 +138,7 @@ function setupMocks({
   if (tierReject) {
     mockOrganizerGet.mockRejectedValue(new Error('Network error'))
   } else {
-    mockOrganizerGet.mockResolvedValue({ subscription_tier: subscriptionTier } as any)
+    mockOrganizerGet.mockResolvedValue({ subscriptionTier } as any)
   }
 }
 

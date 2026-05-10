@@ -14,7 +14,7 @@ export type {
   RouteWithStops,
   RouteSummary,
   PopularRoute,
-  OrganizerProfile,
+  OrganizerProfileView as OrganizerProfile,
   OrganizerStats,
-  UserProfile,
+  UserProfileView as UserProfile,
 } from '@fyndstigen/shared'

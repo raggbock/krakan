@@ -81,7 +81,7 @@ function buildRepo(
       if (deps?.profiles) {
         try {
           const profile = await deps.profiles.get(m.organizer_id)
-          organizerName = [profile.first_name, profile.last_name].filter(Boolean).join(' ')
+          organizerName = [profile.firstName, profile.lastName].filter(Boolean).join(' ')
         } catch {
           // Profile not found — leave empty
         }

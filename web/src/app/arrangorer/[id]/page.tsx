@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import type { OrganizerProfile, FleaMarket } from '@fyndstigen/shared'
+import type { OrganizerProfileView, FleaMarket } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
@@ -13,7 +13,7 @@ export default function OrganizerProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { organizers, markets: marketsRepo } = useDeps()
-  const [organizer, setOrganizer] = useState<OrganizerProfile | null>(null)
+  const [organizer, setOrganizer] = useState<OrganizerProfileView | null>(null)
   const [markets, setMarkets] = useState<FleaMarket[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -53,9 +53,9 @@ export default function OrganizerProfilePage() {
   }
 
   const name =
-    [organizer.first_name, organizer.last_name].filter(Boolean).join(' ') ||
+    [organizer.firstName, organizer.lastName].filter(Boolean).join(' ') ||
     'Arrangör'
-  const isPremium = organizer.subscription_tier >= 1
+  const isPremium = organizer.subscriptionTier >= 1
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">

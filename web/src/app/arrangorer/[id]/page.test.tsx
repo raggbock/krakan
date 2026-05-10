@@ -15,13 +15,13 @@ import { useAuth } from '@/lib/auth/auth-context'
 
 const mockOrganizer = {
   id: 'org-1',
-  first_name: 'Lisa',
-  last_name: 'Borg',
+  firstName: 'Lisa',
+  lastName: 'Borg',
   bio: 'Loppisälskare',
   website: 'https://lisas-loppisar.se',
-  phone_number: null,
-  logo_path: null,
-  subscription_tier: 1,
+  phoneNumber: null,
+  logoPath: null,
+  subscriptionTier: 1,
 }
 
 const mockMarkets = [
@@ -96,7 +96,7 @@ describe('OrganizerProfilePage', () => {
   })
 
   it('shows Premium badge for premium organizer', async () => {
-    setupMocks({ organizer: { ...mockOrganizer, subscription_tier: 1 } })
+    setupMocks({ organizer: { ...mockOrganizer, subscriptionTier: 1 } })
     render(<OrganizerProfilePage />)
     await waitFor(() => {
       expect(screen.getByText('Premium')).toBeInTheDocument()
@@ -104,7 +104,7 @@ describe('OrganizerProfilePage', () => {
   })
 
   it('hides Premium badge for free organizer', async () => {
-    setupMocks({ organizer: { ...mockOrganizer, subscription_tier: 0 } })
+    setupMocks({ organizer: { ...mockOrganizer, subscriptionTier: 0 } })
     render(<OrganizerProfilePage />)
     await waitFor(() => {
       expect(screen.queryByText('Premium')).not.toBeInTheDocument()
