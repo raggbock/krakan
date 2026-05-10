@@ -61,16 +61,16 @@ import { endpoints } from '@/lib/edge/edge'
 
 const freeProfile = {
   id: 'user-1',
-  first_name: 'Anna',
-  last_name: 'Svensson',
-  phone_number: null,
+  firstName: 'Anna',
+  lastName: 'Svensson',
+  phoneNumber: null,
   bio: null,
   website: null,
-  logo_path: null,
-  subscription_tier: 0,
+  logoPath: null,
+  subscriptionTier: 0,
 }
 
-const premiumProfile = { ...freeProfile, subscription_tier: 1 }
+const premiumProfile = { ...freeProfile, subscriptionTier: 1 }
 
 const mockUser = { id: 'user-1', email: 'anna@test.se' }
 

@@ -7,21 +7,21 @@
  * that need specific organizer stat values.
  */
 
-import type { UserProfile, OrganizerProfile, OrganizerStats } from '../../types'
+import type { UserProfileView, OrganizerProfileView, OrganizerStats } from '../../types'
 import type { ProfileRepository, OrganizerRepository } from '../../ports/profiles'
 
-export function createInMemoryProfiles(seed: UserProfile[] = []): ProfileRepository {
-  const store = new Map<string, UserProfile>(seed.map((p) => [p.id, { ...p }]))
+export function createInMemoryProfiles(seed: UserProfileView[] = []): ProfileRepository {
+  const store = new Map<string, UserProfileView>(seed.map((p) => [p.id, { ...p }]))
 
   return {
-    async get(userId: string): Promise<UserProfile> {
+    async get(userId: string): Promise<UserProfileView> {
       const p = store.get(userId)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!p) throw new Error(`Profile ${userId} not found`)
       return { ...p }
     },
 
-    async update(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    async update(userId: string, updates: Partial<UserProfileView>): Promise<void> {
       const existing = store.get(userId)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Profile ${userId} not found`)
@@ -30,12 +30,12 @@ export function createInMemoryProfiles(seed: UserProfile[] = []): ProfileReposit
   }
 }
 
-export function createInMemoryOrganizers(seed: OrganizerProfile[] = []): OrganizerRepository {
-  const profileStore = new Map<string, OrganizerProfile>(seed.map((p) => [p.id, { ...p }]))
+export function createInMemoryOrganizers(seed: OrganizerProfileView[] = []): OrganizerRepository {
+  const profileStore = new Map<string, OrganizerProfileView>(seed.map((p) => [p.id, { ...p }]))
   const statsStore = new Map<string, OrganizerStats>()
 
   return {
-    async get(userId: string): Promise<OrganizerProfile> {
+    async get(userId: string): Promise<OrganizerProfileView> {
       const p = profileStore.get(userId)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!p) throw new Error(`OrganizerProfile ${userId} not found`)

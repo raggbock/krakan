@@ -12,7 +12,7 @@ import { createInMemoryRoutes } from './routes'
 import { createInMemoryProfiles } from './profiles'
 import { createInMemoryBookings } from './bookings'
 import { createInMemoryStack } from '../in-memory'
-import type { FleaMarket, UserProfile } from '../../types'
+import type { FleaMarket, UserProfileView } from '../../types'
 
 // ---------- helpers ----------
 
@@ -38,15 +38,15 @@ function makeMarket(overrides: Partial<FleaMarket & { is_deleted: boolean }> = {
   } as FleaMarket & { is_deleted: boolean }
 }
 
-function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
+function makeProfile(overrides: Partial<UserProfileView> = {}): UserProfileView {
   return {
     id: 'org-1',
-    first_name: 'Karin',
-    last_name: 'Karlsson',
-    phone_number: null,
-    user_type: 1,
+    firstName: 'Karin',
+    lastName: 'Karlsson',
+    phoneNumber: null,
+    userType: 1,
     ...overrides,
-  } as UserProfile
+  }
 }
 
 // ---------- 1. stub canaries ----------
@@ -197,14 +197,14 @@ describe('createInMemoryStack', () => {
     const stack = createInMemoryStack()
 
     // Seed a profile
-    await stack.profiles.update('user-organizer', { first_name: 'Eva', last_name: 'Eriksson' })
+    await stack.profiles.update('user-organizer', { firstName: 'Eva', lastName: 'Eriksson' })
       .catch(async () => {
         // update throws if not found — create via a workaround: we can only seed at construction.
         // Use the stack's fleaMarkets create + a profiles repo seeded separately.
       })
 
     // createInMemoryStack creates an empty profiles repo. Seed it by building a separate stack:
-    const profiles = createInMemoryProfiles([makeProfile({ id: 'org-42', first_name: 'Lars', last_name: 'Lindgren' })])
+    const profiles = createInMemoryProfiles([makeProfile({ id: 'org-42', firstName: 'Lars', lastName: 'Lindgren' })])
     const fleaMarkets = createInMemoryFleaMarkets(
       [makeMarket({ id: 'fm-42', organizer_id: 'org-42' })],
       { profiles },

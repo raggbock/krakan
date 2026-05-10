@@ -95,16 +95,16 @@ describe('makeInMemoryDeps', () => {
   })
 
   it('profiles.get returns seeded profile', async () => {
-    const seedProfile = {
+    const seedProfile: import('./types').UserProfileView = {
       id: 'u1',
-      first_name: 'Anna',
-      last_name: 'Svensson',
-      phone_number: null,
-      user_type: 0,
-    } as import('./types').UserProfile
+      firstName: 'Anna',
+      lastName: 'Svensson',
+      phoneNumber: null,
+      userType: 0,
+    }
     const deps = makeInMemoryDeps([], [], [seedProfile])
     const profile = await deps.profiles.get('u1')
-    expect(profile.first_name).toBe('Anna')
+    expect(profile.firstName).toBe('Anna')
   })
 
 })

@@ -63,8 +63,6 @@ import type {
   OpeningHourRuleRow,
   OpeningHourExceptionRow,
   FleaMarketImageRow,
-  ProfileRow,
-  OrganizerProfileRow,
   MarketTableRow,
   BookingRow as BookingDbRow,
   RouteRow,
@@ -85,8 +83,6 @@ export type FleaMarketDetails = FleaMarketRow & {
 }
 
 // Profiles
-export type UserProfile = ProfileRow
-export type OrganizerProfile = OrganizerProfileRow
 export type OrganizerStats = {
   organizer_id: string
   market_count: number

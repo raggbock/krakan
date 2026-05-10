@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { OrganizerProfile, OrganizerStats } from '@fyndstigen/shared'
+import type { OrganizerProfileView, OrganizerStats } from '@fyndstigen/shared'
 import { useDeps } from '@/providers/deps-provider'
 import { isAppError, messageFor } from '@fyndstigen/shared'
 
 // ─── useOrganizer ──────────────────────────────────────────────────────────
 
 export type UseOrganizerResult = {
-  organizer: OrganizerProfile | null
+  organizer: OrganizerProfileView | null
   loading: boolean
   error: string | null
 }
@@ -19,7 +19,7 @@ export type UseOrganizerResult = {
  */
 export function useOrganizer(id: string | undefined): UseOrganizerResult {
   const { organizers } = useDeps()
-  const [organizer, setOrganizer] = useState<OrganizerProfile | null>(null)
+  const [organizer, setOrganizer] = useState<OrganizerProfileView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -85,7 +85,7 @@ export function useOrganizerSimpleStats(userId: string | undefined): UseOrganize
 // ─── useUpdateOrganizer ────────────────────────────────────────────────────
 
 export type OrganizerUpdateFields = Partial<
-  Pick<OrganizerProfile, 'bio' | 'website' | 'first_name' | 'last_name' | 'phone_number'>
+  Pick<OrganizerProfileView, 'bio' | 'website' | 'firstName' | 'lastName' | 'phoneNumber'>
 >
 
 export type UseUpdateOrganizerResult = {

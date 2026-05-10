@@ -68,7 +68,7 @@ export default function OrganizerStatsPage() {
     }
     if (!id) return
     organizers.get(id)
-      .then((org) => setIsPremium((org?.subscription_tier ?? 0) >= 1))
+      .then((org) => setIsPremium((org?.subscriptionTier ?? 0) >= 1))
       .catch(() => setIsPremium(false))
       .finally(() => setTierLoading(false))
   }, [id, skyltfonstretEnabled])
