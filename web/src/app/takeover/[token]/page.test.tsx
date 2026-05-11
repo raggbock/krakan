@@ -155,7 +155,7 @@ describe('TakeoverPage — PostHog events', () => {
     )
   })
 
-  it('fires takeover_info_load_failed with error_reason: unknown for unrecognised message', async () => {
+  it('fires takeover_info_load_failed with error_reason: unknown + raw message for unrecognised code', async () => {
     mockUseTakeoverInfo.mockReturnValue(infoError('some_completely_unknown_code'))
 
     await renderPage()
@@ -163,6 +163,7 @@ describe('TakeoverPage — PostHog events', () => {
     await waitFor(() =>
       expect(mockCapture).toHaveBeenCalledWith('takeover_info_load_failed', {
         error_reason: 'unknown',
+        error_message_raw: 'some_completely_unknown_code',
       }),
     )
   })
