@@ -10,6 +10,7 @@ import { BookableTablesCard } from '@/components/booking/tables-card'
 import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
 import { MarketImageGallery } from '@/components/market/image-gallery'
+import { AddToRouteButton } from '@/components/add-to-route-button'
 import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
 
 export function MarketDetail({ id }: { id: string }) {
@@ -156,6 +157,14 @@ export function MarketDetail({ id }: { id: string }) {
       </div>
 
       <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+        {market.publishedAt && (
+          <AddToRouteButton
+            marketId={id}
+            marketName={market.name}
+            marketCity={market.city}
+            source="market_detail"
+          />
+        )}
         <Link
           href={mapUrl}
           className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
