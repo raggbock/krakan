@@ -1,29 +1,26 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createE2EBridge } from './bridge'
 import { createE2EInMemoryDeps } from '@fyndstigen/shared/deps-factory'
-import type { FleaMarket, OpeningHourRuleView } from '@fyndstigen/shared'
+import type { StoredMarket } from '@fyndstigen/shared/adapters/in-memory/flea-markets'
 
-function makeMarket(id: string, name = `M ${id}`) {
+function makeMarket(id: string, name = `M ${id}`): StoredMarket {
   return {
     id,
     name,
-    organizer_id: 'u1',
-    is_permanent: true,
-    published_at: '2024-01-01T00:00:00Z',
-    is_deleted: false,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    organizerId: 'u1',
+    isPermanent: true,
+    publishedAt: '2024-01-01T00:00:00Z',
+    isDeleted: false,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
     street: 'Storgatan 1',
-    zip_code: '12345',
+    zipCode: '12345',
     city: 'Göteborg',
     country: 'SE',
     latitude: 57.7,
     longitude: 11.97,
-    auto_accept_bookings: false,
-  } as FleaMarket & {
-    is_deleted: boolean
-    updated_at: string
-    opening_hour_rules?: OpeningHourRuleView[]
+    autoAcceptBookings: false,
+    description: '',
   }
 }
 

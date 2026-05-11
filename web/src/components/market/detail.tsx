@@ -48,7 +48,7 @@ export function MarketDetail({ id }: { id: string }) {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <BackLink href="/utforska" />
 
-      {!market.published_at && isOwner && (
+      {!market.publishedAt && isOwner && (
         <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up">
           Den här loppisen är ett opublicerat utkast och syns bara för dig.{' '}
           <Link href={editUrl} className="underline font-medium">
@@ -66,10 +66,10 @@ export function MarketDetail({ id }: { id: string }) {
           </h1>
           <span
             className={`stamp animate-stamp delay-2 ${
-              market.is_permanent ? 'text-forest' : 'text-mustard'
+              market.isPermanent ? 'text-forest' : 'text-mustard'
             }`}
           >
-            {market.is_permanent ? 'Permanent' : 'Tillfällig'}
+            {market.isPermanent ? 'Permanent' : 'Tillfällig'}
           </span>
           {isOwner && (
             <Link
@@ -95,15 +95,15 @@ export function MarketDetail({ id }: { id: string }) {
         <div>
           <AddressCard
             street={market.street}
-            zipCode={market.zip_code}
+            zipCode={market.zipCode}
             city={market.city}
             country={market.country}
           />
-          {market.is_system_owned && (
+          {market.isSystemOwned && (
             <AutoImportedNotice
               what="Adressen"
-              contactWebsite={market.contact_website}
-              googlePlaceId={market.google_place_id}
+              contactWebsite={market.contactWebsite}
+              googlePlaceId={market.googlePlaceId}
             />
           )}
         </div>
@@ -114,12 +114,12 @@ export function MarketDetail({ id }: { id: string }) {
               rules={openingHours.rules}
               exceptions={openingHours.exceptions}
             />
-            {market.is_system_owned && (
+            {market.isSystemOwned && (
               <AutoImportedNotice
                 what="Öppettiderna"
                 plural
-                contactWebsite={market.contact_website}
-                googlePlaceId={market.google_place_id}
+                contactWebsite={market.contactWebsite}
+                googlePlaceId={market.googlePlaceId}
               />
             )}
           </div>
@@ -127,7 +127,7 @@ export function MarketDetail({ id }: { id: string }) {
 
         {market.organizerName && (
           <OrganizerCard
-            organizerId={market.organizer_id}
+            organizerId={market.organizerId}
             organizerName={market.organizerName}
           />
         )}
@@ -149,7 +149,7 @@ export function MarketDetail({ id }: { id: string }) {
         >
           Visa på karta &rarr;
         </Link>
-        {market.is_system_owned && (
+        {market.isSystemOwned && (
           <ClaimMarketButton marketId={id} marketName={market.name} />
         )}
       </div>

@@ -10,16 +10,16 @@ import type { StoredMarket } from '@fyndstigen/shared/adapters/in-memory/flea-ma
 
 const BASE: Omit<StoredMarket, 'id' | 'name' | 'latitude' | 'longitude' | 'street'> = {
   description: 'E2E seed market',
-  zip_code: '41101',
+  zipCode: '41101',
   city: 'Göteborg',
   country: 'SE',
-  is_permanent: true,
-  published_at: '2024-01-01T00:00:00Z',
-  organizer_id: 'u-e2e-organizer',
-  auto_accept_bookings: false,
-  created_at: '2024-01-01T00:00:00Z',
-  is_deleted: false,
-  updated_at: '2024-01-01T00:00:00Z',
+  isPermanent: true,
+  publishedAt: '2024-01-01T00:00:00Z',
+  organizerId: 'u-e2e-organizer',
+  autoAcceptBookings: false,
+  createdAt: '2024-01-01T00:00:00Z',
+  isDeleted: false,
+  updatedAt: '2024-01-01T00:00:00Z',
 }
 
 export const gothenburgMarkets: StoredMarket[] = [

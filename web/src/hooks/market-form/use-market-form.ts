@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { FleaMarketDetails, MarketTableView } from '@fyndstigen/shared'
+import type { FleaMarketDetailsView, MarketTableView } from '@fyndstigen/shared'
 import { useMarketFields } from './use-market-fields'
 import { useOpeningHoursDraft } from './use-opening-hours-draft'
 import { useImageDraft } from './use-image-draft'
@@ -17,7 +17,7 @@ export type { ImageDraftExisting } from './use-image-draft'
 export type UseMarketFormOptions = {
   mode: 'create' | 'edit'
   /** For edit mode: the full market details to initialize from. */
-  initial?: FleaMarketDetails & { market_tables?: MarketTableView[] }
+  initial?: FleaMarketDetailsView & { market_tables?: MarketTableView[] }
   /** For create mode: the organizer's user id. */
   organizerId?: string
 }
@@ -26,24 +26,24 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
   const fields = useMarketFields(initial)
 
   const openingHours = useOpeningHoursDraft(
-    initial?.opening_hour_rules?.map((r) => ({
+    initial?.openingHourRules?.map((r) => ({
       type: r.type as 'weekly' | 'biweekly' | 'date',
-      dayOfWeek: r.day_of_week,
-      anchorDate: r.anchor_date,
-      openTime: r.open_time,
-      closeTime: r.close_time,
+      dayOfWeek: r.dayOfWeek,
+      anchorDate: r.anchorDate,
+      openTime: r.openTime,
+      closeTime: r.closeTime,
     })) ?? [],
-    initial?.opening_hour_exceptions?.map((ex) => ({
+    initial?.openingHourExceptions?.map((ex) => ({
       date: ex.date,
       reason: ex.reason,
     })) ?? [],
   )
 
   const images = useImageDraft(
-    (initial?.flea_market_images ?? []).map((img) => ({
+    (initial?.images ?? []).map((img) => ({
       id: img.id,
-      storagePath: img.storage_path,
-      sortOrder: img.sort_order,
+      storagePath: img.storagePath,
+      sortOrder: img.sortOrder,
     })),
   )
 
@@ -52,8 +52,8 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
   const { submit, state, clearError, clearSuccess } = useSubmitMarket({
     mode,
     marketId: initial?.id,
-    publishedAt: initial?.published_at,
-    organizerId: organizerId ?? initial?.organizer_id,
+    publishedAt: initial?.publishedAt,
+    organizerId: organizerId ?? initial?.organizerId,
     autoAcceptBookings: fields.autoAcceptBookings,
     fields,
     openingHours,
@@ -71,23 +71,23 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
 
     fields.reset(initial)
     openingHours.reset(
-      initial.opening_hour_rules?.map((r) => ({
+      initial.openingHourRules?.map((r) => ({
         type: r.type as 'weekly' | 'biweekly' | 'date',
-        dayOfWeek: r.day_of_week,
-        anchorDate: r.anchor_date,
-        openTime: r.open_time,
-        closeTime: r.close_time,
+        dayOfWeek: r.dayOfWeek,
+        anchorDate: r.anchorDate,
+        openTime: r.openTime,
+        closeTime: r.closeTime,
       })) ?? [],
-      initial.opening_hour_exceptions?.map((ex) => ({
+      initial.openingHourExceptions?.map((ex) => ({
         date: ex.date,
         reason: ex.reason,
       })) ?? [],
     )
     images.reset(
-      (initial.flea_market_images ?? []).map((img) => ({
+      (initial.images ?? []).map((img) => ({
         id: img.id,
-        storagePath: img.storage_path,
-        sortOrder: img.sort_order,
+        storagePath: img.storagePath,
+        sortOrder: img.sortOrder,
       })),
     )
     tables.reset(initial.market_tables ?? [])

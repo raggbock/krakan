@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { FleaMarketDetails, MarketTableView } from '@fyndstigen/shared'
+import type { FleaMarketDetailsView, MarketTableView } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
 import { useMarketDetails } from '@/hooks/use-market-details'
@@ -27,18 +27,18 @@ export default function EditMarketPage() {
 
   const { market, tables: fetchedTables, loading: marketLoading } = useMarketDetails(id)
 
-  const [initial, setInitial] = useState<(FleaMarketDetails & { market_tables?: MarketTableView[] }) | undefined>()
+  const [initial, setInitial] = useState<(FleaMarketDetailsView & { market_tables?: MarketTableView[] }) | undefined>()
   const [publishedAt, setPublishedAt] = useState<string | null>(null)
   const [initialised, setInitialised] = useState(false)
 
   // Seed the form once the market data first arrives
   useEffect(() => {
     if (!market || initialised) return
-    if (market.organizer_id !== user?.id) {
+    if (market.organizerId !== user?.id) {
       router.replace(`/fleamarkets/${id}`)
       return
     }
-    setPublishedAt(market.published_at ?? null)
+    setPublishedAt(market.publishedAt ?? null)
     setInitial({ ...market, market_tables: fetchedTables })
     setInitialised(true)
   }, [market, fetchedTables, user?.id, initialised, id, router])

@@ -74,7 +74,7 @@ export default function ExplorePage() {
       }))
     : fallback.markets.map((m) => ({
         id: m.id, name: m.name, city: m.city, description: m.description,
-        isPermanent: m.is_permanent, latitude: m.latitude, longitude: m.longitude,
+        isPermanent: m.isPermanent, latitude: m.latitude, longitude: m.longitude,
         slug: m.slug,
       }))
   const totalCount = useNearby ? nearby.markets.length : fallback.count

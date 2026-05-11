@@ -10,7 +10,7 @@
  */
 
 import type { Database } from '../types/supabase.generated'
-import type { FleaMarketDetails, RuleType } from '../types'
+import type { FleaMarketDetailsView, RuleType } from '../types'
 import { formatName } from '../api/mappers'
 
 // --- Base table row types (from generated types) ---
@@ -53,7 +53,7 @@ export const FleaMarketQuery = {
       profiles!flea_markets_organizer_id_fkey (first_name, last_name)
     ` as const,
 
-    mapRow(row: FleaMarketDetailsRow): FleaMarketDetails {
+    mapRow(row: FleaMarketDetailsRow): FleaMarketDetailsView {
       // Nested rows are narrowed to the fields the domain actually uses.
       // Columns like flea_market_id / created_at on the joined rows are
       // intentionally dropped — the domain doesn't read them, and keeping the
@@ -61,34 +61,46 @@ export const FleaMarketQuery = {
       // on a passthrough field.
       const { profiles, opening_hour_rules, opening_hour_exceptions, flea_market_images, ...rest } = row
       return {
-        ...rest,
+        id: rest.id,
+        name: rest.name,
         // DB columns are nullable; the domain type narrows to non-null by coercing
         // null → '' / 0 at the query boundary. Historical behavior of the adapter.
         description: rest.description ?? '',
         street: rest.street ?? '',
-        zip_code: rest.zip_code ?? '',
+        zipCode: rest.zip_code ?? '',
         city: rest.city ?? '',
         country: rest.country ?? '',
         latitude: rest.latitude ?? 0,
         longitude: rest.longitude ?? 0,
+        isPermanent: rest.is_permanent,
+        organizerId: rest.organizer_id,
+        autoAcceptBookings: rest.auto_accept_bookings,
+        publishedAt: rest.published_at,
+        createdAt: rest.created_at,
+        slug: rest.slug ?? null,
+        isSystemOwned: rest.is_system_owned,
+        contactWebsite: rest.contact_website,
+        contactPhone: rest.contact_phone,
+        contactEmail: rest.contact_email,
+        googlePlaceId: rest.google_place_id,
         organizerName: formatName(profiles),
-        opening_hour_rules: opening_hour_rules.map((r) => ({
+        openingHourRules: opening_hour_rules.map((r) => ({
           id: r.id,
           type: r.type as RuleType,
-          day_of_week: r.day_of_week,
-          anchor_date: r.anchor_date,
-          open_time: r.open_time,
-          close_time: r.close_time,
+          dayOfWeek: r.day_of_week,
+          anchorDate: r.anchor_date,
+          openTime: r.open_time,
+          closeTime: r.close_time,
         })),
-        opening_hour_exceptions: opening_hour_exceptions.map((e) => ({
+        openingHourExceptions: opening_hour_exceptions.map((e) => ({
           id: e.id,
           date: e.date,
           reason: e.reason,
         })),
-        flea_market_images: flea_market_images.map((img) => ({
+        images: flea_market_images.map((img) => ({
           id: img.id,
-          storage_path: img.storage_path,
-          sort_order: img.sort_order,
+          storagePath: img.storage_path,
+          sortOrder: img.sort_order,
         })),
       }
     },

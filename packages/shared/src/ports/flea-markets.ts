@@ -15,8 +15,8 @@
  */
 
 import type {
-  FleaMarket,
-  FleaMarketDetails,
+  FleaMarketView,
+  FleaMarketDetailsView,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
@@ -38,13 +38,13 @@ export type WeekendOpenSlot = {
 }
 
 export interface FleaMarketRepository extends Publishable {
-  list(params?: { page?: number; pageSize?: number }): Promise<{ items: FleaMarket[]; count: number }>
-  details(id: string): Promise<FleaMarketDetails>
+  list(params?: { page?: number; pageSize?: number }): Promise<{ items: FleaMarketView[]; count: number }>
+  details(id: string): Promise<FleaMarketDetailsView>
   nearBy(params: { latitude: number; longitude: number; radiusKm: number }): Promise<FleaMarketNearByView[]>
   create(payload: CreateFleaMarketPayload): Promise<{ id: string }>
   update(id: string, payload: UpdateFleaMarketPayload): Promise<void>
   delete(id: string): Promise<void>
-  listByOrganizer(organizerId: string): Promise<FleaMarket[]>
+  listByOrganizer(organizerId: string): Promise<FleaMarketView[]>
   /**
    * Markets with weekly opening_hour_rules on Fri/Sat/Sun. One row per
    * (market × matching day). Excludes deleted and `status='closed'` markets.

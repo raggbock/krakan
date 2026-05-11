@@ -1,28 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import { createInMemoryFleaMarkets, createInMemoryMarketTables } from './flea-markets'
-import type { FleaMarket } from '../../types'
+import type { StoredMarket } from './flea-markets'
 import type { OpeningHourRuleView } from '../../types/domain'
 
-type SeedMarket = FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRuleView[] }
-
-function makeMarket(overrides: Partial<SeedMarket> = {}): SeedMarket {
+function makeMarket(overrides: Partial<StoredMarket> = {}): StoredMarket {
   return {
     id: 'fm-test',
     name: 'Testloppis',
     description: 'En loppis för test',
     street: 'Testgatan 1',
-    zip_code: '123 45',
+    zipCode: '123 45',
     city: 'Teststad',
     country: 'SE',
     latitude: 59.33,
     longitude: 18.07,
-    is_permanent: false,
-    organizer_id: 'org-1',
-    auto_accept_bookings: false,
-    published_at: null,
-    is_deleted: false,
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
+    isPermanent: false,
+    organizerId: 'org-1',
+    autoAcceptBookings: false,
+    publishedAt: null,
+    isDeleted: false,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
     ...overrides,
   }
 }
@@ -30,9 +28,9 @@ function makeMarket(overrides: Partial<SeedMarket> = {}): SeedMarket {
 describe('createInMemoryFleaMarkets', () => {
   it('list returns only published, non-deleted markets', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-1', published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
-      makeMarket({ id: 'fm-2', published_at: null, is_permanent: true }),
-      makeMarket({ id: 'fm-3', published_at: '2026-01-01T00:00:00Z', is_deleted: true, is_permanent: true }),
+      makeMarket({ id: 'fm-1', publishedAt: '2026-01-01T00:00:00Z', isPermanent: true }),
+      makeMarket({ id: 'fm-2', publishedAt: null, isPermanent: true }),
+      makeMarket({ id: 'fm-3', publishedAt: '2026-01-01T00:00:00Z', isDeleted: true, isPermanent: true }),
     ])
     const { items, count } = await repo.list()
     expect(items).toHaveLength(1)
@@ -42,7 +40,7 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('list with pagination returns the right page', async () => {
     const markets = Array.from({ length: 5 }, (_, i) =>
-      makeMarket({ id: `fm-${i + 1}`, published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
+      makeMarket({ id: `fm-${i + 1}`, publishedAt: '2026-01-01T00:00:00Z', isPermanent: true }),
     )
     const repo = createInMemoryFleaMarkets(markets)
     const page1 = await repo.list({ page: 1, pageSize: 2 })
@@ -73,11 +71,11 @@ describe('createInMemoryFleaMarkets', () => {
     const details = await repo.details(id)
     expect(details.name).toBe('Ny loppis')
     expect(details.city).toBe('Stockholm')
-    expect(details.published_at).toBeNull()
+    expect(details.publishedAt).toBeNull()
   })
 
   it('publish/unpublish toggles visibility in list', async () => {
-    const repo = createInMemoryFleaMarkets([makeMarket({ id: 'fm-pub', published_at: null, is_permanent: true })])
+    const repo = createInMemoryFleaMarkets([makeMarket({ id: 'fm-pub', publishedAt: null, isPermanent: true })])
     const before = await repo.list()
     expect(before.count).toBe(0)
 
@@ -92,7 +90,7 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('soft-delete excludes market from list', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-del', published_at: '2026-01-01T00:00:00Z', is_permanent: true }),
+      makeMarket({ id: 'fm-del', publishedAt: '2026-01-01T00:00:00Z', isPermanent: true }),
     ])
     const before = await repo.list()
     expect(before.count).toBe(1)
@@ -104,9 +102,9 @@ describe('createInMemoryFleaMarkets', () => {
 
   it('listByOrganizer filters by organizerId and excludes deleted', async () => {
     const repo = createInMemoryFleaMarkets([
-      makeMarket({ id: 'fm-a', organizer_id: 'org-1', is_permanent: true }),
-      makeMarket({ id: 'fm-b', organizer_id: 'org-2', is_permanent: true }),
-      makeMarket({ id: 'fm-c', organizer_id: 'org-1', is_deleted: true, is_permanent: true }),
+      makeMarket({ id: 'fm-a', organizerId: 'org-1', isPermanent: true }),
+      makeMarket({ id: 'fm-b', organizerId: 'org-2', isPermanent: true }),
+      makeMarket({ id: 'fm-c', organizerId: 'org-1', isDeleted: true, isPermanent: true }),
     ])
     const result = await repo.listByOrganizer('org-1')
     expect(result).toHaveLength(1)
@@ -120,25 +118,25 @@ describe('createInMemoryFleaMarkets', () => {
       // Published temporary market with only a past date rule — should be hidden
       makeMarket({
         id: 'fm-expired',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: false,
-        opening_hour_rules: [
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: false,
+        openingHourRules: [
           { id: 'r-1', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
       // Published temporary market with no rules at all — should be hidden
       makeMarket({
         id: 'fm-norules',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: false,
-        opening_hour_rules: [],
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: false,
+        openingHourRules: [],
       }),
       // Published temporary market with a future date rule — should be visible
       makeMarket({
         id: 'fm-future',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: false,
-        opening_hour_rules: [
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: false,
+        openingHourRules: [
           { id: 'r-2', type: 'date', anchorDate: today, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
@@ -152,9 +150,9 @@ describe('createInMemoryFleaMarkets', () => {
     const repo = createInMemoryFleaMarkets([
       makeMarket({
         id: 'fm-perm',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: true,
-        opening_hour_rules: [],
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: true,
+        openingHourRules: [],
       }),
     ])
     const { items, count } = await repo.list()
@@ -167,10 +165,10 @@ describe('createInMemoryFleaMarkets', () => {
     const repo = createInMemoryFleaMarkets([
       makeMarket({
         id: 'fm-expired-org',
-        organizer_id: 'org-1',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: false,
-        opening_hour_rules: [
+        organizerId: 'org-1',
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: false,
+        openingHourRules: [
           { id: 'r-3', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
@@ -190,19 +188,19 @@ describe('createInMemoryFleaMarkets', () => {
     const repo = createInMemoryFleaMarkets([
       makeMarket({
         id: 'fm-hidden',
-        organizer_id: 'org-1',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: false,
-        opening_hour_rules: [
+        organizerId: 'org-1',
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: false,
+        openingHourRules: [
           { id: 'r-h', type: 'date', anchorDate: yesterday, dayOfWeek: null, openTime: '10:00', closeTime: '16:00' },
         ],
       }),
       makeMarket({
         id: 'fm-permanent',
-        organizer_id: 'org-1',
-        published_at: '2026-01-01T00:00:00Z',
-        is_permanent: true,
-        opening_hour_rules: [],
+        organizerId: 'org-1',
+        publishedAt: '2026-01-01T00:00:00Z',
+        isPermanent: true,
+        openingHourRules: [],
       }),
     ])
     const result = await repo.listByOrganizer('org-1')

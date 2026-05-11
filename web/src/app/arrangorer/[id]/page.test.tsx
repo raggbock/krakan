@@ -25,8 +25,8 @@ const mockOrganizer = {
 }
 
 const mockMarkets = [
-  { id: 'm1', name: 'Söder Loppis', city: 'Stockholm', is_permanent: true, published_at: '2026-01-01' },
-  { id: 'm2', name: 'Vasastan Fynd', city: 'Stockholm', is_permanent: false, published_at: '2026-02-01' },
+  { id: 'm1', name: 'Söder Loppis', city: 'Stockholm', isPermanent: true, publishedAt: '2026-01-01' },
+  { id: 'm2', name: 'Vasastan Fynd', city: 'Stockholm', isPermanent: false, publishedAt: '2026-02-01' },
 ]
 
 // Deps surfaces touched by OrganizerProfilePage

@@ -39,6 +39,25 @@ export type FleaMarketView = {
   createdAt: string
   /** URL slug — present on all published markets; may be null for unpublished drafts. */
   slug?: string | null
+  /**
+   * True for rows imported from external sources (kommunkalendrar, OSM, scrapes)
+   * and not yet claimed by an organizer via takeover. The public detail page
+   * renders a "data may be outdated" disclaimer when this is set.
+   */
+  isSystemOwned?: boolean
+  /** Organizer-supplied or auto-imported contact website URL. */
+  contactWebsite?: string | null
+  /** Organizer-supplied or auto-imported contact phone number. */
+  contactPhone?: string | null
+  /** Organizer-supplied or auto-imported contact e-mail. */
+  contactEmail?: string | null
+  /** Cached Google Places ID — used to deep-link visitors to the canonical Google listing. */
+  googlePlaceId?: string | null
+  /**
+   * Set by listByOrganizer — true if the market appears in public listings.
+   * Derived server-side; never stored as a column.
+   */
+  isVisible?: boolean
 }
 
 export type FleaMarketDetailsView = FleaMarketView & {

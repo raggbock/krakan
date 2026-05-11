@@ -59,10 +59,6 @@ export type {
 // ============================================================
 
 import type {
-  FleaMarketRow,
-  OpeningHourRuleRow,
-  OpeningHourExceptionRow,
-  FleaMarketImageRow,
   BookingRow as BookingDbRow,
 } from './db'
 import type {
@@ -70,15 +66,7 @@ import type {
   PaymentStatus,
   RuleType,
 } from './shared-enums'
-
-// FleaMarket
-export type FleaMarket = FleaMarketRow
-export type FleaMarketDetails = FleaMarketRow & {
-  organizerName: string
-  opening_hour_rules: OpeningHourRuleRow[]
-  opening_hour_exceptions: OpeningHourExceptionRow[]
-  flea_market_images: FleaMarketImageRow[]
-}
+import type { FleaMarketView } from './domain'
 
 // Profiles
 export type OrganizerStats = {
@@ -153,5 +141,5 @@ export type CreateMarketTablePayload = {
 }
 
 export type SearchResult = {
-  fleaMarkets: FleaMarket[]
+  fleaMarkets: FleaMarketView[]
 }

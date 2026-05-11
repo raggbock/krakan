@@ -3,13 +3,13 @@
  *
  * This test verifies that:
  * 1. The select string is stable (regression guard).
- * 2. mapRow produces the expected FleaMarketDetails shape.
+ * 2. mapRow produces the expected FleaMarketDetailsView shape.
  * 3. No Record<string, unknown> casts silently swallow field renames.
  */
 
 import { describe, it, expect } from 'vitest'
 import { FleaMarketQuery, type FleaMarketDetailsRow } from './flea-market'
-import type { FleaMarketDetails } from '../types'
+import type { FleaMarketDetailsView } from '../types'
 
 function makeDetailsRow(overrides: Partial<FleaMarketDetailsRow> = {}): FleaMarketDetailsRow {
   return {
@@ -82,8 +82,8 @@ describe('FleaMarketQuery.details.mapRow', () => {
     expect(result.name).toBe('Södermalms Loppis')
     expect(result.city).toBe('Stockholm')
     expect(result.latitude).toBe(59.314)
-    expect(result.organizer_id).toBe('org-1')
-    expect(result.auto_accept_bookings).toBe(false)
+    expect(result.organizerId).toBe('org-1')
+    expect(result.autoAcceptBookings).toBe(false)
   })
 
   it('computes organizerName from profiles join', () => {
@@ -96,44 +96,44 @@ describe('FleaMarketQuery.details.mapRow', () => {
     expect(result.organizerName).toBe('')
   })
 
-  it('maps opening_hour_rules array preserving type as RuleType', () => {
+  it('maps openingHourRules array preserving type as RuleType', () => {
     const result = FleaMarketQuery.details.mapRow(makeDetailsRow())
-    expect(result.opening_hour_rules).toHaveLength(1)
-    expect(result.opening_hour_rules[0].id).toBe('r-1')
-    expect(result.opening_hour_rules[0].type).toBe('weekly')
-    expect(result.opening_hour_rules[0].day_of_week).toBe(6)
-    expect(result.opening_hour_rules[0].open_time).toBe('09:00')
+    expect(result.openingHourRules).toHaveLength(1)
+    expect(result.openingHourRules[0].id).toBe('r-1')
+    expect(result.openingHourRules[0].type).toBe('weekly')
+    expect(result.openingHourRules[0].dayOfWeek).toBe(6)
+    expect(result.openingHourRules[0].openTime).toBe('09:00')
   })
 
-  it('maps opening_hour_exceptions array', () => {
+  it('maps openingHourExceptions array', () => {
     const result = FleaMarketQuery.details.mapRow(makeDetailsRow())
-    expect(result.opening_hour_exceptions).toHaveLength(1)
-    expect(result.opening_hour_exceptions[0].id).toBe('e-1')
-    expect(result.opening_hour_exceptions[0].date).toBe('2026-06-06')
-    expect(result.opening_hour_exceptions[0].reason).toBe('Nationaldagen')
+    expect(result.openingHourExceptions).toHaveLength(1)
+    expect(result.openingHourExceptions[0].id).toBe('e-1')
+    expect(result.openingHourExceptions[0].date).toBe('2026-06-06')
+    expect(result.openingHourExceptions[0].reason).toBe('Nationaldagen')
   })
 
-  it('maps flea_market_images array', () => {
+  it('maps images array', () => {
     const result = FleaMarketQuery.details.mapRow(makeDetailsRow())
-    expect(result.flea_market_images).toHaveLength(1)
-    expect(result.flea_market_images[0].id).toBe('img-1')
-    expect(result.flea_market_images[0].storage_path).toBe('markets/fm-1/hero.jpg')
-    expect(result.flea_market_images[0].sort_order).toBe(0)
+    expect(result.images).toHaveLength(1)
+    expect(result.images[0].id).toBe('img-1')
+    expect(result.images[0].storagePath).toBe('markets/fm-1/hero.jpg')
+    expect(result.images[0].sortOrder).toBe(0)
   })
 
   it('handles empty arrays for rules, exceptions and images', () => {
     const result = FleaMarketQuery.details.mapRow(
       makeDetailsRow({ opening_hour_rules: [], opening_hour_exceptions: [], flea_market_images: [] }),
     )
-    expect(result.opening_hour_rules).toHaveLength(0)
-    expect(result.opening_hour_exceptions).toHaveLength(0)
-    expect(result.flea_market_images).toHaveLength(0)
+    expect(result.openingHourRules).toHaveLength(0)
+    expect(result.openingHourExceptions).toHaveLength(0)
+    expect(result.images).toHaveLength(0)
   })
 
-  it('satisfies the FleaMarketDetails type contract', () => {
+  it('satisfies the FleaMarketDetailsView type contract', () => {
     const result = FleaMarketQuery.details.mapRow(makeDetailsRow())
-    // Compile-time check: if FleaMarketDetails shape changes this line will fail to build
-    const _typed: FleaMarketDetails = result
+    // Compile-time check: if FleaMarketDetailsView shape changes this line will fail to build
+    const _typed: FleaMarketDetailsView = result
     expect(_typed.id).toBeDefined()
   })
 })
