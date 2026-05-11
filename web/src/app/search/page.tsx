@@ -36,8 +36,16 @@ export default function SearchPage() {
     if (query.trim() === '') return
     if (lastTrackedQuery.current === query) return
     lastTrackedQuery.current = query
+    const trimmed = query.trim()
     posthog?.capture('market_search_performed', {
-      query_length: query.trim().length,
+      query_length: trimmed.length,
+      // Low-cardinality, low-PII signals so we can diagnose the 48%
+      // empty-result rate without logging full query strings (#132).
+      query_length_bucket:
+        trimmed.length < 4 ? 'short' :
+        trimmed.length < 8 ? 'med' :
+        trimmed.length < 16 ? 'long' : 'xlong',
+      query_first_word: trimmed.split(/\s+/)[0]?.toLowerCase().slice(0, 20),
       has_results: results.length > 0,
       result_count: results.length,
     })

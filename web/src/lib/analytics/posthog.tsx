@@ -20,6 +20,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       person_profiles: 'identified_only',
       capture_pageview: false, // we handle this manually below
       capture_pageleave: true,
+      capture_exceptions: true, // uncaught errors + unhandled rejections → $exception events (#135)
       disable_session_recording: true, // start lazily after pageload to avoid blocking first paint
     })
 
