@@ -8,6 +8,7 @@ import { getInitials } from '@fyndstigen/shared'
 import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
 import { marketUrl } from '@/lib/urls'
 import { useOpenNowIds } from '@/hooks/use-open-now'
+import { AddToRouteButton } from '@/components/add-to-route-button'
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371
@@ -344,9 +345,18 @@ export default function ExplorePage() {
               <Link
                 key={market.id}
                 href={marketUrl(market)}
-                className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up"
+                className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up relative"
                 style={{ animationDelay: `${0.1 + i * 0.06}s` }}
               >
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  <AddToRouteButton
+                    marketId={market.id}
+                    marketName={market.name}
+                    marketCity={market.city ?? undefined}
+                    source="explore_card"
+                    compact
+                  />
+                </div>
                 {/* Card placeholder band — compact, themed, no big empty
                     cream area. Market name renders as faded Fraunces italic
                     over the parchment, with the type stamp anchored to the
