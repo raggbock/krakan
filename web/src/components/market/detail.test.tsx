@@ -113,10 +113,10 @@ beforeEach(() => {
 })
 
 describe('MarketDetail', () => {
-  it('shows loading state', () => {
+  it('shows loading skeleton', () => {
     setupMocks({ loading: true, market: null })
-    render(<MarketDetail id="market-1" />)
-    expect(screen.getByTestId('loading')).toBeInTheDocument()
+    const { container } = render(<MarketDetail id="market-1" />)
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument()
   })
 
   it('shows "not found" when market does not exist', () => {
