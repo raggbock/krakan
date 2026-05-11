@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { geo } from '@/lib/geo'
 import { runMarketMutation } from '@fyndstigen/shared'
 import { useDeps } from '@/providers/deps-provider'
 import { messageFor } from '@fyndstigen/shared'
@@ -53,7 +52,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
   clearError: () => void
   clearSuccess: () => void
 } {
-  const { markets, marketTables, images: imagesPort } = useDeps()
+  const { markets, marketTables, images: imagesPort, geo } = useDeps()
 
   // Keep latest opts in a ref so submit() never goes stale.
   const optsRef = useRef(opts)
