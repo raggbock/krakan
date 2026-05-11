@@ -64,16 +64,52 @@ export function createConsoleSink(): AlertSink {
 // ---------------------------------------------------------------------------
 // Singleton — resolved lazily so adapter selection can read env vars at
 // first-use time. Tests can inject a sink via `setAlertSink(fakeSink)`.
+//
+// Activation flow:
+//   1. First call to getAlertSink() reads SENTRY_DSN.
+//   2. If set, lazy-imports the Sentry adapter and uses it.
+//   3. If unset (or import fails), falls back to the console sink.
+//
+// Importing the Sentry adapter is async; getAlertSink() returns the
+// console sink synchronously on first call and upgrades to Sentry once
+// the init promise resolves. Concurrent callers in that small window
+// emit through the console — acceptable since these are rare events.
 // ---------------------------------------------------------------------------
 
 let _sink: AlertSink | null = null
+let _sentryInitStarted = false
 
 export function getAlertSink(): AlertSink {
-  if (!_sink) _sink = createConsoleSink()
+  if (_sink) return _sink
+
+  _sink = createConsoleSink()
+
+  if (!_sentryInitStarted) {
+    _sentryInitStarted = true
+    const env = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env
+    const dsn = env?.get('SENTRY_DSN')
+    if (dsn) {
+      // Lazy import keeps the SDK out of the bundle when SENTRY_DSN is unset.
+      import('./alerting-sentry.ts')
+        .then(({ createSentrySink }) =>
+          createSentrySink(dsn, {
+            environment: env?.get('SUPABASE_ENVIRONMENT') ?? 'production',
+          }),
+        )
+        .then((sentrySink) => {
+          if (sentrySink) _sink = sentrySink
+        })
+        .catch((err) => {
+          console.error(JSON.stringify({ kind: 'sentry_init_failed', message: String(err) }))
+        })
+    }
+  }
+
   return _sink
 }
 
 /** Test seam. Reset between tests. */
 export function setAlertSink(sink: AlertSink | null): void {
   _sink = sink
+  _sentryInitStarted = sink !== null
 }
