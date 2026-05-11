@@ -45,3 +45,48 @@ export function clearDraft(storage: Storage): void {
     // no-op
   }
 }
+
+/**
+ * Append a market to the draft (or initialize one). Used by the
+ * "Lägg till i rundan" button on market-detail and explore cards (#139)
+ * so users can build a route from outside the route-builder page.
+ *
+ * Idempotent: if the marketId is already in the draft, returns the
+ * existing draft unchanged. Returns the resulting draft so callers can
+ * tell whether the stop count grew (for telemetry / UI confirmation).
+ */
+export function addStopToDraft(
+  storage: Storage,
+  marketId: string,
+  now: () => number = Date.now,
+): { draft: RouteDraft; added: boolean } {
+  const existing = readDraft(storage, now)
+  if (existing?.stops.some((s) => s.marketId === marketId)) {
+    return { draft: existing, added: false }
+  }
+  const base: RouteDraft = existing ?? {
+    name: '',
+    plannedDate: '',
+    useGps: true,
+    customStart: null,
+    stops: [],
+    savedAt: new Date(now()).toISOString(),
+  }
+  const next: RouteDraft = {
+    ...base,
+    stops: [...base.stops, { marketId, index: base.stops.length }],
+    savedAt: new Date(now()).toISOString(),
+  }
+  writeDraft(storage, next)
+  return { draft: next, added: true }
+}
+
+/** Check if a market is already in the current draft. */
+export function isMarketInDraft(
+  storage: Storage,
+  marketId: string,
+  now: () => number = Date.now,
+): boolean {
+  const draft = readDraft(storage, now)
+  return draft?.stops.some((s) => s.marketId === marketId) ?? false
+}
