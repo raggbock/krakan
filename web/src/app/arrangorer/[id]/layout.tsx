@@ -20,6 +20,9 @@ function getServerData() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return { title: 'E2E arrangör' }
+  }
   const organizer = await getServerData().getOrganizerMeta(id)
   if (!organizer) {
     return { title: 'Arrangören hittades inte' }
@@ -43,6 +46,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function OrganizerLayout({ params, children }: Props) {
   const { id } = await params
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return <>{children}</>
+  }
   const organizer = await getServerData().getOrganizerMeta(id)
 
   const jsonLd = organizer

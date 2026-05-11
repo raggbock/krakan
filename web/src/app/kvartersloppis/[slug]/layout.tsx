@@ -34,6 +34,9 @@ const resolve = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return { title: 'E2E kvartersloppis' }
+  }
   const bs = await resolve(slug)
   if (!bs) return { title: 'Kvartersloppis hittades inte' }
   const isDraft = !bs.publishedAt
@@ -48,6 +51,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Layout({ params, children }: Props) {
   const { slug } = await params
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return <>{children}</>
+  }
   const bs = await resolve(slug)
   if (!bs) notFound()
 
