@@ -9,10 +9,13 @@ type MapFixtures = {
 
 /**
  * Shared Playwright test. The map profile uses `seedMarkets` and `setNow`
- * to prime `window.__E2E__` after navigation; OSRM requests are auto-
- * intercepted on every page. Smoke tests that don't need these fixtures
- * still work — the `page` override only adds the OSRM handler, which is
- * a no-op unless the code under test calls out to OSRM.
+ * to stage `window.__E2E_PRE_SEED__` / `window.__E2E_NOW__` via
+ * `addInitScript` BEFORE any navigation — so the bridge can drain them
+ * on attach and the first React Query fetch sees data. OSRM requests are
+ * auto-intercepted on every page.
+ *
+ * IMPORTANT: call `seedMarkets`/`setNow` BEFORE the first `page.goto(...)`.
+ * They persist across full reloads in the same test.
  */
 export const test = base.extend<MapFixtures>({
   page: async ({ page }, use) => {
@@ -21,17 +24,15 @@ export const test = base.extend<MapFixtures>({
   },
   seedMarkets: async ({ page }, use) => {
     await use(async (markets) => {
-      await page.waitForFunction(() => !!window.__E2E__)
-      await page.evaluate((m) => {
-        window.__E2E__!.seed(m as unknown as Parameters<NonNullable<typeof window.__E2E__>['seed']>[0])
+      await page.addInitScript((m) => {
+        ;(window as unknown as { __E2E_PRE_SEED__: unknown }).__E2E_PRE_SEED__ = m
       }, markets as unknown as unknown[])
     })
   },
   setNow: async ({ page }, use) => {
     await use(async (iso) => {
-      await page.waitForFunction(() => !!window.__E2E__)
-      await page.evaluate((i) => {
-        window.__E2E__!.setNow(i)
+      await page.addInitScript((i) => {
+        ;(window as unknown as { __E2E_NOW__: string }).__E2E_NOW__ = i
       }, iso)
     })
   },

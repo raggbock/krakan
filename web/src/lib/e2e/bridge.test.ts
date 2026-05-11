@@ -63,4 +63,13 @@ describe('createE2EBridge', () => {
     target.__E2E__!.setNow('2026-04-23T12:00:00Z')
     expect(target.__E2E_NOW__).toBe('2026-04-23T12:00:00Z')
   })
+
+  it('drains __E2E_PRE_SEED__ on attach so first query sees seeded data', async () => {
+    target.__E2E_PRE_SEED__ = [makeMarket('fm-pre')]
+    const { deps, control } = createE2EInMemoryDeps()
+    createE2EBridge(control, target)
+    expect(target.__E2E_PRE_SEED__).toBeUndefined()
+    const { count } = await deps.markets.list()
+    expect(count).toBe(1)
+  })
 })
