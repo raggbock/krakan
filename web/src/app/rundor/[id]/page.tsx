@@ -90,10 +90,10 @@ export default function RouteViewerPage() {
         )}
         <div className="flex flex-wrap items-center gap-4 text-sm text-espresso/60 mt-3">
           {route.creatorName && <span>Av {route.creatorName}</span>}
-          {route.planned_date && (
+          {route.plannedDate && (
             <span>
               Planerad{' '}
-              {new Date(route.planned_date).toLocaleDateString('sv-SE', {
+              {new Date(route.plannedDate).toLocaleDateString('sv-SE', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -167,18 +167,11 @@ export default function RouteViewerPage() {
         <div className="space-y-0">
           {validStops.map((stop, vi) => {
             const fm = stop.fleaMarket!
-            const oh = route.planned_date
+            const oh = route.plannedDate
               ? checkOpeningHours(
-                  (fm.opening_hour_rules ?? []).map((r) => ({
-                    id: r.id,
-                    type: r.type,
-                    dayOfWeek: r.day_of_week,
-                    anchorDate: r.anchor_date,
-                    openTime: r.open_time,
-                    closeTime: r.close_time,
-                  })),
-                  fm.opening_hour_exceptions ?? [],
-                  route.planned_date,
+                  fm.openingHourRules ?? [],
+                  fm.openingHourExceptions ?? [],
+                  route.plannedDate,
                 )
               : null
             const leg = routing?.legs?.[vi - 1]
@@ -230,9 +223,9 @@ export default function RouteViewerPage() {
                   )}
 
                   <span
-                    className={`stamp text-xs hidden sm:inline-flex ${fm.is_permanent ? 'text-forest' : 'text-mustard'}`}
+                    className={`stamp text-xs hidden sm:inline-flex ${fm.isPermanent ? 'text-forest' : 'text-mustard'}`}
                   >
-                    {fm.is_permanent ? 'Permanent' : 'Tillfällig'}
+                    {fm.isPermanent ? 'Permanent' : 'Tillfällig'}
                   </span>
                 </Link>
               </div>

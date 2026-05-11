@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   formatName,
   mapBookingView,
-  mapRouteSummary,
+  mapRouteSummaryView,
   type BookingRow,
   type RouteSummaryRow,
 } from './mappers'
@@ -210,22 +210,22 @@ describe('mapBookingView — both-joined shape (market + booker present)', () =>
 })
 
 // ---------------------------------------------------------------------------
-// mapRouteSummary — existing mapper, quick regression test
+// mapRouteSummaryView — mapper, quick regression test
 // ---------------------------------------------------------------------------
 
-describe('mapRouteSummary', () => {
+describe('mapRouteSummaryView', () => {
   it('counts stops from route_stops array', () => {
     const row: RouteSummaryRow = {
       id: 'r1',
       route_stops: [{ id: 'rs1' }, { id: 'rs2' }, { id: 'rs3' }],
     }
-    const summary = mapRouteSummary(row)
+    const summary = mapRouteSummaryView(row)
     expect(summary.stopCount).toBe(3)
   })
 
   it('handles empty route_stops gracefully', () => {
     const row: RouteSummaryRow = { id: 'r1', route_stops: [] }
-    const summary = mapRouteSummary(row)
+    const summary = mapRouteSummaryView(row)
     expect(summary.stopCount).toBe(0)
   })
 })

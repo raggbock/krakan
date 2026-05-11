@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { RouteStop } from '@fyndstigen/shared'
+import type { RouteStopView } from '@fyndstigen/shared'
 import { fetchDrivingRoute, type RoutingResult } from '@fyndstigen/shared'
 import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
 
 type Props = {
-  stops: RouteStop[]
+  stops: RouteStopView[]
   onRoutingResult?: (result: RoutingResult | null) => void
   onRoutingError?: (failed: boolean) => void
 }

@@ -14,7 +14,7 @@ describe('createInMemoryRoutes', () => {
     const route = await repo.get(id)
     expect(route.name).toBe('Testrundan')
     expect(route.stops).toHaveLength(2)
-    expect(route.is_published).toBe(false)
+    expect(route.isPublished).toBe(false)
   })
 
   it('listByUser returns only that user\'s non-deleted routes', async () => {
@@ -28,18 +28,18 @@ describe('createInMemoryRoutes', () => {
     expect(result[0].id).toBe(id1)
   })
 
-  it('publish/unpublish toggles is_published', async () => {
+  it('publish/unpublish toggles isPublished', async () => {
     const repo = createInMemoryRoutes()
     const { id } = await repo.create(basePayload)
-    expect((await repo.get(id)).is_published).toBe(false)
+    expect((await repo.get(id)).isPublished).toBe(false)
 
     await repo.publish(id)
-    expect((await repo.get(id)).is_published).toBe(true)
-    expect((await repo.get(id)).published_at).not.toBeNull()
+    expect((await repo.get(id)).isPublished).toBe(true)
+    expect((await repo.get(id)).publishedAt).not.toBeNull()
 
     await repo.unpublish(id)
-    expect((await repo.get(id)).is_published).toBe(false)
-    expect((await repo.get(id)).published_at).toBeNull()
+    expect((await repo.get(id)).isPublished).toBe(false)
+    expect((await repo.get(id)).publishedAt).toBeNull()
   })
 
   it('soft-delete excludes route from listByUser', async () => {

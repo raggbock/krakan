@@ -265,7 +265,7 @@ export default function ProfilePage() {
                       <span className="text-xs text-espresso/60">
                         {route.stopCount} stopp
                       </span>
-                      {!route.is_published && (
+                      {!route.isPublished && (
                         <span className="text-xs text-mustard font-medium">
                           Utkast
                         </span>

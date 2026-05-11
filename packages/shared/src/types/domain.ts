@@ -37,6 +37,8 @@ export type FleaMarketView = {
   organizerId: string
   autoAcceptBookings: boolean
   createdAt: string
+  /** URL slug — present on all published markets; may be null for unpublished drafts. */
+  slug?: string | null
 }
 
 export type FleaMarketDetailsView = FleaMarketView & {

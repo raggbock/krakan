@@ -64,7 +64,6 @@ import type {
   OpeningHourExceptionRow,
   FleaMarketImageRow,
   BookingRow as BookingDbRow,
-  RouteRow,
 } from './db'
 import type {
   BookingStatus,
@@ -93,23 +92,6 @@ export type OrganizerStats = {
 // Bookings
 export type Booking = BookingDbRow
 
-// Routes
-export type Route = RouteRow
-export type RouteStop = {
-  id: string
-  sortOrder: number
-  fleaMarket: (FleaMarketRow & {
-    opening_hour_rules: OpeningHourRuleRow[]
-    opening_hour_exceptions: OpeningHourExceptionRow[]
-  }) | null
-}
-export type RouteWithStops = RouteRow & {
-  creatorName: string
-  stops: RouteStop[]
-}
-export type RouteSummary = RouteRow & {
-  stopCount: number
-}
 // Payloads (these were already camelCase — no aliases needed)
 export type AddressPayload = {
   street: string

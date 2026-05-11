@@ -8,10 +8,10 @@
  *   - summary: route + stop ids only (count). Used by routes.listByUser.
  */
 
-import type { RouteWithStops, RouteSummary } from '../types'
+import type { RouteView, RouteSummaryView } from '../types/domain'
 import {
-  mapRouteWithStops,
-  mapRouteSummary,
+  mapRouteView,
+  mapRouteSummaryView,
   type RouteDetailsRow,
   type RouteSummaryRow,
 } from '../api/mappers'
@@ -26,7 +26,7 @@ export const RouteQuery = {
         sort_order,
         flea_markets (
           id, name, description, street, zip_code, city, country,
-          is_permanent, latitude, longitude,
+          is_permanent, latitude, longitude, slug,
           opening_hour_rules (*),
           opening_hour_exceptions (*)
         )
@@ -34,16 +34,16 @@ export const RouteQuery = {
       profiles!routes_created_by_fkey (first_name, last_name)
     ` as const,
 
-    mapRow(row: RouteDetailsRow): RouteWithStops {
-      return mapRouteWithStops(row)
+    mapRow(row: RouteDetailsRow): RouteView {
+      return mapRouteView(row)
     },
   },
 
   summary: {
     select: '*, route_stops(id)' as const,
 
-    mapRow(row: RouteSummaryRow): RouteSummary {
-      return mapRouteSummary(row)
+    mapRow(row: RouteSummaryRow): RouteSummaryView {
+      return mapRouteSummaryView(row)
     },
   },
 } as const
