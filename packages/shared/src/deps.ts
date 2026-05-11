@@ -21,6 +21,7 @@ import type { AdminPort } from './ports/admin'
 import type { BookingRepository } from './ports/bookings'
 import type { StatsPort } from './ports/stats'
 import type { ImagePort } from './ports/images'
+import type { GeoService } from './geo'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -42,4 +43,5 @@ export type Deps = {
   stats: StatsPort
   search: SearchRepository
   images: ImagePort
+  geo: GeoService
 }

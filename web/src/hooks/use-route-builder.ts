@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
 import { useAuth } from '@/lib/auth/auth-context'
-import { geo as defaultGeo } from '@/lib/geo'
 import type { FleaMarketNearByView, GeoService, Coord, AuthUser } from '@fyndstigen/shared'
 import type { RouteRepository } from '@fyndstigen/shared'
 import type { Stop } from '@fyndstigen/shared'
@@ -82,7 +81,7 @@ function resolveDeps(
 ): Required<RouteBuilderDeps> {
   return {
     routes: override?.routes ?? ctxDeps.routes,
-    geo: override?.geo ?? defaultGeo,
+    geo: override?.geo ?? ctxDeps.geo,
     storage: override?.storage ?? globalThis.localStorage,
     geolocation: override?.geolocation ?? globalThis.navigator?.geolocation,
     posthog: override?.posthog ?? posthog ?? undefined,

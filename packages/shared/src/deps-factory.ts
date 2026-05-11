@@ -34,6 +34,8 @@ import { createInMemoryAdmin } from './adapters/in-memory/admin'
 import { createInMemoryBookings } from './adapters/in-memory/bookings'
 import { createInMemoryStats } from './adapters/in-memory/stats'
 import { createInMemoryImages } from './adapters/in-memory/images'
+import { createInMemoryGeo } from './adapters/in-memory/geo'
+import { createGeo } from './geo'
 import {
   createSupabaseFleaMarkets,
   createSupabaseMarketTables,
@@ -76,6 +78,7 @@ export function makeInMemoryDeps(
     stats: createInMemoryStats(),
     search: createInMemorySearch({ fleaMarkets }),
     images: createInMemoryImages(),
+    geo: createInMemoryGeo({ fleaMarkets }),
   }
 }
 
@@ -102,6 +105,7 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       stats: createInMemoryStats(),
       search: createInMemorySearch({ fleaMarkets: markets }),
       images: createInMemoryImages(),
+      geo: createInMemoryGeo({ fleaMarkets: markets }),
     },
     control: { markets: marketsControl },
   }
@@ -132,5 +136,6 @@ export function makeSupabaseDeps(supabase: SupabaseClient, options: MakeSupabase
     stats: createSupabaseStats(supabase),
     search: createSupabaseSearch(supabase),
     images: createSupabaseImages({ supabase, compress: options.compressImage }),
+    geo: createGeo(supabase),
   }
 }
