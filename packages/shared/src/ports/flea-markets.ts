@@ -17,13 +17,12 @@
 import type {
   FleaMarket,
   FleaMarketDetails,
-  MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
 } from '../types'
-import type { FleaMarketNearByView } from '../types/domain'
+import type { FleaMarketNearByView, MarketTableView } from '../types/domain'
 import type { Publishable } from './publishable'
 
 export type WeekendOpenSlot = {
@@ -64,8 +63,8 @@ export interface SearchRepository {
 }
 
 export interface MarketTableRepository {
-  list(fleaMarketId: string): Promise<MarketTable[]>
+  list(fleaMarketId: string): Promise<MarketTableView[]>
   create(payload: CreateMarketTablePayload): Promise<{ id: string }>
-  update(id: string, updates: Partial<MarketTable>): Promise<void>
+  update(id: string, updates: Partial<MarketTableView>): Promise<void>
   delete(id: string): Promise<void>
 }

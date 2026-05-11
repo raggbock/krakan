@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
+import type { FleaMarketDetails, MarketTableView } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 
@@ -17,7 +17,7 @@ export function useMarketDetails(id: string | undefined) {
   })
   return {
     market: data?.market ?? (null as FleaMarketDetails | null),
-    tables: data?.tables ?? ([] as MarketTable[]),
+    tables: data?.tables ?? ([] as MarketTableView[]),
     loading: isLoading,
     error: error?.message ?? null,
   }

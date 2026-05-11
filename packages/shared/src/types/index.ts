@@ -63,7 +63,6 @@ import type {
   OpeningHourRuleRow,
   OpeningHourExceptionRow,
   FleaMarketImageRow,
-  MarketTableRow,
   BookingRow as BookingDbRow,
   RouteRow,
 } from './db'
@@ -90,9 +89,6 @@ export type OrganizerStats = {
   total_revenue_sek: number
   total_commission_sek: number
 }
-
-// Market tables
-export type MarketTable = MarketTableRow
 
 // Bookings
 export type Booking = BookingDbRow

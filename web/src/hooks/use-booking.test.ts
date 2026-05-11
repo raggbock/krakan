@@ -91,23 +91,21 @@ const saturdayOnlyHours: OpeningHoursContext = {
 
 const mockTable = {
   id: 'table-1',
-  flea_market_id: 'market-1',
+  fleaMarketId: 'market-1',
   label: 'Bord A1',
   description: null,
-  price_sek: 200,
-  size_description: '2x1m',
-  is_available: true,
-  max_per_day: 1,
-  sort_order: 0,
-  created_at: '',
-  updated_at: '',
+  priceSek: 200,
+  sizeDescription: '2x1m',
+  isAvailable: true,
+  maxPerDay: 1,
+  sortOrder: 0,
 }
 
 const mockFreeTable = {
   ...mockTable,
   id: 'table-free',
   label: 'Gratisbord B1',
-  price_sek: 0,
+  priceSek: 0,
 }
 
 /** Default happy-path stream for a paid booking. */
@@ -483,7 +481,7 @@ describe('useBooking', () => {
   })
 
   it('commission and totalPrice update when table changes', () => {
-    const expensiveTable = { ...mockTable, id: 'table-2', price_sek: 500 }
+    const expensiveTable = { ...mockTable, id: 'table-2', priceSek: 500 }
     const { result } = renderHook(() => useBooking('market-1', 'Loppis A', 'user-1'), { wrapper })
 
     act(() => { result.current.selectTable(mockTable) })
@@ -793,8 +791,8 @@ describe('useBooking', () => {
     const { result: r1 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
     const { result: r2 } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
 
-    act(() => { r1.current.selectTable({ ...mockTable, price_sek: 100 }) })
-    act(() => { r2.current.selectTable({ ...mockTable, price_sek: 500 }) })
+    act(() => { r1.current.selectTable({ ...mockTable, priceSek: 100 }) })
+    act(() => { r2.current.selectTable({ ...mockTable, priceSek: 500 }) })
 
     expect(r1.current.commission).toBe(12)
     expect(r1.current.totalPrice).toBe(112)
@@ -805,10 +803,10 @@ describe('useBooking', () => {
   it('changing table recalculates prices', () => {
     const { result } = renderHook(() => useBooking('m-1', 'u-1'), { wrapper })
 
-    act(() => { result.current.selectTable({ ...mockTable, price_sek: 100 }) })
+    act(() => { result.current.selectTable({ ...mockTable, priceSek: 100 }) })
     expect(result.current.totalPrice).toBe(112)
 
-    act(() => { result.current.selectTable({ ...mockTable, price_sek: 300 }) })
+    act(() => { result.current.selectTable({ ...mockTable, priceSek: 300 }) })
     expect(result.current.totalPrice).toBe(336)
   })
 

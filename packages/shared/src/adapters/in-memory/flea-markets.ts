@@ -16,13 +16,12 @@
 import type {
   FleaMarket,
   FleaMarketDetails,
-  MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
 } from '../../types'
-import type { FleaMarketNearByView, OpeningHourRuleView } from '../../types/domain'
+import type { FleaMarketNearByView, MarketTableView, OpeningHourRuleView } from '../../types/domain'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 import type { ProfileRepository } from '../../ports/profiles'
 
@@ -273,30 +272,30 @@ export function createInMemorySearch(
   }
 }
 
-export function createInMemoryMarketTables(seed: MarketTable[] = []): MarketTableRepository {
-  const store = new Map<string, MarketTable>(seed.map((t) => [t.id, { ...t }]))
+export function createInMemoryMarketTables(seed: MarketTableView[] = []): MarketTableRepository {
+  const store = new Map<string, MarketTableView>(seed.map((t) => [t.id, { ...t }]))
   let _tid = 1
 
   return {
     async list(fleaMarketId) {
       return Array.from(store.values()).filter(
-        (t) => t.flea_market_id === fleaMarketId && t.is_available,
+        (t) => t.fleaMarketId === fleaMarketId && t.isAvailable,
       )
     },
 
     async create(payload) {
       const id = `mt-${_tid++}`
-      const table: MarketTable = {
+      const table: MarketTableView = {
         id,
-        flea_market_id: payload.fleaMarketId,
+        fleaMarketId: payload.fleaMarketId,
         label: payload.label,
         description: payload.description ?? null,
-        price_sek: payload.priceSek,
-        size_description: payload.sizeDescription ?? null,
-        is_available: true,
-        max_per_day: 1,
-        sort_order: store.size,
-      } as MarketTable
+        priceSek: payload.priceSek,
+        sizeDescription: payload.sizeDescription ?? null,
+        isAvailable: true,
+        maxPerDay: 1,
+        sortOrder: store.size,
+      }
       store.set(id, table)
       return { id }
     },

@@ -1,14 +1,17 @@
 import { renderHook, act } from '@testing-library/react'
 import { useTableDraft } from './use-table-draft'
-import type { MarketTable } from '@fyndstigen/shared'
+import type { MarketTableView } from '@fyndstigen/shared'
 
-const dbTable: MarketTable = {
+const dbTable: MarketTableView = {
   id: 't-1',
-  flea_market_id: 'mkt-1',
+  fleaMarketId: 'mkt-1',
   label: 'Bord 1',
   description: 'Stort bord',
-  price_sek: 200,
-  size_description: '2x1m',
+  priceSek: 200,
+  sizeDescription: '2x1m',
+  isAvailable: true,
+  maxPerDay: 1,
+  sortOrder: 0,
 }
 
 describe('useTableDraft', () => {

@@ -14,13 +14,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   FleaMarket,
   FleaMarketDetails,
-  MarketTable,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
+  MarketTableRow,
 } from '../../types'
-import type { FleaMarketNearByView } from '../../types/domain'
+import type { FleaMarketNearByView, MarketTableView } from '../../types/domain'
 import { FleaMarketQuery, type FleaMarketDetailsRow } from '../../query/flea-market'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository, WeekendOpenSlot } from '../../ports/flea-markets'
 
@@ -290,6 +290,33 @@ export function createSupabaseSearch(supabase: SupabaseClient): SearchRepository
   }
 }
 
+function mapMarketTableRow(row: MarketTableRow): MarketTableView {
+  return {
+    id: row.id,
+    fleaMarketId: row.flea_market_id,
+    label: row.label,
+    description: row.description,
+    priceSek: row.price_sek,
+    sizeDescription: row.size_description,
+    isAvailable: row.is_available,
+    maxPerDay: row.max_per_day,
+    sortOrder: row.sort_order,
+  }
+}
+
+function toMarketTableColumns(updates: Partial<MarketTableView>): Record<string, unknown> {
+  const cols: Record<string, unknown> = {}
+  if (updates.fleaMarketId !== undefined) cols['flea_market_id'] = updates.fleaMarketId
+  if (updates.label !== undefined) cols['label'] = updates.label
+  if (updates.description !== undefined) cols['description'] = updates.description
+  if (updates.priceSek !== undefined) cols['price_sek'] = updates.priceSek
+  if (updates.sizeDescription !== undefined) cols['size_description'] = updates.sizeDescription
+  if (updates.isAvailable !== undefined) cols['is_available'] = updates.isAvailable
+  if (updates.maxPerDay !== undefined) cols['max_per_day'] = updates.maxPerDay
+  if (updates.sortOrder !== undefined) cols['sort_order'] = updates.sortOrder
+  return cols
+}
+
 export function createSupabaseMarketTables(supabase: SupabaseClient): MarketTableRepository {
   return {
     async list(fleaMarketId) {
@@ -300,7 +327,7 @@ export function createSupabaseMarketTables(supabase: SupabaseClient): MarketTabl
         .eq('is_available', true)
         .order('sort_order')
       if (error) throw error
-      return (data ?? []) as MarketTable[]
+      return (data ?? [] as MarketTableRow[]).map(mapMarketTableRow)
     },
 
     async create(payload) {
@@ -320,9 +347,10 @@ export function createSupabaseMarketTables(supabase: SupabaseClient): MarketTabl
     },
 
     async update(id, updates) {
+      const cols = toMarketTableColumns(updates)
       const { error } = await supabase
         .from('market_tables')
-        .update(updates)
+        .update(cols)
         .eq('id', id)
       if (error) throw error
     },

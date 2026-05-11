@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import type {
   FleaMarketDetails,
   FleaMarketImageView,
-  MarketTable,
+  MarketTableView,
   OpeningHourRuleView,
   OpeningHourExceptionView,
 } from '@fyndstigen/shared'
@@ -14,7 +14,7 @@ import { useMarketDetails } from './use-market-details'
 
 export type MarketDetailViewModel = {
   market: FleaMarketDetails | null
-  tables: MarketTable[]
+  tables: MarketTableView[]
   /** Sorted by sortOrder ascending. Empty array if the market has no images. */
   images: FleaMarketImageView[]
   /** Undefined when the market has neither rules nor exceptions. */
