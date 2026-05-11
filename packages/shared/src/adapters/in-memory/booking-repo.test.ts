@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createInMemoryBookingRepo, type InMemoryBookingRepo } from './booking-repo'
-import type { Booking } from '../../types'
+import type { BookingDbRow } from '../../types'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function makeBooking(overrides: Partial<Booking> = {}): Booking {
+function makeBooking(overrides: Partial<BookingDbRow> = {}): BookingDbRow {
   return {
     id: 'bk-1',
     market_table_id: 'mt-1',

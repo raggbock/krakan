@@ -10,7 +10,7 @@
  * supabase/functions/deno.json — no mirror needed.
  */
 
-import type { Booking, BookingStatus, PaymentStatus } from '../types'
+import type { BookingDbRow, BookingStatus, PaymentStatus } from '../types'
 import { decidePaidBooking } from './booking'
 
 // Events that drive the lifecycle.
@@ -28,9 +28,9 @@ export type BookingEvent =
   | { type: 'organizer.deny' }
   | { type: 'user.cancel' }
 
-// Subset of `Booking` columns the reducer may patch. Timestamp columns
+// Subset of `BookingDbRow` columns the reducer may patch. Timestamp columns
 // (captured_at, cancelled_at, denied_at) are stamped as ISO strings but are
-// not present on the `Booking` row type — they exist only in the DB schema
+// not present on the `BookingDbRow` row type — they exist only in the DB schema
 // and are surfaced here so the patch carries them through to the UPDATE.
 export type BookingPatch = Partial<{
   status: BookingStatus
@@ -50,7 +50,7 @@ export type BookingPatch = Partial<{
  * @param now injectable clock for deterministic testing.
  */
 export function applyBookingEvent(
-  current: Booking,
+  current: BookingDbRow,
   event: BookingEvent,
   now: Date = new Date(),
 ): BookingPatch {

@@ -8,13 +8,13 @@
 
 import { applyBookingEvent } from '../../domain/booking-lifecycle'
 import type { BookingEvent } from '../../domain/booking-lifecycle'
-import type { Booking } from '../../types'
+import type { BookingDbRow } from '../../types'
 import type { BookingRepo } from '../../ports/booking-repo'
 
 let _id = 1
 
-export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
-  const store = new Map<string, Booking>(seed.map((b) => [b.id, { ...b }]))
+export function createInMemoryBookingRepo(seed: BookingDbRow[] = []): BookingRepo {
+  const store = new Map<string, BookingDbRow>(seed.map((b) => [b.id, { ...b }]))
   // market-level auto_accept flag, keyed by flea_market_id
   const autoAcceptByMarket = new Map<string, boolean>()
 
@@ -26,9 +26,9 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
    * Convenience: insert a booking directly into the store (not part of the
    * BookingRepo interface — test setup only).
    */
-  function insert(booking: Omit<Booking, 'id'> & { id?: string }): Booking {
+  function insert(booking: Omit<BookingDbRow, 'id'> & { id?: string }): BookingDbRow {
     const id = booking.id ?? nextId()
-    const full: Booking = { ...booking, id } as Booking
+    const full: BookingDbRow = { ...booking, id } as BookingDbRow
     store.set(id, full)
     return full
   }
@@ -66,7 +66,7 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
       const patch = applyBookingEvent(current, event)
       if (Object.keys(patch).length === 0) return { ...current }
 
-      const updated: Booking = { ...current, ...patch } as Booking
+      const updated: BookingDbRow = { ...current, ...patch } as BookingDbRow
       store.set(id, updated)
       return { ...updated }
     },
@@ -80,6 +80,6 @@ export function createInMemoryBookingRepo(seed: Booking[] = []): BookingRepo {
  * created by `createInMemoryBookingRepo`.
  */
 export type InMemoryBookingRepo = BookingRepo & {
-  _insert(booking: Omit<Booking, 'id'> & { id?: string }): Booking
+  _insert(booking: Omit<BookingDbRow, 'id'> & { id?: string }): BookingDbRow
   _setAutoAccept(marketId: string, autoAccept: boolean): void
 }

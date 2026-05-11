@@ -12,7 +12,7 @@
  */
 
 import type { Api } from '../api'
-import type { Booking } from '../types'
+import type { BookingDbRow } from '../types'
 
 /**
  * Narrow API surface required by createBookingService.
@@ -115,7 +115,7 @@ export type BookingService = {
   cancel(bookingId: string, reason: 'denied' | 'cancelled'): Promise<void>
 
   /** Pure lifecycle reducer — re-export of booking-lifecycle.applyBookingEvent. */
-  applyEvent(current: Booking, event: BookingEvent): BookingPatch
+  applyEvent(current: BookingDbRow, event: BookingEvent): BookingPatch
 }
 
 /**

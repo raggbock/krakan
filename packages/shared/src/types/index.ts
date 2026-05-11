@@ -59,9 +59,6 @@ export type {
 // ============================================================
 
 import type {
-  BookingRow as BookingDbRow,
-} from './db'
-import type {
   BookingStatus,
   PaymentStatus,
   RuleType,
@@ -76,9 +73,6 @@ export type OrganizerStats = {
   total_revenue_sek: number
   total_commission_sek: number
 }
-
-// Bookings
-export type Booking = BookingDbRow
 
 // Payloads (these were already camelCase — no aliases needed)
 export type AddressPayload = {
