@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { getCorsHeaders, corsResponse, getSafeOrigin } from './cors.ts'
 import { getUser, getSupabaseAdmin } from './auth.ts'
+import { getAlertSink } from './alerting.ts'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Known error types for proper HTTP status codes
@@ -73,6 +74,13 @@ export function createHandler(fn: HandlerFn) {
 
       return new Response(JSON.stringify(result), { headers })
     } catch (error) {
+      // Route non-HttpError throws through the alert sink. HttpError is the
+      // intentional way handlers return 4xx — those are expected (validation,
+      // not-found, forbidden) and would be alert noise. Anything else is an
+      // unhandled exception worth knowing about.
+      if (!(error instanceof HttpError)) {
+        getAlertSink().captureException(error, { extra: { url: req.url } })
+      }
       const statusCode = error instanceof HttpError ? error.statusCode : 400
       const body =
         error instanceof HttpError && error.body !== undefined
