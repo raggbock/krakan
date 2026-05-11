@@ -63,6 +63,9 @@ const resolveBySlug = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return { title: 'E2E loppis' }
+  }
   const market = await resolveBySlug(slug)
   if (!market) {
     return { title: 'Loppis hittades inte' }
@@ -103,6 +106,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LoppisLayout({ params, children }: Props) {
   const { slug } = await params
+
+  // E2E bypass — skip the Supabase resolve + JSON-LD. The page handles the
+  // slug-as-id fallback and renders MarketDetail from the in-memory bridge.
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return <>{children}</>
+  }
+
   const market = await resolveBySlug(slug)
   if (!market) notFound()
 
