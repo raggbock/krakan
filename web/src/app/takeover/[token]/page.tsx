@@ -28,6 +28,18 @@ function labelFor(err: unknown): string {
   return ERROR_LABEL[msg] ?? msg
 }
 
+/**
+ * Build telemetry payload for a takeover failure. When the error message
+ * matches a known code, only `error_reason` is sent. When it doesn't,
+ * also send a truncated raw message so we can see what we're missing
+ * (#134 — PostHog showed 8 'unknown' events with no diagnostic signal).
+ */
+function failureProps(err: unknown): { error_reason: string; error_message_raw?: string } {
+  const rawMsg = err instanceof Error ? err.message : String(err)
+  if (rawMsg in ERROR_LABEL) return { error_reason: rawMsg }
+  return { error_reason: 'unknown', error_message_raw: rawMsg.slice(0, 200) }
+}
+
 type View =
   | { kind: 'choose' }
   | { kind: 'claim' }
@@ -54,9 +66,7 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
 
   useEffect(() => {
     if (errorTracked || info.isLoading || !info.isError) return
-    const rawMsg = info.error instanceof Error ? info.error.message : String(info.error)
-    const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
-    posthog?.capture('takeover_info_load_failed', { error_reason })
+    posthog?.capture('takeover_info_load_failed', failureProps(info.error))
     setErrorTracked(true)
   }, [info.isError, info.isLoading, info.error, errorTracked, posthog])
 
@@ -407,12 +417,10 @@ function ClaimView({
       })
       setStep('done')
     } catch (err) {
-      const rawMsg = err instanceof Error ? err.message : String(err)
-      const errorCode = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
       posthog?.capture('takeover_email_submitted', {
         market_id: market.marketId,
         success: false,
-        error_reason: errorCode,
+        ...failureProps(err),
       })
       /* surfaced via start.isError */
     }
@@ -501,12 +509,10 @@ function FeedbackView({
       })
       onDone()
     } catch (err) {
-      const rawMsg = err instanceof Error ? err.message : String(err)
-      const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
       posthog?.capture('takeover_feedback_submitted', {
         market_id: market.marketId,
         success: false,
-        error_reason,
+        ...failureProps(err),
       })
       /* surfaced via feedback.isError */
     }
@@ -585,13 +591,11 @@ function RemoveView({
       })
       onDone()
     } catch (err) {
-      const rawMsg = err instanceof Error ? err.message : String(err)
-      const error_reason = rawMsg in ERROR_LABEL ? rawMsg : 'unknown'
       posthog?.capture('takeover_remove_submitted', {
         market_id: market.marketId,
         success: false,
         has_reason: trimmedReason.length > 0,
-        error_reason,
+        ...failureProps(err),
       })
       /* surfaced via remove.isError */
     }
