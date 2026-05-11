@@ -9,6 +9,18 @@ type Props = { params: Promise<{ slug: string }> }
 
 export default async function LoppisPage({ params }: Props) {
   const { slug } = await params
+
+  // E2E bypass — server-side Supabase isn't available under the in-memory
+  // bridge, so treat slug as id and let the client resolve via deps.
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return (
+      <>
+        <TrackMarketView marketId={slug} slug={slug} />
+        <MarketDetail id={slug} />
+      </>
+    )
+  }
+
   // Cookie-aware client so the logged-in organizer can reach their own
   // unpublished draft. Anon visitors still only resolve published
   // markets via RLS — same policy gates the visibility either way.

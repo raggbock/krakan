@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData } from '@fyndstigen/shared'
+import { MarketDetail } from '@/components/market/detail'
 
 // Legacy UUID URL — 308-redirects to the slug-based canonical /loppis/[slug].
 // 308 (permanent) preserves SEO equity. Existing inbound links from before
@@ -14,6 +15,14 @@ type Props = { params: Promise<{ id: string }> }
 
 export default async function FleaMarketRedirect({ params }: Props) {
   const { id } = await params
+
+  // E2E bypass — skip the Supabase slug lookup and render the detail page
+  // directly. In prod this route is a 308 redirect; tests don't care about
+  // the canonical URL, just that the page renders for the seeded id.
+  if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
+    return <MarketDetail id={id} />
+  }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
