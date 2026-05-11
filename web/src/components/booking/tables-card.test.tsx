@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BookableTablesCard } from './tables-card'
-import type { MarketTable } from '@fyndstigen/shared'
+import type { MarketTableView } from '@fyndstigen/shared'
 
 vi.mock('@/lib/flags', () => ({ useFlag: () => true, getFlagEnv: () => true }))
 vi.mock('@/lib/auth/auth-context', () => ({ useAuth: vi.fn() }))
@@ -21,25 +21,23 @@ import { useBooking } from '@/hooks/use-booking'
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>
 const mockUseBooking = useBooking as ReturnType<typeof vi.fn>
 
-const paidTable: MarketTable = {
+const paidTable: MarketTableView = {
   id: 't1',
-  flea_market_id: 'fm1',
+  fleaMarketId: 'fm1',
   label: 'Bord A',
   description: 'Inne',
-  price_sek: 200,
-  size_description: '2x1m',
-  is_available: true,
-  max_per_day: 1,
-  sort_order: 0,
-  created_at: '',
-  updated_at: '',
+  priceSek: 200,
+  sizeDescription: '2x1m',
+  isAvailable: true,
+  maxPerDay: 1,
+  sortOrder: 0,
 }
 
-const freeTable: MarketTable = {
+const freeTable: MarketTableView = {
   ...paidTable,
   id: 't2',
   label: 'Bord B',
-  price_sek: 0,
+  priceSek: 0,
 }
 
 const defaultBooking = {

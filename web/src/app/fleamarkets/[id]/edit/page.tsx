@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
+import type { FleaMarketDetails, MarketTableView } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
 import { useMarketDetails } from '@/hooks/use-market-details'
@@ -27,7 +27,7 @@ export default function EditMarketPage() {
 
   const { market, tables: fetchedTables, loading: marketLoading } = useMarketDetails(id)
 
-  const [initial, setInitial] = useState<(FleaMarketDetails & { market_tables?: MarketTable[] }) | undefined>()
+  const [initial, setInitial] = useState<(FleaMarketDetails & { market_tables?: MarketTableView[] }) | undefined>()
   const [publishedAt, setPublishedAt] = useState<string | null>(null)
   const [initialised, setInitialised] = useState(false)
 

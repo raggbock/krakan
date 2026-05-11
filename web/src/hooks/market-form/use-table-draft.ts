@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import type { MarketTable } from '@fyndstigen/shared'
+import type { MarketTableView } from '@fyndstigen/shared'
 
 export type TableDraftRow = {
   id?: string // present for existing DB rows
@@ -19,7 +19,7 @@ export type TableDraftResult = {
   removeNew: (index: number) => void
   markDeleted: (id: string) => void
   undoDelete: (id: string) => void
-  reset: (tables: MarketTable[]) => void
+  reset: (tables: MarketTableView[]) => void
   resetNew: () => void
   serialize: () => {
     add: { label: string; description: string; priceSek: number; sizeDescription: string }[]
@@ -27,19 +27,19 @@ export type TableDraftResult = {
   }
 }
 
-function fromMarketTable(t: MarketTable): TableDraftRow {
+function fromMarketTableView(t: MarketTableView): TableDraftRow {
   return {
     id: t.id,
     label: t.label,
     description: t.description ?? '',
-    priceSek: t.price_sek,
-    sizeDescription: t.size_description ?? '',
+    priceSek: t.priceSek,
+    sizeDescription: t.sizeDescription ?? '',
   }
 }
 
-export function useTableDraft(initialTables: MarketTable[] = []): TableDraftResult {
+export function useTableDraft(initialTables: MarketTableView[] = []): TableDraftResult {
   const [existingTables, setExistingTables] = useState<TableDraftRow[]>(
-    () => initialTables.map(fromMarketTable),
+    () => initialTables.map(fromMarketTableView),
   )
   const [newTables, setNewTables] = useState<TableDraftRow[]>([])
 
@@ -63,8 +63,8 @@ export function useTableDraft(initialTables: MarketTable[] = []): TableDraftResu
     )
   }, [])
 
-  const reset = useCallback((tables: MarketTable[]) => {
-    setExistingTables(tables.map(fromMarketTable))
+  const reset = useCallback((tables: MarketTableView[]) => {
+    setExistingTables(tables.map(fromMarketTableView))
     setNewTables([])
   }, [])
 

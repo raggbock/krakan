@@ -23,7 +23,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStripe, useElements } from '@stripe/react-stripe-js'
 import { bookingService } from '@/lib/booking-service'
-import type { MarketTable } from '@fyndstigen/shared'
+import type { MarketTableView } from '@fyndstigen/shared'
 import { isFreePriced, messageFor } from '@fyndstigen/shared'
 import type { AppError, OpeningHoursContext } from '@fyndstigen/shared'
 import { usePostHog } from 'posthog-js/react'
@@ -31,11 +31,11 @@ import { useDeps } from '@/providers/deps-provider'
 import { resolvePaymentGateway } from '@/lib/stripe/gateway-factory'
 
 type BookingHook = {
-  selectedTable: MarketTable | null
+  selectedTable: MarketTableView | null
   date: string
   message: string
   bookedDates: string[]
-  selectTable: (table: MarketTable | null) => void
+  selectTable: (table: MarketTableView | null) => void
   setDate: (date: string) => void
   setMessage: (msg: string) => void
   /** Swedish user-facing validation message, or null when date is valid/empty */
@@ -62,7 +62,7 @@ export function useBooking(
   const stripe = useStripe()
   const elements = useElements()
   const { bookings } = useDeps()
-  const [selectedTable, setSelectedTable] = useState<MarketTable | null>(null)
+  const [selectedTable, setSelectedTable] = useState<MarketTableView | null>(null)
   const [date, setDate] = useState('')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -94,7 +94,7 @@ export function useBooking(
       ? messageFor(dateValidation.code, dateValidation.params)
       : null
 
-  const price = selectedTable?.price_sek ?? 0
+  const price = selectedTable?.priceSek ?? 0
   const isFree = isFreePriced(price)
   const { commission, total: totalPrice } = bookingService.calculateTotal(price)
 
@@ -105,7 +105,7 @@ export function useBooking(
     if (!canSubmit || !selectedTable) return
     setSubmitError(null)
 
-    const priceSek = selectedTable.price_sek
+    const priceSek = selectedTable.priceSek
     const payment = resolvePaymentGateway({ stripe, elements })
 
     const stream = bookingService.book(

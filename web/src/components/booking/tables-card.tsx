@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Elements, CardElement } from '@stripe/react-stripe-js'
-import type { MarketTable } from '@fyndstigen/shared'
+import type { MarketTableView } from '@fyndstigen/shared'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useBooking } from '@/hooks/use-booking'
 import type { OpeningHoursContext } from '@fyndstigen/shared'
@@ -19,7 +19,7 @@ function BookableTablesInner({
 }: {
   fleaMarketId: string
   fleaMarketName: string
-  tables: MarketTable[]
+  tables: MarketTableView[]
   openingHours?: OpeningHoursContext
 }) {
   const { user } = useAuth()
@@ -63,7 +63,7 @@ function BookableTablesInner({
                         posthog?.capture('booking_started', {
                           market_id: fleaMarketId,
                           table_count: tables.length,
-                          is_free: isFreePriced(next.price_sek),
+                          is_free: isFreePriced(next.priceSek),
                         })
                       }
                     }}
@@ -76,12 +76,12 @@ function BookableTablesInner({
                     <div>
                       <p className="font-medium text-sm">{table.label}</p>
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/60">
-                        {table.size_description && <span>{table.size_description}</span>}
+                        {table.sizeDescription && <span>{table.sizeDescription}</span>}
                         {table.description && <span>&middot; {table.description}</span>}
                       </div>
                     </div>
                     <span className="font-display font-bold text-rust">
-                      {table.price_sek === 0 ? 'Gratis' : `${table.price_sek} kr`}
+                      {table.priceSek === 0 ? 'Gratis' : `${table.priceSek} kr`}
                     </span>
                   </button>
 
@@ -179,14 +179,14 @@ export function BookableTablesCard({
 }: {
   fleaMarketId: string
   fleaMarketName: string
-  tables: MarketTable[]
+  tables: MarketTableView[]
   openingHours?: OpeningHoursContext
 }) {
   const paymentsEnabled = useFlag('payments')
   // When payments are off, only show free tables
   const visibleTables = paymentsEnabled
     ? tables
-    : tables.filter((t) => t.price_sek === 0)
+    : tables.filter((t) => t.priceSek === 0)
 
   if (visibleTables.length === 0) return null
 

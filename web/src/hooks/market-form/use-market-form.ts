@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { FleaMarketDetails, MarketTable } from '@fyndstigen/shared'
+import type { FleaMarketDetails, MarketTableView } from '@fyndstigen/shared'
 import { useMarketFields } from './use-market-fields'
 import { useOpeningHoursDraft } from './use-opening-hours-draft'
 import { useImageDraft } from './use-image-draft'
@@ -17,7 +17,7 @@ export type { ImageDraftExisting } from './use-image-draft'
 export type UseMarketFormOptions = {
   mode: 'create' | 'edit'
   /** For edit mode: the full market details to initialize from. */
-  initial?: FleaMarketDetails & { market_tables?: MarketTable[] }
+  initial?: FleaMarketDetails & { market_tables?: MarketTableView[] }
   /** For create mode: the organizer's user id. */
   organizerId?: string
 }

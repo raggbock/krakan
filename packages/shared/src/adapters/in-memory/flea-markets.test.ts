@@ -233,6 +233,6 @@ describe('createInMemoryMarketTables', () => {
     await repo.create({ fleaMarketId: 'fm-2', label: 'Bord B', priceSek: 150 })
     const result = await repo.list('fm-1')
     expect(result).toHaveLength(1)
-    expect(result[0].flea_market_id).toBe('fm-1')
+    expect(result[0].fleaMarketId).toBe('fm-1')
   })
 })
