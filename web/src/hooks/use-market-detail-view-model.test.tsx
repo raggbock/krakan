@@ -21,12 +21,13 @@ const baseMarket = {
   id: 'fm-1',
   name: 'Stortorget',
   slug: 'stortorget',
-  organizer_id: 'org-1',
+  organizerId: 'org-1',
   latitude: 59.27,
   longitude: 15.21,
-  flea_market_images: [],
-  opening_hour_rules: [],
-  opening_hour_exceptions: [],
+  images: [],
+  openingHourRules: [],
+  openingHourExceptions: [],
+  organizerName: '',
 }
 
 beforeEach(() => {
@@ -53,12 +54,12 @@ describe('useMarketDetailViewModel', () => {
       expect(result.current.openingHours).toBeUndefined()
     })
 
-    it('returns rules (mapped to camelCase) when only rules are present', () => {
+    it('returns rules when only rules are present', () => {
       mockUseMarketDetails.mockReturnValue({
         market: {
           ...baseMarket,
-          opening_hour_rules: [
-            { id: 'r1', type: 'weekly', day_of_week: 6, anchor_date: null, open_time: '10:00', close_time: '16:00' },
+          openingHourRules: [
+            { id: 'r1', type: 'weekly', dayOfWeek: 6, anchorDate: null, openTime: '10:00', closeTime: '16:00' },
           ],
         },
         tables: [],
@@ -74,7 +75,7 @@ describe('useMarketDetailViewModel', () => {
 
     it('returns exceptions when only exceptions are present', () => {
       mockUseMarketDetails.mockReturnValue({
-        market: { ...baseMarket, opening_hour_exceptions: [{ id: 'e1', date: '2026-06-01', reason: null }] },
+        market: { ...baseMarket, openingHourExceptions: [{ id: 'e1', date: '2026-06-01', reason: null }] },
         tables: [],
         loading: false,
         error: null,
@@ -104,7 +105,7 @@ describe('useMarketDetailViewModel', () => {
       expect(result.current.isOwner).toBe(false)
     })
 
-    it('is true when user.id matches market.organizer_id', () => {
+    it('is true when user.id matches market.organizerId', () => {
       mockUseAuth.mockReturnValue({ user: { id: 'org-1' }, loading: false })
       mockUseMarketDetails.mockReturnValue({
         market: { ...baseMarket },
@@ -186,14 +187,14 @@ describe('useMarketDetailViewModel', () => {
   })
 
   describe('images', () => {
-    it('sorts by sort_order ascending', () => {
+    it('sorts by sortOrder ascending', () => {
       mockUseMarketDetails.mockReturnValue({
         market: {
           ...baseMarket,
-          flea_market_images: [
-            { id: 'i3', storage_path: 'c', sort_order: 3 },
-            { id: 'i1', storage_path: 'a', sort_order: 1 },
-            { id: 'i2', storage_path: 'b', sort_order: 2 },
+          images: [
+            { id: 'i3', storagePath: 'c', sortOrder: 3 },
+            { id: 'i1', storagePath: 'a', sortOrder: 1 },
+            { id: 'i2', storagePath: 'b', sortOrder: 2 },
           ],
         },
         tables: [],

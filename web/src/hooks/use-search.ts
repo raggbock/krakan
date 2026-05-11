@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDeps } from '@/providers/deps-provider'
-import type { FleaMarket } from '@fyndstigen/shared'
+import type { FleaMarketView } from '@fyndstigen/shared'
 
 export function useSearch(debounceMs = 300) {
   const { search } = useDeps()
@@ -28,7 +28,7 @@ export function useSearch(debounceMs = 300) {
     staleTime: 60_000,
   })
 
-  const results: FleaMarket[] | null = debouncedQuery
+  const results: FleaMarketView[] | null = debouncedQuery
     ? (data?.fleaMarkets ?? [])
     : null
 

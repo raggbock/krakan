@@ -12,8 +12,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
-  FleaMarket,
-  FleaMarketDetails,
+  FleaMarketView,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
@@ -67,7 +66,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         .range(from, to)
 
       if (error) throw error
-      return { items: data ?? [], count: count ?? 0 } as { items: FleaMarket[]; count: number }
+      return { items: data ?? [], count: count ?? 0 } as { items: FleaMarketView[]; count: number }
     },
 
     async details(id) {
@@ -270,7 +269,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
       if (visibleError) throw visibleError
       const visibleIds = new Set((visibleData ?? []).map((r: { id: string }) => r.id))
 
-      return markets.map((m) => ({ ...m, isVisible: visibleIds.has(m.id) })) as FleaMarket[]
+      return markets.map((m) => ({ ...m, isVisible: visibleIds.has(m.id) })) as FleaMarketView[]
     },
   }
 }
@@ -285,7 +284,7 @@ export function createSupabaseSearch(supabase: SupabaseClient): SearchRepository
         .limit(20)
 
       if (error) throw error
-      return { fleaMarkets: data ?? [] } as SearchResult
+      return { fleaMarkets: (data ?? []) as FleaMarketView[] }
     },
   }
 }

@@ -71,17 +71,17 @@ const mockMarket = {
   description: 'En fantastisk loppis i hjärtat av Stockholm.',
   city: 'Stockholm',
   street: 'Drottninggatan 1',
-  zip_code: '111 21',
+  zipCode: '111 21',
   country: 'SE',
-  is_permanent: true,
-  organizer_id: 'organizer-1',
+  isPermanent: true,
+  organizerId: 'organizer-1',
   organizerName: 'Test Arrangör',
-  published_at: '2024-01-01T00:00:00Z',
-  opening_hour_rules: [
-    { day_of_week: 1, opens_at: '10:00', closes_at: '18:00' },
+  publishedAt: '2024-01-01T00:00:00Z',
+  openingHourRules: [
+    { id: 'r1', type: 'weekly', dayOfWeek: 1, anchorDate: null, openTime: '10:00', closeTime: '18:00' },
   ],
-  opening_hour_exceptions: [],
-  flea_market_images: [],
+  openingHourExceptions: [],
+  images: [],
 }
 
 const mockTables = [
@@ -140,13 +140,13 @@ describe('MarketDetail', () => {
   })
 
   it('shows "Permanent" badge for permanent market', () => {
-    setupMocks({ market: { ...mockMarket, is_permanent: true } })
+    setupMocks({ market: { ...mockMarket, isPermanent: true } })
     render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Permanent')).toBeInTheDocument()
   })
 
   it('shows "Tillfällig" badge for temporary market', () => {
-    setupMocks({ market: { ...mockMarket, is_permanent: false } })
+    setupMocks({ market: { ...mockMarket, isPermanent: false } })
     render(<MarketDetail id="market-1" />)
     expect(screen.getByText('Tillfällig')).toBeInTheDocument()
   })

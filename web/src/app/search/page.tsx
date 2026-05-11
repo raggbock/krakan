@@ -178,12 +178,12 @@ export default function SearchPage() {
                   <div className="flex items-center gap-3 shrink-0">
                     <span
                       className={`stamp text-xs hidden sm:inline-flex ${
-                        market.is_permanent
+                        market.isPermanent
                           ? 'text-forest'
                           : 'text-mustard'
                       }`}
                     >
-                      {market.is_permanent ? 'Permanent' : 'Tillfällig'}
+                      {market.isPermanent ? 'Permanent' : 'Tillfällig'}
                     </span>
                     <span className="text-espresso/20 group-hover:text-rust/40 transition-colors text-lg">
                       &rarr;

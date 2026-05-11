@@ -66,7 +66,7 @@ export default function ProfilePage() {
       )}
 
       {/* Draft markets notice */}
-      {myMarkets.some((m) => !m.published_at) && (
+      {myMarkets.some((m) => !m.publishedAt) && (
         <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up">
           Du har opublicerade utkast — redigera dem för att publicera.
         </div>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
         {myMarkets.length > 0 ? (
           <div className="space-y-3 mt-4">
             {myMarkets.map((market) => {
-              const isHidden = !!market.published_at && market.isVisible === false
+              const isHidden = !!market.publishedAt && market.isVisible === false
               return (
                 <div key={market.id}>
                   <Link
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                           <span className="text-xs text-espresso/60">
                             {market.city}
                           </span>
-                          {!market.published_at && (
+                          {!market.publishedAt && (
                             <span className="text-xs text-mustard font-medium">
                               Utkast
                             </span>

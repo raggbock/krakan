@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import type { OrganizerProfileView, FleaMarket } from '@fyndstigen/shared'
+import type { OrganizerProfileView, FleaMarketView } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
@@ -14,7 +14,7 @@ export default function OrganizerProfilePage() {
   const { user } = useAuth()
   const { organizers, markets: marketsRepo } = useDeps()
   const [organizer, setOrganizer] = useState<OrganizerProfileView | null>(null)
-  const [markets, setMarkets] = useState<FleaMarket[]>([])
+  const [markets, setMarkets] = useState<FleaMarketView[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function OrganizerProfilePage() {
     ])
       .then(([org, mkts]) => {
         setOrganizer(org)
-        setMarkets(mkts.filter((m) => m.published_at))
+        setMarkets(mkts.filter((m) => m.publishedAt))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -143,9 +143,9 @@ export default function OrganizerProfilePage() {
                   </p>
                 </div>
                 <span
-                  className={`stamp text-xs ${market.is_permanent ? 'text-forest' : 'text-mustard'}`}
+                  className={`stamp text-xs ${market.isPermanent ? 'text-forest' : 'text-mustard'}`}
                 >
-                  {market.is_permanent ? 'Permanent' : 'Tillfällig'}
+                  {market.isPermanent ? 'Permanent' : 'Tillfällig'}
                 </span>
               </Link>
             ))}

@@ -14,14 +14,14 @@
  */
 
 import type {
-  FleaMarket,
-  FleaMarketDetails,
+  FleaMarketView,
+  FleaMarketDetailsView,
   CreateFleaMarketPayload,
   UpdateFleaMarketPayload,
   CreateMarketTablePayload,
   SearchResult,
 } from '../../types'
-import type { FleaMarketNearByView, MarketTableView, OpeningHourRuleView } from '../../types/domain'
+import type { FleaMarketNearByView, MarketTableView, OpeningHourRuleView, OpeningHourExceptionView, FleaMarketImageView } from '../../types/domain'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 import type { ProfileRepository } from '../../ports/profiles'
 
@@ -30,11 +30,11 @@ function nextId() {
   return `fm-${_id++}`
 }
 
-export type StoredMarket = FleaMarket & {
-  is_deleted: boolean
-  updated_at: string
+export type StoredMarket = FleaMarketView & {
+  isDeleted: boolean
+  updatedAt: string
   /** Opening hour rules stored alongside market for visibility checks */
-  opening_hour_rules?: OpeningHourRuleView[]
+  openingHourRules?: OpeningHourRuleView[]
 }
 
 /**
@@ -44,10 +44,10 @@ export type StoredMarket = FleaMarket & {
  *   - has at least one future date rule (type='date', anchor_date >= today)
  */
 function isMarketVisible(m: StoredMarket): boolean {
-  if (m.published_at == null || m.is_deleted) return false
-  if (m.is_permanent) return true
+  if (m.publishedAt == null || m.isDeleted) return false
+  if (m.isPermanent) return true
   const today = new Date().toISOString().slice(0, 10)
-  return (m.opening_hour_rules ?? []).some(
+  return (m.openingHourRules ?? []).some(
     (r) => r.type === 'date' && r.anchorDate != null && r.anchorDate >= today,
   )
 }
@@ -68,7 +68,7 @@ function buildRepo(
       const visible = Array.from(store.values()).filter(isMarketVisible)
       const total = visible.length
       const from = (page - 1) * pageSize
-      const items = visible.slice(from, from + pageSize) as FleaMarket[]
+      const items = visible.slice(from, from + pageSize) as FleaMarketView[]
       return { items, count: total }
     },
 
@@ -79,19 +79,20 @@ function buildRepo(
       let organizerName = ''
       if (deps?.profiles) {
         try {
-          const profile = await deps.profiles.get(m.organizer_id)
+          const profile = await deps.profiles.get(m.organizerId)
           organizerName = [profile.firstName, profile.lastName].filter(Boolean).join(' ')
         } catch {
           // Profile not found — leave empty
         }
       }
-      return {
+      const result: FleaMarketDetailsView = {
         ...m,
         organizerName,
-        opening_hour_rules: [],
-        opening_hour_exceptions: [],
-        flea_market_images: [],
-      } as FleaMarketDetails
+        openingHourRules: (m.openingHourRules ?? []) as OpeningHourRuleView[],
+        openingHourExceptions: [] as OpeningHourExceptionView[],
+        images: [] as FleaMarketImageView[],
+      }
+      return result
     },
 
     /**
@@ -112,19 +113,19 @@ function buildRepo(
         name: payload.name,
         description: payload.description,
         street: payload.address.street,
-        zip_code: payload.address.zipCode,
+        zipCode: payload.address.zipCode,
         city: payload.address.city,
         country: payload.address.country,
         latitude: payload.address.location.latitude,
         longitude: payload.address.location.longitude,
-        is_permanent: payload.isPermanent,
-        organizer_id: payload.organizerId,
-        auto_accept_bookings: payload.autoAcceptBookings ?? false,
-        published_at: null,
-        is_deleted: false,
-        created_at: now,
-        updated_at: now,
-      } as StoredMarket
+        isPermanent: payload.isPermanent,
+        organizerId: payload.organizerId,
+        autoAcceptBookings: payload.autoAcceptBookings ?? false,
+        publishedAt: null,
+        isDeleted: false,
+        createdAt: now,
+        updatedAt: now,
+      }
       store.set(id, market)
       return { id }
     },
@@ -136,7 +137,7 @@ function buildRepo(
 
       // Snapshot previous rules so we can restore on failure (mirrors the
       // atomic Postgres function used in the real adapter).
-      const previousRules = existing.opening_hour_rules
+      const previousRules = existing.openingHourRules
 
       // Validate new rules before mutating — all-or-nothing like the RPC.
       const newRules: OpeningHourRuleView[] = (payload.openingHours ?? []).map((oh, i) => {
@@ -159,18 +160,18 @@ function buildRepo(
           name: payload.name,
           description: payload.description,
           street: payload.address.street,
-          zip_code: payload.address.zipCode,
+          zipCode: payload.address.zipCode,
           city: payload.address.city,
           country: payload.address.country,
           latitude: payload.address.location.latitude,
           longitude: payload.address.location.longitude,
-          is_permanent: payload.isPermanent,
-          opening_hour_rules: newRules,
-          updated_at: new Date().toISOString(),
+          isPermanent: payload.isPermanent,
+          openingHourRules: newRules,
+          updatedAt: new Date().toISOString(),
         })
       } catch (err) {
         // Restore previous state on failure.
-        store.set(id, { ...existing, opening_hour_rules: previousRules })
+        store.set(id, { ...existing, openingHourRules: previousRules })
         throw err
       }
     },
@@ -179,27 +180,27 @@ function buildRepo(
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
-      store.set(id, { ...existing, is_deleted: true })
+      store.set(id, { ...existing, isDeleted: true })
     },
 
     async publish(id) {
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
-      store.set(id, { ...existing, published_at: new Date().toISOString() })
+      store.set(id, { ...existing, publishedAt: new Date().toISOString() })
     },
 
     async unpublish(id) {
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`FleaMarket ${id} not found`)
-      store.set(id, { ...existing, published_at: null })
+      store.set(id, { ...existing, publishedAt: null })
     },
 
     async listByOrganizer(organizerId) {
       return Array.from(store.values())
-        .filter((m) => m.organizer_id === organizerId && !m.is_deleted)
-        .map((m) => ({ ...m, isVisible: isMarketVisible(m) })) as FleaMarket[]
+        .filter((m) => m.organizerId === organizerId && !m.isDeleted)
+        .map((m) => ({ ...m, isVisible: isMarketVisible(m) })) as FleaMarketView[]
     },
 
     async weekendOpen() {
@@ -266,8 +267,8 @@ export function createInMemorySearch(
       const { items } = await deps.fleaMarkets.list({ pageSize: 1000 })
       const fleaMarkets = items
         .filter((m) => m.name.toLowerCase().includes(q))
-        .slice(0, 20) as FleaMarket[]
-      return { fleaMarkets } as SearchResult
+        .slice(0, 20)
+      return { fleaMarkets } satisfies SearchResult
     },
   }
 }

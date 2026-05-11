@@ -8,34 +8,35 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createInMemoryFleaMarkets, createInMemorySearch } from './flea-markets'
+import type { StoredMarket } from './flea-markets'
 import { createInMemoryRoutes } from './routes'
 import { createInMemoryProfiles } from './profiles'
 import { createInMemoryBookings } from './bookings'
 import { createInMemoryStack } from '../in-memory'
-import type { FleaMarket, UserProfileView } from '../../types'
+import type { UserProfileView } from '../../types'
 
 // ---------- helpers ----------
 
-function makeMarket(overrides: Partial<FleaMarket & { is_deleted: boolean }> = {}): FleaMarket & { is_deleted: boolean } {
+function makeMarket(overrides: Partial<StoredMarket> = {}): StoredMarket {
   return {
     id: 'fm-1',
     name: 'Testloppis',
     description: 'En loppis för test',
     street: 'Testgatan 1',
-    zip_code: '123 45',
+    zipCode: '123 45',
     city: 'Teststad',
     country: 'SE',
     latitude: 59.33,
     longitude: 18.07,
-    is_permanent: false,
-    organizer_id: 'org-1',
-    auto_accept_bookings: false,
-    published_at: '2026-01-01T00:00:00Z',
-    is_deleted: false,
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
+    isPermanent: false,
+    organizerId: 'org-1',
+    autoAcceptBookings: false,
+    publishedAt: '2026-01-01T00:00:00Z',
+    isDeleted: false,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
     ...overrides,
-  } as FleaMarket & { is_deleted: boolean }
+  }
 }
 
 function makeProfile(overrides: Partial<UserProfileView> = {}): UserProfileView {
@@ -87,7 +88,7 @@ describe('listPopular() stub canary', () => {
 
 describe('createInMemorySearch with FleaMarketRepository', () => {
   it('queries markets from the repo rather than a private Map', async () => {
-    const fleaMarkets = createInMemoryFleaMarkets([makeMarket({ name: 'Loppis Stockholm', is_permanent: true })])
+    const fleaMarkets = createInMemoryFleaMarkets([makeMarket({ name: 'Loppis Stockholm', isPermanent: true })])
     const search = createInMemorySearch({ fleaMarkets })
 
     const result = await search.query('stockholm')
@@ -206,7 +207,7 @@ describe('createInMemoryStack', () => {
     // createInMemoryStack creates an empty profiles repo. Seed it by building a separate stack:
     const profiles = createInMemoryProfiles([makeProfile({ id: 'org-42', firstName: 'Lars', lastName: 'Lindgren' })])
     const fleaMarkets = createInMemoryFleaMarkets(
-      [makeMarket({ id: 'fm-42', organizer_id: 'org-42' })],
+      [makeMarket({ id: 'fm-42', organizerId: 'org-42' })],
       { profiles },
     )
     const details = await fleaMarkets.details('fm-42')

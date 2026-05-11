@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import type {
-  FleaMarketDetails,
+  FleaMarketDetailsView,
   FleaMarketImageView,
   MarketTableView,
   OpeningHourRuleView,
@@ -13,7 +13,7 @@ import { marketEditUrl } from '@/lib/urls'
 import { useMarketDetails } from './use-market-details'
 
 export type MarketDetailViewModel = {
-  market: FleaMarketDetails | null
+  market: FleaMarketDetailsView | null
   tables: MarketTableView[]
   /** Sorted by sortOrder ascending. Empty array if the market has no images. */
   images: FleaMarketImageView[]
@@ -35,25 +35,18 @@ export function useMarketDetailViewModel(id: string): MarketDetailViewModel {
   const { market, tables, loading, error } = useMarketDetails(id)
 
   return useMemo<MarketDetailViewModel>(() => {
-    const images: FleaMarketImageView[] = [...(market?.flea_market_images ?? [])]
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((img) => ({ id: img.id, storagePath: img.storage_path, sortOrder: img.sort_order }))
+    // images are already FleaMarketImageView from the View type — just sort by sortOrder
+    const images: FleaMarketImageView[] = [...(market?.images ?? [])]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
 
-    const rules: OpeningHourRuleView[] = (market?.opening_hour_rules ?? []).map((r) => ({
-      id: r.id,
-      type: r.type,
-      dayOfWeek: r.day_of_week,
-      anchorDate: r.anchor_date,
-      openTime: r.open_time,
-      closeTime: r.close_time,
-    }))
-    const exceptions: OpeningHourExceptionView[] = market?.opening_hour_exceptions ?? []
+    const rules: OpeningHourRuleView[] = market?.openingHourRules ?? []
+    const exceptions: OpeningHourExceptionView[] = market?.openingHourExceptions ?? []
     const openingHours =
       rules.length === 0 && exceptions.length === 0
         ? undefined
         : { rules, exceptions }
 
-    const isOwner = !!market && user?.id === market.organizer_id
+    const isOwner = !!market && user?.id === market.organizerId
 
     const mapUrl = (() => {
       if (!market || market.latitude == null || market.longitude == null) {

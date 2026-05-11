@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import type { FleaMarket } from '@fyndstigen/shared'
+import type { FleaMarketView } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 
@@ -14,7 +14,7 @@ export function useMarkets(params?: { page?: number; pageSize?: number; enabled?
     enabled,
   })
   return {
-    markets: data?.items ?? ([] as FleaMarket[]),
+    markets: data?.items ?? ([] as FleaMarketView[]),
     count: data?.count ?? 0,
     loading: isLoading,
     error: error?.message ?? null,
@@ -50,7 +50,7 @@ export function useMarketsByOrganizer(organizerId: string | undefined) {
     enabled: !!organizerId,
   })
   return {
-    markets: data ?? ([] as FleaMarket[]),
+    markets: data ?? ([] as FleaMarketView[]),
     loading: isLoading,
     error: error?.message ?? null,
   }

@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest'
 import { makeInMemoryDeps, createE2EInMemoryDeps } from './deps-factory'
-import type { FleaMarket } from './types'
-import type { OpeningHourRuleView } from './types/domain'
+import type { StoredMarket } from './adapters/in-memory/flea-markets'
 
-const seedMarket = {
+const seedMarket: StoredMarket = {
   id: 'fm-test-1',
   name: 'Testloppis',
-  organizer_id: 'u1',
-  is_permanent: true,
-  published_at: '2024-01-01T00:00:00Z',
-  is_deleted: false,
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  organizerId: 'u1',
+  isPermanent: true,
+  publishedAt: '2024-01-01T00:00:00Z',
+  isDeleted: false,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
   street: 'Storgatan 1',
-  zip_code: '12345',
+  zipCode: '12345',
   city: 'Testköping',
   country: 'SE',
   latitude: 59.3,
   longitude: 18.0,
-  auto_accept_bookings: false,
-} as FleaMarket & { is_deleted: boolean; updated_at: string; opening_hour_rules?: OpeningHourRuleView[] }
+  autoAcceptBookings: false,
+  description: '',
+}
 
 const seedRoute = {
   id: 'rt-test-1',

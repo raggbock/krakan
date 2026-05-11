@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import type { AddressValue } from '@/components/address-picker'
-import type { FleaMarketDetails } from '@fyndstigen/shared'
+import type { FleaMarketDetailsView } from '@fyndstigen/shared'
 
 export type MarketFields = {
   name: string
@@ -16,20 +16,20 @@ export type MarketFields = {
   setIsPermanent: (v: boolean) => void
   setAutoAcceptBookings: (v: boolean) => void
   isValid: boolean
-  reset: (from: FleaMarketDetails) => void
+  reset: (from: FleaMarketDetailsView) => void
 }
 
-function detailsToAddress(m: FleaMarketDetails): AddressValue {
+function detailsToAddress(m: FleaMarketDetailsView): AddressValue {
   return {
     street: m.street,
-    zipCode: m.zip_code ?? '',
+    zipCode: m.zipCode ?? '',
     city: m.city,
     latitude: m.latitude ?? null,
     longitude: m.longitude ?? null,
   }
 }
 
-export function useMarketFields(initial?: FleaMarketDetails): MarketFields {
+export function useMarketFields(initial?: FleaMarketDetailsView): MarketFields {
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [address, setAddress] = useState<AddressValue>(
@@ -37,9 +37,9 @@ export function useMarketFields(initial?: FleaMarketDetails): MarketFields {
       ? detailsToAddress(initial)
       : { street: '', zipCode: '', city: '', latitude: null, longitude: null },
   )
-  const [isPermanent, setIsPermanent] = useState(initial?.is_permanent ?? true)
+  const [isPermanent, setIsPermanent] = useState(initial?.isPermanent ?? true)
   const [autoAcceptBookings, setAutoAcceptBookings] = useState(
-    initial?.auto_accept_bookings ?? false,
+    initial?.autoAcceptBookings ?? false,
   )
 
   const isValid = useMemo(
@@ -47,12 +47,12 @@ export function useMarketFields(initial?: FleaMarketDetails): MarketFields {
     [name, address.street, address.city],
   )
 
-  const reset = useCallback((from: FleaMarketDetails) => {
+  const reset = useCallback((from: FleaMarketDetailsView) => {
     setName(from.name)
     setDescription(from.description ?? '')
     setAddress(detailsToAddress(from))
-    setIsPermanent(from.is_permanent)
-    setAutoAcceptBookings(from.auto_accept_bookings ?? false)
+    setIsPermanent(from.isPermanent)
+    setAutoAcceptBookings(from.autoAcceptBookings ?? false)
   }, [])
 
   return useMemo(

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { BookingView, FleaMarket, OrganizerStats } from '@fyndstigen/shared'
+import type { BookingView, FleaMarketView, OrganizerStats } from '@fyndstigen/shared'
 import { endpoints } from '@/lib/edge/edge'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
@@ -13,7 +13,7 @@ export default function BookingsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { markets: marketsRepo, bookings: bookingsRepo, organizers } = useDeps()
-  const [myMarkets, setMyMarkets] = useState<FleaMarket[]>([])
+  const [myMarkets, setMyMarkets] = useState<FleaMarketView[]>([])
   const [bookings, setBookings] = useState<BookingView[]>([])
   const [stats, setStats] = useState<OrganizerStats | null>(null)
   const [loading, setLoading] = useState(true)

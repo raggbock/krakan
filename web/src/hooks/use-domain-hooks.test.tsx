@@ -10,19 +10,20 @@ import { useRoute, useRoutesByUser } from './use-routes'
 const SEED_MARKET = {
   id: 'm1',
   name: 'Loppis A',
-  organizer_id: 'u1',
-  is_permanent: true,
-  published_at: '2024-01-01T00:00:00Z',
-  is_deleted: false,
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  organizerId: 'u1',
+  isPermanent: true,
+  publishedAt: '2024-01-01T00:00:00Z',
+  isDeleted: false,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
   street: 'Storgatan 1',
-  zip_code: '12345',
+  zipCode: '12345',
   city: 'Testköping',
   country: 'SE',
   latitude: 59.3,
   longitude: 18.0,
-  auto_accept_bookings: false,
+  autoAcceptBookings: false,
+  description: '',
 } as const
 
 const SEED_ROUTE = {
