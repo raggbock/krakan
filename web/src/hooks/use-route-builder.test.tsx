@@ -47,16 +47,6 @@ vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({ user: null }),
 }))
 
-// Mock the geo module so the test doesn't transitively load @/lib/supabase
-// (which throws under jsdom without env vars). Tests inject geo via deps.
-vi.mock('@/lib/geo', () => ({
-  geo: {
-    nearbyMarkets: vi.fn(async () => []),
-    optimizeStops: vi.fn((stops) => stops),
-    geocode: vi.fn(),
-  },
-}))
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

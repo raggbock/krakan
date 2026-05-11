@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
-import { geo } from '@/lib/geo'
+import { useDeps } from '@/providers/deps-provider'
 import { supabase } from '@/lib/supabase'
 import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import { marketUrl } from '@/lib/urls'
@@ -31,6 +31,7 @@ function FlyToLocation({ lat, lng, zoom }: { lat: number; lng: number; zoom: num
 }
 
 export default function MapView() {
+  const { geo } = useDeps()
   const params = useSearchParams()
   // Allow callers (e.g. /loppis/[slug]'s "Visa på karta"-link) to deep-link
   // straight to a market's coordinates instead of opening the general map

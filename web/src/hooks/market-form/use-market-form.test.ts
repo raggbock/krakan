@@ -9,17 +9,10 @@ import { useMarketForm } from './use-market-form'
 global.URL.createObjectURL = vi.fn((f: File) => `blob:${f.name}`)
 global.URL.revokeObjectURL = vi.fn()
 
-vi.mock('@/lib/geo', () => ({
-  geo: {
-    geocode: vi.fn().mockResolvedValue({ lat: 59.33, lng: 18.07 }),
-  },
-}))
-
-import { geo } from '@/lib/geo'
-
 // Build the in-memory Deps object ONCE — DepsProvider expects a stable reference.
 // We spy on individual adapter methods per-test inside each describe block.
 const testDeps: Deps = makeInMemoryDeps()
+const geo = testDeps.geo
 
 function createWrapper(deps: Deps = testDeps) {
   return ({ children }: { children: React.ReactNode }) =>
@@ -29,7 +22,7 @@ function createWrapper(deps: Deps = testDeps) {
 describe('useMarketForm — create mode', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(geo.geocode).mockResolvedValue({ lat: 59.33, lng: 18.07 })
+    vi.spyOn(geo, 'geocode').mockResolvedValue({ lat: 59.33, lng: 18.07 })
     // Re-apply default spies on the in-memory adapters for clean per-test state.
     vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1' })
     vi.spyOn(testDeps.markets, 'publish').mockResolvedValue(undefined)
@@ -91,7 +84,7 @@ describe('useMarketForm — create mode', () => {
   })
 
   it('submit: surfaces geocode error as Swedish message', async () => {
-    vi.mocked(geo.geocode).mockRejectedValue(new GeocodeError('nowhere'))
+    vi.spyOn(geo, 'geocode').mockRejectedValue(new GeocodeError('nowhere'))
     const { result } = renderHook(
       () => useMarketForm({ mode: 'create', organizerId: 'user-1' }),
       { wrapper: createWrapper() },
@@ -108,7 +101,7 @@ describe('useMarketForm — create mode', () => {
 describe('useMarketForm — edit mode', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(geo.geocode).mockResolvedValue({ lat: 59.33, lng: 18.07 })
+    vi.spyOn(geo, 'geocode').mockResolvedValue({ lat: 59.33, lng: 18.07 })
     vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1' })
     vi.spyOn(testDeps.markets, 'publish').mockResolvedValue(undefined)
     vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
