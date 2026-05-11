@@ -3,7 +3,7 @@
  * booking query shape. Mirrors the FleaMarketQuery pattern (RFC #34).
  *
  * Three variants today:
- *   - core: scalar columns only, returns Booking (used by booking-repo for
+ *   - core: scalar columns only, returns BookingDbRow (used by booking-repo for
  *           lifecycle reads/writes — no joins, deterministic shape)
  *   - withMarketAndTable: bookings joined with flea_markets + market_tables
  *           (the user's "my bookings" view)
@@ -16,7 +16,7 @@
  */
 
 import type { Database } from '../types/supabase.generated'
-import type { Booking } from '../types'
+import type { BookingDbRow } from '../types'
 import type { BookingView } from '../types/domain'
 import { mapBookingView, type BookingRow } from '../api/mappers'
 
@@ -32,8 +32,8 @@ const CORE_COLUMNS = [
 export const BookingQuery = {
   core: {
     select: CORE_COLUMNS.join(', ') as string,
-    mapRow(row: Pick<BookingTableRow, typeof CORE_COLUMNS[number]>): Booking {
-      return row as Booking
+    mapRow(row: Pick<BookingTableRow, typeof CORE_COLUMNS[number]>): BookingDbRow {
+      return row as BookingDbRow
     },
   },
 

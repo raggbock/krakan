@@ -3,7 +3,7 @@ import { createBookingService } from './booking-service'
 import type { BookingProgress, OpeningHoursContext } from './booking-service'
 import { isAppError } from '../errors'
 import type { Api } from '../api'
-import type { Booking } from '../types'
+import type { BookingDbRow } from '../types'
 import type { PaymentGateway } from '../ports/payment'
 
 // ---------------------------------------------------------------------------
@@ -253,7 +253,7 @@ describe('BookingService.cancel', () => {
 describe('BookingService.applyEvent', () => {
   it('is a pass-through to applyBookingEvent', () => {
     const svc = createBookingService({ api: makeApi() })
-    const booking: Booking = {
+    const booking: BookingDbRow = {
       id: 'b-1',
       market_table_id: 'tbl-1',
       flea_market_id: 'mkt-1',

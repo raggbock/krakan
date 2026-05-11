@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createSupabaseBookingRepo } from './booking-repo'
-import type { Booking } from '../../types'
+import type { BookingDbRow } from '../../types'
 
 // Minimal fake of the chainable Supabase query builder.
 function makeFakeClient(opts: {
@@ -76,7 +76,7 @@ function makeFindByPIClient(opts: {
   return client
 }
 
-function seedRow(): Booking & { created_at: string } {
+function seedRow(): BookingDbRow & { created_at: string } {
   return {
     id: 'b1',
     status: 'pending',

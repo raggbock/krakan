@@ -13,14 +13,14 @@
  * concurrency), exactly as the original edges do.
  */
 
-import type { Booking } from '../types'
+import type { BookingDbRow } from '../types'
 import type { BookingEvent } from '../domain/booking-lifecycle'
 
 export interface BookingRepo {
   /**
    * Find a booking by its primary key. Returns null if not found.
    */
-  findById(id: string): Promise<Booking | null>
+  findById(id: string): Promise<BookingDbRow | null>
 
   /**
    * Find a booking by its Stripe PaymentIntent ID. Returns null if not found
@@ -29,7 +29,7 @@ export interface BookingRepo {
    * Also returns the market's auto_accept_bookings flag in a single round-trip
    * join so callers don't need a separate market lookup.
    */
-  findByPaymentIntent(paymentIntentId: string): Promise<{ booking: Booking; autoAccept: boolean } | null>
+  findByPaymentIntent(paymentIntentId: string): Promise<{ booking: BookingDbRow; autoAccept: boolean } | null>
 
   /**
    * Apply a lifecycle event to the booking identified by `id`.
@@ -41,5 +41,5 @@ export interface BookingRepo {
    *
    * Throws if the booking does not exist or if the DB UPDATE fails.
    */
-  applyEvent(id: string, event: BookingEvent): Promise<Booking>
+  applyEvent(id: string, event: BookingEvent): Promise<BookingDbRow>
 }

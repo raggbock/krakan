@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { applyBookingEvent, type BookingEvent, type BookingPatch } from './booking-lifecycle'
-import type { Booking, BookingStatus } from '../types'
+import type { BookingDbRow, BookingStatus } from '../types'
 
 const FIXED_NOW = new Date('2026-04-21T12:00:00.000Z')
 
-function makeBooking(overrides: Partial<Booking> = {}): Booking {
+function makeBooking(overrides: Partial<BookingDbRow> = {}): BookingDbRow {
   return {
     id: 'booking-1',
     market_table_id: 'table-1',
