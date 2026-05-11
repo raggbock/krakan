@@ -20,9 +20,11 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
 } from 'react'
+import posthog from 'posthog-js'
 import type { AuthUser } from '@fyndstigen/shared'
 import { auth, type AuthWithRedirect } from './auth'
 
@@ -49,6 +51,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     return auth.onAuthStateChange(setUser)
   }, [])
+
+  // Keep PostHog identity in sync with Supabase auth so analytics can
+  // distinguish auth vs anonymous users (see #131). Identify on sign-in,
+  // reset on sign-out. Idempotent — posthog.identify dedupes by distinct_id.
+  // The ref prevents reset() from running on the initial null→null render.
+  const lastUserIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (user?.id && user.id !== lastUserIdRef.current) {
+      posthog.identify(user.id, { email: user.email })
+      lastUserIdRef.current = user.id
+    } else if (!user && lastUserIdRef.current !== null) {
+      posthog.reset()
+      lastUserIdRef.current = null
+    }
+  }, [user])
 
   return (
     <AuthContext.Provider value={{ user, loading, auth }}>
