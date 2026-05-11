@@ -56,7 +56,12 @@ export function AddToRouteButton({
     return () => clearTimeout(timer)
   }, [justAdded])
 
-  function handleClick() {
+  function handleClick(e: React.MouseEvent) {
+    // The compact variant is rendered inside a card-level <Link>; stop the
+    // click from bubbling so adding to the route doesn't also navigate to
+    // the market-detail page.
+    e.preventDefault()
+    e.stopPropagation()
     if (typeof window === 'undefined') return
     if (inRoute) return // Click on "✓ I rundan" is a no-op; user uses the link below to navigate.
 

@@ -22,6 +22,26 @@ test.describe('/utforska — discover markets', () => {
     await expect(link).toHaveAttribute('href', '/loppis/slug-m1')
   })
 
+  test('compact "Lägg till i rundan" button adds market without navigating', async ({ page, seedMarkets, setNow }) => {
+    await seedMarkets(gothenburgMarkets.map((m) => ({ ...m, slug: `slug-${m.id}` })))
+    await setNow('2026-04-23T12:00:00Z')
+    await page.goto('/utforska')
+
+    const addButton = page.getByRole('button', { name: 'Lägg till i rundan' }).first()
+    await expect(addButton).toBeVisible()
+    await addButton.click()
+
+    // Click must not navigate away from /utforska even though the button is
+    // nested inside the card-level <Link>.
+    await expect(page).toHaveURL(/\/utforska$/)
+    // Button toggles to the "added" state.
+    await expect(page.getByRole('button', { name: 'Redan i rundan' }).first()).toHaveAttribute('aria-pressed', 'true')
+
+    const draft = await page.evaluate(() => localStorage.getItem('fyndstigen.route-draft.v1'))
+    const parsed = JSON.parse(draft as string)
+    expect(parsed.stops).toHaveLength(1)
+  })
+
   test('shows empty state when no markets are seeded', async ({ page, setNow }) => {
     await setNow('2026-04-23T12:00:00Z')
     await page.goto('/utforska')
