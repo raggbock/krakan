@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createHandler, HttpError, type RequestContext } from './handler.ts'
+import { getAlertSink } from './alerting.ts'
 
 /**
  * Typed edge-function endpoint backed by Zod contracts.
@@ -22,7 +23,10 @@ import { createHandler, HttpError, type RequestContext } from './handler.ts'
  * The legacy `SUPABASE_ENVIRONMENT=development` flag is still honoured for
  * back-compat — remove once all setups have migrated to the new name.
  *
- * Alerting on warnings is tracked separately in #113.
+ * Contract violations and unhandled exceptions are routed through the
+ * AlertSink port (`./alerting.ts`). The default sink emits structured
+ * JSON to stderr (visible in Supabase Edge logs). Swap to a Sentry /
+ * Slack adapter by calling `setAlertSink()` at app startup. #113.
  */
 export type EndpointConfig<I, O> = {
   name: string
@@ -48,9 +52,15 @@ export function defineEndpoint<I, O>(config: EndpointConfig<I, O>): void {
       const env = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env
       const mode = env?.get('OUTPUT_CONTRACT_MODE')
         ?? (env?.get('SUPABASE_ENVIRONMENT') === 'development' ? 'strict' : 'warn')
-      const msg = `[endpoint:${config.name}] output contract violation: ${JSON.stringify(parsedOutput.error.issues)}`
-      if (mode === 'strict') throw new Error(msg)
-      console.error(msg)
+      getAlertSink().captureViolation(config.name, parsedOutput.error.issues, {
+        endpoint: config.name,
+        userId: ctx.user.id,
+      })
+      if (mode === 'strict') {
+        throw new Error(
+          `[endpoint:${config.name}] output contract violation: ${JSON.stringify(parsedOutput.error.issues)}`,
+        )
+      }
       return result
     }
 
