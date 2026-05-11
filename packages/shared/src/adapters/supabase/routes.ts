@@ -12,10 +12,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   CreateRoutePayload,
   UpdateRoutePayload,
-  RouteWithStops,
-  RouteSummary,
   PopularRouteView,
 } from '../../types'
+import type { RouteView, RouteSummaryView } from '../../types/domain'
 
 type PopularRouteRpcRow = {
   id: string
@@ -88,7 +87,7 @@ export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository 
         .single()
 
       if (error) throw error
-      return RouteQuery.details.mapRow(data as RouteDetailsRow) as RouteWithStops
+      return RouteQuery.details.mapRow(data as RouteDetailsRow) as RouteView
     },
 
     async update(id, payload) {
@@ -154,7 +153,7 @@ export function createSupabaseRoutes(supabase: SupabaseClient): RouteRepository 
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return (data ?? []).map((r) => RouteQuery.summary.mapRow(r as RouteSummaryRow)) as RouteSummary[]
+      return (data ?? []).map((r) => RouteQuery.summary.mapRow(r as RouteSummaryRow)) as RouteSummaryView[]
     },
 
     async listPopular(params) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { RouteWithStops, RouteSummary, PopularRouteView, CreateRoutePayload, UpdateRoutePayload } from '@fyndstigen/shared'
+import type { RouteView, RouteSummaryView, PopularRouteView, CreateRoutePayload, UpdateRoutePayload } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 
@@ -13,7 +13,7 @@ export function useRoute(id: string | undefined) {
     enabled: !!id,
   })
   return {
-    route: data ?? (null as RouteWithStops | null),
+    route: data ?? (null as RouteView | null),
     loading: isLoading,
     error: error?.message ?? null,
   }
@@ -27,7 +27,7 @@ export function useRoutesByUser(userId: string | undefined) {
     enabled: !!userId,
   })
   return {
-    routes: data ?? ([] as RouteSummary[]),
+    routes: data ?? ([] as RouteSummaryView[]),
     loading: isLoading,
     error: error?.message ?? null,
   }

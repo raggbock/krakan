@@ -12,12 +12,7 @@
  *   - Fills table when row.market_tables is present, otherwise null
  */
 
-import type {
-  RouteWithStops,
-  RouteSummary,
-  RouteStop,
-} from '../types'
-import type { BookingView } from '../types/domain'
+import type { BookingView, RouteView, RouteSummaryView, RouteStopView } from '../types/domain'
 import type { Database } from '../types/supabase.generated'
 
 type BookingTableRow = Database['public']['Tables']['bookings']['Row']
@@ -59,6 +54,7 @@ type FleaMarketJoin = {
   is_permanent: boolean
   latitude: number
   longitude: number
+  slug: string | null
   opening_hour_rules: OpeningHourRuleJoin[]
   opening_hour_exceptions: OpeningHourExceptionJoin[]
 } | null
@@ -148,37 +144,84 @@ export type RouteDetailsRow = RouteTableRow & {
   route_stops: RouteStopJoin[]
 }
 
-export function mapRouteWithStops(row: RouteDetailsRow): RouteWithStops {
+export function mapRouteView(row: RouteDetailsRow): RouteView {
   const { profiles, route_stops, ...rest } = row
-  const stops = [...route_stops]
+  const stops: RouteStopView[] = [...route_stops]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((rs) => ({
       id: rs.id,
       sortOrder: rs.sort_order,
       fleaMarket: rs.flea_markets
         ? {
-            ...rs.flea_markets,
-            opening_hour_rules: rs.flea_markets.opening_hour_rules ?? [],
-            opening_hour_exceptions: rs.flea_markets.opening_hour_exceptions ?? [],
+            id: rs.flea_markets.id,
+            name: rs.flea_markets.name,
+            description: rs.flea_markets.description ?? '',
+            street: rs.flea_markets.street ?? '',
+            zipCode: rs.flea_markets.zip_code ?? '',
+            city: rs.flea_markets.city ?? '',
+            country: rs.flea_markets.country ?? '',
+            isPermanent: rs.flea_markets.is_permanent,
+            latitude: rs.flea_markets.latitude,
+            longitude: rs.flea_markets.longitude,
+            publishedAt: null,
+            organizerId: '',
+            autoAcceptBookings: false,
+            createdAt: '',
+            slug: rs.flea_markets.slug,
+            openingHourRules: (rs.flea_markets.opening_hour_rules ?? []).map((r) => ({
+              id: r.id,
+              type: r.type as import('../types/shared-enums').RuleType,
+              dayOfWeek: r.day_of_week,
+              anchorDate: r.anchor_date,
+              openTime: r.open_time,
+              closeTime: r.close_time,
+            })),
+            openingHourExceptions: (rs.flea_markets.opening_hour_exceptions ?? []).map((e) => ({
+              id: e.id,
+              date: e.date,
+              reason: e.reason,
+            })),
           }
         : null,
-    })) as RouteStop[]
+    }))
 
   return {
-    ...rest,
+    id: rest.id,
+    name: rest.name,
+    description: rest.description,
+    createdBy: rest.created_by,
     creatorName: formatName(profiles),
+    startLatitude: rest.start_latitude,
+    startLongitude: rest.start_longitude,
+    plannedDate: rest.planned_date,
+    isPublished: rest.is_published,
+    publishedAt: rest.published_at,
+    isDeleted: rest.is_deleted,
+    createdAt: rest.created_at,
+    updatedAt: rest.updated_at,
     stops,
-  } as RouteWithStops
+  }
 }
 
 export type RouteSummaryRow = RouteTableRow & {
   route_stops: { id: string }[]
 }
 
-export function mapRouteSummary(row: RouteSummaryRow): RouteSummary {
+export function mapRouteSummaryView(row: RouteSummaryRow): RouteSummaryView {
   const { route_stops, ...rest } = row
   return {
-    ...rest,
+    id: rest.id,
+    name: rest.name,
+    description: rest.description,
+    createdBy: rest.created_by,
+    startLatitude: rest.start_latitude,
+    startLongitude: rest.start_longitude,
+    plannedDate: rest.planned_date,
+    isPublished: rest.is_published,
+    publishedAt: rest.published_at,
+    isDeleted: rest.is_deleted,
+    createdAt: rest.created_at,
+    updatedAt: rest.updated_at,
     stopCount: route_stops?.length ?? 0,
-  } as RouteSummary
+  }
 }

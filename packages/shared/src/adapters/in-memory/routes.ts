@@ -10,26 +10,25 @@
 import type {
   CreateRoutePayload,
   UpdateRoutePayload,
-  RouteWithStops,
-  RouteSummary,
   PopularRouteView,
 } from '../../types'
+import type { RouteView, RouteSummaryView } from '../../types/domain'
 import type { RouteRepository } from '../../ports/routes'
 
 export type StoredRoute = {
   id: string
   name: string
   description: string | null
-  created_by: string
-  start_latitude: number | null
-  start_longitude: number | null
-  planned_date: string | null
-  is_published: boolean
-  published_at: string | null
-  is_deleted: boolean
-  created_at: string
-  updated_at: string
-  stops: { flea_market_id: string; sort_order: number }[]
+  createdBy: string
+  startLatitude: number | null
+  startLongitude: number | null
+  plannedDate: string | null
+  isPublished: boolean
+  publishedAt: string | null
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string
+  stops: { fleaMarketId: string; sortOrder: number }[]
 }
 
 let _rid = 1
@@ -45,25 +44,25 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
         id,
         name: payload.name,
         description: payload.description ?? null,
-        created_by: payload.createdBy,
-        start_latitude: payload.startLatitude ?? null,
-        start_longitude: payload.startLongitude ?? null,
-        planned_date: payload.plannedDate ?? null,
-        is_published: false,
-        published_at: null,
-        is_deleted: false,
-        created_at: now,
-        updated_at: now,
+        createdBy: payload.createdBy,
+        startLatitude: payload.startLatitude ?? null,
+        startLongitude: payload.startLongitude ?? null,
+        plannedDate: payload.plannedDate ?? null,
+        isPublished: false,
+        publishedAt: null,
+        isDeleted: false,
+        createdAt: now,
+        updatedAt: now,
         stops: (payload.stops ?? []).map((s, i) => ({
-          flea_market_id: s.fleaMarketId,
-          sort_order: i,
+          fleaMarketId: s.fleaMarketId,
+          sortOrder: i,
         })),
       }
       store.set(id, route)
       return { id }
     },
 
-    async get(id: string): Promise<RouteWithStops> {
+    async get(id: string): Promise<RouteView> {
       const r = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!r) throw new Error(`Route ${id} not found`)
@@ -71,22 +70,22 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
         id: r.id,
         name: r.name,
         description: r.description,
-        created_by: r.created_by,
-        start_latitude: r.start_latitude,
-        start_longitude: r.start_longitude,
-        planned_date: r.planned_date,
-        is_published: r.is_published,
-        published_at: r.published_at,
-        is_deleted: r.is_deleted,
-        created_at: r.created_at,
-        updated_at: r.updated_at,
+        createdBy: r.createdBy,
+        startLatitude: r.startLatitude,
+        startLongitude: r.startLongitude,
+        plannedDate: r.plannedDate,
+        isPublished: r.isPublished,
+        publishedAt: r.publishedAt,
+        isDeleted: r.isDeleted,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
         creatorName: '',
         stops: r.stops.map((s, i) => ({
           id: `stop-${i}`,
-          sortOrder: s.sort_order,
+          sortOrder: s.sortOrder,
           fleaMarket: null,
         })),
-      } as RouteWithStops
+      }
     },
 
     async update(id: string, payload: UpdateRoutePayload) {
@@ -97,13 +96,13 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
         ...existing,
         name: payload.name,
         description: payload.description ?? null,
-        start_latitude: payload.startLatitude ?? null,
-        start_longitude: payload.startLongitude ?? null,
-        planned_date: payload.plannedDate ?? null,
-        updated_at: new Date().toISOString(),
+        startLatitude: payload.startLatitude ?? null,
+        startLongitude: payload.startLongitude ?? null,
+        plannedDate: payload.plannedDate ?? null,
+        updatedAt: new Date().toISOString(),
         stops: (payload.stops ?? []).map((s, i) => ({
-          flea_market_id: s.fleaMarketId,
-          sort_order: i,
+          fleaMarketId: s.fleaMarketId,
+          sortOrder: i,
         })),
       })
     },
@@ -112,7 +111,7 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
-      store.set(id, { ...existing, is_deleted: true })
+      store.set(id, { ...existing, isDeleted: true })
     },
 
     async publish(id: string) {
@@ -121,8 +120,8 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
       if (!existing) throw new Error(`Route ${id} not found`)
       store.set(id, {
         ...existing,
-        is_published: true,
-        published_at: new Date().toISOString(),
+        isPublished: true,
+        publishedAt: new Date().toISOString(),
       })
     },
 
@@ -130,27 +129,27 @@ export function createInMemoryRoutes(seed: StoredRoute[] = []): RouteRepository 
       const existing = store.get(id)
       // eslint-disable-next-line no-restricted-syntax -- in-memory test double: missing ID is a test-setup error, not a user-facing error
       if (!existing) throw new Error(`Route ${id} not found`)
-      store.set(id, { ...existing, is_published: false, published_at: null })
+      store.set(id, { ...existing, isPublished: false, publishedAt: null })
     },
 
-    async listByUser(userId: string): Promise<RouteSummary[]> {
+    async listByUser(userId: string): Promise<RouteSummaryView[]> {
       return Array.from(store.values())
-        .filter((r) => r.created_by === userId && !r.is_deleted)
+        .filter((r) => r.createdBy === userId && !r.isDeleted)
         .map((r) => ({
           id: r.id,
           name: r.name,
           description: r.description,
-          created_by: r.created_by,
-          start_latitude: r.start_latitude,
-          start_longitude: r.start_longitude,
-          planned_date: r.planned_date,
-          is_published: r.is_published,
-          published_at: r.published_at,
-          is_deleted: r.is_deleted,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
+          createdBy: r.createdBy,
+          startLatitude: r.startLatitude,
+          startLongitude: r.startLongitude,
+          plannedDate: r.plannedDate,
+          isPublished: r.isPublished,
+          publishedAt: r.publishedAt,
+          isDeleted: r.isDeleted,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
           stopCount: r.stops.length,
-        })) as RouteSummary[]
+        }))
     },
 
     /**
