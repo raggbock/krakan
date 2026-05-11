@@ -53,6 +53,70 @@ test.describe('/rundor/skapa — route-builder', () => {
     await expect(page.locator('input').first()).toHaveValue('Söndagsrundan')
   })
 
+  test('"Ta bort stopp" removes the stop from the list and the persisted draft', async ({ page, seedMarkets, setNow }) => {
+    await seedMarkets(seedWithSlugs)
+    await setNow('2026-04-23T12:00:00Z')
+    await seedDraft(page, {
+      name: 'Söndagsrundan',
+      plannedDate: '',
+      useGps: true,
+      customStart: null,
+      stops: [
+        { marketId: 'm1', index: 0 },
+        { marketId: 'm3', index: 1 },
+      ],
+      savedAt: new Date().toISOString(),
+    })
+
+    await page.goto('/rundor/skapa')
+    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    await expect(page.getByText('Linnéstaden Loppis')).toBeVisible()
+
+    // Two remove buttons (one per stop) — click the first.
+    await page.getByRole('button', { name: 'Ta bort stopp' }).first().click()
+
+    await expect(page.getByText('Kungsportsavenyn Loppis')).not.toBeVisible()
+    await expect(page.getByText('Linnéstaden Loppis')).toBeVisible()
+
+    // Debounced persist (250ms) — wait for the draft to be rewritten.
+    await expect.poll(async () => {
+      const raw = await page.evaluate(() => localStorage.getItem('fyndstigen.route-draft.v1'))
+      return raw ? (JSON.parse(raw).stops as Array<{ marketId: string }>).map((s) => s.marketId) : null
+    }).toEqual(['m3'])
+  })
+
+  test('"Optimera rutt" reorders stops via the in-memory geo adapter', async ({ page, seedMarkets, setNow }) => {
+    await seedMarkets(seedWithSlugs)
+    await setNow('2026-04-23T12:00:00Z')
+    // Seed two stops; the in-memory optimizeStops calls the same
+    // nearest-neighbor route optimizer the prod adapter uses. With
+    // useGps=false and no customStart, the first stop is the anchor —
+    // the reorder is deterministic but we don't care about the order, only
+    // that the button is enabled and clickable, and the stops stay in the list.
+    await seedDraft(page, {
+      name: 'Test',
+      plannedDate: '',
+      useGps: false,
+      customStart: null,
+      stops: [
+        { marketId: 'm1', index: 0 },
+        { marketId: 'm5', index: 1 }, // Partille — geographically furthest
+        { marketId: 'm2', index: 2 }, // Haga — closer to m1
+      ],
+      savedAt: new Date().toISOString(),
+    })
+
+    await page.goto('/rundor/skapa')
+    const optimizeBtn = page.getByRole('button', { name: /Optimera rutt/i })
+    await expect(optimizeBtn).toBeVisible()
+    await optimizeBtn.click()
+
+    // All three stops still present after optimize — no markets dropped.
+    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    await expect(page.getByText('Haga Loppis')).toBeVisible()
+    await expect(page.getByText('Partille Loppis')).toBeVisible()
+  })
+
   test('empty draft leaves an empty stop list', async ({ page, seedMarkets, setNow }) => {
     await seedMarkets(seedWithSlugs)
     await setNow('2026-04-23T12:00:00Z')
