@@ -223,17 +223,20 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {/* Stats badge */}
-            {markets.length > 0 && (
-              <div className="hidden sm:flex flex-col items-center justify-center bg-mustard/15 rounded-2xl px-6 py-5 min-w-[100px] animate-fade-up delay-4">
-                <span className="font-display text-3xl font-bold text-mustard">
-                  {markets.length}
-                </span>
-                <span className="text-xs text-espresso/65 mt-1 font-medium">
-                  loppisar
-                </span>
-              </div>
-            )}
+            {/* Stats badge — always rendered to reserve space (CLS #133).
+                Number is hidden visually until data loads but the flex
+                container keeps the hero layout stable across states. */}
+            <div className="hidden sm:flex flex-col items-center justify-center bg-mustard/15 rounded-2xl px-6 py-5 min-w-[100px] animate-fade-up delay-4">
+              <span
+                className={`font-display text-3xl font-bold text-mustard transition-opacity ${markets.length > 0 ? 'opacity-100' : 'opacity-0'}`}
+                aria-live="polite"
+              >
+                {markets.length > 0 ? markets.length : ' '}
+              </span>
+              <span className="text-xs text-espresso/65 mt-1 font-medium">
+                loppisar
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -262,11 +265,28 @@ export default function ExplorePage() {
         )}
       </section>
 
-      {/* ── Loading ── */}
+      {/* ── Loading skeleton ── */}
+      {/* Reserves the same grid shape the loaded state will use so the
+          paint after data arrives doesn't shift the viewport (CLS #133). */}
       {loading && (
-        <div className="flex items-center justify-center py-20">
-          <FyndstigenLogo size={40} className="text-rust animate-bob" />
-        </div>
+        <section className="mb-10" aria-busy="true" aria-label="Laddar loppisar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="vintage-card overflow-hidden animate-pulse"
+              >
+                <div className="h-24 sm:h-28 bg-parchment-light border-b border-cream-warm" />
+                <div className="p-5 space-y-2.5">
+                  <div className="h-5 w-3/5 bg-cream-warm rounded" />
+                  <div className="h-4 w-2/5 bg-cream-warm/60 rounded" />
+                  <div className="h-4 w-full bg-cream-warm/40 rounded mt-3" />
+                  <div className="h-4 w-4/5 bg-cream-warm/40 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ── Error state ── */}

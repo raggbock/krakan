@@ -17,9 +17,22 @@ export function MarketDetail({ id }: { id: string }) {
   const { market, tables, images, openingHours, isOwner, editUrl, mapUrl } = vm
 
   if (vm.isLoading) {
+    // Skeleton mirrors the loaded layout (hero + image band + cards) so the
+    // paint after data arrives lands in-place rather than shifting the
+    // viewport (CLS #133).
     return (
-      <div className="flex items-center justify-center py-20">
-        <FyndstigenLogo size={40} className="text-rust animate-bob" />
+      <div className="max-w-3xl mx-auto px-6 py-10" aria-busy="true" aria-label="Laddar loppis">
+        <div className="h-5 w-24 bg-cream-warm rounded mb-6 animate-pulse" />
+        <div className="aspect-[2/1] bg-cream-warm rounded-xl mb-8 animate-pulse" />
+        <div className="space-y-3 animate-pulse">
+          <div className="h-9 w-3/5 bg-cream-warm rounded" />
+          <div className="h-5 w-4/5 bg-cream-warm/60 rounded" />
+        </div>
+        <div className="space-y-4 mt-8 animate-pulse">
+          <div className="h-32 bg-cream-warm/50 rounded-xl" />
+          <div className="h-40 bg-cream-warm/50 rounded-xl" />
+          <div className="h-24 bg-cream-warm/50 rounded-xl" />
+        </div>
       </div>
     )
   }
