@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     icon: '/icon.svg',
   },
   title: {
-    default: 'Hitta loppis — Loppisar och loppmarknader i hela Sverige | Fyndstigen',
+    default: 'Hitta loppis — loppisar och loppmarknader i hela Sverige · Fyndstigen',
     template: '%s · Fyndstigen',
   },
   description:
