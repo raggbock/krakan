@@ -1,30 +1,24 @@
 import type { Metadata } from 'next'
-import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData } from '@fyndstigen/shared'
+import { resolveRoute } from './route-cache'
 
 type Props = {
   params: Promise<{ id: string }>
   children: React.ReactNode
 }
 
-function getServerData() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-  )
-  return createSupabaseServerData(supabase)
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const route = await getServerData().getRouteMeta(id)
+  // Shares the same React cache() instance as RouteLayout and page.tsx —
+  // one DB round-trip per id per request.
+  const route = await resolveRoute(id)
   if (!route) {
     return { title: 'Rundan hittades inte' }
   }
 
+  const stopCount = route.stops.length
   const description = route.description
     ? route.description.slice(0, 160)
-    : `Loppisrunda med ${route.stopCount} stopp. Planera din second hand-tur med Fyndstigen.`
+    : `Loppisrunda med ${stopCount} stopp. Planera din second hand-tur med Fyndstigen.`
 
   return {
     title: route.name,
@@ -41,12 +35,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RouteLayout({ params, children }: Props) {
   const { id } = await params
-  const route = await getServerData().getRouteMeta(id)
+  // Shares the same React cache() instance as generateMetadata and page.tsx —
+  // one DB round-trip per id per request.
+  const route = await resolveRoute(id)
   if (!route) return <>{children}</>
 
+  const stopCount = route.stops.length
   const description = route.description
     ? route.description.slice(0, 500)
-    : `Loppisrunda med ${route.stopCount} stopp.`
+    : `Loppisrunda med ${stopCount} stopp.`
 
   const tripLd = {
     '@context': 'https://schema.org',
@@ -67,26 +64,26 @@ export default async function RouteLayout({ params, children }: Props) {
             numberOfItems: route.stops.length,
             itemListElement: route.stops.map((s) => ({
               '@type': 'ListItem',
-              position: s.position + 1,
+              position: s.sortOrder + 1,
               item: {
                 '@type': 'TouristAttraction',
-                name: s.marketName,
+                name: s.fleaMarket?.name,
                 address: {
                   '@type': 'PostalAddress',
-                  addressLocality: s.city,
+                  addressLocality: s.fleaMarket?.city,
                   addressCountry: 'SE',
                 },
-                ...(s.latitude && s.longitude
+                ...(s.fleaMarket?.latitude && s.fleaMarket?.longitude
                   ? {
                       geo: {
                         '@type': 'GeoCoordinates',
-                        latitude: s.latitude,
-                        longitude: s.longitude,
+                        latitude: s.fleaMarket.latitude,
+                        longitude: s.fleaMarket.longitude,
                       },
                     }
                   : {}),
-                ...(s.marketSlug
-                  ? { url: `https://fyndstigen.se/loppis/${s.marketSlug}` }
+                ...(s.fleaMarket?.slug
+                  ? { url: `https://fyndstigen.se/loppis/${s.fleaMarket.slug}` }
                   : {}),
               },
             })),
