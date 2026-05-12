@@ -18,6 +18,7 @@ export { createSupabaseFleaMarkets, createSupabaseSearch, createSupabaseMarketTa
 export { createSupabaseBookings } from './supabase/bookings'
 export { createSupabaseRoutes } from './supabase/routes'
 export { createSupabaseProfiles, createSupabaseOrganizers } from './supabase/profiles'
+export { createSupabaseImages } from './supabase/images'
 
 export function createSupabaseAdapters(supabase: SupabaseClient): {
   auth: AuthPort

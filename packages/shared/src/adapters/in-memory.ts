@@ -82,7 +82,7 @@ export function createInMemoryServerData(seed?: {
       return organizers.find((o) => o.id === id) ?? null
     },
     async listPublishedMarketIds() {
-      return markets.map((m) => ({ id: m.id, slug: m.slug ?? null, updatedAt: m.updatedAt }))
+      return markets.map((m) => ({ id: m.id, slug: m.slug ?? null, updatedAt: m.updatedAt, images: [] }))
     },
     async listCitiesWithMarkets() {
       const byCity = new Map<string, { count: number; latest: string }>()

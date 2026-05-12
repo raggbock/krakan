@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
+import { createSupabaseServerData, createSupabaseImages, slugifyCity } from '@fyndstigen/shared'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://fyndstigen.se'
@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const supabase = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder')
   const server = createSupabaseServerData(supabase)
+  const images = createSupabaseImages({ supabase })
 
   // Fetch all data sources in parallel — they are independent DB queries.
   const [markets, cities, routes, blockSales] = await Promise.all([
@@ -36,14 +37,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // index). The id-fallback is purely defensive in case a slugless row
   // sneaks through during a future migration; it 308-redirects to the
   // canonical slug URL anyway.
-  const marketPages: MetadataRoute.Sitemap = markets.map((m) => ({
-    url: m.slug
-      ? `${baseUrl}/loppis/${m.slug}`
-      : `${baseUrl}/fleamarkets/${m.id}`,
-    lastModified: new Date(m.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.9,
-  }))
+  const marketPages: MetadataRoute.Sitemap = markets.map((m) => {
+    const imageUrls = m.images.map((img) => images.publicUrl(img.storagePath))
+    return {
+      url: m.slug
+        ? `${baseUrl}/loppis/${m.slug}`
+        : `${baseUrl}/fleamarkets/${m.id}`,
+      lastModified: new Date(m.updatedAt),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+      ...(imageUrls.length > 0 ? { images: imageUrls } : {}),
+    }
+  })
 
   const citySlugs = new Set<string>()
   for (const c of cities) citySlugs.add(slugifyCity(c.city))

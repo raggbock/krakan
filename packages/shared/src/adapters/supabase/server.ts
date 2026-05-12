@@ -167,12 +167,20 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     async listPublishedMarketIds() {
       const { data } = await supabase
         .from('visible_flea_markets')
-        .select('id, slug, updated_at')
-      return (data ?? []).map((m) => ({
-        id: m.id as string,
-        slug: (m.slug as string | null | undefined) ?? null,
-        updatedAt: m.updated_at as string,
-      }))
+        .select('id, slug, updated_at, flea_market_images(storage_path, sort_order)')
+      return (data ?? []).map((m) => {
+        const rawImages = (m as unknown as { flea_market_images?: Array<{ storage_path: string; sort_order: number }> }).flea_market_images ?? []
+        const images = rawImages
+          .slice()
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((img) => ({ storagePath: img.storage_path }))
+        return {
+          id: m.id as string,
+          slug: (m.slug as string | null | undefined) ?? null,
+          updatedAt: m.updated_at as string,
+          images,
+        }
+      })
     },
 
     async listPublishedRouteIds() {

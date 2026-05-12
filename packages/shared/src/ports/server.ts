@@ -57,7 +57,7 @@ export interface ServerDataPort {
     marketCount: number
   } | null>
 
-  listPublishedMarketIds(): Promise<Array<{ id: string; slug: string | null; updatedAt: string }>>
+  listPublishedMarketIds(): Promise<Array<{ id: string; slug: string | null; updatedAt: string; images: Array<{ storagePath: string }> }>>
   listPublishedRouteIds(): Promise<Array<{ id: string; updatedAt: string }>>
 
   listPublishedBlockSaleIds(): Promise<Array<{ id: string; slug: string; updatedAt: string; endDate: string }>>
