@@ -111,6 +111,15 @@ export default function ProfilePage() {
             )}
           </Link>
           <Link
+            href="/profile/foljer"
+            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/60 hover:bg-rust/10 transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
+              <path d="M7.5 13.5C7.5 13.5 1 9 1 4.5C1 2.567 2.567 1 4.5 1C5.632 1 6.643 1.54 7.5 2.5C8.357 1.54 9.368 1 10.5 1C12.433 1 14 2.567 14 4.5C14 9 7.5 13.5 7.5 13.5Z" />
+            </svg>
+            Mina följda
+          </Link>
+          <Link
             href={`/arrangorer/${user?.id}`}
             className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/60 hover:bg-rust/10 transition-colors"
           >
