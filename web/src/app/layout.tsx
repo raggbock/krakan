@@ -99,11 +99,13 @@ type PopularCity = { slug: string; canonicalName: string }
 // cross-request staleness. Root layout cannot export `revalidate` itself in
 // Next.js App Router — that export only works on page/route segments.
 const getPopularCities = cache(async (): Promise<PopularCity[]> => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // CI / build envs use a placeholder URL — skip the fetch (would otherwise
+  // wait for DNS lookup to fail, adding seconds to every page render).
+  if (!url || !anon || url.includes('placeholder.supabase.co')) return []
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-    )
+    const supabase = createClient(url, anon)
     const raw = await createSupabaseServerData(supabase).listCitiesWithMarkets()
     // Dedupe by slug (same city with different casings → collapse, sum counts)
     const map = new Map<string, { slug: string; canonicalName: string; marketCount: number }>()

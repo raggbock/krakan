@@ -26,6 +26,12 @@ export type MarketDetailData = {
  * React cache() dedupes calls within a single request.
  */
 export const resolveMarketDetails = cache(async (slug: string): Promise<MarketDetailData | null> => {
+  // CI / build environments without a real Supabase URL would otherwise
+  // hang ~30s on each /loppis/[slug] render waiting for fetch to fail.
+  // Bail fast so page.tsx 404s and the build proceeds.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url || url.includes('placeholder.supabase.co')) return null
+
   const supabase = await createSupabaseServerClient()
   const server = createSupabaseServerData(supabase)
   const id = await server.getMarketIdBySlug(slug)

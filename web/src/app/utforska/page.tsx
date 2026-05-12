@@ -24,11 +24,16 @@ export const metadata: Metadata = {
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
 async function getMarkets(page: number, pageSize: number): Promise<{ items: FleaMarketView[]; count: number }> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-  )
-
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // CI runs without a real Supabase backend (placeholder env vars). A real
+  // fetch would hang ~30s before timing out, blocking the Playwright nav
+  // assertion. Bail fast and render an empty grid; client hydration with
+  // real session env will refetch on the client.
+  if (!url || !anon || url.includes('placeholder.supabase.co')) {
+    return { items: [], count: 0 }
+  }
+  const supabase = createClient(url, anon)
   try {
     return await createSupabaseFleaMarkets(supabase).list({ page, pageSize })
   } catch (err) {

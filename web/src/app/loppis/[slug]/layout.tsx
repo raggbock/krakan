@@ -106,6 +106,11 @@ function NearbyMarketsSection({ markets }: { markets: FleaMarketNearByView[] }) 
 // and the layout body resolve the same slug, but only one DB round-trip
 // goes out. Without this we'd hit Supabase twice per render.
 const resolveBySlug = cache(async (slug: string) => {
+  // Bail in CI / build envs with placeholder Supabase URL — fetch would
+  // otherwise wait for DNS to fail before returning null anyway.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url || url.includes('placeholder.supabase.co')) return null
+
   const server = await getServerData()
   const id = await server.getMarketIdBySlug(slug)
   if (!id) return null
