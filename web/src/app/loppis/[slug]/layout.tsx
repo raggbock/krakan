@@ -156,6 +156,14 @@ export default async function LoppisLayout({ params, children }: Props) {
 
   const { market, meta } = data
 
+  // Drafts are organizer-only previews (cookie-auth, RLS-gated). Skip
+  // JSON-LD + the SEO cross-linking block so no structured data for
+  // unpublished markets ends up in the HTML body. generateMetadata
+  // already emits robots:noindex for drafts.
+  if (!market.publishedAt) {
+    return <>{children}</>
+  }
+
   // Fetch nearby markets server-side for SEO cross-linking.
   // Falls back to empty array if coordinates are missing or the RPC fails.
   let nearby: FleaMarketNearByView[] = []

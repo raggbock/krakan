@@ -24,6 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: route.name,
     description,
     alternates: { canonical: `/rundor/${id}` },
+    // Unpublished routes are creator-only previews (RLS); don't index.
+    ...(route.isPublished ? {} : { robots: { index: false, follow: false } }),
     openGraph: {
       title: `${route.name} — Loppisrunda på Fyndstigen`,
       description,
@@ -39,6 +41,13 @@ export default async function RouteLayout({ params, children }: Props) {
   // one DB round-trip per id per request.
   const route = await resolveRoute(id)
   if (!route) return <>{children}</>
+
+  // Unpublished routes are organizer-only previews (RLS lets the creator
+  // see their own drafts via cookie auth). Skip JSON-LD so no structured
+  // data for unpublished routes ends up in the HTML body.
+  if (!route.isPublished) {
+    return <>{children}</>
+  }
 
   const stopCount = route.stops.length
   const description = route.description
