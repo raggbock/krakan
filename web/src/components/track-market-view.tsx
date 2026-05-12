@@ -37,6 +37,16 @@ export function TrackMarketView({ marketId, slug }: { marketId: string; slug: st
       const fromTakeover = params.get('from') === 'takeover'
       const source: MarketViewSource = fromTakeover ? 'takeover' : detectSourceFromReferrer()
       posthog?.capture('market_viewed', { market_id: marketId, slug, source })
+
+      // Fire notification_clicked when arriving via email digest link (?nc=1)
+      if (params.get('nc') === '1') {
+        posthog?.capture('notification_clicked', { source: 'email' })
+        // Strip ?nc so it doesn't pollute subsequent navigation
+        params.delete('nc')
+        const qs = params.toString()
+        const cleanUrl = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
+        window.history.replaceState(null, '', cleanUrl)
+      }
     }
 
     // Fire takeover_claimed only when we have a logged-in user AND ?from=takeover.

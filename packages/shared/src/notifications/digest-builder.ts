@@ -173,7 +173,7 @@ function buildHtml(
   const sections: string[] = []
 
   for (const market of markets) {
-    const marketUrl = `${baseUrl}/loppis/${market.slug}`
+    const marketUrl = `${baseUrl}/loppis/${market.slug}?nc=1`
     const eventItems = market.events
       .map(
         (e) =>
@@ -197,7 +197,7 @@ function buildHtml(
   }
 
   for (const city of cities) {
-    const cityUrl = `${baseUrl}/loppisar/${city.citySlug}`
+    const cityUrl = `${baseUrl}/loppisar/${city.citySlug}?nc=1`
     const eventItems = city.events
       .map(
         (e) =>
@@ -273,7 +273,7 @@ function buildPlaintext(
   ]
 
   for (const market of markets) {
-    const marketUrl = `${baseUrl}/loppis/${market.slug}`
+    const marketUrl = `${baseUrl}/loppis/${market.slug}?nc=1`
     lines.push(`## ${market.marketName}`)
     for (const e of market.events) {
       lines.push(`  • ${eventTypeLabel(e.eventType, e.eventPayload)}`)
@@ -283,7 +283,7 @@ function buildPlaintext(
   }
 
   for (const city of cities) {
-    const cityUrl = `${baseUrl}/loppisar/${city.citySlug}`
+    const cityUrl = `${baseUrl}/loppisar/${city.citySlug}?nc=1`
     lines.push(`## Stad: ${city.citySlug}`)
     for (const e of city.events) {
       lines.push(`  • ${eventTypeLabel(e.eventType, e.eventPayload)}`)

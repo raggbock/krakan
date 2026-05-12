@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
       </Link>
 
       <h1 className="font-display text-3xl font-bold mb-2">Integritetspolicy</h1>
-      <p className="text-sm text-espresso/60 mb-8">Senast uppdaterad: 16 april 2026</p>
+      <p className="text-sm text-espresso/60 mb-8">Senast uppdaterad: 12 maj 2026</p>
 
       <div className="prose prose-espresso max-w-none space-y-8 text-sm leading-relaxed text-espresso/80">
 
@@ -99,16 +99,56 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-lg font-bold text-espresso mb-3">5. Lagringstid</h2>
+          <h2 className="font-display text-lg font-bold text-espresso mb-3">5. Följ-funktion och notifikationer</h2>
+          <p>
+            Inloggade användare kan följa enskilda loppisar och bevaka städer för att hålla sig uppdaterade
+            om nyheter. Nedan beskrivs hur vi hanterar de uppgifter som samlas in i samband med den funktionen.
+          </p>
+
+          <h3 className="font-semibold text-espresso mt-4 mb-1">Vad vi lagrar</h3>
+          <ul className="list-disc pl-5 space-y-1 mt-1">
+            <li><strong>Följ-relationer</strong> — vilka loppisar och städer du följer samt tidpunkten för när följningen skapades.</li>
+            <li><strong>Notifikationsinställningar</strong> — om du har e-postsammanfattning aktiverad eller inte, samt en kryptografiskt slumpad avprenumerations-token knuten till ditt konto.</li>
+            <li><strong>Notishistorik</strong> — en logg över händelser (t.ex. ny loppis i en stad du bevakar) och om och när de levererats till dig.</li>
+          </ul>
+
+          <h3 className="font-semibold text-espresso mt-4 mb-1">När vi skickar e-post</h3>
+          <p>
+            Om du har e-postsammanfattning aktiverad skickar vi ett dagligt e-postmeddelande kl 06:00 svensk tid
+            med en sammanfattning av vad som hänt på loppisar och städer du följer det senaste dygnet.
+            Vi skickar <em>inget</em> e-postmeddelande dagar utan händelser. Vi skickar aldrig marknadsföringsutskick
+            eller e-post av annan anledning än just denna digest.
+          </p>
+
+          <h3 className="font-semibold text-espresso mt-4 mb-1">Ditt val att avsäga dig</h3>
+          <p>
+            Du kan när som helst stänga av e-postsammanfattningen via inställningar i din profil
+            under <a href="/profile/notifikationer" className="text-rust">Notifikationsinställningar</a>.
+            Varje e-postmeddelande innehåller också en personlig avprenumerationslänk som stänger av
+            framtida utskick med ett enda klick — utan att du behöver logga in.
+            Din in-app-inkorg fortsätter att fungera oavsett e-postinställning.
+          </p>
+
+          <h3 className="font-semibold text-espresso mt-4 mb-1">Lagringstid för notishistorik</h3>
+          <p>
+            Notishistorik (leveransloggar) raderas automatiskt 30 dagar efter att de skapades.
+            Händelseloggar utan kvarvarande leveransposter rensas i samband med det.
+            Följ-relationer och notifikationsinställningar sparas så länge du har ett konto.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-lg font-bold text-espresso mb-3">6. Lagringstid</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>Kontouppgifter — så länge du har ett konto</li>
             <li>Bokningsdata — 3 år efter bokningstillfället (bokföringslagen)</li>
+            <li>Notishistorik — 30 dagar (se avsnitt 5)</li>
             <li>Analysdata — 26 månader (PostHog default)</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="font-display text-lg font-bold text-espresso mb-3">6. Dina rättigheter</h2>
+          <h2 className="font-display text-lg font-bold text-espresso mb-3">7. Dina rättigheter</h2>
           <p>Enligt GDPR har du rätt att:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
             <li><strong>Få tillgång</strong> till dina personuppgifter</li>
@@ -125,7 +165,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-lg font-bold text-espresso mb-3">7. Ändringar</h2>
+          <h2 className="font-display text-lg font-bold text-espresso mb-3">8. Ändringar</h2>
           <p>
             Vi kan uppdatera denna policy. Vid väsentliga ändringar meddelar vi dig via e-post eller en notis i tjänsten.
           </p>

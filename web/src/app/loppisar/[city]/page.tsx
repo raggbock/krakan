@@ -8,6 +8,7 @@ import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
 import { CityMarketLink } from './city-market-link'
+import { TrackCityEmailClick } from './track-city-email-click'
 
 // ISR: revalidate every hour — city listing pages are stable; kvartersloppisar
 // are dated events so 1h staleness is acceptable.
@@ -98,6 +99,7 @@ export default async function CityPage({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
+      <TrackCityEmailClick />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c') }}

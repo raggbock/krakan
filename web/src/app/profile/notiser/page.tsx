@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useInbox, useMarkRead, useMarkAllRead } from '@/hooks/use-notifications'
@@ -14,6 +15,7 @@ export default function NotiserPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
 
+  const posthog = usePostHog()
   const { data: rows = [], isLoading } = useInbox(user?.id, { limit: PAGE_SIZE })
   const markRead = useMarkRead(user?.id)
   const markAllRead = useMarkAllRead(user?.id)
@@ -34,8 +36,9 @@ export default function NotiserPage() {
 
   const unreadCount = rows.filter((r) => r.readAt === null).length
 
-  function handleRowClick(eventId: string, targetUrl: string) {
+  function handleRowClick(eventId: string, targetUrl: string, eventType: string) {
     markRead.mutate(eventId)
+    posthog?.capture('notification_clicked', { event_type: eventType, source: 'inbox_page' })
     router.push(targetUrl)
   }
 
@@ -121,7 +124,7 @@ export default function NotiserPage() {
                   <button
                     type="button"
                     className={`w-full text-left px-5 py-4 hover:bg-cream-warm/40 transition-colors duration-150 flex items-start gap-4 ${isUnread ? 'bg-rust/[0.03]' : ''}`}
-                    onClick={() => handleRowClick(row.eventId, targetUrl)}
+                    onClick={() => handleRowClick(row.eventId, targetUrl, row.eventType)}
                   >
                     {/* Unread indicator */}
                     <span

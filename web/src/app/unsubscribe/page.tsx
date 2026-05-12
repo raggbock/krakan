@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { UnsubscribeTracker } from './unsubscribe-tracker'
 
 export const metadata: Metadata = {
   title: 'Avsluta e-postprenumeration – Fyndstigen',
@@ -45,6 +46,7 @@ export default async function UnsubscribePage({ searchParams }: Props) {
 
         {success && (
           <div className="vintage-card p-8 animate-fade-up">
+            <UnsubscribeTracker />
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-forest/10 flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-forest">
                 <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

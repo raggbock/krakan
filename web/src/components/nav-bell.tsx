@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { useUnreadCount, useInbox, useMarkRead } from '@/hooks/use-notifications'
 import { formatEventText, formatRelativeTime, notificationTargetUrl } from '@/lib/notification-copy'
 
@@ -21,6 +22,7 @@ export function NavBell({ userId }: NavBellProps) {
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const posthog = usePostHog()
 
   const { data: unread = 0 } = useUnreadCount(userId)
   const { data: rows = [] } = useInbox(userId, { limit: 10 })
@@ -37,8 +39,9 @@ export function NavBell({ userId }: NavBellProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
 
-  function handleRowClick(eventId: string, targetUrl: string) {
+  function handleRowClick(eventId: string, targetUrl: string, eventType: string) {
     markRead.mutate(eventId)
+    posthog?.capture('notification_clicked', { event_type: eventType, source: 'bell' })
     setOpen(false)
     router.push(targetUrl)
   }
@@ -117,7 +120,7 @@ export function NavBell({ userId }: NavBellProps) {
                     <button
                       type="button"
                       className={`w-full text-left px-4 py-3 border-b border-cream-warm/60 hover:bg-cream-warm/40 transition-colors duration-150 flex items-start gap-3 ${isUnread ? 'bg-rust/3' : ''}`}
-                      onClick={() => handleRowClick(row.eventId, targetUrl)}
+                      onClick={() => handleRowClick(row.eventId, targetUrl, row.eventType)}
                     >
                       {/* Unread dot */}
                       <span
