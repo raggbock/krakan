@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const isPremium = market.organizer_subscription_tier >= 1
-  const title = market.name
+  const title = `${market.name} — öppettider & boka bord i ${market.city}`
 
   let description: string
   if (market.description) {
@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `/loppis/${slug}` },
     ...(isDraft ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
-      title: `${market.name} — Fyndstigen`,
+      title: `${market.name} — öppettider & boka bord i ${market.city}`,
       description,
       type: 'website',
       locale: 'sv_SE',

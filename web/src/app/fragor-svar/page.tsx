@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Frågor & svar',
+  title: 'Frågor om loppisar, bordsbokning & loppisrunda',
   description:
     'Vanliga frågor om Fyndstigen — hur du hittar loppisar, bokar bord, planerar din loppisrunda och publicerar din egen loppis.',
   alternates: { canonical: '/fragor-svar' },
