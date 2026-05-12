@@ -65,6 +65,7 @@ const ALLOWED_SUBPATHS = new Set([
   'errors',                                        // AppError + error codes (dir-resolves)
   'errors/index',                                  // explicit index path used by edge fns
   'crypto',                                        // sha256Hex, generateCode, timingSafeEqualHex
+  'notifications/digest-builder',                  // pure digest renderer (deliveries → email subject/html/text)
   'adapters/supabase/booking-repo',                // Supabase DB adapter
   'adapters/stripe/booking-stripe-gateway',        // Stripe adapter
   'adapters/supabase/stripe-account-repo',         // Supabase DB adapter (Connect onboarding flag)

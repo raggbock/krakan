@@ -4,7 +4,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 vi.mock('@/hooks/use-search', () => ({ useSearch: vi.fn() }))
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/search',
+}))
 vi.mock('@/components/fyndstigen-logo', () => ({ FyndstigenLogo: () => <div data-testid="loading" /> }))
+// FollowButton needs auth + router context; mock as a no-op for the
+// search results test (separately covered by follow-button.test.tsx).
+vi.mock('@/components/follow-button', () => ({
+  FollowButton: () => null,
+}))
 vi.mock('@fyndstigen/shared', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@fyndstigen/shared')
   return actual
