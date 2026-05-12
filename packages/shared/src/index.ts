@@ -139,3 +139,9 @@ export type {
   DeliveryRow,
   Followers,
 } from './notifications/delivery-fan-out'
+export { buildDigest } from './notifications/digest-builder'
+export type {
+  NotificationDeliveryRow,
+  DigestInput,
+  Digest,
+} from './notifications/digest-builder'
