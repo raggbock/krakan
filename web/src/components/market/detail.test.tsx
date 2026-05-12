@@ -8,34 +8,12 @@ vi.mock('next/link', () => ({
   ),
 }))
 
-vi.mock('@/lib/api', () => ({
-  api: {
-    fleaMarkets: { get: vi.fn() },
-    images: { getPublicUrl: vi.fn((path: string) => `/images/${path}`) },
-  },
-}))
-
-vi.mock('@/providers/deps-provider', () => ({
-  useDeps: () => ({
-    images: { publicUrl: (path: string) => `/images/${path}` },
-  }),
-}))
-
-vi.mock('@/lib/edge/edge', () => ({
-  edge: { invoke: vi.fn(), invokePublic: vi.fn() },
-  endpoints: {},
-}))
-
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({ user: null, loading: false }),
 }))
 
-vi.mock('@/hooks/use-market-details', () => ({
-  useMarketDetails: vi.fn(),
-}))
-
 vi.mock('@/components/fyndstigen-logo', () => ({
-  FyndstigenLogo: () => <div data-testid="loading" />,
+  FyndstigenLogo: () => <div data-testid="fyndstigen-logo" />,
 }))
 
 vi.mock('@/components/booking/tables-card', () => ({
@@ -62,10 +40,26 @@ vi.mock('@/components/organizer-card', () => ({
   ),
 }))
 
-import { useMarketDetails } from '@/hooks/use-market-details'
-import { MarketDetail } from './detail'
+vi.mock('@/components/market/image-gallery', () => ({
+  MarketImageGallery: () => <div data-testid="image-gallery" />,
+}))
 
-const mockMarket = {
+vi.mock('@/components/add-to-route-button', () => ({
+  AddToRouteButton: () => <button data-testid="add-to-route" />,
+}))
+
+vi.mock('@/components/auto-imported-notice', () => ({
+  AutoImportedNotice: () => <div data-testid="auto-imported-notice" />,
+}))
+
+vi.mock('@/components/claim-market-button', () => ({
+  ClaimMarketButton: () => <button data-testid="claim-market" />,
+}))
+
+import { MarketDetail } from './detail'
+import type { FleaMarketDetailsView, MarketTableView } from '@fyndstigen/shared'
+
+const mockMarket: FleaMarketDetailsView = {
   id: 'market-1',
   name: 'Stockholms Loppis',
   description: 'En fantastisk loppis i hjärtat av Stockholm.',
@@ -77,6 +71,16 @@ const mockMarket = {
   organizerId: 'organizer-1',
   organizerName: 'Test Arrangör',
   publishedAt: '2024-01-01T00:00:00Z',
+  latitude: 59.33,
+  longitude: 18.07,
+  autoAcceptBookings: false,
+  createdAt: '2024-01-01T00:00:00Z',
+  slug: 'stockholms-loppis',
+  isSystemOwned: false,
+  contactWebsite: null,
+  contactPhone: null,
+  contactEmail: null,
+  googlePlaceId: null,
   openingHourRules: [
     { id: 'r1', type: 'weekly', dayOfWeek: 1, anchorDate: null, openTime: '10:00', closeTime: '18:00' },
   ],
@@ -84,89 +88,69 @@ const mockMarket = {
   images: [],
 }
 
-const mockTables = [
+const mockTables: MarketTableView[] = [
   {
     id: 'table-1',
-    flea_market_id: 'market-1',
+    fleaMarketId: 'market-1',
     label: 'Bord A1',
     description: null,
-    price_sek: 200,
-    is_available: true,
+    priceSek: 200,
+    sizeDescription: null,
+    isAvailable: true,
+    maxPerDay: 1,
+    sortOrder: 0,
   },
 ]
-
-function setupMocks({
-  loading = false,
-  market = mockMarket as typeof mockMarket | null,
-  tables = [] as typeof mockTables,
-} = {}) {
-  vi.mocked(useMarketDetails).mockReturnValue({
-    market: market as any,
-    tables: tables as any,
-    loading,
-    error: null,
-  })
-}
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
 describe('MarketDetail', () => {
-  it('shows loading skeleton', () => {
-    setupMocks({ loading: true, market: null })
-    const { container } = render(<MarketDetail id="market-1" />)
-    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument()
-  })
-
-  it('shows "not found" when market does not exist', () => {
-    setupMocks({ loading: false, market: null })
-    render(<MarketDetail id="market-1" />)
-    expect(screen.getByText('Loppisen hittades inte')).toBeInTheDocument()
-    expect(screen.getByText(/Den kanske har tagits bort eller flyttat/)).toBeInTheDocument()
+  it('renders nothing when market is null (E2E bypass)', () => {
+    const { container } = render(<MarketDetail id="market-1" market={null} tables={[]} />)
+    expect(container.firstChild).toBeNull()
   })
 
   it('shows market name and city', () => {
-    setupMocks()
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
     expect(screen.getByText('Stockholms Loppis')).toBeInTheDocument()
     expect(screen.getByTestId('address-card')).toBeInTheDocument()
   })
 
   it('shows description', () => {
-    setupMocks()
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
     expect(screen.getByText('En fantastisk loppis i hjärtat av Stockholm.')).toBeInTheDocument()
   })
 
   it('shows "Permanent" badge for permanent market', () => {
-    setupMocks({ market: { ...mockMarket, isPermanent: true } })
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={{ ...mockMarket, isPermanent: true }} tables={[]} />)
     expect(screen.getByText('Permanent')).toBeInTheDocument()
   })
 
   it('shows "Tillfällig" badge for temporary market', () => {
-    setupMocks({ market: { ...mockMarket, isPermanent: false } })
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={{ ...mockMarket, isPermanent: false }} tables={[]} />)
     expect(screen.getByText('Tillfällig')).toBeInTheDocument()
   })
 
   it('shows BookableTablesCard when tables exist', () => {
-    setupMocks({ tables: mockTables })
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={mockMarket} tables={mockTables} />)
     expect(screen.getByTestId('bookable-tables')).toBeInTheDocument()
   })
 
   it('shows opening hours when rules exist', () => {
-    setupMocks()
-    render(<MarketDetail id="market-1" />)
+    render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
     expect(screen.getByTestId('opening-hours')).toBeInTheDocument()
   })
 
-  it('shows organizer link', () => {
-    setupMocks()
-    render(<MarketDetail id="market-1" />)
+  it('shows organizer card', () => {
+    render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
     expect(screen.getByTestId('organizer-card')).toBeInTheDocument()
     expect(screen.getByText('Test Arrangör')).toBeInTheDocument()
+  })
+
+  it('shows h1 with market name', () => {
+    render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Stockholms Loppis')
   })
 })

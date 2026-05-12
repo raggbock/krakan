@@ -20,7 +20,7 @@ export default async function FleaMarketRedirect({ params }: Props) {
   // directly. In prod this route is a 308 redirect; tests don't care about
   // the canonical URL, just that the page renders for the seeded id.
   if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
-    return <MarketDetail id={id} />
+    return <MarketDetail id={id} market={null} tables={[]} />
   }
 
   const supabase = createClient(

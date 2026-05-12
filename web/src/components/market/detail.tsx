@@ -1,7 +1,7 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { BackLink } from '@/components/back-link'
 import { AddressCard } from '@/components/address-card'
 import { OpeningHoursCard } from '@/components/opening-hours-card'
@@ -11,52 +11,57 @@ import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
 import { MarketImageGallery } from '@/components/market/image-gallery'
 import { AddToRouteButton } from '@/components/add-to-route-button'
-import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
+import { useAuth } from '@/lib/auth/auth-context'
+import { marketEditUrl } from '@/lib/urls'
+import type { FleaMarketDetailsView, MarketTableView } from '@fyndstigen/shared'
 
-export function MarketDetail({ id }: { id: string }) {
-  const vm = useMarketDetailViewModel(id)
-  const { market, tables, images, openingHours, isOwner, editUrl, mapUrl } = vm
+type Props = {
+  id: string
+  market: FleaMarketDetailsView | null
+  tables: MarketTableView[]
+}
 
-  if (vm.isLoading) {
-    // Skeleton mirrors the loaded layout (hero + image band + cards) so the
-    // paint after data arrives lands in-place rather than shifting the
-    // viewport (CLS #133).
-    return (
-      <div className="max-w-3xl mx-auto px-6 py-10" aria-busy="true" aria-label="Laddar loppis">
-        <div className="h-5 w-24 bg-cream-warm rounded mb-6 animate-pulse" />
-        <div className="aspect-[2/1] bg-cream-warm rounded-xl mb-8 animate-pulse" />
-        <div className="space-y-3 animate-pulse">
-          <div className="h-9 w-3/5 bg-cream-warm rounded" />
-          <div className="h-5 w-4/5 bg-cream-warm/60 rounded" />
-        </div>
-        <div className="space-y-4 mt-8 animate-pulse">
-          <div className="h-32 bg-cream-warm/50 rounded-xl" />
-          <div className="h-40 bg-cream-warm/50 rounded-xl" />
-          <div className="h-24 bg-cream-warm/50 rounded-xl" />
-        </div>
-      </div>
-    )
-  }
+export function MarketDetail({ id, market, tables }: Props) {
+  const { user } = useAuth()
 
-  if (!market) {
-    return (
-      <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <FyndstigenLogo size={56} className="text-espresso/15 mx-auto mb-4" />
-        <h1 className="font-display text-2xl font-bold">
-          Loppisen hittades inte
-        </h1>
-        <p className="text-espresso/65 mt-2">
-          Den kanske har tagits bort eller flyttat.
-        </p>
-        <Link
-          href="/utforska"
-          className="inline-block mt-6 text-rust font-medium hover:text-rust-light transition-colors"
-        >
-          &larr; Tillbaka till utforska
-        </Link>
-      </div>
-    )
-  }
+  const { images, openingHours, isOwner, editUrl, mapUrl } = useMemo(() => {
+    const images = [...(market?.images ?? [])].sort((a, b) => a.sortOrder - b.sortOrder)
+
+    const rules = market?.openingHourRules ?? []
+    const exceptions = market?.openingHourExceptions ?? []
+    const openingHours =
+      rules.length === 0 && exceptions.length === 0
+        ? undefined
+        : { rules, exceptions }
+
+    const isOwner = !!market && user?.id === market.organizerId
+
+    const mapUrl = (() => {
+      if (!market || market.latitude == null || market.longitude == null) {
+        return '/map'
+      }
+      const params = new URLSearchParams({
+        lat: String(market.latitude),
+        lng: String(market.longitude),
+        name: market.name,
+      })
+      if (market.slug) params.set('slug', market.slug)
+      return `/map?${params.toString()}`
+    })()
+
+    return {
+      images,
+      openingHours,
+      isOwner,
+      editUrl: marketEditUrl({ id }),
+      mapUrl,
+    }
+  }, [market, user?.id, id])
+
+  // market is null only in the E2E bypass path where the in-memory bridge
+  // resolves data client-side. In production the server always passes the
+  // full market — page.tsx calls notFound() if the market doesn't exist.
+  if (!market) return null
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
