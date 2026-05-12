@@ -23,7 +23,13 @@ function getServerData() {
   return createSupabaseServerData(supabase)
 }
 
+function isPlaceholderEnv(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  return !url || url.includes('placeholder.supabase.co')
+}
+
 async function resolveCity(slug: string) {
+  if (isPlaceholderEnv()) return null
   const cities = await getServerData().listCitiesWithMarkets()
   const matches = cities.filter((c) => slugifyCity(c.city) === slug)
   if (matches.length === 0) return null
@@ -37,6 +43,7 @@ async function resolveCity(slug: string) {
 export async function generateStaticParams() {
   // Pre-render all city pages at build time — city list is bounded and
   // changes infrequently. ISR (revalidate = 3600) handles new cities.
+  if (isPlaceholderEnv()) return []
   const cities = await getServerData().listCitiesWithMarkets()
   return cities.map((c) => ({ city: slugifyCity(c.city) }))
 }

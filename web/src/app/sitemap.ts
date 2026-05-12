@@ -3,11 +3,6 @@ import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-  )
-  const server = createSupabaseServerData(supabase)
   const baseUrl = 'https://fyndstigen.se'
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -19,6 +14,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/skapa`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/fragor-svar`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ]
+
+  // Bail in CI / build envs with placeholder Supabase URL — listing the
+  // static pages is still useful, but the dynamic discovery is impossible
+  // without a real DB connection.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url || url.includes('placeholder.supabase.co')) return staticPages
+
+  const supabase = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder')
+  const server = createSupabaseServerData(supabase)
 
   // Fetch all data sources in parallel — they are independent DB queries.
   const [markets, cities, routes, blockSales] = await Promise.all([

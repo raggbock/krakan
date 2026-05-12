@@ -28,6 +28,11 @@ function getServerData() {
   return createSupabaseServerData(supabase)
 }
 
+function isPlaceholderEnv(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  return !url || url.includes('placeholder.supabase.co')
+}
+
 type CityEntry = {
   slug: string
   canonicalName: string
@@ -35,6 +40,7 @@ type CityEntry = {
 }
 
 async function getCities(): Promise<CityEntry[]> {
+  if (isPlaceholderEnv()) return []
   const raw = await getServerData().listCitiesWithMarkets()
 
   // Dedupe by slug (same city with different casings → collapse, sum counts)

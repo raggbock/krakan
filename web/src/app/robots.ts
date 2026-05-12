@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/profile/', '/auth'],
+        disallow: ['/profile/', '/auth', '/admin', '/admin/'],
       },
     ],
     sitemap: 'https://fyndstigen.se/sitemap.xml',
