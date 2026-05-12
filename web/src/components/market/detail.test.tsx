@@ -56,7 +56,12 @@ vi.mock('@/components/claim-market-button', () => ({
   ClaimMarketButton: () => <button data-testid="claim-market" />,
 }))
 
+vi.mock('@/hooks/use-market-detail-view-model', () => ({
+  useMarketDetailViewModel: vi.fn(),
+}))
+
 import { MarketDetail } from './detail'
+import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
 import type { FleaMarketDetailsView, MarketTableView } from '@fyndstigen/shared'
 
 const mockMarket: FleaMarketDetailsView = {
@@ -107,9 +112,26 @@ beforeEach(() => {
 })
 
 describe('MarketDetail', () => {
-  it('renders nothing when market is null (E2E bypass)', () => {
+  it('delegates to hook when market is null (E2E in-memory bridge path)', () => {
+    // When page.tsx passes market={null}, MarketDetail must call the hook so
+    // the client-side in-memory bridge can resolve data.
+    const mockUseMarketDetailViewModel = vi.mocked(useMarketDetailViewModel)
+    mockUseMarketDetailViewModel.mockReturnValue({
+      market: null,
+      tables: [],
+      images: [],
+      openingHours: undefined,
+      isOwner: false,
+      editUrl: '/loppis/market-1/edit',
+      mapUrl: '/map',
+      isLoading: true,
+      error: null,
+    })
+
     const { container } = render(<MarketDetail id="market-1" market={null} tables={[]} />)
-    expect(container.firstChild).toBeNull()
+    expect(mockUseMarketDetailViewModel).toHaveBeenCalledWith('market-1')
+    // Loading state renders the skeleton (aria-busy), not an empty body
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument()
   })
 
   it('shows market name and city', () => {
