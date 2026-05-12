@@ -14,14 +14,21 @@ import { NextResponse, type NextRequest } from 'next/server'
  * Returns the response with refreshed cookies attached. Caller can
  * append other transforms (redirects, headers) to it.
  */
-export async function updateSupabaseSession(request: NextRequest): Promise<NextResponse> {
+export type SessionContext = {
+  response: NextResponse
+  /** The Supabase client bound to the request's cookies, after refresh. */
+  supabase: ReturnType<typeof createServerClient>
+  /** The authenticated user id, or null if the request is anonymous. */
+  userId: string | null
+}
+
+export async function updateSupabaseSession(request: NextRequest): Promise<SessionContext> {
   let response = NextResponse.next({ request })
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key) return response
 
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(url ?? '', key ?? '', {
     cookies: {
       getAll() {
         return request.cookies.getAll()
@@ -40,7 +47,7 @@ export async function updateSupabaseSession(request: NextRequest): Promise<NextR
 
   // Triggers token refresh if the access token is near expiry. The
   // setAll callback above writes the refreshed cookies onto the response.
-  await supabase.auth.getUser()
-
-  return response
+  if (!url || !key) return { response, supabase, userId: null }
+  const { data } = await supabase.auth.getUser()
+  return { response, supabase, userId: data.user?.id ?? null }
 }

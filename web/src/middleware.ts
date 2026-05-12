@@ -15,7 +15,31 @@ export async function middleware(request: NextRequest) {
   // Refresh the Supabase session on every navigation so the auth cookies
   // stay valid. The session cookies are httpOnly + secure (set by
   // @supabase/ssr) — tokens are not exposed to client JS.
-  return updateSupabaseSession(request);
+  const { response, supabase, userId } = await updateSupabaseSession(request);
+
+  // Server-side gate for /admin/*. The client AdminShell already does this,
+  // but enforcing here closes the SSR window where someone could observe
+  // any HTML that admin pages emit before the client redirect fires.
+  // /admin/invite/accept is intentionally open — invitees may be either
+  // unauthenticated (new user) or authenticated-but-not-admin (existing
+  // user accepting the role), and the page validates the token itself.
+  const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/invite")) {
+    if (!userId) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+    const { data: isAdmin } = await supabase.rpc("is_admin", { uid: userId });
+    if (!isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return response;
 }
 
 export const config = {

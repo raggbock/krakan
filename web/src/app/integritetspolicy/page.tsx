@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
           <ul className="list-disc pl-5 space-y-1 mt-2">
             <li><strong>Supabase</strong> (Frankfurt, EU) — databas och inloggning</li>
             <li><strong>Stripe</strong> (EU/US) — betalningshantering aktiveras när Fyndstigen öppnar bordsbokning med betalning. Stripe är självständigt personuppgiftsansvarig för betaldata. <a href="https://stripe.com/privacy" className="text-rust" target="_blank" rel="noopener noreferrer">Stripes integritetspolicy</a></li>
-            <li><strong>PostHog</strong> (Frankfurt, EU) — webbanalys, endast med ditt samtycke</li>
+            <li><strong>PostHog</strong> (Frankfurt, EU) — webbanalys, endast med ditt samtycke. Vi spårar bland annat sökfraser du anger i sökfältet — använd inte fältet för att skriva in personuppgifter (eget namn, adresser etc).</li>
             <li><strong>Sentry</strong> (Frankfurt, EU) — felrapportering från webbläsaren. PII (IP, cookies) skickas bara om du accepterat cookies.</li>
             <li><strong>Cloudflare</strong> (global, EU-avtal) — hosting och CDN</li>
           </ul>
