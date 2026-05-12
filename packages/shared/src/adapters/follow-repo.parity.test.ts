@@ -12,38 +12,55 @@ import type { FollowRepository } from '../ports/follow-repo'
 
 // ─── Supabase fake client ────────────────────────────────────────────────────
 
-type FakeStore = Map<string, { user_id: string; flea_market_id: string }>
+type MarketRow = { user_id: string; flea_market_id: string }
+type CityRow = { user_id: string; city_slug: string }
+type FakeStores = {
+  markets: Map<string, MarketRow>
+  cities: Map<string, CityRow>
+}
 
-function makeSupabaseClient(store: FakeStore) {
+function makeSupabaseClient(stores: FakeStores) {
   return {
-    from(_table: string) {
+    from(table: string) {
       type Mode = 'select' | 'delete' | 'upsert'
       let mode: Mode = 'select'
       const filters: Record<string, string> = {}
 
+      const isCity = table === 'user_city_follows'
+      const store = isCity ? stores.cities : stores.markets
+
+      function compositeKey(): string {
+        const uid = filters['user_id']
+        if (isCity) {
+          return `${uid}::${filters['city_slug']}`
+        }
+        return `${uid}::${filters['flea_market_id']}`
+      }
+
       function resolve(): { data: unknown; error: null } {
         if (mode === 'delete') {
-          const uid = filters['user_id']
-          const mid = filters['flea_market_id']
-          if (uid && mid) store.delete(`${uid}::${mid}`)
+          store.delete(compositeKey())
           return { data: null, error: null }
         }
         if (mode === 'select') {
-          const uid = filters['user_id']
-          const mid = filters['flea_market_id']
-          if (uid && mid) {
-            const k = `${uid}::${mid}`
-            return { data: store.get(k) ?? null, error: null }
-          }
+          const k = compositeKey()
+          return { data: (store as Map<string, unknown>).get(k) ?? null, error: null }
         }
         return { data: null, error: null }
       }
 
       const builder: Record<string, unknown> = {
-        upsert(data: { user_id: string; flea_market_id: string }, _opts?: unknown) {
+        upsert(data: MarketRow | CityRow, _opts?: unknown) {
           mode = 'upsert'
-          const k = `${data.user_id}::${data.flea_market_id}`
-          store.set(k, data)
+          if (isCity) {
+            const d = data as CityRow
+            const k = `${d.user_id}::${d.city_slug}`
+            stores.cities.set(k, d)
+          } else {
+            const d = data as MarketRow
+            const k = `${d.user_id}::${d.flea_market_id}`
+            stores.markets.set(k, d)
+          }
           return Promise.resolve({ data: null, error: null })
         },
 
@@ -89,6 +106,8 @@ function runParitySuite(name: string, factory: () => FollowRepository) {
       repo = factory()
     })
 
+    // ── Market follows ──────────────────────────────────────────────────────
+
     it('isFollowingMarket returns false when not following', async () => {
       const result = await repo.isFollowingMarket('u1', 'fm1')
       expect(result).toBe(false)
@@ -120,14 +139,63 @@ function runParitySuite(name: string, factory: () => FollowRepository) {
       expect(await repo.isFollowingMarket('u1', 'fm-nonexistent')).toBe(false)
     })
 
-    it('follows are scoped per user', async () => {
+    it('market follows are scoped per user', async () => {
       await repo.followMarket('u1', 'fm1')
       expect(await repo.isFollowingMarket('u2', 'fm1')).toBe(false)
     })
 
-    it('follows are scoped per market', async () => {
+    it('market follows are scoped per market', async () => {
       await repo.followMarket('u1', 'fm1')
       expect(await repo.isFollowingMarket('u1', 'fm2')).toBe(false)
+    })
+
+    // ── City follows ────────────────────────────────────────────────────────
+
+    it('isFollowingCity returns false when not following', async () => {
+      const result = await repo.isFollowingCity('u1', 'stockholm')
+      expect(result).toBe(false)
+    })
+
+    it('followCity + isFollowingCity returns true', async () => {
+      await repo.followCity('u1', 'stockholm')
+      expect(await repo.isFollowingCity('u1', 'stockholm')).toBe(true)
+    })
+
+    it('unfollowCity + isFollowingCity returns false', async () => {
+      await repo.followCity('u1', 'stockholm')
+      await repo.unfollowCity('u1', 'stockholm')
+      expect(await repo.isFollowingCity('u1', 'stockholm')).toBe(false)
+    })
+
+    it('double-followCity is idempotent (no error)', async () => {
+      await expect(async () => {
+        await repo.followCity('u1', 'stockholm')
+        await repo.followCity('u1', 'stockholm')
+      }).not.toThrow()
+      expect(await repo.isFollowingCity('u1', 'stockholm')).toBe(true)
+    })
+
+    it('unfollowCity without prior follow is idempotent (no error)', async () => {
+      await expect(async () => {
+        await repo.unfollowCity('u1', 'nonexistent-city')
+      }).not.toThrow()
+      expect(await repo.isFollowingCity('u1', 'nonexistent-city')).toBe(false)
+    })
+
+    it('city follows are scoped per user', async () => {
+      await repo.followCity('u1', 'stockholm')
+      expect(await repo.isFollowingCity('u2', 'stockholm')).toBe(false)
+    })
+
+    it('city follows are scoped per city', async () => {
+      await repo.followCity('u1', 'stockholm')
+      expect(await repo.isFollowingCity('u1', 'goteborg')).toBe(false)
+    })
+
+    it('city follows do not bleed into market follows', async () => {
+      await repo.followCity('u1', 'stockholm')
+      // 'stockholm' as a market ID should not be considered followed
+      expect(await repo.isFollowingMarket('u1', 'stockholm')).toBe(false)
     })
   })
 }
@@ -135,6 +203,6 @@ function runParitySuite(name: string, factory: () => FollowRepository) {
 runParitySuite('InMemoryFollowRepo', () => createInMemoryFollowRepo())
 
 runParitySuite('SupabaseFollowRepo', () => {
-  const store: FakeStore = new Map()
-  return createSupabaseFollowRepo(makeSupabaseClient(store) as never)
+  const stores: FakeStores = { markets: new Map(), cities: new Map() }
+  return createSupabaseFollowRepo(makeSupabaseClient(stores) as never)
 })

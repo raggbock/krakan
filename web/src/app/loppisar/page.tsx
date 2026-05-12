@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
+import { FollowButton } from '@/components/follow-button'
 
 // ISR: revalidate every hour — city list changes infrequently.
 export const revalidate = 3600
@@ -129,21 +130,21 @@ export default async function LoppisarPage() {
       ) : (
         <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up delay-1">
           {cities.map((city) => (
-            <li key={city.slug}>
-              <Link
-                href={`/loppisar/${city.slug}`}
-                className="vintage-card flex items-center justify-between gap-3 p-4 hover:bg-cream-warm/30 transition-colors group"
-              >
-                <div className="min-w-0">
+            <li key={city.slug} className="vintage-card overflow-hidden">
+              <div className="flex items-center justify-between gap-3 p-4">
+                <Link
+                  href={`/loppisar/${city.slug}`}
+                  className="flex-1 min-w-0 group hover:text-rust transition-colors"
+                >
                   <span className="font-display font-bold group-hover:text-rust transition-colors truncate block">
                     {city.canonicalName}
                   </span>
                   <span className="text-sm text-espresso/55 mt-0.5 block">
                     {city.marketCount === 1 ? '1 loppis' : `${city.marketCount} loppisar`}
                   </span>
-                </div>
-                <span className="text-espresso/20 shrink-0 group-hover:text-rust/40 transition-colors">→</span>
-              </Link>
+                </Link>
+                <FollowButton kind="city" target={city.slug} source="hub" />
+              </div>
             </li>
           ))}
         </ul>

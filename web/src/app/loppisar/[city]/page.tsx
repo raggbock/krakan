@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
 import { CityMarketLink } from './city-market-link'
 
@@ -114,12 +115,19 @@ export default async function CityPage({ params }: Props) {
         <span className="text-espresso">{resolved.canonicalName}</span>
       </nav>
 
-      <h1 className="font-display text-3xl sm:text-4xl font-bold">
-        Hitta loppis i {resolved.canonicalName}
-      </h1>
-      <p className="text-espresso/65 mt-2">
-        {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
-      </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold">
+            Hitta loppis i {resolved.canonicalName}
+          </h1>
+          <p className="text-espresso/65 mt-2">
+            {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
+          </p>
+        </div>
+        <div className="shrink-0 mt-1">
+          <FollowButton kind="city" target={slug} source="city_page" />
+        </div>
+      </div>
 
       {blockSalesInCity.length > 0 && (
         <section className="mt-6 mb-8">

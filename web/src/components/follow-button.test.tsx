@@ -1,10 +1,13 @@
 /**
  * FollowButton smoke tests — run against the in-memory adapter via DepsProvider.
  *
- * These cover the three scenarios from the issue #151 acceptance criteria:
- *   1. Logged-in user can follow and the button flips to "Följer"
- *   2. Logged-in user can unfollow and the button returns to "Följ"
- *   3. Anon user clicking "Följ" is redirected to /auth?next=<current-path>
+ * Covers issue #151 acceptance criteria (market follow) and issue #152 (city follow):
+ *   1. Logged-in user can follow a market and the button flips to "Följer"
+ *   2. Logged-in user can unfollow a market and the button returns to "Följ"
+ *   3. Anon user clicking "Följ" (market) is redirected to /auth?next=<current-path>
+ *   4. Logged-in user can follow a city and the button flips to "Bevakar"
+ *   5. Logged-in user can unfollow a city and the button returns to "Bevaka"
+ *   6. Anon user clicking "Bevaka" (city) is redirected to /auth?next=<current-path>
  */
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
@@ -31,6 +34,12 @@ vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({ user: mockUser }),
 }))
 
+// ─── PostHog mock ─────────────────────────────────────────────────────────────
+
+vi.mock('posthog-js/react', () => ({
+  usePostHog: () => ({ capture: vi.fn() }),
+}))
+
 // ─── Wrapper factory ──────────────────────────────────────────────────────────
 
 import { FollowButton } from './follow-button'
@@ -52,9 +61,9 @@ beforeEach(() => {
   mockPush.mockClear()
 })
 
-// ─── Anon redirect ────────────────────────────────────────────────────────────
+// ─── Market: Anon redirect ────────────────────────────────────────────────────
 
-describe('FollowButton — anon visitor', () => {
+describe('FollowButton(market) — anon visitor', () => {
   it('shows "Följ" when not logged in', () => {
     mockUser = null
     render(<FollowButton kind="market" target="fm-1" />, { wrapper: createWrapper() })
@@ -70,9 +79,9 @@ describe('FollowButton — anon visitor', () => {
   })
 })
 
-// ─── Logged-in toggle ─────────────────────────────────────────────────────────
+// ─── Market: Logged-in toggle ─────────────────────────────────────────────────
 
-describe('FollowButton — logged-in user', () => {
+describe('FollowButton(market) — logged-in user', () => {
   it('initially shows "Följ" (not following)', async () => {
     mockUser = { id: 'u1' }
     const deps = makeInMemoryDeps()
@@ -88,7 +97,6 @@ describe('FollowButton — logged-in user', () => {
     const deps = makeInMemoryDeps()
     render(<FollowButton kind="market" target="fm-1" />, { wrapper: createWrapper(deps) })
 
-    // Wait for initial query to resolve
     await waitFor(() =>
       expect(screen.getByRole('button')).not.toBeDisabled(),
     )
@@ -103,12 +111,10 @@ describe('FollowButton — logged-in user', () => {
   it('returns to "Följ" after clicking "Följer"', async () => {
     mockUser = { id: 'u1' }
     const deps = makeInMemoryDeps()
-    // Seed the follow
     await deps.follows.followMarket('u1', 'fm-1')
 
     render(<FollowButton kind="market" target="fm-1" />, { wrapper: createWrapper(deps) })
 
-    // Wait for query to resolve to "Följer"
     await waitFor(() =>
       expect(screen.getByRole('button')).toHaveTextContent('Följer'),
     )
@@ -130,15 +136,78 @@ describe('FollowButton — logged-in user', () => {
   })
 })
 
-// ─── kind='city' — not yet active ─────────────────────────────────────────────
+// ─── City: Anon redirect ──────────────────────────────────────────────────────
 
-describe('FollowButton — kind=city', () => {
-  it('renders nothing for kind=city (not yet implemented)', () => {
+describe('FollowButton(city) — anon visitor', () => {
+  it('shows "Bevaka" when not logged in', () => {
+    mockUser = null
+    mockPathname = '/loppisar/stockholm'
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper() })
+    expect(screen.getByRole('button')).toHaveTextContent('Bevaka')
+  })
+
+  it('redirects to /auth?next=<current-path> on click', () => {
+    mockUser = null
+    mockPathname = '/loppisar/stockholm'
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper() })
+    fireEvent.click(screen.getByRole('button'))
+    expect(mockPush).toHaveBeenCalledWith('/auth?next=%2Floppisar%2Fstockholm')
+  })
+})
+
+// ─── City: Logged-in toggle ───────────────────────────────────────────────────
+
+describe('FollowButton(city) — logged-in user', () => {
+  it('initially shows "Bevaka" (not following)', async () => {
     mockUser = { id: 'u1' }
-    const { container } = render(
-      <FollowButton kind="city" target="stockholm" />,
-      { wrapper: createWrapper() },
+    const deps = makeInMemoryDeps()
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper(deps) })
+    await waitFor(() =>
+      expect(screen.getByRole('button')).not.toBeDisabled(),
     )
-    expect(container.firstChild).toBeNull()
+    expect(screen.getByRole('button')).toHaveTextContent('Bevaka')
+  })
+
+  it('flips to "Bevakar" after clicking "Bevaka"', async () => {
+    mockUser = { id: 'u1' }
+    const deps = makeInMemoryDeps()
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper(deps) })
+
+    await waitFor(() =>
+      expect(screen.getByRole('button')).not.toBeDisabled(),
+    )
+
+    fireEvent.click(screen.getByRole('button'))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button')).toHaveTextContent('Bevakar'),
+    )
+  })
+
+  it('returns to "Bevaka" after clicking "Bevakar"', async () => {
+    mockUser = { id: 'u1' }
+    const deps = makeInMemoryDeps()
+    await deps.follows.followCity('u1', 'stockholm')
+
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper(deps) })
+
+    await waitFor(() =>
+      expect(screen.getByRole('button')).toHaveTextContent('Bevakar'),
+    )
+
+    fireEvent.click(screen.getByRole('button'))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button')).toHaveTextContent('Bevaka'),
+    )
+  })
+
+  it('does not call router.push for logged-in city follow', async () => {
+    mockUser = { id: 'u1' }
+    const deps = makeInMemoryDeps()
+    render(<FollowButton kind="city" target="stockholm" />, { wrapper: createWrapper(deps) })
+    await waitFor(() => expect(screen.getByRole('button')).not.toBeDisabled())
+    fireEvent.click(screen.getByRole('button'))
+    expect(mockPush).not.toHaveBeenCalled()
   })
 })

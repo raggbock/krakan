@@ -65,5 +65,7 @@ export const queryKeys = {
     all: ['follows'] as const,
     isFollowingMarket: (userId: string, marketId: string) =>
       ['follows', 'market', userId, marketId] as const,
+    isFollowingCity: (userId: string, citySlug: string) =>
+      ['follows', 'city', userId, citySlug] as const,
   },
 }

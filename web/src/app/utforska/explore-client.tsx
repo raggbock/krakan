@@ -9,6 +9,7 @@ import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
 import { marketUrl } from '@/lib/urls'
 import { useOpenNowIds } from '@/hooks/use-open-now'
 import { AddToRouteButton } from '@/components/add-to-route-button'
+import { FollowButton } from '@/components/follow-button'
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371
@@ -375,6 +376,13 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                     source="explore_card"
                     compact
                   />
+                </div>
+                {/* Follow button — stopPropagation prevents the card <Link> from navigating */}
+                <div
+                  className="absolute bottom-2.5 right-2.5 z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <FollowButton kind="market" target={market.id} source="utforska" compact />
                 </div>
                 {/* Card placeholder band — compact, themed, no big empty
                     cream area. Market name renders as faded Fraunces italic

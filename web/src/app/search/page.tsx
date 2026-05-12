@@ -9,6 +9,7 @@ import { useSearch } from '@/hooks/use-search'
 import { marketUrl } from '@/lib/urls'
 import { supabase } from '@/lib/supabase'
 import { safeFilterValue } from './sanitize'
+import { FollowButton } from '@/components/follow-button'
 
 type BlockSaleResult = {
   id: string
@@ -190,7 +191,7 @@ export default function SearchPage() {
                     </p>
                   </div>
 
-                  {/* Type & arrow */}
+                  {/* Type, follow & arrow */}
                   <div className="flex items-center gap-3 shrink-0">
                     <span
                       className={`stamp text-xs hidden sm:inline-flex ${
@@ -201,6 +202,10 @@ export default function SearchPage() {
                     >
                       {market.isPermanent ? 'Permanent' : 'Tillfällig'}
                     </span>
+                    {/* stopPropagation prevents the row <Link> from navigating */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <FollowButton kind="market" target={market.id} source="search" compact />
+                    </div>
                     <span className="text-espresso/20 group-hover:text-rust/40 transition-colors text-lg">
                       &rarr;
                     </span>

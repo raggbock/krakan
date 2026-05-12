@@ -199,7 +199,7 @@ function MarketDetailLayout({
           />
         )}
         {market.publishedAt && (
-          <FollowButton kind="market" target={id} source="market_detail" />
+          <FollowButton kind="market" target={id} source="detail" />
         )}
         <Link
           href={mapUrl}

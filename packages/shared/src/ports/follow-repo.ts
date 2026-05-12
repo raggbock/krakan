@@ -1,14 +1,15 @@
 /**
  * FollowRepository — port for managing user follow relationships.
  *
- * This tracer slice (issue #151) covers market follows only.
- * City follows (issue #152) will extend this interface.
+ * Issue #151 added market follows. Issue #152 adds city follows.
  *
  * All methods are idempotent:
- *   - followMarket: upsert — no error if already following
- *   - unfollowMarket: delete — no error if not following
+ *   - follow*: upsert — no error if already following
+ *   - unfollow*: delete — no error if not following
  */
 export interface FollowRepository {
+  // ─── Market follows ──────────────────────────────────────────────────────
+
   /**
    * Follow a market. Idempotent (upsert) — safe to call if already following.
    */
@@ -23,4 +24,21 @@ export interface FollowRepository {
    * Returns true if the user is currently following the market.
    */
   isFollowingMarket(userId: string, marketId: string): Promise<boolean>
+
+  // ─── City follows ─────────────────────────────────────────────────────────
+
+  /**
+   * Follow a city by slug. Idempotent (upsert) — safe to call if already following.
+   */
+  followCity(userId: string, citySlug: string): Promise<void>
+
+  /**
+   * Unfollow a city by slug. Idempotent — safe to call if not following.
+   */
+  unfollowCity(userId: string, citySlug: string): Promise<void>
+
+  /**
+   * Returns true if the user is currently following the city.
+   */
+  isFollowingCity(userId: string, citySlug: string): Promise<boolean>
 }
