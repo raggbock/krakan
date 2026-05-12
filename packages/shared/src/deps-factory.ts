@@ -35,6 +35,7 @@ import { createInMemoryBookings } from './adapters/in-memory/bookings'
 import { createInMemoryStats } from './adapters/in-memory/stats'
 import { createInMemoryImages } from './adapters/in-memory/images'
 import { createInMemoryGeo } from './adapters/in-memory/geo'
+import { createInMemoryFollowRepo } from './adapters/in-memory/follow-repo'
 import { createGeo } from './geo'
 import {
   createSupabaseFleaMarkets,
@@ -47,6 +48,7 @@ import { createSupabaseAdmin } from './adapters/supabase/admin'
 import { createSupabaseBookings } from './adapters/supabase/bookings'
 import { createSupabaseStats } from './adapters/supabase/stats'
 import { createSupabaseImages } from './adapters/supabase/images'
+import { createSupabaseFollowRepo } from './adapters/supabase/follow-repo'
 
 type StoredMarket = FleaMarketView & {
   isDeleted: boolean
@@ -79,6 +81,7 @@ export function makeInMemoryDeps(
     search: createInMemorySearch({ fleaMarkets }),
     images: createInMemoryImages(),
     geo: createInMemoryGeo({ fleaMarkets }),
+    follows: createInMemoryFollowRepo(),
   }
 }
 
@@ -106,6 +109,7 @@ export function createE2EInMemoryDeps(): { deps: Deps; control: E2EControl } {
       search: createInMemorySearch({ fleaMarkets: markets }),
       images: createInMemoryImages(),
       geo: createInMemoryGeo({ fleaMarkets: markets }),
+      follows: createInMemoryFollowRepo(),
     },
     control: { markets: marketsControl },
   }
@@ -137,5 +141,6 @@ export function makeSupabaseDeps(supabase: SupabaseClient, options: MakeSupabase
     search: createSupabaseSearch(supabase),
     images: createSupabaseImages({ supabase, compress: options.compressImage }),
     geo: createGeo(supabase),
+    follows: createSupabaseFollowRepo(supabase),
   }
 }

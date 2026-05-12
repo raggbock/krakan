@@ -22,6 +22,7 @@ import type { BookingRepository } from './ports/bookings'
 import type { StatsPort } from './ports/stats'
 import type { ImagePort } from './ports/images'
 import type { GeoService } from './geo'
+import type { FollowRepository } from './ports/follow-repo'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -44,4 +45,5 @@ export type Deps = {
   search: SearchRepository
   images: ImagePort
   geo: GeoService
+  follows: FollowRepository
 }

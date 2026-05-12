@@ -11,6 +11,7 @@ import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
 import { MarketImageGallery } from '@/components/market/image-gallery'
 import { AddToRouteButton } from '@/components/add-to-route-button'
+import { FollowButton } from '@/components/follow-button'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth/auth-context'
 import { marketEditUrl } from '@/lib/urls'
@@ -196,6 +197,9 @@ function MarketDetailLayout({
             marketCity={market.city}
             source="market_detail"
           />
+        )}
+        {market.publishedAt && (
+          <FollowButton kind="market" target={id} source="market_detail" />
         )}
         <Link
           href={mapUrl}

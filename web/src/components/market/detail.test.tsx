@@ -56,6 +56,10 @@ vi.mock('@/components/claim-market-button', () => ({
   ClaimMarketButton: () => <button data-testid="claim-market" />,
 }))
 
+vi.mock('@/components/follow-button', () => ({
+  FollowButton: () => <button data-testid="follow-button" />,
+}))
+
 vi.mock('@/hooks/use-market-detail-view-model', () => ({
   useMarketDetailViewModel: vi.fn(),
 }))

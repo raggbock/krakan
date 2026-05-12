@@ -11,4 +11,5 @@ export type { AdminPort, AdminRecord, PendingInvite, AdminAction } from './admin
 export type { ImagePort } from './images'
 export type { StripeAccountRepo } from './stripe-account-repo'
 export type { SubscriptionRepo } from './subscription-repo'
+export type { FollowRepository } from './follow-repo'
 export type { Logger } from './logger'

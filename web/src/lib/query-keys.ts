@@ -61,4 +61,9 @@ export const queryKeys = {
     bySlug: (slug: string) => ['blockSales', 'slug', slug] as const,
     queue: (slug: string) => ['blockSales', 'queue', slug] as const,
   },
+  follows: {
+    all: ['follows'] as const,
+    isFollowingMarket: (userId: string, marketId: string) =>
+      ['follows', 'market', userId, marketId] as const,
+  },
 }
