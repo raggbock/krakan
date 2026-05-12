@@ -36,6 +36,54 @@ type NearbyFleaMarketRpcRow = {
   slug?: string | null
 }
 
+type VisibleFleaMarketRow = {
+  id: string
+  name: string
+  description: string | null
+  street: string | null
+  zip_code: string | null
+  city: string | null
+  country: string | null
+  is_permanent: boolean
+  latitude: number | null
+  longitude: number | null
+  published_at: string | null
+  organizer_id: string | null
+  auto_accept_bookings: boolean | null
+  created_at: string | null
+  slug: string | null
+  is_system_owned: boolean | null
+  contact_website: string | null
+  contact_phone: string | null
+  contact_email: string | null
+  google_place_id: string | null
+}
+
+function mapVisibleFleaMarketRow(r: VisibleFleaMarketRow): FleaMarketView {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description ?? '',
+    street: r.street ?? '',
+    zipCode: r.zip_code ?? '',
+    city: r.city ?? '',
+    country: r.country ?? '',
+    isPermanent: r.is_permanent ?? false,
+    latitude: r.latitude ?? 0,
+    longitude: r.longitude ?? 0,
+    publishedAt: r.published_at ?? null,
+    organizerId: r.organizer_id ?? '',
+    autoAcceptBookings: r.auto_accept_bookings ?? false,
+    createdAt: r.created_at ?? '',
+    slug: r.slug ?? null,
+    isSystemOwned: r.is_system_owned ?? false,
+    contactWebsite: r.contact_website ?? null,
+    contactPhone: r.contact_phone ?? null,
+    contactEmail: r.contact_email ?? null,
+    googlePlaceId: r.google_place_id ?? null,
+  }
+}
+
 function mapNearbyFleaMarket(r: NearbyFleaMarketRpcRow): FleaMarketNearByView {
   return {
     id: r.id,
@@ -66,7 +114,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         .range(from, to)
 
       if (error) throw error
-      return { items: data ?? [], count: count ?? 0 } as { items: FleaMarketView[]; count: number }
+      return { items: (data ?? [] as VisibleFleaMarketRow[]).map(mapVisibleFleaMarketRow), count: count ?? 0 }
     },
 
     async details(id) {
@@ -269,7 +317,10 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
       if (visibleError) throw visibleError
       const visibleIds = new Set((visibleData ?? []).map((r: { id: string }) => r.id))
 
-      return markets.map((m) => ({ ...m, isVisible: visibleIds.has(m.id) })) as FleaMarketView[]
+      return markets.map((m) => ({
+        ...mapVisibleFleaMarketRow(m as unknown as VisibleFleaMarketRow),
+        isVisible: visibleIds.has(m.id),
+      }))
     },
   }
 }
@@ -284,7 +335,7 @@ export function createSupabaseSearch(supabase: SupabaseClient): SearchRepository
         .limit(20)
 
       if (error) throw error
-      return { fleaMarkets: (data ?? []) as FleaMarketView[] }
+      return { fleaMarkets: (data ?? [] as VisibleFleaMarketRow[]).map(mapVisibleFleaMarketRow) }
     },
   }
 }
