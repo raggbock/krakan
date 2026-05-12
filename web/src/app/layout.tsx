@@ -6,11 +6,13 @@ import { Nav } from '@/components/nav'
 import { TrailBackgroundLazy } from '@/components/trail-background-lazy'
 import { PostHogProvider, PostHogPageview } from '@/lib/analytics/posthog'
 import { QueryProvider } from '@/providers/query-provider'
-import { Suspense } from 'react'
+import { Suspense, cache } from 'react'
 import { CookieConsent } from '@/components/cookie-consent'
 import { CookieSettingsLink } from '@/components/cookie-settings-link'
 import { WebVitalsReporter } from '@/components/web-vitals-reporter'
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
 
 const fraunces = Fraunces({
   variable: '--font-fraunces',
@@ -91,11 +93,44 @@ const websiteJsonLd = {
   },
 }
 
-export default function RootLayout({
+type PopularCity = { slug: string; canonicalName: string }
+
+// cache() dedupes within a request; revalidate=3600 (on each page) handles
+// cross-request staleness. Root layout cannot export `revalidate` itself in
+// Next.js App Router — that export only works on page/route segments.
+const getPopularCities = cache(async (): Promise<PopularCity[]> => {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+    )
+    const raw = await createSupabaseServerData(supabase).listCitiesWithMarkets()
+    // Dedupe by slug (same city with different casings → collapse, sum counts)
+    const map = new Map<string, { slug: string; canonicalName: string; marketCount: number }>()
+    for (const c of raw) {
+      const slug = slugifyCity(c.city)
+      const existing = map.get(slug)
+      if (existing) {
+        existing.marketCount += c.marketCount
+      } else {
+        map.set(slug, { slug, canonicalName: c.city, marketCount: c.marketCount })
+      }
+    }
+    return Array.from(map.values())
+      .sort((a, b) => b.marketCount - a.marketCount)
+      .slice(0, 12)
+  } catch {
+    // Non-fatal — footer degrades gracefully if DB is unreachable at build time.
+    return []
+  }
+})
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const popularCities = await getPopularCities()
   return (
     <html
       lang="sv"
@@ -131,6 +166,26 @@ export default function RootLayout({
             <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
             <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
               <div className="max-w-6xl mx-auto px-6 py-10">
+                {popularCities.length > 0 && (
+                  <div className="mb-8 pb-8 border-b border-cream-warm">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-espresso/60 mb-3">
+                      Populära städer
+                    </p>
+                    <ul className="flex flex-wrap gap-x-4 gap-y-2">
+                      {popularCities.map((city) => (
+                        <li key={city.slug}>
+                          <Link
+                            href={`/loppisar/${city.slug}`}
+                            className="text-sm text-espresso/65 hover:text-espresso transition-colors"
+                            prefetch={false}
+                          >
+                            {city.canonicalName}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                   <div>
                     <p className="font-display font-bold text-lg text-espresso">

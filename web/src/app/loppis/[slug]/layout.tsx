@@ -2,8 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { createSupabaseServerData } from '@fyndstigen/shared'
+import { createSupabaseServerData, createGeo } from '@fyndstigen/shared'
+import type { FleaMarketNearByView } from '@fyndstigen/shared'
+import { marketUrl } from '@/lib/urls'
 
 // Cache this route for 1 hour. Published markets change infrequently;
 // ISR pushes p95 latency from ~3s (full SSR) down to <300ms on cache hits.
@@ -48,6 +51,55 @@ const SCHEMA_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Fr
 // what we want.
 async function getServerData() {
   return createSupabaseServerData(await createSupabaseServerClient())
+}
+
+async function getGeoService() {
+  return createGeo(await createSupabaseServerClient())
+}
+
+// --- NearbyMarketsSection ---
+
+function formatDistanceKm(km: number): string {
+  return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`
+}
+
+function NearbyMarketsSection({ markets }: { markets: FleaMarketNearByView[] }) {
+  return (
+    <section
+      className="max-w-4xl mx-auto px-6 pb-16"
+      aria-label="Närliggande loppisar"
+    >
+      <h2 className="font-display text-2xl font-bold mb-6">Närliggande loppisar</h2>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {markets.map((m) => (
+          <li key={m.id}>
+            <Link
+              href={marketUrl(m)}
+              className="vintage-card flex flex-col gap-1.5 p-4 hover:bg-cream-warm/30 transition-colors group"
+              aria-label={`${m.name} i ${m.city}, ${formatDistanceKm(m.distanceKm)} bort`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-display font-bold group-hover:text-rust transition-colors line-clamp-2 flex-1">
+                  {m.name}
+                </span>
+                <span
+                  className={`stamp text-[10px] shrink-0 mt-0.5 ${
+                    m.isPermanent ? 'text-forest' : 'text-mustard'
+                  }`}
+                >
+                  {m.isPermanent ? 'Permanent' : 'Tillfällig'}
+                </span>
+              </div>
+              <p className="text-sm text-espresso/65">{m.city}</p>
+              <p className="text-xs text-espresso/45 mt-0.5">
+                {formatDistanceKm(m.distanceKm)} bort
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
 }
 
 // React's cache() dedupes within a single request — both generateMetadata
@@ -115,6 +167,26 @@ export default async function LoppisLayout({ params, children }: Props) {
 
   const market = await resolveBySlug(slug)
   if (!market) notFound()
+
+  // Fetch nearby markets server-side for SEO cross-linking.
+  // Falls back to empty array if coordinates are missing or the RPC fails.
+  let nearby: FleaMarketNearByView[] = []
+  if (market.latitude && market.longitude) {
+    try {
+      const geo = await getGeoService()
+      const results = await geo.nearbyMarkets(
+        { lat: market.latitude, lng: market.longitude },
+        50,
+      )
+      // Exclude the current market (appears at distance ≈ 0) and cap at 6.
+      nearby = results
+        .filter((m) => m.slug !== slug)
+        .slice(0, 6)
+    } catch {
+      // Non-fatal — nearby block is a nice-to-have; don't break the page.
+      nearby = []
+    }
+  }
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -245,6 +317,7 @@ export default async function LoppisLayout({ params, children }: Props) {
         />
       ))}
       {children}
+      {nearby.length > 0 && <NearbyMarketsSection markets={nearby} />}
     </>
   )
 }

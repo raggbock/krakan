@@ -365,6 +365,12 @@ export default async function LandingPage() {
             >
               Eller börja utforska direkt &rarr;
             </Link>
+            <Link
+              href="/loppisar"
+              className="inline-flex items-center gap-2 text-espresso/60 font-medium text-sm hover:text-espresso transition-colors px-4 py-4"
+            >
+              Bläddra loppisar per stad &rarr;
+            </Link>
           </div>
         </div>
       </section>
