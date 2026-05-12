@@ -129,3 +129,11 @@ export type { Stop } from './domain/route-optimizer'
 export { fetchDrivingRoute } from './geo/routing'
 export type { RoutingResult, RouteLeg } from './geo/routing'
 export { getInitials, slugifyCity, formatDistance, formatDuration } from './format'
+
+// Notifications
+export { fanOutDeliveries } from './notifications/delivery-fan-out'
+export type {
+  NotificationEvent,
+  DeliveryRow,
+  Followers,
+} from './notifications/delivery-fan-out'
