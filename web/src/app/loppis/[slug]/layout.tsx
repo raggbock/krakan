@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseServerData, createGeo } from '@fyndstigen/shared'
 import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import { marketUrl } from '@/lib/urls'
+import { resolveLoppis } from './market-cache'
 
 // Cache this route for 1 hour. Published markets change infrequently;
 // ISR pushes p95 latency from ~3s (full SSR) down to <300ms on cache hits.
@@ -44,14 +44,6 @@ type Props = {
 }
 
 const SCHEMA_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const
-
-// Use the cookie-aware server client so RLS sees the logged-in
-// organizer's auth.uid() and lets them resolve their OWN drafts.
-// Anon visitors still only see published markets via RLS — exactly
-// what we want.
-async function getServerData() {
-  return createSupabaseServerData(await createSupabaseServerClient())
-}
 
 async function getGeoService() {
   return createGeo(await createSupabaseServerClient())
@@ -102,40 +94,27 @@ function NearbyMarketsSection({ markets }: { markets: FleaMarketNearByView[] }) 
   )
 }
 
-// React's cache() dedupes within a single request — both generateMetadata
-// and the layout body resolve the same slug, but only one DB round-trip
-// goes out. Without this we'd hit Supabase twice per render.
-const resolveBySlug = cache(async (slug: string) => {
-  // Bail in CI / build envs with placeholder Supabase URL — fetch would
-  // otherwise wait for DNS to fail before returning null anyway.
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!url || url.includes('placeholder.supabase.co')) return null
-
-  const server = await getServerData()
-  const id = await server.getMarketIdBySlug(slug)
-  if (!id) return null
-  const meta = await server.getMarketMeta(id)
-  return meta ? { id, ...meta } : null
-})
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   if (process.env.NEXT_PUBLIC_E2E_FAKE === '1') {
     return { title: 'E2E loppis' }
   }
-  const market = await resolveBySlug(slug)
-  if (!market) {
+  // Shares the same React cache() instance as LoppisLayout and page.tsx —
+  // one DB round-trip sequence per slug per request.
+  const data = await resolveLoppis(slug)
+  if (!data) {
     return { title: 'Loppis hittades inte' }
   }
 
-  const isPremium = market.organizer_subscription_tier >= 1
+  const { market, meta } = data
+  const isPremium = meta.organizer_subscription_tier >= 1
   const title = `${market.name} — öppettider & boka bord i ${market.city}`
 
   let description: string
   if (market.description) {
     description = market.description.slice(0, 160)
-  } else if (isPremium && market.price_range) {
-    description = `${market.name} i ${market.city}. ${market.is_permanent ? 'Permanent' : 'Tillfällig'} loppis. Bord från ${market.price_range.min_sek} kr. Hitta öppettider och boka bord på Fyndstigen.`
+  } else if (isPremium && meta.price_range) {
+    description = `${market.name} i ${market.city}. ${market.isPermanent ? 'Permanent' : 'Tillfällig'} loppis. Bord från ${meta.price_range.min_sek} kr. Hitta öppettider och boka bord på Fyndstigen.`
   } else {
     description = `${market.name} i ${market.city}. Hitta öppettider, adress och boka bord på Fyndstigen.`
   }
@@ -144,7 +123,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // and the post-create redirect doesn't 404), but Google must not index
   // them — half-finished pages would tank the SEO equity of the eventual
   // published version.
-  const isDraft = !market.published_at
+  const isDraft = !market.publishedAt
 
   return {
     title,
@@ -156,7 +135,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       locale: 'sv_SE',
-      ...(market.image_url ? { images: [{ url: market.image_url }] } : {}),
+      ...(meta.image_url ? { images: [{ url: meta.image_url }] } : {}),
     },
   }
 }
@@ -170,8 +149,12 @@ export default async function LoppisLayout({ params, children }: Props) {
     return <>{children}</>
   }
 
-  const market = await resolveBySlug(slug)
-  if (!market) notFound()
+  // Shares the same React cache() instance as generateMetadata and page.tsx —
+  // one DB round-trip sequence per slug per request.
+  const data = await resolveLoppis(slug)
+  if (!data) notFound()
+
+  const { market, meta } = data
 
   // Fetch nearby markets server-side for SEO cross-linking.
   // Falls back to empty array if coordinates are missing or the RPC fails.
@@ -201,7 +184,7 @@ export default async function LoppisLayout({ params, children }: Props) {
     address: {
       '@type': 'PostalAddress',
       streetAddress: market.street,
-      postalCode: market.zip_code,
+      postalCode: market.zipCode,
       addressLocality: market.city,
       addressCountry: 'SE',
     },
@@ -215,27 +198,27 @@ export default async function LoppisLayout({ params, children }: Props) {
         }
       : {}),
     url: `https://fyndstigen.se/loppis/${slug}`,
-    ...(market.opening_hour_rules.length > 0
+    ...(market.openingHourRules.length > 0
       ? {
-          openingHoursSpecification: market.opening_hour_rules
+          openingHoursSpecification: market.openingHourRules
             .filter((r) => r.type !== 'biweekly')
             .map((r) => ({
               '@type': 'OpeningHoursSpecification',
-              ...(r.type === 'weekly' && r.day_of_week !== null
-                ? { dayOfWeek: SCHEMA_DAYS[r.day_of_week] }
+              ...(r.type === 'weekly' && r.dayOfWeek !== null
+                ? { dayOfWeek: SCHEMA_DAYS[r.dayOfWeek] }
                 : {}),
-              ...(r.type === 'date' && r.anchor_date
-                ? { validFrom: r.anchor_date, validThrough: r.anchor_date }
+              ...(r.type === 'date' && r.anchorDate
+                ? { validFrom: r.anchorDate, validThrough: r.anchorDate }
                 : {}),
-              opens: r.open_time.slice(0, 5),
-              closes: r.close_time.slice(0, 5),
+              opens: r.openTime.slice(0, 5),
+              closes: r.closeTime.slice(0, 5),
             })),
         }
       : {}),
-    ...(market.price_range
-      ? { priceRange: `${market.price_range.min_sek}-${market.price_range.max_sek} SEK` }
+    ...(meta.price_range
+      ? { priceRange: `${meta.price_range.min_sek}-${meta.price_range.max_sek} SEK` }
       : {}),
-    ...(market.image_url ? { image: market.image_url } : {}),
+    ...(meta.image_url ? { image: meta.image_url } : {}),
   }
 
   const breadcrumbLd = {
@@ -253,14 +236,14 @@ export default async function LoppisLayout({ params, children }: Props) {
   // weekly recurring hours stay on LocalBusiness/OpeningHoursSpecification
   // — Google's Event rich results expect a concrete future date.
   const todayIso = new Date().toISOString().slice(0, 10)
-  const eventLds = market.opening_hour_rules
-    .filter((r) => r.type === 'date' && r.anchor_date && r.anchor_date >= todayIso)
+  const eventLds = market.openingHourRules
+    .filter((r) => r.type === 'date' && r.anchorDate && r.anchorDate >= todayIso)
     .map((r) => ({
       '@context': 'https://schema.org',
       '@type': 'Event',
-      name: `${market.name} — ${r.anchor_date}`,
-      startDate: `${r.anchor_date}T${r.open_time.slice(0, 5)}`,
-      endDate: `${r.anchor_date}T${r.close_time.slice(0, 5)}`,
+      name: `${market.name} — ${r.anchorDate}`,
+      startDate: `${r.anchorDate}T${r.openTime.slice(0, 5)}`,
+      endDate: `${r.anchorDate}T${r.closeTime.slice(0, 5)}`,
       eventStatus: 'https://schema.org/EventScheduled',
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       location: {
@@ -269,7 +252,7 @@ export default async function LoppisLayout({ params, children }: Props) {
         address: {
           '@type': 'PostalAddress',
           streetAddress: market.street,
-          postalCode: market.zip_code,
+          postalCode: market.zipCode,
           addressLocality: market.city,
           addressCountry: 'SE',
         },
@@ -290,12 +273,12 @@ export default async function LoppisLayout({ params, children }: Props) {
       },
       url: `https://fyndstigen.se/loppis/${slug}`,
       ...(market.description ? { description: market.description.slice(0, 500) } : {}),
-      ...(market.image_url ? { image: market.image_url } : {}),
-      ...(market.price_range
+      ...(meta.image_url ? { image: meta.image_url } : {}),
+      ...(meta.price_range
         ? {
             offers: {
               '@type': 'Offer',
-              price: market.price_range.min_sek,
+              price: meta.price_range.min_sek,
               priceCurrency: 'SEK',
               availability: 'https://schema.org/InStock',
               url: `https://fyndstigen.se/loppis/${slug}`,

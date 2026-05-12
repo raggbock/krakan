@@ -62,6 +62,8 @@ export type FleaMarketView = {
 
 export type FleaMarketDetailsView = FleaMarketView & {
   organizerName: string
+  /** Organizer's subscription tier — 0 for free, 1+ for paid plans. */
+  organizerSubscriptionTier: number
   openingHourRules: OpeningHourRuleView[]
   openingHourExceptions: OpeningHourExceptionView[]
   images: FleaMarketImageView[]

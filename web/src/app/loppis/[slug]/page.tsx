@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { TrackMarketView } from '@/components/track-market-view'
 import { MarketDetail } from '@/components/market/detail'
-import { resolveMarketDetails } from './market-cache'
+import { resolveLoppis } from './market-cache'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -20,7 +20,7 @@ export default async function LoppisPage({ params }: Props) {
     )
   }
 
-  const data = await resolveMarketDetails(slug)
+  const data = await resolveLoppis(slug)
 
   if (!data) {
     // Check slug history — the market may have been renamed. If we find a

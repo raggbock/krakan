@@ -30,7 +30,7 @@ function makeDetailsRow(overrides: Partial<FleaMarketDetailsRow> = {}): FleaMark
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     location: null,
-    profiles: { first_name: 'Anna', last_name: 'Svensson' },
+    profiles: { first_name: 'Anna', last_name: 'Svensson', subscription_tier: 1 },
     opening_hour_rules: [
       {
         id: 'r-1',
@@ -71,7 +71,7 @@ describe('FleaMarketQuery.details.select', () => {
     expect(s).toContain('opening_hour_rules (*)')
     expect(s).toContain('opening_hour_exceptions (*)')
     expect(s).toContain('flea_market_images (*)')
-    expect(s).toContain('profiles!flea_markets_organizer_id_fkey (first_name, last_name)')
+    expect(s).toContain('profiles!flea_markets_organizer_id_fkey (first_name, last_name, subscription_tier)')
   })
 })
 
@@ -94,6 +94,16 @@ describe('FleaMarketQuery.details.mapRow', () => {
   it('returns empty organizerName when profiles is null', () => {
     const result = FleaMarketQuery.details.mapRow(makeDetailsRow({ profiles: null }))
     expect(result.organizerName).toBe('')
+  })
+
+  it('maps organizerSubscriptionTier from profiles join', () => {
+    const result = FleaMarketQuery.details.mapRow(makeDetailsRow())
+    expect(result.organizerSubscriptionTier).toBe(1)
+  })
+
+  it('defaults organizerSubscriptionTier to 0 when profiles is null', () => {
+    const result = FleaMarketQuery.details.mapRow(makeDetailsRow({ profiles: null }))
+    expect(result.organizerSubscriptionTier).toBe(0)
   })
 
   it('maps openingHourRules array preserving type as RuleType', () => {

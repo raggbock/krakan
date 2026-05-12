@@ -31,7 +31,7 @@ export type FleaMarketDetailsRow = FleaMarketTableRow & {
   opening_hour_rules: OpeningHourRuleTableRow[]
   opening_hour_exceptions: OpeningHourExceptionTableRow[]
   flea_market_images: FleaMarketImageTableRow[]
-  profiles: Pick<ProfileTableRow, 'first_name' | 'last_name'> | null
+  profiles: Pick<ProfileTableRow, 'first_name' | 'last_name' | 'subscription_tier'> | null
 }
 
 // --- Query module ---
@@ -50,7 +50,7 @@ export const FleaMarketQuery = {
       opening_hour_rules (*),
       opening_hour_exceptions (*),
       flea_market_images (*),
-      profiles!flea_markets_organizer_id_fkey (first_name, last_name)
+      profiles!flea_markets_organizer_id_fkey (first_name, last_name, subscription_tier)
     ` as const,
 
     mapRow(row: FleaMarketDetailsRow): FleaMarketDetailsView {
@@ -84,6 +84,7 @@ export const FleaMarketQuery = {
         contactEmail: rest.contact_email,
         googlePlaceId: rest.google_place_id,
         organizerName: formatName(profiles),
+        organizerSubscriptionTier: profiles?.subscription_tier ?? 0,
         openingHourRules: opening_hour_rules.map((r) => ({
           id: r.id,
           type: r.type as RuleType,

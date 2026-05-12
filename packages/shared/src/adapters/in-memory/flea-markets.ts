@@ -88,6 +88,7 @@ function buildRepo(
       const result: FleaMarketDetailsView = {
         ...m,
         organizerName,
+        organizerSubscriptionTier: 0,
         openingHourRules: (m.openingHourRules ?? []) as OpeningHourRuleView[],
         openingHourExceptions: [] as OpeningHourExceptionView[],
         images: [] as FleaMarketImageView[],

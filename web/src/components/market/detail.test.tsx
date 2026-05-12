@@ -75,6 +75,7 @@ const mockMarket: FleaMarketDetailsView = {
   isPermanent: true,
   organizerId: 'organizer-1',
   organizerName: 'Test Arrangör',
+  organizerSubscriptionTier: 0,
   publishedAt: '2024-01-01T00:00:00Z',
   latitude: 59.33,
   longitude: 18.07,
