@@ -5,13 +5,19 @@ import type { FleaMarketView } from '@fyndstigen/shared'
 import { queryKeys } from '@/lib/query-keys'
 import { useDeps } from '@/providers/deps-provider'
 
-export function useMarkets(params?: { page?: number; pageSize?: number; enabled?: boolean }) {
+export function useMarkets(params?: {
+  page?: number
+  pageSize?: number
+  enabled?: boolean
+  initialData?: { items: FleaMarketView[]; count: number }
+}) {
   const { markets } = useDeps()
-  const { enabled, ...listParams } = { enabled: true, ...params }
+  const { enabled, initialData, ...listParams } = { enabled: true, ...params }
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.markets.list(listParams),
     queryFn: () => markets.list(listParams),
     enabled,
+    initialData,
   })
   return {
     markets: data?.items ?? ([] as FleaMarketView[]),

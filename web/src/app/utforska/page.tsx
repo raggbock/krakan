@@ -1,452 +1,113 @@
-'use client'
+import type { Metadata } from 'next'
+import { createClient } from '@supabase/supabase-js'
+import type { FleaMarketView } from '@fyndstigen/shared'
+import ExploreClient from './explore-client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
-import { usePostHog } from 'posthog-js/react'
-import { FyndstigenLogo } from '@/components/fyndstigen-logo'
-import { getInitials } from '@fyndstigen/shared'
-import { useMarkets, useNearbyMarkets } from '@/hooks/use-markets'
-import { marketUrl } from '@/lib/urls'
-import { useOpenNowIds } from '@/hooks/use-open-now'
-import { AddToRouteButton } from '@/components/add-to-route-button'
+// ISR: revalidate every hour — market list changes infrequently.
+export const revalidate = 3600
 
-function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const R = 6371
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180
-  const x = Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(x))
+export const metadata: Metadata = {
+  title: 'Utforska loppisar — bläddra bland Sveriges loppisar',
+  description:
+    'Bläddra bland alla loppisar och loppmarknader i Sverige. Filtrera på öppet just nu, hitta loppisar nära dig och se öppettider — allt samlat på Fyndstigen.',
+  alternates: { canonical: '/utforska' },
+  openGraph: {
+    title: 'Utforska loppisar — bläddra bland Sveriges loppisar',
+    description:
+      'Bläddra bland alla loppisar och loppmarknader i Sverige. Filtrera på öppet just nu, hitta loppisar nära dig och se öppettider — allt samlat på Fyndstigen.',
+    type: 'website',
+    locale: 'sv_SE',
+  },
 }
 
-export default function ExplorePage() {
-  const posthog = usePostHog()
-  const [page, setPage] = useState(1)
-  const [openNowOnly, setOpenNowOnly] = useState(false)
-  const pageSize = openNowOnly ? 200 : 20
-  const isFirstRender = useRef(true)
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
-  // User position for distance-sorted feed and per-card distance label.
-  // Silent when geolocation is denied — falls back to created_at-sorted
-  // pagination via the regular list adapter.
-  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
-  useEffect(() => {
-    if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      (p) => setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => setUserPos(null),
-      { timeout: 5000, maximumAge: 60_000 },
-    )
-  }, [])
+// Raw row returned by visible_flea_markets (snake_case DB columns)
+type VisibleMarketRow = {
+  id: string
+  name: string
+  description: string | null
+  street: string | null
+  zip_code: string | null
+  city: string | null
+  country: string | null
+  is_permanent: boolean
+  latitude: number | null
+  longitude: number | null
+  published_at: string | null
+  organizer_id: string | null
+  auto_accept_bookings: boolean | null
+  created_at: string | null
+  slug: string | null
+  is_system_owned: boolean | null
+  contact_website: string | null
+  contact_phone: string | null
+  contact_email: string | null
+  google_place_id: string | null
+}
 
-  const fallback = useMarkets({
-    page: openNowOnly ? 1 : page,
-    pageSize,
-    // Skip the visible_flea_markets fetch once we have coordinates — the
-    // nearby RPC already covers the same data and is already in flight.
-    enabled: !userPos,
-  })
-  const nearby = useNearbyMarkets(userPos)
-  const useNearby = !!userPos && !nearby.loading
-  const loading = useNearby ? nearby.loading : fallback.loading
-  const error = useNearby ? nearby.error : fallback.error
-
-  const { data: openIds, isLoading: openLoading } = useOpenNowIds(openNowOnly)
-
-  // Normalise both adapters to the small shape the card needs. The nearby
-  // feed gives us all visible markets sorted by distance in one shot;
-  // fallback gives a server-paginated page.
-  type CardMarket = {
-    id: string
-    name: string
-    city: string | null
-    description: string | null
-    isPermanent: boolean
-    latitude: number | null
-    longitude: number | null
-    slug?: string | null
+function mapRow(row: VisibleMarketRow): FleaMarketView {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? '',
+    street: row.street ?? '',
+    zipCode: row.zip_code ?? '',
+    city: row.city ?? '',
+    country: row.country ?? '',
+    isPermanent: row.is_permanent ?? false,
+    latitude: row.latitude ?? 0,
+    longitude: row.longitude ?? 0,
+    publishedAt: row.published_at ?? null,
+    organizerId: row.organizer_id ?? '',
+    autoAcceptBookings: row.auto_accept_bookings ?? false,
+    createdAt: row.created_at ?? '',
+    slug: row.slug ?? null,
+    isSystemOwned: row.is_system_owned ?? false,
+    contactWebsite: row.contact_website ?? null,
+    contactPhone: row.contact_phone ?? null,
+    contactEmail: row.contact_email ?? null,
+    googlePlaceId: row.google_place_id ?? null,
   }
-  const allMarkets: CardMarket[] = useNearby
-    ? nearby.markets.map((m) => ({
-        id: m.id, name: m.name, city: m.city, description: m.description,
-        isPermanent: m.isPermanent, latitude: m.latitude, longitude: m.longitude,
-        slug: m.slug,
-      }))
-    : fallback.markets.map((m) => ({
-        id: m.id, name: m.name, city: m.city, description: m.description,
-        isPermanent: m.isPermanent, latitude: m.latitude, longitude: m.longitude,
-        slug: m.slug,
-      }))
-  const totalCount = useNearby ? nearby.markets.length : fallback.count
+}
 
-  const markets = useMemo(() => {
-    let list = allMarkets
-    if (openNowOnly && openIds) {
-      const set = new Set(openIds)
-      list = list.filter((m) => set.has(m.id))
-    }
-    if (useNearby && !openNowOnly) {
-      const start = (page - 1) * pageSize
-      list = list.slice(start, start + pageSize)
-    }
-    return list
-  }, [allMarkets, openIds, openNowOnly, useNearby, page, pageSize])
+async function getMarkets(page: number, pageSize: number): Promise<{ items: FleaMarketView[]; count: number }> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+  )
 
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
-    const t = setTimeout(() => {
-      posthog?.capture('market_list_filtered', {
-        city: 'all',
-        filter_keys: openNowOnly ? ['open_now'] : [],
-        // totalCount, inte markets.length — den senare är paginerad (20/sida).
-        result_count: totalCount,
-      })
-    }, 500)
-    return () => clearTimeout(t)
-  }, [openNowOnly, totalCount, posthog])
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
 
-  const isEmpty = !loading && !error && !markets.length
-  const totalPages = Math.ceil(totalCount / pageSize)
+  const { data, count, error } = await supabase
+    .from('visible_flea_markets')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) {
+    console.error('[utforska] failed to fetch markets for SSR:', error.message)
+    return { items: [], count: 0 }
+  }
+
+  const items = (data as VisibleMarketRow[] ?? []).map(mapRow)
+  return { items, count: count ?? 0 }
+}
+
+export default async function ExplorePage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams
+  const rawPage = Array.isArray(sp.page) ? sp.page[0] : sp.page
+  const page = Math.max(1, parseInt(rawPage ?? '1', 10) || 1)
+  const pageSize = 20
+
+  const { items, count } = await getMarkets(page, pageSize)
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden vintage-card p-8 sm:p-12 mb-12 animate-fade-up">
-        {/* Trail illustration in hero background */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 800 400"
-          preserveAspectRatio="xMidYMid slice"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M-20 350 C80 320, 120 280, 200 300 C280 320, 300 260, 380 240 C460 220, 500 260, 580 230 C660 200, 700 160, 820 180"
-            stroke="var(--color-cream-warm)"
-            strokeWidth="3"
-            strokeDasharray="10 6"
-            strokeLinecap="round"
-            opacity="0.5"
-            className="trail-path"
-          />
-          {/* Trail stop markers */}
-          <circle cx="200" cy="300" r="5" fill="var(--color-rust)" opacity="0.12" />
-          <circle cx="380" cy="240" r="5" fill="var(--color-rust)" opacity="0.12" />
-          <circle cx="580" cy="230" r="5" fill="var(--color-rust)" opacity="0.12" />
-          {/* Start pin */}
-          <circle cx="-10" cy="350" r="7" fill="var(--color-forest)" opacity="0.15" />
-          <circle cx="-10" cy="350" r="3" fill="var(--color-forest)" opacity="0.2" />
-          {/* Tiny treasure icons */}
-          <rect x="280" y="310" width="8" height="6" rx="1" fill="var(--color-mustard)" opacity="0.06" />
-          <circle cx="480" cy="255" r="4" fill="var(--color-lavender)" opacity="0.06" />
-          <path d="M670 195 L674 185 L678 195" stroke="var(--color-mustard)" strokeWidth="1" fill="none" opacity="0.06" />
-        </svg>
-
-        <div className="relative">
-          <div className="flex items-start gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <FyndstigenLogo size={48} className="text-espresso animate-bob" />
-                <span className="stamp text-rust animate-stamp delay-3">
-                  Second hand
-                </span>
-              </div>
-
-              <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight leading-tight mt-4">
-                Följ stigen till
-                <br />
-                <span className="text-rust">nästa fynd</span>
-              </h1>
-
-              <p className="text-espresso/60 mt-5 max-w-md text-lg leading-relaxed">
-                Fyndstigen samlar loppisar på ett ställe &mdash; hitta
-                skatter, boka bord och planera din loppisrunda.
-              </p>
-
-              <div className="flex flex-wrap gap-4 mt-8">
-                <Link
-                  href="/search"
-                  className="inline-flex items-center gap-2 bg-rust text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-rust-light transition-colors duration-200 shadow-sm"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className="opacity-80"
-                  >
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                    <line
-                      x1="11"
-                      y1="11"
-                      x2="14"
-                      y2="14"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  Sök loppisar
-                </Link>
-                <Link
-                  href="/map"
-                  className="inline-flex items-center gap-2 bg-cream-warm text-espresso px-6 py-3 rounded-full text-sm font-semibold hover:bg-mustard/20 transition-colors duration-200"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className="opacity-60"
-                  >
-                    <path
-                      d="M8 1C5.2 1 3 3.2 3 6c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                    <circle
-                      cx="8"
-                      cy="6"
-                      r="1.5"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Visa karta
-                </Link>
-              </div>
-            </div>
-
-            {/* Stats badge — always rendered to reserve space (CLS #133).
-                Number is hidden visually until data loads but the flex
-                container keeps the hero layout stable across states. */}
-            <div className="hidden sm:flex flex-col items-center justify-center bg-mustard/15 rounded-2xl px-6 py-5 min-w-[100px] animate-fade-up delay-4">
-              <span
-                className={`font-display text-3xl font-bold text-mustard transition-opacity ${markets.length > 0 ? 'opacity-100' : 'opacity-0'}`}
-                aria-live="polite"
-              >
-                {markets.length > 0 ? markets.length : ' '}
-              </span>
-              <span className="text-xs text-espresso/65 mt-1 font-medium">
-                loppisar
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Quick filter ── */}
-      <section className="mb-6 flex items-center gap-3 flex-wrap">
-        <button
-          type="button"
-          onClick={() => {
-            setOpenNowOnly((prev) => !prev)
-            setPage(1)
-          }}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-            openNowOnly
-              ? 'bg-emerald-700 text-white border-emerald-700'
-              : 'border-cream-warm text-espresso hover:bg-cream-warm/40'
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${openNowOnly ? 'bg-white' : 'bg-emerald-600'}`} />
-          Öppet just nu
-        </button>
-        {openNowOnly && (
-          <span className="text-sm text-espresso/60">
-            {openLoading ? 'Hämtar öppettider…' : `${markets.length} öppna just nu`}
-          </span>
-        )}
-      </section>
-
-      {/* ── Loading skeleton ── */}
-      {/* Reserves the same grid shape the loaded state will use so the
-          paint after data arrives doesn't shift the viewport (CLS #133). */}
-      {loading && (
-        <section className="mb-10" aria-busy="true" aria-label="Laddar loppisar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="vintage-card overflow-hidden animate-pulse"
-              >
-                <div className="h-24 sm:h-28 bg-parchment-light border-b border-cream-warm" />
-                <div className="p-5 space-y-2.5">
-                  <div className="h-5 w-3/5 bg-cream-warm rounded" />
-                  <div className="h-4 w-2/5 bg-cream-warm/60 rounded" />
-                  <div className="h-4 w-full bg-cream-warm/40 rounded mt-3" />
-                  <div className="h-4 w-4/5 bg-cream-warm/40 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Error state ── */}
-      {error && !loading && (
-        <section className="vintage-card p-10 text-center animate-fade-up">
-          <p className="text-error font-medium">{error}</p>
-          <button
-            onClick={() => setPage(page)}
-            className="mt-4 text-sm text-rust font-semibold hover:text-rust-light transition-colors"
-          >
-            Försök igen
-          </button>
-        </section>
-      )}
-
-      {/* ── Empty state ── */}
-      {isEmpty && (
-        <section className="vintage-card p-10 text-center animate-fade-up">
-          <FyndstigenLogo
-            size={56}
-            className="text-espresso/20 mx-auto mb-4"
-          />
-          <h2 className="font-display text-xl font-bold">
-            Inga loppisar ännu
-          </h2>
-          <p className="text-espresso/65 mt-2 max-w-sm mx-auto">
-            När arrangörer börjar publicera loppisar kommer de dyka upp här.
-            Fyndstigen håller utkik!
-          </p>
-        </section>
-      )}
-
-      {/* ── Market Grid ── */}
-      {!!markets.length && (
-        <section className="mb-10">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold">
-                Loppisar nära dig
-              </h2>
-              <p className="text-sm text-espresso/65 mt-1">
-                Bläddra bland loppisar i ditt område.
-              </p>
-            </div>
-            <Link
-              href="/map"
-              className="text-sm font-medium text-rust hover:text-rust-light transition-colors hidden sm:block"
-            >
-              Visa alla på karta &rarr;
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {markets.map((market, i) => (
-              <Link
-                key={market.id}
-                href={marketUrl(market)}
-                className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up relative"
-                style={{ animationDelay: `${0.1 + i * 0.06}s` }}
-              >
-                <div className="absolute top-2.5 left-2.5 z-10">
-                  <AddToRouteButton
-                    marketId={market.id}
-                    marketName={market.name}
-                    marketCity={market.city ?? undefined}
-                    source="explore_card"
-                    compact
-                  />
-                </div>
-                {/* Card placeholder band — compact, themed, no big empty
-                    cream area. Market name renders as faded Fraunces italic
-                    over the parchment, with the type stamp anchored to the
-                    corner. Reads as designed, not as missing-image. */}
-                <div className="h-24 sm:h-28 bg-parchment-light border-b border-cream-warm flex items-center justify-center relative overflow-hidden px-6">
-                  <span className="font-display text-xl sm:text-2xl italic text-espresso/30 truncate">
-                    {market.name}
-                  </span>
-                  <div className="absolute top-2.5 right-2.5">
-                    <span
-                      className={`stamp text-[10px] ${
-                        market.isPermanent ? 'text-forest' : 'text-mustard'
-                      }`}
-                    >
-                      {market.isPermanent ? 'Permanent' : 'Tillfällig'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card content */}
-                <div className="p-5">
-                  <h3 className="font-display font-bold text-lg group-hover:text-rust transition-colors duration-200">
-                    {market.name}
-                  </h3>
-                  <p className="text-sm text-espresso/65 mt-1.5 flex items-center gap-1.5">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      className="opacity-50 shrink-0"
-                    >
-                      <path
-                        d="M8 1C5.2 1 3 3.2 3 6c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5z"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        fill="none"
-                      />
-                    </svg>
-                    <span>{market.city}</span>
-                    {userPos && market.latitude != null && market.longitude != null && (
-                      <span className="text-espresso/45 ml-auto text-xs">
-                        {(() => {
-                          const km = haversineKm(userPos, { lat: market.latitude, lng: market.longitude })
-                          return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`
-                        })()}
-                      </span>
-                    )}
-                  </p>
-                  {market.description && (
-                    <p className="text-sm text-espresso/60 mt-2.5 line-clamp-2 leading-relaxed">
-                      {market.description}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-10">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                &larr; Föregående
-              </button>
-              <span className="text-sm text-espresso/65">
-                Sida {page} av {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                Nästa &rarr;
-              </button>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* ── Tagline ── */}
-      <section className="text-center py-12 animate-fade-up delay-5">
-        <p className="font-display text-xl text-espresso/30 italic">
-          &ldquo;Varje stig leder till ett fynd&rdquo;
-        </p>
-      </section>
-    </div>
+    <ExploreClient
+      initialMarkets={items}
+      initialCount={count}
+      initialPage={page}
+    />
   )
 }
