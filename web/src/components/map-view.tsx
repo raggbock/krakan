@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
+import { usePostHog } from 'posthog-js/react'
 import { useDeps } from '@/providers/deps-provider'
 import { supabase } from '@/lib/supabase'
 import type { FleaMarketNearByView } from '@fyndstigen/shared'
@@ -32,6 +33,7 @@ function FlyToLocation({ lat, lng, zoom }: { lat: number; lng: number; zoom: num
 
 export default function MapView() {
   const { geo } = useDeps()
+  const posthog = usePostHog()
   const params = useSearchParams()
   // Allow callers (e.g. /loppis/[slug]'s "Visa på karta"-link) to deep-link
   // straight to a market's coordinates instead of opening the general map
@@ -130,7 +132,7 @@ export default function MapView() {
 
   const markers: MapMarker[] = [
     ...blockSaleMarkers,
-    ...markets.map((market) => ({
+    ...markets.map((market, i) => ({
       id: market.id,
       coord: [market.latitude, market.longitude] as [number, number],
       icon: 'market' as const,
@@ -144,6 +146,14 @@ export default function MapView() {
           <Link
             href={marketUrl(market)}
             className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+            onClick={() => posthog?.capture('search_result_clicked', {
+              source: 'map',
+              market_id: market.id,
+              market_slug: market.slug ?? null,
+              position: i,
+              query: null,
+              city_slug: null,
+            })}
           >
             Visa loppis &rarr;
           </Link>

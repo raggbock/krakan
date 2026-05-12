@@ -164,6 +164,14 @@ export default function SearchPage() {
                   href={marketUrl(market)}
                   className="group flex items-center gap-4 vintage-card p-4 hover:shadow-md transition-all duration-300 animate-fade-up"
                   style={{ animationDelay: `${i * 0.05}s` }}
+                  onClick={() => posthog?.capture('search_result_clicked', {
+                    source: 'search',
+                    market_id: market.id,
+                    market_slug: market.slug ?? null,
+                    position: i,
+                    query: query || null,
+                    city_slug: null,
+                  })}
                 >
                   {/* Initials avatar */}
                   <div className="w-14 h-14 rounded-xl bg-cream-warm knit-bg flex items-center justify-center shrink-0">

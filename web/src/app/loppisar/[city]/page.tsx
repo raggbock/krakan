@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { marketUrl } from '@/lib/urls'
+import { CityMarketLink } from './city-market-link'
 
 // ISR: revalidate every hour — city listing pages are stable; kvartersloppisar
 // are dated events so 1h staleness is acceptable.
@@ -136,11 +137,14 @@ export default async function CityPage({ params }: Props) {
       )}
 
       <div className="mt-8 space-y-4">
-        {markets.map((m) => (
-          <Link
+        {markets.map((m, i) => (
+          <CityMarketLink
             key={m.id}
             href={marketUrl(m)}
-            className="vintage-card flex items-center gap-4 p-4 hover:bg-cream-warm/30 transition-colors"
+            marketId={m.id}
+            marketSlug={m.slug}
+            citySlug={slug}
+            position={i}
           >
             <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-cream-warm shrink-0">
               {m.image_url ? (
@@ -172,7 +176,7 @@ export default async function CityPage({ params }: Props) {
               )}
             </div>
             <span className="text-espresso/20 shrink-0">→</span>
-          </Link>
+          </CityMarketLink>
         ))}
       </div>
 

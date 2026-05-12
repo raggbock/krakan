@@ -358,6 +358,14 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                 href={marketUrl(market)}
                 className="group vintage-card overflow-hidden hover:shadow-md transition-all duration-300 animate-fade-up relative"
                 style={{ animationDelay: `${0.1 + i * 0.06}s` }}
+                onClick={() => posthog?.capture('search_result_clicked', {
+                  source: 'utforska',
+                  market_id: market.id,
+                  market_slug: market.slug ?? null,
+                  position: i,
+                  query: null,
+                  city_slug: null,
+                })}
               >
                 <div className="absolute top-2.5 left-2.5 z-10">
                   <AddToRouteButton

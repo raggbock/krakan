@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Elements, CardElement } from '@stripe/react-stripe-js'
 import type { MarketTableView } from '@fyndstigen/shared'
@@ -25,6 +26,52 @@ function BookableTablesInner({
   const { user } = useAuth()
   const posthog = usePostHog()
   const booking = useBooking(fleaMarketId, fleaMarketName, user?.id, openingHours)
+
+  // ── Booking funnel sub-events ────────────────────────────────────────────
+  // Each fires at most once per session (ref-guarded so re-renders don't spam).
+  const tableSelectedFiredRef = useRef<string | null>(null)
+  const dateSelectedFiredRef = useRef<string | null>(null)
+  const formCompletedFiredRef = useRef<string | null>(null)
+
+  // booking_table_selected — fires once per table pick
+  useEffect(() => {
+    if (!booking.selectedTable) return
+    const key = `${fleaMarketId}:${booking.selectedTable.id}`
+    if (tableSelectedFiredRef.current === key) return
+    tableSelectedFiredRef.current = key
+    posthog?.capture('booking_table_selected', {
+      market_id: fleaMarketId,
+      table_id: booking.selectedTable.id,
+      price_sek: booking.selectedTable.priceSek,
+      is_free: isFreePriced(booking.selectedTable.priceSek),
+    })
+  }, [booking.selectedTable, fleaMarketId, posthog])
+
+  // booking_date_selected — fires once per (table, date) when date passes validation
+  useEffect(() => {
+    if (!booking.selectedTable || !booking.date || booking.validationError) return
+    const key = `${fleaMarketId}:${booking.selectedTable.id}:${booking.date}`
+    if (dateSelectedFiredRef.current === key) return
+    dateSelectedFiredRef.current = key
+    posthog?.capture('booking_date_selected', {
+      market_id: fleaMarketId,
+      table_id: booking.selectedTable.id,
+    })
+  }, [booking.selectedTable, booking.date, booking.validationError, fleaMarketId, posthog])
+
+  // booking_form_completed — fires once when canSubmit first becomes true
+  useEffect(() => {
+    if (!booking.canSubmit || !booking.selectedTable) return
+    const key = `${fleaMarketId}:${booking.selectedTable.id}:${booking.date}`
+    if (formCompletedFiredRef.current === key) return
+    formCompletedFiredRef.current = key
+    posthog?.capture('booking_form_completed', {
+      market_id: fleaMarketId,
+      table_id: booking.selectedTable.id,
+      has_message: booking.message.trim().length > 0,
+    })
+  }, [booking.canSubmit, booking.selectedTable, booking.date, booking.message, fleaMarketId, posthog])
+  // ────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="vintage-card p-6 animate-fade-up delay-4">
