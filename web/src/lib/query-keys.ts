@@ -68,4 +68,11 @@ export const queryKeys = {
     isFollowingCity: (userId: string, citySlug: string) =>
       ['follows', 'city', userId, citySlug] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    inbox: (userId: string, opts?: { limit?: number; offset?: number }) =>
+      ['notifications', 'inbox', userId, opts] as const,
+    unreadCount: (userId: string) =>
+      ['notifications', 'unreadCount', userId] as const,
+  },
 }

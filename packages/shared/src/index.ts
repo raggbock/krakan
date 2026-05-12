@@ -71,6 +71,8 @@ export type { InMemoryStripeAccountRepo } from './adapters/in-memory/stripe-acco
 export { createInMemorySubscriptionRepo } from './adapters/in-memory/subscription-repo'
 export type { InMemorySubscriptionRepo } from './adapters/in-memory/subscription-repo'
 export { createInMemoryFollowRepo } from './adapters/in-memory/follow-repo'
+export { createInMemoryNotificationRepo } from './adapters/in-memory/notification-repo'
+export type { InMemoryNotificationRepo } from './adapters/in-memory/notification-repo'
 
 // Geo
 export { createGeo, GeocodeError } from './geo'

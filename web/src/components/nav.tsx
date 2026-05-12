@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from './fyndstigen-logo'
+import { NavBell } from './nav-bell'
 
 export function Nav() {
   const { user, loading } = useAuth()
@@ -46,12 +47,15 @@ export function Nav() {
           {!loading && (
             <>
               {user ? (
-                <Link
-                  href="/profile"
-                  className="ml-1 bg-espresso text-parchment px-5 py-2 rounded-full text-sm font-semibold hover:bg-espresso-light transition-colors duration-200"
-                >
-                  Min profil
-                </Link>
+                <>
+                  <NavBell userId={user.id} />
+                  <Link
+                    href="/profile"
+                    className="ml-1 bg-espresso text-parchment px-5 py-2 rounded-full text-sm font-semibold hover:bg-espresso-light transition-colors duration-200"
+                  >
+                    Min profil
+                  </Link>
+                </>
               ) : (
                 <Link
                   href="/auth"
@@ -115,12 +119,20 @@ export function Nav() {
             {!loading && (
               <>
                 {user ? (
-                  <MobileNavLink
-                    href="/profile"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Min profil
-                  </MobileNavLink>
+                  <>
+                    <MobileNavLink
+                      href="/profile/notiser"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Notiser
+                    </MobileNavLink>
+                    <MobileNavLink
+                      href="/profile"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Min profil
+                    </MobileNavLink>
+                  </>
                 ) : (
                   <Link
                     href="/auth"

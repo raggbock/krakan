@@ -23,6 +23,7 @@ import type { StatsPort } from './ports/stats'
 import type { ImagePort } from './ports/images'
 import type { GeoService } from './geo'
 import type { FollowRepository } from './ports/follow-repo'
+import type { NotificationRepository } from './ports/notification-repo'
 
 /**
  * Dependency container for the Fyndstigen app.
@@ -46,4 +47,5 @@ export type Deps = {
   images: ImagePort
   geo: GeoService
   follows: FollowRepository
+  notifications: NotificationRepository
 }
