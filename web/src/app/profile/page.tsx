@@ -66,18 +66,30 @@ export default function ProfilePage() {
       )}
 
       {/* Draft markets notice */}
-      {myMarkets.some((m) => !m.publishedAt) && (
-        <div className="bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up">
-          Du har opublicerade utkast — redigera dem för att publicera.
-        </div>
-      )}
+      {(() => {
+        const firstDraft = myMarkets.find((m) => !m.publishedAt)
+        if (!firstDraft) return null
+        return (
+          <Link
+            href={`/fleamarkets/${firstDraft.id}/edit`}
+            role="status"
+            aria-live="polite"
+            className="block bg-mustard/10 border border-mustard/20 rounded-xl px-4 py-3 text-sm text-mustard mb-6 animate-fade-up hover:bg-mustard/15 transition-colors"
+          >
+            Du har opublicerade utkast — redigera <span className="font-semibold underline">{firstDraft.name}</span> för att publicera.
+          </Link>
+        )
+      })()}
 
       {/* Profile header */}
       <div className="vintage-card p-8 mb-6 animate-fade-up">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-rust/10 flex items-center justify-center">
-              <FyndstigenLogo size={28} className="text-rust" />
+            <div
+              className="w-14 h-14 rounded-full bg-rust/10 flex items-center justify-center font-display font-bold text-rust text-lg"
+              aria-hidden="true"
+            >
+              {user?.email ? getInitials(user.email.split('@')[0]) : '?'}
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold">Min profil</h1>
@@ -170,6 +182,12 @@ export default function ProfilePage() {
                 <div key={market.id}>
                   <Link
                     href={marketUrl(market)}
+                    aria-label={[
+                      market.name,
+                      market.city,
+                      !market.publishedAt ? 'Utkast' : null,
+                      isHidden ? 'Gömd' : null,
+                    ].filter(Boolean).join(' — ')}
                     className={`group flex items-center justify-between bg-parchment p-4 hover:bg-cream-warm transition-colors duration-200 ${isHidden ? 'rounded-t-xl' : 'rounded-xl'}`}
                   >
                     <div className="flex items-center gap-3">
@@ -349,6 +367,7 @@ function SignOutButton({ signOut, onDone }: { signOut: () => Promise<void>; onDo
   const [busy, setBusy] = useState(false)
   return (
     <button
+      type="button"
       disabled={busy}
       onClick={async () => {
         setBusy(true)
