@@ -2,12 +2,10 @@ export function AddressCard({
   street,
   zipCode,
   city,
-  country,
 }: {
   street: string
   zipCode: string
   city: string
-  country?: string | null
 }) {
   return (
     <div className="vintage-card p-6 animate-fade-up delay-1">
@@ -28,9 +26,6 @@ export function AddressCard({
           <p className="text-espresso/70">
             {street}, {zipCode} {city}
           </p>
-          {country && (
-            <p className="text-espresso/60 text-sm mt-0.5">{country}</p>
-          )}
         </div>
       </div>
     </div>

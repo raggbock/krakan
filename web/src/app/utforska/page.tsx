@@ -7,17 +7,27 @@ import ExploreClient from './explore-client'
 // ISR: revalidate every hour — market list changes infrequently.
 export const revalidate = 3600
 
+const utforskaTitle = 'Utforska loppisar — bläddra bland Sveriges loppisar'
+const utforskaDescription =
+  'Bläddra bland alla loppisar och loppmarknader i Sverige. Filtrera på öppet just nu, hitta loppisar nära dig och se öppettider — allt samlat på Fyndstigen.'
+
 export const metadata: Metadata = {
-  title: 'Utforska loppisar — bläddra bland Sveriges loppisar',
-  description:
-    'Bläddra bland alla loppisar och loppmarknader i Sverige. Filtrera på öppet just nu, hitta loppisar nära dig och se öppettider — allt samlat på Fyndstigen.',
+  title: utforskaTitle,
+  description: utforskaDescription,
   alternates: { canonical: '/utforska' },
   openGraph: {
-    title: 'Utforska loppisar — bläddra bland Sveriges loppisar',
-    description:
-      'Bläddra bland alla loppisar och loppmarknader i Sverige. Filtrera på öppet just nu, hitta loppisar nära dig och se öppettider — allt samlat på Fyndstigen.',
+    title: utforskaTitle,
+    description: utforskaDescription,
     type: 'website',
     locale: 'sv_SE',
+    url: '/utforska',
+    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: utforskaTitle,
+    description: utforskaDescription,
+    images: ['/logo-512.png'],
   },
 }
 

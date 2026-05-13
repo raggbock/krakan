@@ -58,9 +58,6 @@ export const metadata: Metadata = {
       'Hitta loppis nära dig. Sök bland loppisar och loppmarknader i hela Sverige, se öppettider och planera din loppisrunda.',
     images: ['/logo-512.png'],
   },
-  alternates: {
-    canonical: '/',
-  },
   robots: {
     index: true,
     follow: true,

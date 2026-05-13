@@ -19,7 +19,7 @@ vi.mock('@fyndstigen/shared', async () => {
   return actual
 })
 
-import SearchPage from './page'
+import SearchPage from './search-client'
 import { useSearch } from '@/hooks/use-search'
 
 const mockResults = [

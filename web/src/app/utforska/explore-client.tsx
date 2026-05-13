@@ -166,7 +166,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
               </div>
 
               <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight leading-tight mt-4">
-                Följ stigen till
+                Följ stigen till{' '}
                 <br />
                 <span className="text-rust">nästa fynd</span>
               </h1>

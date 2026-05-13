@@ -7,17 +7,27 @@ import { FollowButton } from '@/components/follow-button'
 // ISR: revalidate every hour — city list changes infrequently.
 export const revalidate = 3600
 
+const loppisarTitle = 'Loppisar i Sverige — bläddra alla städer'
+const loppisarDescription =
+  'Hitta loppisar och loppmarknader i hela Sverige. Bläddra bland alla städer där Fyndstigen har samlat loppisar, se antal loppisar per stad och hitta öppettider.'
+
 export const metadata: Metadata = {
-  title: 'Loppisar i Sverige — bläddra alla städer',
-  description:
-    'Hitta loppisar och loppmarknader i hela Sverige. Bläddra bland alla städer där Fyndstigen har samlat loppisar, se antal loppisar per stad och hitta öppettider.',
+  title: loppisarTitle,
+  description: loppisarDescription,
   alternates: { canonical: '/loppisar' },
   openGraph: {
-    title: 'Loppisar i Sverige — bläddra alla städer',
-    description:
-      'Hitta loppisar och loppmarknader i hela Sverige. Bläddra bland alla städer där Fyndstigen har samlat loppisar, se antal loppisar per stad och hitta öppettider.',
+    title: loppisarTitle,
+    description: loppisarDescription,
     type: 'website',
     locale: 'sv_SE',
+    url: '/loppisar',
+    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: loppisarTitle,
+    description: loppisarDescription,
+    images: ['/logo-512.png'],
   },
 }
 

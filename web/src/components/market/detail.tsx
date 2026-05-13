@@ -144,7 +144,6 @@ function MarketDetailLayout({
             street={market.street}
             zipCode={market.zipCode}
             city={market.city}
-            country={market.country}
           />
           {market.isSystemOwned && (
             <AutoImportedNotice

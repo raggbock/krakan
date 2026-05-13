@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+}
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -104,7 +109,7 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95] mt-8 animate-fade-up delay-2">
-            Varje stig leder
+            Varje stig leder{' '}
             <br />
             till ett{' '}
             <span className="text-rust hand-underline">fynd</span>
@@ -345,7 +350,7 @@ export default async function LandingPage() {
         <div className="relative max-w-2xl mx-auto animate-fade-up">
           <FyndstigenLogo size={56} className="text-rust mx-auto mb-6" />
           <h2 className="font-display text-3xl sm:text-5xl font-bold leading-tight">
-            Stigen väntar &mdash;
+            Stigen väntar &mdash;{' '}
             <br />
             <span className="text-rust">vart leder din?</span>
           </h2>
