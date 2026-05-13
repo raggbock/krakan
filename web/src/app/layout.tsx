@@ -161,8 +161,14 @@ export default async function RootLayout({
               <PostHogPageview />
             </Suspense>
             <TrailBackgroundLazy />
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-espresso focus:text-parchment focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none"
+            >
+              Hoppa till innehåll
+            </a>
             <Nav />
-            <main className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
+            <main id="main-content" className="flex-1 relative" style={{ zIndex: 1 }}>{children}</main>
             <footer className="border-t border-cream-warm mt-auto relative" style={{ zIndex: 1 }}>
               <div className="max-w-6xl mx-auto px-6 py-10">
                 {popularCities.length > 0 && (

@@ -1,11 +1,28 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+const faqTitle = 'Frågor om loppisar, bordsbokning & loppisrunda'
+const faqDescription =
+  'Vanliga frågor om Fyndstigen — hur du hittar loppisar, bokar bord, planerar din loppisrunda och publicerar din egen loppis.'
+
 export const metadata: Metadata = {
-  title: 'Frågor om loppisar, bordsbokning & loppisrunda',
-  description:
-    'Vanliga frågor om Fyndstigen — hur du hittar loppisar, bokar bord, planerar din loppisrunda och publicerar din egen loppis.',
+  title: faqTitle,
+  description: faqDescription,
   alternates: { canonical: '/fragor-svar' },
+  openGraph: {
+    title: faqTitle,
+    description: faqDescription,
+    type: 'website',
+    locale: 'sv_SE',
+    url: '/fragor-svar',
+    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: faqTitle,
+    description: faqDescription,
+    images: ['/logo-512.png'],
+  },
 }
 
 const faqs: Array<{ q: string; a: string }> = [

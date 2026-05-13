@@ -269,10 +269,12 @@ export default async function LandingPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
+            <div className={`grid grid-cols-2 ${tableCount > 0 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6 animate-fade-up`}>
               <StatCard number={`${marketCount}`} label="Loppisar" color="rust" />
               <StatCard number={`${uniqueCities}`} label="Städer" color="forest" />
-              <StatCard number={`${tableCount}`} label="Bokningsbara bord" color="mustard" />
+              {tableCount > 0 && (
+                <StatCard number={`${tableCount}`} label="Bokningsbara bord" color="mustard" />
+              )}
               <StatCard number="Gratis" label="Att använda" color="lavender" />
             </div>
           )}

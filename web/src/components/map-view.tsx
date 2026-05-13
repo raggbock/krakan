@@ -200,7 +200,7 @@ export default function MapView() {
       {/* Map header */}
       <div className="bg-card border-b border-cream-warm px-6 py-3 flex items-center justify-between">
         <div>
-          <h1 className="font-display font-bold">Karta</h1>
+          <p className="font-display font-bold">Karta</p>
           <p className="text-xs text-espresso/60">
             {error ? error : `${markets.length} loppisar${blockSales.length > 0 ? ` · ${blockSales.length} kvartersloppisar` : ''} i närheten`}
           </p>

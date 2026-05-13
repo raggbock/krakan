@@ -194,7 +194,7 @@ export default function CreateMarketPage() {
           Du behöver ett konto för att skapa en loppis.
         </p>
         <Link
-          href="/auth"
+          href="/auth?next=/profile/create-market"
           className="inline-block mt-5 bg-rust text-white px-6 py-2.5 rounded-full text-sm font-semibold"
         >
           Logga in
