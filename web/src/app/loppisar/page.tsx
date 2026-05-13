@@ -98,7 +98,7 @@ export default async function LoppisarPage() {
       />
 
       {/* Breadcrumb */}
-      <nav className="text-sm text-espresso/60 mb-4">
+      <nav aria-label="breadcrumb" className="text-sm text-espresso/60 mb-4">
         <Link href="/" className="hover:text-espresso">Start</Link>
         <span className="mx-2">/</span>
         <span className="text-espresso">Loppisar</span>

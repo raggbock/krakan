@@ -125,17 +125,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // published version.
   const isDraft = !market.publishedAt
 
+  const url = `/loppis/${slug}`
+  const ogTitle = `${market.name} — öppettider & boka bord i ${market.city}`
+  const ogImages = meta.image_url
+    ? [{ url: meta.image_url }]
+    : [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }]
   return {
     title,
     description,
-    alternates: { canonical: `/loppis/${slug}` },
+    alternates: { canonical: url },
     ...(isDraft ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
-      title: `${market.name} — öppettider & boka bord i ${market.city}`,
+      title: ogTitle,
       description,
       type: 'website',
       locale: 'sv_SE',
-      ...(meta.image_url ? { images: [{ url: meta.image_url }] } : {}),
+      url,
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: ogTitle,
+      description,
+      images: [meta.image_url ?? '/logo-512.png'],
     },
   }
 }

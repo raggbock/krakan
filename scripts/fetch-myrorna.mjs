@@ -96,7 +96,10 @@ function extractAddress(html) {
   // Try to find an "Adress" heading and look just below it; fallback to a global search.
   const idx = html.toLowerCase().indexOf('adress')
   const slice = idx >= 0 ? html.slice(idx, idx + 600) : html
-  const text = plainText(slice)
+  // Strip a leading "Adress" / "Besöksadress" label from the plain text so the
+  // street regex doesn't capture it as part of the street name
+  // (e.g. "Adress Hagagatan 51, Stockholm" → "Hagagatan 51, Stockholm").
+  const text = plainText(slice).replace(/^\s*(?:besöks)?adress\s*[:\-–]?\s*/i, '')
   const m = ADDRESS_RE.exec(text)
   if (!m) return null
   return {

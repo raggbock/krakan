@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData, slugifyCity, getInitials } from '@fyndstigen/shared'
+import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
@@ -57,11 +57,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!resolved) return { title: 'Stad hittades inte' }
   const title = `Hitta loppis i ${resolved.canonicalName} — ${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'}`
   const description = `${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'} och loppmarknader i ${resolved.canonicalName}. Hitta öppettider, adresser och boka bord på Fyndstigen.`
+  const url = `/loppisar/${slug}`
   return {
     title,
     description,
-    alternates: { canonical: `/loppisar/${slug}` },
-    openGraph: { title, description, type: 'website', locale: 'sv_SE' },
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      locale: 'sv_SE',
+      url,
+      images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/logo-512.png'],
+    },
   }
 }
 
@@ -109,7 +123,7 @@ export default async function CityPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd).replace(/</g, '\\u003c') }}
       />
 
-      <nav className="text-sm text-espresso/60 mb-4">
+      <nav aria-label="breadcrumb" className="text-sm text-espresso/60 mb-4">
         <Link href="/" className="hover:text-espresso">Start</Link>
         <span className="mx-2">/</span>
         <Link href="/search" className="hover:text-espresso">Loppisar</Link>
@@ -198,7 +212,7 @@ export default async function CityPage({ params }: Props) {
 
       <h2 className="sr-only">Om loppisar i {resolved.canonicalName}</h2>
       <p className="sr-only">
-        Hitta {getInitials(resolved.canonicalName)} loppisar och loppmarknader. Sortera efter
+        Hitta {resolved.canonicalName} loppisar och loppmarknader. Sortera efter
         permanenta och tillfälliga loppisar, se öppettider och boka bord direkt via Fyndstigen.
       </p>
     </div>
