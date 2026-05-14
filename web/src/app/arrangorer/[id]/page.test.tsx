@@ -5,7 +5,15 @@ import type { Deps } from '@fyndstigen/shared'
 import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
 import { DepsProvider } from '@/providers/deps-provider'
 
-vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'org-1' }) }))
+const mockNotFound = vi.fn(() => {
+  // next/navigation's real notFound() throws to unwind rendering. Mirror that
+  // so the component doesn't keep running past the call in tests.
+  throw new Error('NEXT_NOT_FOUND')
+})
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ id: 'org-1' }),
+  notFound: () => mockNotFound(),
+}))
 vi.mock('next/link', () => ({ default: ({ children, href }: any) => <a href={href}>{children}</a> }))
 vi.mock('@/lib/auth/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('@/components/fyndstigen-logo', () => ({ FyndstigenLogo: () => <div data-testid="loading" /> }))
@@ -78,11 +86,11 @@ describe('OrganizerProfilePage', () => {
     expect(screen.getByTestId('loading')).toBeInTheDocument()
   })
 
-  it('shows "Arrangören hittades inte" for unknown organizer', async () => {
+  it('triggers notFound() for unknown organizer', async () => {
     setupMocks({ rejectOrganizer: true })
     render(<OrganizerProfilePage />)
     await waitFor(() => {
-      expect(screen.getByText('Arrangören hittades inte')).toBeInTheDocument()
+      expect(mockNotFound).toHaveBeenCalled()
     })
   })
 

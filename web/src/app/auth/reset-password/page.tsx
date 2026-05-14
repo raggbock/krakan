@@ -31,6 +31,14 @@ export default function ResetPasswordPage() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Auto-navigate home after a successful password change. Scoped to a
+  // useEffect so unmounting (user clicks back) cancels the pending push.
+  useEffect(() => {
+    if (!done) return
+    const id = window.setTimeout(() => router.push('/'), 2000)
+    return () => window.clearTimeout(id)
+  }, [done, router])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -42,7 +50,6 @@ export default function ResetPasswordPage() {
     try {
       await updatePassword(password)
       setDone(true)
-      setTimeout(() => router.push('/'), 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunde inte uppdatera lösenord')
     } finally {

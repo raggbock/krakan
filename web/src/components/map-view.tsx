@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMap } from 'react-leaflet'
@@ -117,89 +117,97 @@ export default function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const blockSaleMarkers: MapMarker[] = blockSales.map((bs) => ({
-    id: `bs_${bs.id}`,
-    coord: [bs.latitude, bs.longitude],
-    icon: 'block_sale' as const,
-    popup: (
-      <div className="min-w-[200px] p-1">
-        <p className="font-display font-bold text-sm text-espresso">{bs.name}</p>
-        <p className="text-xs text-espresso/65 mt-1">{bs.city}</p>
-        <Link
-          href={`/kvartersloppis/${bs.slug}`}
-          className="inline-block mt-2 text-xs font-semibold transition-colors"
-          style={{ color: '#7c3aed' }}
-        >
-          Visa kvartersloppis &rarr;
-        </Link>
-      </div>
-    ),
-  }))
-
-  const markers: MapMarker[] = [
-    ...blockSaleMarkers,
-    ...markets.map((market, i) => ({
-      id: market.id,
-      coord: [market.latitude, market.longitude] as [number, number],
-      icon: 'market' as const,
+  // Building markers includes constructing JSX popup nodes for every pin.
+  // With 2000-market nearby fetches, doing this on every re-render (e.g.
+  // when geolocation state updates) noticeably hitches low-end devices.
+  // Memoise on the source arrays so the work runs once per data change.
+  const markers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = []
+    const blockSaleMarkers: MapMarker[] = blockSales.map((bs) => ({
+      id: `bs_${bs.id}`,
+      coord: [bs.latitude, bs.longitude],
+      icon: 'block_sale' as const,
       popup: (
         <div className="min-w-[200px] p-1">
-          <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
-          <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
-          {market.description && (
-            <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
-          )}
+          <p className="font-display font-bold text-sm text-espresso">{bs.name}</p>
+          <p className="text-xs text-espresso/65 mt-1">{bs.city}</p>
           <Link
-            href={marketUrl(market)}
-            className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
-            onClick={() => posthog?.capture('search_result_clicked', {
-              source: 'map',
-              market_id: market.id,
-              market_slug: market.slug ?? null,
-              position: i,
-              query: null,
-              city_slug: null,
-            })}
+            href={`/kvartersloppis/${bs.slug}`}
+            className="inline-block mt-2 text-xs font-semibold transition-colors"
+            style={{ color: '#7c3aed' }}
           >
-            Visa loppis &rarr;
+            Visa kvartersloppis &rarr;
           </Link>
         </div>
       ),
-    })),
-  ]
-
-  // Synthetic pin for the target market (typically a draft we just
-  // claimed, which isn't in the public visible_flea_markets feed and
-  // would otherwise look like the map zoomed to nowhere). Skip when a
-  // regular marker already sits within ~30m — published markets show
-  // up in `markets` and we'd otherwise stack two pins on the same spot.
-  if (hasTarget) {
-    const dupe = markers.some((m) =>
-      Math.abs(m.coord[0] - targetLat) < 0.0003 && Math.abs(m.coord[1] - targetLng) < 0.0005,
-    )
-    if (!dupe) {
-      markers.push({
-        id: '__target__',
-        coord: [targetLat, targetLng],
-        icon: 'market',
+    }))
+    out.push(...blockSaleMarkers)
+    out.push(
+      ...markets.map((market, i) => ({
+        id: market.id,
+        coord: [market.latitude, market.longitude] as [number, number],
+        icon: 'market' as const,
         popup: (
           <div className="min-w-[200px] p-1">
-            <p className="font-display font-bold text-sm text-espresso">
-              {targetName ?? 'Här'}
-            </p>
-            {targetSlug && (
-              <Link
-                href={`/loppis/${targetSlug}`}
-                className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
-              >
-                Tillbaka till sidan &rarr;
-              </Link>
+            <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
+            <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+            {market.description && (
+              <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
             )}
+            <Link
+              href={marketUrl(market)}
+              className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+              onClick={() => posthog?.capture('search_result_clicked', {
+                source: 'map',
+                market_id: market.id,
+                market_slug: market.slug ?? null,
+                position: i,
+                query: null,
+                city_slug: null,
+              })}
+            >
+              Visa loppis &rarr;
+            </Link>
           </div>
         ),
-      })
+      })),
+    )
+    // Synthetic pin for the target market (typically a draft we just claimed,
+    // which isn't in the public visible_flea_markets feed and would otherwise
+    // look like the map zoomed to nowhere). Skip when a regular marker
+    // already sits within ~30m — published markets show up in `markets` and
+    // we'd otherwise stack two pins on the same spot.
+    if (hasTarget) {
+      const dupe = out.some(
+        (m) =>
+          Math.abs(m.coord[0] - targetLat) < 0.0003 &&
+          Math.abs(m.coord[1] - targetLng) < 0.0005,
+      )
+      if (!dupe) {
+        out.push({
+          id: '__target__',
+          coord: [targetLat, targetLng],
+          icon: 'market',
+          popup: (
+            <div className="min-w-[200px] p-1">
+              <p className="font-display font-bold text-sm text-espresso">
+                {targetName ?? 'Här'}
+              </p>
+              {targetSlug && (
+                <Link
+                  href={`/loppis/${targetSlug}`}
+                  className="inline-block mt-2 text-xs text-rust font-semibold hover:text-rust-light transition-colors"
+                >
+                  Tillbaka till sidan &rarr;
+                </Link>
+              )}
+            </div>
+          ),
+        })
+      }
     }
-  }
+    return out
+  }, [blockSales, markets, posthog, hasTarget, targetLat, targetLng, targetName, targetSlug])
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>

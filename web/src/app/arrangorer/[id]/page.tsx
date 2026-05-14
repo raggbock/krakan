@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { OrganizerProfileView, FleaMarketView } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
@@ -40,16 +40,10 @@ export default function OrganizerProfilePage() {
   }
 
   if (!organizer) {
-    return (
-      <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <h1 className="font-display text-2xl font-bold">
-          Arrangören hittades inte
-        </h1>
-        <Link href="/" className="text-rust mt-4 inline-block">
-          &larr; Tillbaka
-        </Link>
-      </div>
-    )
+    // Trigger the global not-found.tsx so crawlers get a real 404 and the
+    // user sees the styled fallback consistent with other missing-resource
+    // pages (/loppis, /rundor, /loppisar).
+    notFound()
   }
 
   const name =

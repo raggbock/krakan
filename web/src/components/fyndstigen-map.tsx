@@ -194,6 +194,10 @@ export function FyndstigenMap({
       key={marker.id}
       position={marker.coord}
       icon={resolveIcon(marker)}
+      // alt="" marks the marker img as decorative so screen readers skip the
+      // tab-stop and don't announce a meaningless "image" string. Real text
+      // for the marker lives in the popup content.
+      alt=""
       eventHandlers={
         onMarkerClick ? { click: () => onMarkerClick(marker.id) } : undefined
       }
