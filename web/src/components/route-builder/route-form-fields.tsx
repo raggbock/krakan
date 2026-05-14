@@ -21,10 +21,14 @@ export function RouteFormFields({
     <>
       {/* Route name */}
       <div className="mt-6">
-        <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
+        <label
+          htmlFor="route-name"
+          className="text-sm font-semibold text-espresso/70 block mb-1.5"
+        >
           Namn på rundan
         </label>
         <input
+          id="route-name"
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
@@ -35,10 +39,14 @@ export function RouteFormFields({
 
       {/* Planned date */}
       <div className="mt-4">
-        <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
+        <label
+          htmlFor="route-planned-date"
+          className="text-sm font-semibold text-espresso/70 block mb-1.5"
+        >
           Planerat datum (valfritt)
         </label>
         <input
+          id="route-planned-date"
           type="date"
           value={plannedDate}
           onChange={(e) => onPlannedDateChange(e.target.value)}
@@ -48,17 +56,28 @@ export function RouteFormFields({
 
       {/* Start point toggle */}
       <div className="mt-4">
-        <label className="text-sm font-semibold text-espresso/70 block mb-1.5">
+        <span
+          id="route-startpoint-label"
+          className="text-sm font-semibold text-espresso/70 block mb-1.5"
+        >
           Startpunkt
-        </label>
-        <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
+        </span>
+        <div
+          role="group"
+          aria-labelledby="route-startpoint-label"
+          className="flex gap-1 bg-cream-warm rounded-xl p-1"
+        >
           <button
+            type="button"
+            aria-pressed={useGps}
             onClick={() => onUseGpsChange(true)}
             className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
           >
             Min position (GPS)
           </button>
           <button
+            type="button"
+            aria-pressed={!useGps}
             onClick={() => onUseGpsChange(false)}
             className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
           >

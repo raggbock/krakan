@@ -35,6 +35,7 @@ export type RoutingResult = {
  */
 export async function fetchDrivingRoute(
   stops: Coord[],
+  signal?: AbortSignal,
 ): Promise<RoutingResult | null> {
   if (stops.length < 2) return null
 
@@ -44,7 +45,7 @@ export async function fetchDrivingRoute(
   const url = `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=false`
 
   try {
-    const res = await fetch(url)
+    const res = await fetch(url, { signal })
     if (!res.ok) return null
 
     const data = await res.json()

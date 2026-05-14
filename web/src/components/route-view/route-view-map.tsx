@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { RouteStopView } from '@fyndstigen/shared'
 import { fetchDrivingRoute, type RoutingResult } from '@fyndstigen/shared'
 import { FyndstigenMap, type MapMarker } from '../fyndstigen-map'
@@ -14,14 +14,22 @@ type Props = {
 export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Props) {
   const [roadGeometry, setRoadGeometry] = useState<[number, number][] | null>(null)
 
-  const positions: [number, number][] = stops
-    .filter((s) => s.fleaMarket)
-    .map((s) => {
-      const fm = s.fleaMarket as any
-      return [fm.latitude ?? 59.27, fm.longitude ?? 15.21]
-    })
+  // Drop stops missing coordinates rather than pretending they're at Örebro.
+  const positions = useMemo<[number, number][]>(
+    () =>
+      stops
+        .filter((s) => s.fleaMarket)
+        .map((s) => [s.fleaMarket!.latitude, s.fleaMarket!.longitude]),
+    [stops],
+  )
 
-  // Fetch real driving route
+  const stopsKey = useMemo(
+    () => stops.map((s) => s.fleaMarket?.id ?? '').join(','),
+    [stops],
+  )
+
+  // Fetch real driving route. Cancel in-flight requests when stops change so a
+  // late response cannot overwrite the geometry for a newer stops list.
   useEffect(() => {
     if (positions.length < 2) {
       setRoadGeometry(null)
@@ -29,9 +37,11 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
       return
     }
 
+    const controller = new AbortController()
     const coords = positions.map(([lat, lng]) => ({ lat, lng }))
     onRoutingError?.(false)
-    fetchDrivingRoute(coords).then((result) => {
+    fetchDrivingRoute(coords, controller.signal).then((result) => {
+      if (controller.signal.aborted) return
       if (result) {
         setRoadGeometry(result.geometry)
       } else {
@@ -40,7 +50,11 @@ export default function RouteMap({ stops, onRoutingResult, onRoutingError }: Pro
       }
       onRoutingResult?.(result)
     })
-  }, [stops.map((s) => s.fleaMarket?.id).join(',')])
+    return () => controller.abort()
+    // stopsKey captures the identity of the stop list; the callbacks are
+    // intentionally omitted to avoid refetching when the parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopsKey])
 
   const markers: MapMarker[] = stops
     .filter((s) => s.fleaMarket)

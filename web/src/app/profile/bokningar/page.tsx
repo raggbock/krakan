@@ -17,6 +17,7 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingView[]>([])
   const [stats, setStats] = useState<OrganizerStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,29 +26,36 @@ export default function BookingsPage() {
       router.push('/auth')
       return
     }
-    loadData()
-  }, [user, authLoading])
+    let cancelled = false
+    async function loadData(userId: string) {
+      try {
+        setLoading(true)
+        setLoadError(null)
+        const markets = await marketsRepo.listByOrganizer(userId)
+        if (cancelled) return
+        setMyMarkets(markets)
 
-  async function loadData() {
-    if (!user) return
-    try {
-      setLoading(true)
-      const markets = await marketsRepo.listByOrganizer(user.id)
-      setMyMarkets(markets)
+        const allBookings = await Promise.all(
+          markets.map((m) => bookingsRepo.listByMarket(m.id)),
+        )
+        if (cancelled) return
+        setBookings(allBookings.flat())
 
-      // Load bookings for all user's markets
-      const allBookings = await Promise.all(
-        markets.map((m) => bookingsRepo.listByMarket(m.id)),
-      )
-      setBookings(allBookings.flat())
-
-      const s = await organizers.stats(user.id)
-      setStats(s)
-    } catch {
-    } finally {
-      setLoading(false)
+        const s = await organizers.stats(userId)
+        if (cancelled) return
+        setStats(s)
+      } catch (err) {
+        if (cancelled) return
+        setLoadError(err instanceof Error ? err.message : 'Kunde inte ladda bokningar')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-  }
+    loadData(user.id)
+    return () => {
+      cancelled = true
+    }
+  }, [user, authLoading, router, marketsRepo, bookingsRepo, organizers])
 
   async function handleUpdateStatus(
     bookingId: string,
@@ -98,6 +106,16 @@ export default function BookingsPage() {
       <p className="text-sm text-espresso/65 mb-8">
         Hantera bokningsförfrågningar för dina loppisar.
       </p>
+
+      {loadError && (
+        <div
+          role="alert"
+          className="mb-6 rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
+        >
+          <p className="font-semibold">Kunde inte ladda bokningar</p>
+          <p className="mt-1 text-error/80">{loadError}</p>
+        </div>
+      )}
 
       {/* Stats */}
       {stats && (
