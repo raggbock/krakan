@@ -99,7 +99,7 @@ export default function FaqPage() {
         <p className="font-display font-bold">Hittar du inte svaret?</p>
         <p className="text-sm text-espresso/65 mt-1">
           Hör av dig till oss på{' '}
-          <a href="mailto:hej@fyndstigen.se" className="text-rust hover:underline">
+          <a href="mailto:hej@fyndstigen.se" className="text-rust underline">
             hej@fyndstigen.se
           </a>
         </p>

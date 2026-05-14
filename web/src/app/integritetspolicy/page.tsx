@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="font-display text-lg font-bold text-espresso mb-3">1. Personuppgiftsansvarig</h2>
           <p>
             Sebastian Myrdahl<br />
-            E-post: <a href="mailto:info@fyndstigen.se" className="text-rust">info@fyndstigen.se</a>
+            E-post: <a href="mailto:info@fyndstigen.se" className="text-rust underline">info@fyndstigen.se</a>
           </p>
         </section>
 
@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
           <p>Vi delar uppgifter med följande tjänster för att Fyndstigen ska fungera:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
             <li><strong>Supabase</strong> (Frankfurt, EU) — databas och inloggning</li>
-            <li><strong>Stripe</strong> (EU/US) — betalningshantering aktiveras när Fyndstigen öppnar bordsbokning med betalning. Stripe är självständigt personuppgiftsansvarig för betaldata. <a href="https://stripe.com/privacy" className="text-rust" target="_blank" rel="noopener noreferrer">Stripes integritetspolicy</a></li>
+            <li><strong>Stripe</strong> (EU/US) — betalningshantering aktiveras när Fyndstigen öppnar bordsbokning med betalning. Stripe är självständigt personuppgiftsansvarig för betaldata. <a href="https://stripe.com/privacy" className="text-rust underline" target="_blank" rel="noopener noreferrer">Stripes integritetspolicy</a></li>
             <li><strong>PostHog</strong> (Frankfurt, EU) — webbanalys, endast med ditt samtycke. Vi spårar bland annat sökfraser du anger i sökfältet — använd inte fältet för att skriva in personuppgifter (eget namn, adresser etc).</li>
             <li><strong>Sentry</strong> (Frankfurt, EU) — felrapportering från webbläsaren. PII (IP, cookies) skickas bara om du accepterat cookies.</li>
             <li><strong>Cloudflare</strong> (global, EU-avtal) — hosting och CDN</li>
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
           <h3 className="font-semibold text-espresso mt-4 mb-1">Ditt val att avsäga dig</h3>
           <p>
             Du kan när som helst stänga av e-postsammanfattningen via inställningar i din profil
-            under <a href="/profile/notifikationer" className="text-rust">Notifikationsinställningar</a>.
+            under <a href="/profile/notifikationer" className="text-rust underline">Notifikationsinställningar</a>.
             Varje e-postmeddelande innehåller också en personlig avprenumerationslänk som stänger av
             framtida utskick med ett enda klick — utan att du behöver logga in.
             Din in-app-inkorg fortsätter att fungera oavsett e-postinställning.
@@ -159,8 +159,8 @@ export default function PrivacyPolicyPage() {
             <li><strong>Återkalla samtycke</strong> för analytikcookies</li>
           </ul>
           <p className="mt-2">
-            Kontakta oss på <a href="mailto:info@fyndstigen.se" className="text-rust">info@fyndstigen.se</a> för att utöva dina rättigheter.
-            Du har också rätt att klaga till <a href="https://www.imy.se" className="text-rust" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten (IMY)</a>.
+            Kontakta oss på <a href="mailto:info@fyndstigen.se" className="text-rust underline">info@fyndstigen.se</a> för att utöva dina rättigheter.
+            Du har också rätt att klaga till <a href="https://www.imy.se" className="text-rust underline" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten (IMY)</a>.
           </p>
         </section>
 

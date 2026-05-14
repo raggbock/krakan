@@ -1,27 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function AuthPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const posthog = usePostHog()
   const { user, auth } = useAuth()
   const { signIn, signUp, signInWithGoogle, resetPasswordForEmail } = auth
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [resetSent, setResetSent] = useState(false)
-  const [nextPath, setNextPath] = useState('/utforska')
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const next = params.get('next')
-    if (next && next.startsWith('/') && !next.startsWith('//')) {
-      setNextPath(next)
-    }
-  }, [])
+  // Derive nextPath synchronously from the URL so the redirect effect below
+  // never races against a useState update — a returning logged-in user used
+  // to lose their `?next=` deep link because the redirect fired before the
+  // param-reading effect updated state.
+  const rawNext = searchParams.get('next')
+  const nextPath =
+    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/utforska'
 
   useEffect(() => {
     if (user) router.push(nextPath)

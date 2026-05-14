@@ -130,7 +130,7 @@ export { optimizeRoute } from './domain/route-optimizer'
 export type { Stop } from './domain/route-optimizer'
 export { fetchDrivingRoute } from './geo/routing'
 export type { RoutingResult, RouteLeg } from './geo/routing'
-export { getInitials, slugifyCity, formatDistance, formatDuration } from './format'
+export { getInitials, slugifyCity, formatDistance, formatDuration, isPastInStockholm } from './format'
 
 // Notifications
 export { fanOutDeliveries } from './notifications/delivery-fan-out'

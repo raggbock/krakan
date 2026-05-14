@@ -90,13 +90,14 @@ function BookableTablesInner({
           </p>
 
           {booking.isDone && (
-            <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium mb-4">
+            <div className="bg-forest/10 text-forest rounded-xl px-4 py-3 text-sm font-medium">
               {booking.isFree
                 ? 'Bokning skickad!'
                 : 'Bokning skickad! Beloppet är reserverat tills arrangören svarar.'}
             </div>
           )}
 
+          {!booking.isDone && (
           <div className="space-y-3">
             {tables.map((table) => {
               const isSelected = booking.selectedTable?.id === table.id
@@ -212,6 +213,7 @@ function BookableTablesInner({
               )
             })}
           </div>
+          )}
         </div>
       </div>
     </div>

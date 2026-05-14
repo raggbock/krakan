@@ -206,7 +206,6 @@ export default async function RootLayout({
                     </Link>
                     <a
                       href="https://fyndstigen.se/integritetspolicy"
-                      aria-label="Privacy Policy"
                       className="hover:text-espresso transition-colors"
                     >
                       Integritetspolicy

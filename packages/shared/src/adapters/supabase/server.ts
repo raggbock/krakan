@@ -193,19 +193,29 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     },
 
     async listCitiesWithMarkets() {
-      const { data } = await supabase
-        .from('visible_flea_markets')
-        .select('city, updated_at')
+      // PostgREST's default `range` caps a single response at 1000 rows. With
+      // Sweden's market count already approaching that, an unbounded
+      // .select() silently truncates and the homepage stats start lying.
+      // Page through until we hit a short page.
+      const PAGE_SIZE = 1000
       const byCity = new Map<string, { count: number; latest: string }>()
-      for (const row of data ?? []) {
-        if (!row.city) continue
-        const cur = byCity.get(row.city)
-        if (cur) {
-          cur.count += 1
-          if (row.updated_at > cur.latest) cur.latest = row.updated_at
-        } else {
-          byCity.set(row.city, { count: 1, latest: row.updated_at })
+      for (let offset = 0; ; offset += PAGE_SIZE) {
+        const { data, error } = await supabase
+          .from('visible_flea_markets')
+          .select('city, updated_at')
+          .range(offset, offset + PAGE_SIZE - 1)
+        if (error) break
+        for (const row of data ?? []) {
+          if (!row.city) continue
+          const cur = byCity.get(row.city)
+          if (cur) {
+            cur.count += 1
+            if (row.updated_at > cur.latest) cur.latest = row.updated_at
+          } else {
+            byCity.set(row.city, { count: 1, latest: row.updated_at })
+          }
         }
+        if (!data || data.length < PAGE_SIZE) break
       }
       return Array.from(byCity.entries()).map(([city, { count, latest }]) => ({
         city,

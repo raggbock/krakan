@@ -114,6 +114,12 @@ export type FyndstigenMapProps = {
    */
   cluster?: boolean
   /**
+   * Enable wheel-zoom. Off by default because the map usually lives inside a
+   * scrollable page and stealing the wheel feels broken to users. Discovery
+   * maps that take the whole viewport should opt in.
+   */
+  scrollWheelZoom?: boolean
+  /**
    * Children are rendered inside the MapContainer as additional Leaflet layers.
    * Use for advanced cases (e.g. MapClickHandler) that can't be expressed via props.
    */
@@ -170,6 +176,7 @@ export function FyndstigenMap({
   zoom,
   onMarkerClick,
   cluster,
+  scrollWheelZoom = false,
   children,
   className,
 }: FyndstigenMapProps) {
@@ -199,6 +206,7 @@ export function FyndstigenMap({
     <MapContainer
       center={mapCenter}
       zoom={mapZoom}
+      scrollWheelZoom={scrollWheelZoom}
       className={className ?? 'h-full w-full'}
       style={{ minHeight: 0 }}
     >

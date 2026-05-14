@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
+import { isPastInStockholm } from '@fyndstigen/shared'
 import { useBlockSale } from '@/hooks/use-block-sale'
 import { BlockSaleStandForm } from '@/components/block-sale/stand-form'
 
@@ -23,7 +24,7 @@ export default function ApplyPage() {
   if (isLoading) return <p className="p-6">Laddar…</p>
   if (error || !bs) return <p className="p-6">Kunde inte ladda kvartersloppis.</p>
 
-  const isOver = new Date(bs.endDate + 'T23:59:59') < new Date()
+  const isOver = isPastInStockholm(bs.endDate)
   if (isOver) {
     return (
       <div className="max-w-xl mx-auto p-6">

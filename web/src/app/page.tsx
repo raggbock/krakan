@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerData } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export const metadata: Metadata = {
@@ -28,21 +29,21 @@ async function getStats() {
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
   )
+  const server = createSupabaseServerData(supabase)
 
-  const [marketsRes, citiesRes, tablesRes] = await Promise.all([
+  const [marketsRes, cities, tablesRes] = await Promise.all([
     supabase
       .from('visible_flea_markets')
       .select('id', { count: 'exact', head: true }),
-    supabase
-      .from('visible_flea_markets')
-      .select('city'),
+    // Paginates internally — safe past the PostgREST 1000-row cap.
+    server.listCitiesWithMarkets(),
     supabase
       .from('market_tables')
       .select('id', { count: 'exact', head: true }),
   ])
 
   const marketCount = marketsRes.count ?? 0
-  const uniqueCities = new Set((citiesRes.data ?? []).map((r) => r.city)).size
+  const uniqueCities = cities.length
   const tableCount = tablesRes.count ?? 0
 
   return { marketCount, uniqueCities, tableCount }

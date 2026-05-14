@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
+import { isPastInStockholm } from '@fyndstigen/shared'
 import { useBlockSale } from '@/hooks/use-block-sale'
 import { BlockSalePublicMap } from '@/components/block-sale/public-map'
 import { BlockSaleStandPanel } from '@/components/block-sale/stand-panel'
@@ -19,12 +20,11 @@ export default function Page() {
   useEffect(() => {
     if (tracked.current || !bs) return
     tracked.current = true
-    const isOver = new Date(bs.endDate + 'T23:59:59') < new Date()
     posthog?.capture('block_sale_view', {
       slug,
       blockSaleId: bs.id,
       city: bs.city,
-      isOver,
+      isOver: isPastInStockholm(bs.endDate),
     })
   }, [bs, posthog, slug])
 
@@ -32,7 +32,7 @@ export default function Page() {
   if (error || !bs) return <p className="p-6">Kunde inte ladda kvartersloppis.</p>
 
   const dateLabel = bs.endDate !== bs.startDate ? `${bs.startDate} – ${bs.endDate}` : bs.startDate
-  const isOver = new Date(bs.endDate + 'T23:59:59') < new Date()
+  const isOver = isPastInStockholm(bs.endDate)
 
   type ApprovedStand = (typeof bs.approvedStands)[number]
   const selectedStand = selectedStandId

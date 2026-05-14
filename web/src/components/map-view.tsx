@@ -57,6 +57,11 @@ export default function MapView() {
   // Higher zoom when arriving at a specific market — visitor wants to see
   // the actual location, not a regional overview.
   const [zoom, setZoom] = useState(hasTarget ? 15 : 11)
+  // FlyToLocation must not run on first paint while `center` is still the
+  // default — otherwise the user sees a jarring pan from Stockholm to their
+  // real location once geolocation resolves. Toggle true only after we have
+  // a real coordinate to fly to (URL target or geolocation result).
+  const [locationResolved, setLocationResolved] = useState(hasTarget)
 
   useEffect(() => {
     // Fetch published kvartersloppis events with known coordinates.
@@ -87,6 +92,7 @@ export default function MapView() {
         const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude]
         setCenter(loc)
         setZoom(11)
+        setLocationResolved(true)
         loadMarkets(loc[0], loc[1])
       },
       () => {
@@ -218,7 +224,9 @@ export default function MapView() {
         cluster
         className="flex-1 w-full"
       >
-        <FlyToLocation lat={center[0]} lng={center[1]} zoom={zoom} />
+        {locationResolved && (
+          <FlyToLocation lat={center[0]} lng={center[1]} zoom={zoom} />
+        )}
       </FyndstigenMap>
     </div>
   )

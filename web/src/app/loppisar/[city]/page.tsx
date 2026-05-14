@@ -95,7 +95,7 @@ export default async function CityPage({ params }: Props) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Fyndstigen', item: 'https://fyndstigen.se' },
-      { '@type': 'ListItem', position: 2, name: 'Loppisar', item: 'https://fyndstigen.se/search' },
+      { '@type': 'ListItem', position: 2, name: 'Loppisar', item: 'https://fyndstigen.se/loppisar' },
       { '@type': 'ListItem', position: 3, name: resolved.canonicalName },
     ],
   }
@@ -126,7 +126,7 @@ export default async function CityPage({ params }: Props) {
       <nav aria-label="breadcrumb" className="text-sm text-espresso/60 mb-4">
         <Link href="/" className="hover:text-espresso">Start</Link>
         <span className="mx-2">/</span>
-        <Link href="/search" className="hover:text-espresso">Loppisar</Link>
+        <Link href="/loppisar" className="hover:text-espresso">Loppisar</Link>
         <span className="mx-2">/</span>
         <span className="text-espresso">{resolved.canonicalName}</span>
       </nav>
@@ -151,9 +151,9 @@ export default async function CityPage({ params }: Props) {
           <ul className="mt-2 space-y-2">
             {blockSalesInCity.map((bs) => (
               <li key={bs.id}>
-                <a href={`/kvartersloppis/${bs.slug}`} className="link">
+                <Link href={`/kvartersloppis/${bs.slug}`} className="link">
                   {bs.name} · {bs.startDate}{bs.endDate !== bs.startDate ? `–${bs.endDate}` : ''}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -186,9 +186,9 @@ export default async function CityPage({ params }: Props) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-display font-bold truncate">{m.name}</h2>
-                <span className={`stamp text-xs ${m.is_permanent ? 'text-forest' : 'text-mustard'}`}>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                <h2 className="font-display font-bold truncate min-w-0">{m.name}</h2>
+                <span className={`stamp text-xs self-start sm:self-auto shrink-0 ${m.is_permanent ? 'text-forest' : 'text-mustard'}`}>
                   {m.is_permanent ? 'Permanent' : 'Tillfällig'}
                 </span>
               </div>
