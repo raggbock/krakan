@@ -130,7 +130,7 @@ function EditProfilePageInner() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -139,7 +139,7 @@ function EditProfilePageInner() {
       </button>
 
       <h1 className="font-display text-2xl font-bold mb-2">Redigera profil</h1>
-      <p className="text-sm text-espresso/65 mb-8">
+      <p className="text-sm text-espresso/75 mb-8">
         Din arrangörsprofil syns publikt på{' '}
         <span className="text-espresso/70">/arrangorer/{user?.id?.slice(0, 8)}...</span>
       </p>
@@ -159,7 +159,7 @@ function EditProfilePageInner() {
               <span className="stamp text-mustard text-xs">Skyltfönstret</span>
               <span className="text-sm font-semibold">Aktivt</span>
             </div>
-            <p className="text-sm text-espresso/60 mb-4">
+            <p className="text-sm text-espresso/75 mb-4">
               Dina loppisar har utökad SEO, detaljerad statistik och bättre synlighet på Google.
             </p>
             <button

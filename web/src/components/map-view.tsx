@@ -130,7 +130,7 @@ export default function MapView() {
       popup: (
         <div className="min-w-[200px] p-1">
           <p className="font-display font-bold text-sm text-espresso">{bs.name}</p>
-          <p className="text-xs text-espresso/65 mt-1">{bs.city}</p>
+          <p className="text-xs text-espresso/75 mt-1">{bs.city}</p>
           <Link
             href={`/kvartersloppis/${bs.slug}`}
             className="inline-block mt-2 text-xs font-semibold transition-colors"
@@ -150,9 +150,9 @@ export default function MapView() {
         popup: (
           <div className="min-w-[200px] p-1">
             <p className="font-display font-bold text-sm text-espresso">{market.name}</p>
-            <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+            <p className="text-xs text-espresso/75 mt-1">{market.city}</p>
             {market.description && (
-              <p className="text-xs text-espresso/60 mt-1 line-clamp-2">{market.description}</p>
+              <p className="text-xs text-espresso/75 mt-1 line-clamp-2">{market.description}</p>
             )}
             <Link
               href={marketUrl(market)}
@@ -215,7 +215,7 @@ export default function MapView() {
       <div className="bg-card border-b border-cream-warm px-6 py-3 flex items-center justify-between">
         <div>
           <p className="font-display font-bold">Karta</p>
-          <p className="text-xs text-espresso/60">
+          <p className="text-xs text-espresso/75">
             {error ? error : `${markets.length} loppisar${blockSales.length > 0 ? ` · ${blockSales.length} kvartersloppisar` : ''} i närheten`}
           </p>
         </div>

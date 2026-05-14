@@ -132,7 +132,7 @@ function MarketDetailLayout({
         </div>
 
         {market.description && (
-          <p className="text-espresso/60 text-lg leading-relaxed mt-3 max-w-2xl">
+          <p className="text-espresso/75 text-lg leading-relaxed mt-3 max-w-2xl">
             {market.description}
           </p>
         )}
@@ -258,7 +258,7 @@ function MarketDetailFromHook({ id }: { id: string }) {
         <h1 className="font-display text-2xl font-bold">
           Loppisen hittades inte
         </h1>
-        <p className="text-espresso/65 mt-2">
+        <p className="text-espresso/75 mt-2">
           Den kanske har tagits bort eller flyttat.
         </p>
         <Link

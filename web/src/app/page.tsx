@@ -169,7 +169,7 @@ export default async function LandingPage() {
           <h2 className="font-display text-3xl sm:text-4xl font-bold">
             Tre steg till ditt nästa fynd
           </h2>
-          <p className="text-espresso/65 mt-3 max-w-md mx-auto">
+          <p className="text-espresso/75 mt-3 max-w-md mx-auto">
             Från soffa till loppisfynd &mdash; snabbt och enkelt.
           </p>
         </div>
@@ -263,7 +263,7 @@ export default async function LandingPage() {
               <h2 className="font-display text-3xl sm:text-4xl font-bold mt-4">
                 Vi har precis öppnat stigen
               </h2>
-              <p className="text-espresso/65 mt-4 max-w-lg mx-auto text-lg leading-relaxed">
+              <p className="text-espresso/75 mt-4 max-w-lg mx-auto text-lg leading-relaxed">
                 Fyndstigen är nytt och vi bygger upp plattformen tillsammans med
                 arrangörer och loppis-älskare runt om i Sverige. Var med från
                 början &mdash; registrera din loppis och bli en av de första.
@@ -290,7 +290,7 @@ export default async function LandingPage() {
               <p className="font-display text-xl sm:text-2xl font-bold text-espresso/80 leading-relaxed">
                 Hjälp oss hitta alla loppisar i Sverige
               </p>
-              <p className="text-espresso/60 mt-3 max-w-md mx-auto">
+              <p className="text-espresso/75 mt-3 max-w-md mx-auto">
                 Saknas din favorit-loppis? Tipsa oss eller registrera den
                 direkt &mdash; tillsammans gör vi Fyndstigen komplett.
               </p>
@@ -323,7 +323,7 @@ export default async function LandingPage() {
             <h3 className="font-display text-xl sm:text-2xl font-bold">
               Har du en loppis?
             </h3>
-            <p className="text-espresso/65 mt-2 leading-relaxed">
+            <p className="text-espresso/75 mt-2 leading-relaxed">
               Publicera din loppis gratis och nå fler besökare. Hantera
               bokningar, se statistik och få fler säljare.
             </p>
@@ -357,7 +357,7 @@ export default async function LandingPage() {
             <br />
             <span className="text-rust">vart leder din?</span>
           </h2>
-          <p className="text-espresso/65 mt-5 text-lg max-w-md mx-auto">
+          <p className="text-espresso/75 mt-5 text-lg max-w-md mx-auto">
             Bli en del av Fyndstigen och hitta ditt nästa fynd.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-8">
@@ -375,7 +375,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/loppisar"
-              className="inline-flex items-center gap-2 text-espresso/60 font-medium text-sm hover:text-espresso transition-colors px-4 py-4"
+              className="inline-flex items-center gap-2 text-espresso/75 font-medium text-sm hover:text-espresso transition-colors px-4 py-4"
             >
               Bläddra loppisar per stad &rarr;
             </Link>
@@ -413,7 +413,7 @@ function StatCard({
       <span className={`font-display text-3xl sm:text-4xl font-bold ${textMap[color]}`}>
         {number}
       </span>
-      <p className="text-sm text-espresso/65 mt-1 font-medium">{label}</p>
+      <p className="text-sm text-espresso/75 mt-1 font-medium">{label}</p>
     </div>
   )
 }

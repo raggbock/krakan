@@ -71,7 +71,7 @@ export function RouteFormFields({
             type="button"
             aria-pressed={useGps}
             onClick={() => onUseGpsChange(true)}
-            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/75'}`}
           >
             Min position (GPS)
           </button>
@@ -79,7 +79,7 @@ export function RouteFormFields({
             type="button"
             aria-pressed={!useGps}
             onClick={() => onUseGpsChange(false)}
-            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!useGps ? 'bg-card text-espresso shadow-sm' : 'text-espresso/75'}`}
           >
             Välj på kartan
           </button>

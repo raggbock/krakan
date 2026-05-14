@@ -14,7 +14,7 @@ export function ImageUploadList({ statuses }: { statuses: ImageUploadStatus[] })
               s.state === 'error'
                 ? 'text-error'
                 : s.state === 'done'
-                  ? 'text-espresso/60'
+                  ? 'text-espresso/75'
                   : 'text-espresso'
             }`}
           >

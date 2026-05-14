@@ -47,7 +47,7 @@ export function NotifikationerClient({ initialEmailDigestEnabled, userId }: Prop
     <>
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -56,7 +56,7 @@ export function NotifikationerClient({ initialEmailDigestEnabled, userId }: Prop
       </Link>
 
       <h1 className="font-display text-2xl font-bold mb-2">Notifikationsinställningar</h1>
-      <p className="text-sm text-espresso/65 mb-8">
+      <p className="text-sm text-espresso/75 mb-8">
         Styr hur du vill bli informerad om nyheter från loppisar och städer du följer.
       </p>
 
@@ -76,7 +76,7 @@ export function NotifikationerClient({ initialEmailDigestEnabled, userId }: Prop
             </div>
             <div>
               <h2 className="font-medium text-sm mb-1">E-postsammanfattning varje morgon</h2>
-              <p className="text-xs text-espresso/60 leading-relaxed">
+              <p className="text-xs text-espresso/75 leading-relaxed">
                 Få ett dagligt e-postmeddelande kl 06:00 med vad som hänt på loppisar och
                 städer du följer det senaste dygnet. Tomma dagar skickas inget.
               </p>
@@ -126,7 +126,7 @@ export function NotifikationerClient({ initialEmailDigestEnabled, userId }: Prop
           </div>
           <div>
             <h2 className="font-medium text-sm mb-1">In-app-inkorg</h2>
-            <p className="text-xs text-espresso/60 leading-relaxed">
+            <p className="text-xs text-espresso/75 leading-relaxed">
               Notiser i appen visas alltid oavsett e-postinställning.
               Klicka på klockan i navigeringen för att se dina senaste notiser.
             </p>

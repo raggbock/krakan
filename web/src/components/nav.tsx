@@ -109,7 +109,7 @@ export function Nav() {
               href="https://fyndstigen.se/integritetspolicy"
               aria-label="Privacy Policy"
               onClick={() => setMenuOpen(false)}
-              className="px-4 py-3 rounded-xl text-sm font-medium text-espresso/65 hover:bg-cream-warm/50 transition-colors"
+              className="px-4 py-3 rounded-xl text-sm font-medium text-espresso/75 hover:bg-cream-warm/50 transition-colors"
             >
               Integritetspolicy
             </a>

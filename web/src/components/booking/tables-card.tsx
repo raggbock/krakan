@@ -85,7 +85,7 @@ function BookableTablesInner({
         </div>
         <div className="flex-1">
           <h2 className="font-display font-bold text-lg mb-1">Boka bord</h2>
-          <p className="text-sm text-espresso/65 mb-4">
+          <p className="text-sm text-espresso/75 mb-4">
             Hyr en plats och sälj dina prylar här.
           </p>
 
@@ -123,7 +123,7 @@ function BookableTablesInner({
                   >
                     <div>
                       <p className="font-medium text-sm">{table.label}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/60">
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-espresso/75">
                         {table.sizeDescription && <span>{table.sizeDescription}</span>}
                         {table.description && <span>&middot; {table.description}</span>}
                       </div>
@@ -136,7 +136,7 @@ function BookableTablesInner({
                   {isSelected && (
                     <div className="mt-3 ml-4 pl-4 border-l-2 border-rust/15 space-y-3 animate-fade-in">
                       <div>
-                        <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                        <label className="text-xs font-semibold text-espresso/75 block mb-1">
                           Datum
                         </label>
                         <input
@@ -152,7 +152,7 @@ function BookableTablesInner({
                         )}
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                        <label className="text-xs font-semibold text-espresso/75 block mb-1">
                           Meddelande (valfritt)
                         </label>
                         <textarea
@@ -165,7 +165,7 @@ function BookableTablesInner({
                       </div>
                       {!booking.isFree && (
                         <div>
-                          <label className="text-xs font-semibold text-espresso/60 block mb-1">
+                          <label className="text-xs font-semibold text-espresso/75 block mb-1">
                             Kortuppgifter
                           </label>
                           <div className="rounded-lg bg-card px-3 py-2.5 border border-cream-warm focus-within:border-rust/40 transition-all">
@@ -185,7 +185,7 @@ function BookableTablesInner({
                         </div>
                       )}
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-espresso/60">
+                        <p className="text-xs text-espresso/75">
                           {booking.isFree
                             ? 'Gratis'
                             : `${booking.totalPrice} kr (inkl ${booking.commission} kr avgift)`}

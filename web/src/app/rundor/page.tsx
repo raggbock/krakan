@@ -12,7 +12,7 @@ export default function RoutesDiscoveryPage() {
       <div className="flex items-end justify-between mb-8 animate-fade-up">
         <div>
           <h1 className="font-display text-3xl font-bold">Loppisrundor</h1>
-          <p className="text-espresso/65 mt-1">
+          <p className="text-espresso/75 mt-1">
             Upptäck populära rundor nära dig.
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function RoutesDiscoveryPage() {
           <h2 className="font-display text-lg font-bold">
             Inga rundor publicerade ännu
           </h2>
-          <p className="text-sm text-espresso/60 mt-2 max-w-sm mx-auto">
+          <p className="text-sm text-espresso/75 mt-2 max-w-sm mx-auto">
             Bli först med att skapa och dela en loppisrunda!
           </p>
           <Link
@@ -100,7 +100,7 @@ export default function RoutesDiscoveryPage() {
                   <h3 className="font-display font-bold group-hover:text-rust transition-colors">
                     {route.name}
                   </h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-espresso/60">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-espresso/75">
                     <span>{route.stopCount} stopp</span>
                     <span>Av {creatorName}</span>
                     {route.plannedDate && (

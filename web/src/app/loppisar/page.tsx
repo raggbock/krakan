@@ -108,7 +108,7 @@ export default async function LoppisarPage() {
       />
 
       {/* Breadcrumb */}
-      <nav aria-label="breadcrumb" className="text-sm text-espresso/60 mb-4">
+      <nav aria-label="breadcrumb" className="text-sm text-espresso/75 mb-4">
         <Link href="/" className="hover:text-espresso">Start</Link>
         <span className="mx-2">/</span>
         <span className="text-espresso">Loppisar</span>
@@ -120,7 +120,7 @@ export default async function LoppisarPage() {
         <h1 className="font-display text-3xl sm:text-4xl font-bold mt-3">
           Loppisar i Sverige
         </h1>
-        <p className="text-espresso/65 mt-3 max-w-xl leading-relaxed">
+        <p className="text-espresso/75 mt-3 max-w-xl leading-relaxed">
           Här hittar du alla städer där Fyndstigen samlar loppisar och loppmarknader.
           Klicka på en stad för att se alla loppisar där.
         </p>
@@ -135,7 +135,7 @@ export default async function LoppisarPage() {
       {/* City grid */}
       {cities.length === 0 ? (
         <div className="vintage-card p-10 text-center mt-10 animate-fade-up">
-          <p className="text-espresso/65">Inga städer hittades ännu.</p>
+          <p className="text-espresso/75">Inga städer hittades ännu.</p>
         </div>
       ) : (
         <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up delay-1">
@@ -162,7 +162,7 @@ export default async function LoppisarPage() {
 
       {/* Footer CTA */}
       <div className="mt-12 text-center animate-fade-up delay-2">
-        <p className="text-sm text-espresso/60">
+        <p className="text-sm text-espresso/75">
           Hittar du inte din stad?{' '}
           <Link href="/search" className="text-rust hover:underline">
             Sök bland alla loppisar →

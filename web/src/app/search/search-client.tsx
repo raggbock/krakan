@@ -85,7 +85,7 @@ export default function SearchPage() {
       {/* Header */}
       <div className="animate-fade-up">
         <h1 className="font-display text-3xl font-bold">Sök loppisar</h1>
-        <p className="text-espresso/65 mt-2">
+        <p className="text-espresso/75 mt-2">
           Hitta loppisar efter namn eller plats.
         </p>
       </div>
@@ -186,7 +186,7 @@ export default function SearchPage() {
                     <h3 className="font-display font-bold group-hover:text-rust transition-colors duration-200">
                       {market.name}
                     </h3>
-                    <p className="text-sm text-espresso/65 mt-0.5">
+                    <p className="text-sm text-espresso/75 mt-0.5">
                       {market.city}
                     </p>
                   </div>
@@ -238,7 +238,7 @@ export default function SearchPage() {
                     <h3 className="font-display font-bold group-hover:text-[#7c3aed] transition-colors duration-200">
                       {bs.name}
                     </h3>
-                    <p className="text-sm text-espresso/65 mt-0.5">
+                    <p className="text-sm text-espresso/75 mt-0.5">
                       {bs.city} · {bs.start_date}{bs.end_date !== bs.start_date ? `–${bs.end_date}` : ''}
                     </p>
                   </div>
@@ -264,7 +264,7 @@ export default function SearchPage() {
                 size={48}
                 className="text-espresso/15 mx-auto mb-3"
               />
-              <p className="text-espresso/60 font-medium">
+              <p className="text-espresso/75 font-medium">
                 Inga loppisar hittades
               </p>
               <p className="text-sm text-espresso/30 mt-1">
@@ -275,15 +275,39 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Idle state */}
+      {/* Idle state — show popular search suggestions so the page is useful
+          before the user has typed anything. Clicking a chip fires the search
+          via the same code path as typing. */}
       {!results && !blockSaleResults && !loading && !blockSalesLoading && (
-        <div className="text-center py-20 animate-fade-in delay-2">
-          <FyndstigenLogo
-            size={56}
-            className="text-espresso/8 mx-auto mb-4"
-          />
-          <p className="text-espresso/30 text-sm">
-            Börja skriva för att söka bland loppisar.
+        <div className="mt-10 animate-fade-in delay-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-espresso/75 mb-3">
+            Populära sökningar
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              'Stockholm',
+              'Göteborg',
+              'Malmö',
+              'Uppsala',
+              'Örebro',
+              'Erikshjälpen',
+              'Röda Korset',
+              'Myrorna',
+              'Stadsmissionen',
+              'PMU',
+            ].map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => search(term)}
+                className="px-4 py-2 rounded-full bg-card border border-cream-warm text-sm font-medium text-espresso/85 hover:border-rust/40 hover:text-espresso hover:bg-cream-warm/40 transition-colors"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-espresso/55 mt-6">
+            Eller skriv ett eget sökord ovan.
           </p>
         </div>
       )}

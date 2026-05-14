@@ -39,7 +39,7 @@ export function MarketTableAddForm({ onAdd, showPrice = true }: MarketTableAddFo
 
   return (
     <div className="bg-parchment rounded-xl p-4 space-y-3">
-      <p className="text-xs font-semibold text-espresso/60">Lägg till nytt bord</p>
+      <p className="text-xs font-semibold text-espresso/75">Lägg till nytt bord</p>
       <div className={`grid gap-3 ${showPrice ? 'grid-cols-2' : 'grid-cols-1'}`}>
         <input
           type="text"
@@ -77,7 +77,7 @@ export function MarketTableAddForm({ onAdd, showPrice = true }: MarketTableAddFo
       <button
         onClick={handleAdd}
         disabled={isDisabled}
-        className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+        className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors disabled:opacity-30"
       >
         + Lägg till
       </button>

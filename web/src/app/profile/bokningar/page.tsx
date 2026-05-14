@@ -94,7 +94,7 @@ export default function BookingsPage() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -103,7 +103,7 @@ export default function BookingsPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold mb-2">Bokningar</h1>
-      <p className="text-sm text-espresso/65 mb-8">
+      <p className="text-sm text-espresso/75 mb-8">
         Hantera bokningsförfrågningar för dina loppisar.
       </p>
 
@@ -124,19 +124,19 @@ export default function BookingsPage() {
             <p className="font-display text-2xl font-bold text-rust">
               {stats.total_bookings}
             </p>
-            <p className="text-xs text-espresso/60 mt-1">Bokningar</p>
+            <p className="text-xs text-espresso/75 mt-1">Bokningar</p>
           </div>
           <div className="vintage-card p-5 text-center">
             <p className="font-display text-2xl font-bold text-forest">
               {stats.total_revenue_sek} kr
             </p>
-            <p className="text-xs text-espresso/60 mt-1">Total intäkt</p>
+            <p className="text-xs text-espresso/75 mt-1">Total intäkt</p>
           </div>
           <div className="vintage-card p-5 text-center">
             <p className="font-display text-2xl font-bold text-mustard">
               {stats.market_count}
             </p>
-            <p className="text-xs text-espresso/60 mt-1">Loppisar</p>
+            <p className="text-xs text-espresso/75 mt-1">Loppisar</p>
           </div>
         </div>
       )}
@@ -183,7 +183,7 @@ export default function BookingsPage() {
           <h2 className="font-display text-lg font-bold">
             Inga bokningar ännu
           </h2>
-          <p className="text-sm text-espresso/60 mt-2 max-w-sm mx-auto">
+          <p className="text-sm text-espresso/75 mt-2 max-w-sm mx-auto">
             När besökare börjar boka bord på dina loppisar dyker de upp här.
           </p>
         </div>
@@ -240,7 +240,7 @@ function BookingCard({
               </span>
             )}
           </div>
-          <p className="text-xs text-espresso/60 mt-1">
+          <p className="text-xs text-espresso/75 mt-1">
             {booking.table?.label} &middot;{' '}
             {new Date(booking.date).toLocaleDateString('sv-SE', {
               weekday: 'short',
@@ -249,7 +249,7 @@ function BookingCard({
             })}
           </p>
           {booking.message && (
-            <p className="text-sm text-espresso/60 mt-2 italic">
+            <p className="text-sm text-espresso/75 mt-2 italic">
               &ldquo;{booking.message}&rdquo;
             </p>
           )}
@@ -278,7 +278,7 @@ function BookingCard({
           <button
             onClick={onDeny}
             disabled={updating}
-            className="flex-1 h-9 rounded-lg bg-espresso/5 text-espresso/60 text-xs font-bold hover:bg-espresso/10 transition-colors disabled:opacity-50"
+            className="flex-1 h-9 rounded-lg bg-espresso/5 text-espresso/75 text-xs font-bold hover:bg-espresso/10 transition-colors disabled:opacity-50"
           >
             Neka
           </button>

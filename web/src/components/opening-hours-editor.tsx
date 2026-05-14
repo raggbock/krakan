@@ -149,7 +149,7 @@ export function OpeningHoursEditor({
       <div className="space-y-3 bg-parchment rounded-xl p-4">
         {/* Step 1: Type selector */}
         <div>
-          <label className="text-xs font-semibold text-espresso/60 block mb-2">
+          <label className="text-xs font-semibold text-espresso/75 block mb-2">
             Typ av öppettid
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -178,7 +178,7 @@ export function OpeningHoursEditor({
         <div className="grid grid-cols-2 gap-3">
           {ruleType !== 'date' && (
             <div ref={ohDaysRef} className={`relative ${ruleType === 'biweekly' ? '' : 'col-span-2'}`}>
-              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+              <label className="text-xs font-semibold text-espresso/75 block mb-1">
                 Veckodagar
               </label>
               <button
@@ -220,7 +220,7 @@ export function OpeningHoursEditor({
           )}
           {ruleType === 'biweekly' && (
             <div>
-              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+              <label className="text-xs font-semibold text-espresso/75 block mb-1">
                 Första tillfället
               </label>
               <input
@@ -233,7 +233,7 @@ export function OpeningHoursEditor({
           )}
           {ruleType === 'date' && (
             <div className="col-span-2">
-              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+              <label className="text-xs font-semibold text-espresso/75 block mb-1">
                 Datum
               </label>
               <input
@@ -248,7 +248,7 @@ export function OpeningHoursEditor({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-semibold text-espresso/60 block mb-1">
+            <label className="text-xs font-semibold text-espresso/75 block mb-1">
               Öppnar
             </label>
             <input
@@ -259,7 +259,7 @@ export function OpeningHoursEditor({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-espresso/60 block mb-1">
+            <label className="text-xs font-semibold text-espresso/75 block mb-1">
               Stänger
             </label>
             <input
@@ -279,7 +279,7 @@ export function OpeningHoursEditor({
           type="button"
           onClick={addRule}
           disabled={!canAddRule}
-          className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+          className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors disabled:opacity-30"
         >
           + Lägg till tid
         </button>
@@ -315,7 +315,7 @@ export function OpeningHoursEditor({
         <div className="space-y-3 bg-parchment rounded-xl p-4 mt-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+              <label className="text-xs font-semibold text-espresso/75 block mb-1">
                 Datum
               </label>
               <input
@@ -326,7 +326,7 @@ export function OpeningHoursEditor({
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-espresso/60 block mb-1">
+              <label className="text-xs font-semibold text-espresso/75 block mb-1">
                 Anledning (valfri)
               </label>
               <input
@@ -342,7 +342,7 @@ export function OpeningHoursEditor({
             <button
               type="button"
               onClick={() => { setShowExceptionForm(false); setExDate(''); setExReason('') }}
-              className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors"
+              className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors"
             >
               Avbryt
             </button>
@@ -356,7 +356,7 @@ export function OpeningHoursEditor({
                 setShowExceptionForm(false)
               }}
               disabled={!exDate}
-              className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+              className="flex-1 h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors disabled:opacity-30"
             >
               + Lägg till
             </button>
@@ -366,7 +366,7 @@ export function OpeningHoursEditor({
         <button
           type="button"
           onClick={() => setShowExceptionForm(true)}
-          className="w-full mt-4 h-9 rounded-lg text-sm font-semibold text-espresso/40 hover:text-espresso/60 transition-colors"
+          className="w-full mt-4 h-9 rounded-lg text-sm font-semibold text-espresso/40 hover:text-espresso/75 transition-colors"
         >
           + Lägg till undantag (stängd dag)
         </button>

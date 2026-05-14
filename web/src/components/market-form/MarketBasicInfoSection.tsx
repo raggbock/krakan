@@ -60,13 +60,13 @@ export function MarketBasicInfoSection({
         <div className="flex gap-1 bg-cream-warm rounded-xl p-1">
           <button
             onClick={() => setIsPermanent(true)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/75'}`}
           >
             Permanent
           </button>
           <button
             onClick={() => setIsPermanent(false)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${!isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/60'}`}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${!isPermanent ? 'bg-card text-espresso shadow-sm' : 'text-espresso/75'}`}
           >
             Tillfällig
           </button>

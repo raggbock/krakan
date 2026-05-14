@@ -31,7 +31,7 @@ export function FoljerClient({ userId, markets, cities }: Props) {
       {/* Back link */}
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -42,7 +42,7 @@ export function FoljerClient({ userId, markets, cities }: Props) {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold">Mina följda</h1>
-        <p className="text-sm text-espresso/60 mt-0.5">
+        <p className="text-sm text-espresso/75 mt-0.5">
           Loppisar och städer du följer.
         </p>
       </div>
@@ -62,7 +62,7 @@ export function FoljerClient({ userId, markets, cities }: Props) {
             </svg>
           </div>
           <h2 className="font-display text-lg font-bold mb-2">Du följer ingenting ännu</h2>
-          <p className="text-sm text-espresso/60 max-w-xs mx-auto">
+          <p className="text-sm text-espresso/75 max-w-xs mx-auto">
             Du följer inga loppisar eller städer än. Klicka på &quot;Följ&quot; eller &quot;Bevaka&quot; när du hittar något du gillar.
           </p>
           <Link
@@ -79,7 +79,7 @@ export function FoljerClient({ userId, markets, cities }: Props) {
         <div className="vintage-card overflow-hidden mb-6">
           <div className="px-6 pt-5 pb-3 border-b border-cream-warm">
             <h2 className="font-display text-lg font-bold">Loppisar du följer</h2>
-            <p className="text-sm text-espresso/60 mt-0.5">
+            <p className="text-sm text-espresso/75 mt-0.5">
               {markets.length} {markets.length === 1 ? 'loppis' : 'loppisar'}
             </p>
           </div>
@@ -100,7 +100,7 @@ export function FoljerClient({ userId, markets, cities }: Props) {
         <div className="vintage-card overflow-hidden mb-6">
           <div className="px-6 pt-5 pb-3 border-b border-cream-warm">
             <h2 className="font-display text-lg font-bold">Städer du bevakar</h2>
-            <p className="text-sm text-espresso/60 mt-0.5">
+            <p className="text-sm text-espresso/75 mt-0.5">
               {cities.length} {cities.length === 1 ? 'stad' : 'städer'}
             </p>
           </div>

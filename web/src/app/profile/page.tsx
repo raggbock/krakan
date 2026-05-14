@@ -93,7 +93,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold">Min profil</h1>
-              <p className="text-sm text-espresso/65 mt-0.5">{user?.email}</p>
+              <p className="text-sm text-espresso/75 mt-0.5">{user?.email}</p>
             </div>
           </div>
           <Link
@@ -108,7 +108,7 @@ export default function ProfilePage() {
         <div className="flex flex-wrap gap-2 mt-5">
           <Link
             href="/profile/bokningar"
-            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/60 hover:bg-mustard/15 transition-colors"
+            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/75 hover:bg-mustard/15 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <rect x="2" y="3" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
@@ -124,7 +124,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href="/profile/foljer"
-            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/60 hover:bg-rust/10 transition-colors"
+            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/75 hover:bg-rust/10 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 15 15" fill="currentColor" aria-hidden="true">
               <path d="M7.5 13.5C7.5 13.5 1 9 1 4.5C1 2.567 2.567 1 4.5 1C5.632 1 6.643 1.54 7.5 2.5C8.357 1.54 9.368 1 10.5 1C12.433 1 14 2.567 14 4.5C14 9 7.5 13.5 7.5 13.5Z" />
@@ -133,7 +133,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href={`/arrangorer/${user?.id}`}
-            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/60 hover:bg-rust/10 transition-colors"
+            className="inline-flex items-center gap-1.5 bg-cream-warm px-4 py-2 rounded-full text-xs font-semibold text-espresso/75 hover:bg-rust/10 transition-colors"
           >
             Min publika profil
           </Link>
@@ -163,7 +163,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina loppisar</h2>
-            <p className="text-sm text-espresso/65 mt-0.5">
+            <p className="text-sm text-espresso/75 mt-0.5">
               Hantera dina loppmarknader.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                           {market.name}
                         </span>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-espresso/60">
+                          <span className="text-xs text-espresso/75">
                             {market.city}
                           </span>
                           {!market.publishedAt && (
@@ -223,7 +223,7 @@ export default function ProfilePage() {
                   </Link>
                   {isHidden && (
                     <div className="px-4 pb-3 -mt-1 bg-parchment rounded-b-xl border-t border-espresso/5">
-                      <p className="text-xs italic text-espresso/60 mb-1">
+                      <p className="text-xs italic text-espresso/75 mb-1">
                         Tillfällig loppis utan framtida öppningsdagar. Lägg till nya datum för att synas igen.
                       </p>
                       <Link
@@ -244,7 +244,7 @@ export default function ProfilePage() {
               size={40}
               className="text-espresso/10 mx-auto mb-3"
             />
-            <p className="text-sm text-espresso/60">
+            <p className="text-sm text-espresso/75">
               Du har inga loppisar ännu.
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-lg font-bold">Mina rundor</h2>
-            <p className="text-sm text-espresso/65 mt-0.5">
+            <p className="text-sm text-espresso/75 mt-0.5">
               Dina sparade loppisrundor.
             </p>
           </div>
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                       {route.name}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-espresso/60">
+                      <span className="text-xs text-espresso/75">
                         {route.stopCount} stopp
                       </span>
                       {!route.isPublished && (
@@ -308,7 +308,7 @@ export default function ProfilePage() {
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-sm text-espresso/60">
+            <p className="text-sm text-espresso/75">
               Du har inga sparade rundor.
             </p>
             <Link
@@ -326,7 +326,7 @@ export default function ProfilePage() {
         <h2 className="font-display text-lg font-bold mb-2">
           Skapa en loppis
         </h2>
-        <p className="text-sm text-espresso/65 mb-5">
+        <p className="text-sm text-espresso/75 mb-5">
           Publicera din loppis så att besökare kan hitta den.
         </p>
         <Link
@@ -378,7 +378,7 @@ function SignOutButton({ signOut, onDone }: { signOut: () => Promise<void>; onDo
           setBusy(false)
         }
       }}
-      className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/60 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-4 disabled:opacity-50"
+      className="w-full h-12 rounded-xl bg-cream-warm text-sm font-medium text-espresso/75 hover:bg-espresso/8 transition-colors duration-200 animate-fade-up delay-4 disabled:opacity-50"
     >
       {busy ? 'Loggar ut...' : 'Logga ut'}
     </button>

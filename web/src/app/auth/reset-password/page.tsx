@@ -69,12 +69,12 @@ export default function ResetPasswordPage() {
         </h1>
 
         {done ? (
-          <p className="text-sm text-espresso/65 text-center mt-3">
+          <p className="text-sm text-espresso/75 text-center mt-3">
             Ditt lösenord är uppdaterat. Skickar dig vidare...
           </p>
         ) : !ready ? (
           <>
-            <p className="text-sm text-espresso/65 text-center mt-3">
+            <p className="text-sm text-espresso/75 text-center mt-3">
               Återställningslänken är ogiltig eller har gått ut.
             </p>
             <Link

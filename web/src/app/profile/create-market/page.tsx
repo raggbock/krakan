@@ -190,7 +190,7 @@ export default function CreateMarketPage() {
       <div className="max-w-md mx-auto px-6 py-20 text-center">
         <FyndstigenLogo size={48} className="text-espresso/15 mx-auto mb-4" />
         <h1 className="font-display text-xl font-bold">Logga in först</h1>
-        <p className="text-sm text-espresso/65 mt-2">
+        <p className="text-sm text-espresso/75 mt-2">
           Du behöver ett konto för att skapa en loppis.
         </p>
         <Link
@@ -207,7 +207,7 @@ export default function CreateMarketPage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -216,7 +216,7 @@ export default function CreateMarketPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold">Skapa ny loppis</h1>
-      <p className="text-sm text-espresso/65 mt-1 mb-8">
+      <p className="text-sm text-espresso/75 mt-1 mb-8">
         Steg {step} av 2 &mdash;{' '}
         {step === 1 ? 'Information' : 'Lägg till bord'}
       </p>
@@ -326,7 +326,7 @@ export default function CreateMarketPage() {
                 <div key={i} className="flex items-center justify-between bg-parchment rounded-xl p-4">
                   <div>
                     <p className="font-medium text-sm">{t.label}</p>
-                    <p className="text-xs text-espresso/60 mt-0.5">
+                    <p className="text-xs text-espresso/75 mt-0.5">
                       {t.sizeDescription}{t.description && ` — ${t.description}`}
                     </p>
                   </div>
@@ -369,7 +369,7 @@ export default function CreateMarketPage() {
                 <button
                   onClick={addBatchTables}
                   disabled={!batchPrefix || !batchCount || (paymentsEnabled && !tablePrice)}
-                  className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors disabled:opacity-30"
+                  className="w-full h-9 rounded-lg bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors disabled:opacity-30"
                 >
                   + Lägg till {batchCount || '...'} bord
                 </button>
@@ -395,7 +395,7 @@ export default function CreateMarketPage() {
           <div className="flex items-center justify-between p-4 bg-cream-warm/50 rounded-xl mb-4">
             <div>
               <p className="text-sm font-semibold text-espresso">Godkänn bokningar automatiskt</p>
-              <p className="text-xs text-espresso/60 mt-0.5">Bokningar bekräftas direkt utan din godkännande</p>
+              <p className="text-xs text-espresso/75 mt-0.5">Bokningar bekräftas direkt utan din godkännande</p>
             </div>
             <button
               type="button"
@@ -420,7 +420,7 @@ export default function CreateMarketPage() {
           )}
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 h-12 rounded-xl bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors">
+            <button onClick={() => setStep(1)} className="flex-1 h-12 rounded-xl bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors">
               Tillbaka
             </button>
             <button

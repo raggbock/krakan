@@ -38,7 +38,7 @@ export default function BlockSaleMapInner({ stands, center, onSelect }: Props) {
       <div className="min-w-[180px] p-1">
         <p className="font-display font-bold text-sm text-espresso">{stand.street}</p>
         {stand.description && (
-          <p className="text-xs text-espresso/65 mt-1 line-clamp-2">{stand.description}</p>
+          <p className="text-xs text-espresso/75 mt-1 line-clamp-2">{stand.description}</p>
         )}
         <button
           onClick={() => onSelect(stand.id)}
@@ -84,7 +84,7 @@ export default function BlockSaleMapInner({ stands, center, onSelect }: Props) {
                 {stand.street}
               </p>
               {stand.description && (
-                <p className="text-espresso/65 text-sm mt-0.5 line-clamp-2">{stand.description}</p>
+                <p className="text-espresso/75 text-sm mt-0.5 line-clamp-2">{stand.description}</p>
               )}
             </button>
           </li>

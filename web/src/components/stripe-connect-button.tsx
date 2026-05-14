@@ -43,7 +43,7 @@ export function StripeConnectButton({ userId }: { userId: string | undefined }) 
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-espresso/65">
+      <p className="text-sm text-espresso/75">
         Koppla betalning för att kunna ta emot bokningar.
       </p>
       <button

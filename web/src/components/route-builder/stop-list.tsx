@@ -101,7 +101,7 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
                   <p className="font-medium text-sm truncate">
                     {stop.market.name}
                   </p>
-                  <p className="text-xs text-espresso/60 truncate">
+                  <p className="text-xs text-espresso/75 truncate">
                     {stop.market.city}
                   </p>
                 </div>

@@ -39,7 +39,7 @@ export function AutoImportedNotice({
   const adjective = plural ? 'inaktuella' : 'inaktuell'
 
   return (
-    <p className="text-xs text-espresso/65 mt-2 px-1 leading-relaxed">
+    <p className="text-xs text-espresso/75 mt-2 px-1 leading-relaxed">
       <span className="text-rust mr-1">ⓘ</span>
       {what} är {participle} automatiskt och kan vara {adjective}.
       {link && (

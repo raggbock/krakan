@@ -83,7 +83,7 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
       <main className="min-h-dvh grid place-items-center p-6">
         <div className="max-w-md text-center">
           <h1 className="font-display text-2xl font-semibold">Det gick inte</h1>
-          <p className="mt-2 text-espresso/65">{labelFor(info.error)}</p>
+          <p className="mt-2 text-espresso/75">{labelFor(info.error)}</p>
         </div>
       </main>
     )

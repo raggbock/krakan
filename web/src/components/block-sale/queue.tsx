@@ -40,7 +40,7 @@ export function BlockSaleQueue({ slug, blockSaleId }: Props) {
 
   if (isLoading) return <p>Laddar ansökningar…</p>
   if (error) return <p className="text-rust">Kunde inte ladda ansökningar.</p>
-  if (stands.length === 0) return <p className="text-espresso/60">Inga ansökningar än.</p>
+  if (stands.length === 0) return <p className="text-espresso/75">Inga ansökningar än.</p>
 
   function toggleOne(id: string) {
     setSelected((prev) => {
@@ -106,7 +106,7 @@ export function BlockSaleQueue({ slug, blockSaleId }: Props) {
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-sm text-espresso/60 hover:text-espresso transition-colors"
+            className="text-sm text-espresso/75 hover:text-espresso transition-colors"
           >
             Avmarkera
           </button>
@@ -172,7 +172,7 @@ export function BlockSaleQueue({ slug, blockSaleId }: Props) {
                   <td className="px-3 py-3">
                     <StatusBadge status={stand.status} />
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-xs text-espresso/60">
+                  <td className="px-3 py-3 whitespace-nowrap text-xs text-espresso/75">
                     {formatDate(stand.created_at)}
                   </td>
                   <td className="px-3 py-3">

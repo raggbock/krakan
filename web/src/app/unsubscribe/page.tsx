@@ -118,7 +118,7 @@ export default async function UnsubscribePage({ searchParams }: Props) {
         )}
 
         <p className="mt-6 text-xs text-espresso/40">
-          <Link href="/" className="hover:text-espresso/60 transition-colors">
+          <Link href="/" className="hover:text-espresso/75 transition-colors">
             Tillbaka till Fyndstigen
           </Link>
         </p>

@@ -36,7 +36,7 @@ export default async function MapPage() {
           <h1 className="font-display text-3xl sm:text-4xl font-bold mb-3">
             Loppisar i Sverige på karta
           </h1>
-          <p className="text-espresso/65 max-w-2xl leading-relaxed mb-8">
+          <p className="text-espresso/75 max-w-2xl leading-relaxed mb-8">
             Utforska loppisar och loppmarknader i hela Sverige direkt på kartan.
             Klicka på en markör för att se öppettider, plats och mer information
             om loppisar och andrahandsmarknader nära dig.

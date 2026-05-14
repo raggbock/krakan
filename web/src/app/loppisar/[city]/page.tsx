@@ -123,7 +123,7 @@ export default async function CityPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd).replace(/</g, '\\u003c') }}
       />
 
-      <nav aria-label="breadcrumb" className="text-sm text-espresso/60 mb-4">
+      <nav aria-label="breadcrumb" className="text-sm text-espresso/75 mb-4">
         <Link href="/" className="hover:text-espresso">Start</Link>
         <span className="mx-2">/</span>
         <Link href="/loppisar" className="hover:text-espresso">Loppisar</Link>
@@ -136,7 +136,7 @@ export default async function CityPage({ params }: Props) {
           <h1 className="font-display text-3xl sm:text-4xl font-bold">
             Hitta loppis i {resolved.canonicalName}
           </h1>
-          <p className="text-espresso/65 mt-2">
+          <p className="text-espresso/75 mt-2">
             {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
           </p>
         </div>
@@ -192,7 +192,7 @@ export default async function CityPage({ params }: Props) {
                   {m.is_permanent ? 'Permanent' : 'Tillfällig'}
                 </span>
               </div>
-              <p className="text-sm text-espresso/65 mt-0.5 truncate">
+              <p className="text-sm text-espresso/75 mt-0.5 truncate">
                 {m.street}, {m.city}
               </p>
               {m.description && (
@@ -205,7 +205,7 @@ export default async function CityPage({ params }: Props) {
       </div>
 
       <div className="mt-10 text-center">
-        <p className="text-sm text-espresso/60">
+        <p className="text-sm text-espresso/75">
           Letar du på en annan ort? <Link href="/search" className="text-rust hover:underline">Sök bland alla loppisar →</Link>
         </p>
       </div>

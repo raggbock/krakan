@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
       </Link>
 
       <h1 className="font-display text-3xl font-bold mb-2">Integritetspolicy</h1>
-      <p className="text-sm text-espresso/60 mb-8">Senast uppdaterad: 12 maj 2026</p>
+      <p className="text-sm text-espresso/75 mb-8">Senast uppdaterad: 12 maj 2026</p>
 
       <div className="prose prose-espresso max-w-none space-y-8 text-sm leading-relaxed text-espresso/80">
 

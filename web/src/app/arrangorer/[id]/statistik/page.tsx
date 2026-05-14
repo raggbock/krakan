@@ -13,7 +13,7 @@ import { useDeps } from '@/providers/deps-provider'
 function StatCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
     <div className="vintage-card p-5">
-      <p className="text-sm text-espresso/60 mb-1">{label}</p>
+      <p className="text-sm text-espresso/75 mb-1">{label}</p>
       <p className="font-display text-2xl font-bold">{value}</p>
       {subValue && <p className="text-xs text-espresso/45 mt-1">Totalt: {subValue}</p>}
     </div>
@@ -23,7 +23,7 @@ function StatCard({ label, value, subValue }: { label: string; value: string; su
 function LockedStatCard({ label }: { label: string }) {
   return (
     <div className="vintage-card p-5 relative overflow-hidden">
-      <p className="text-sm text-espresso/60 mb-1">{label}</p>
+      <p className="text-sm text-espresso/75 mb-1">{label}</p>
       <p className="font-display text-2xl font-bold text-espresso/15">—</p>
       <div className="absolute inset-0 flex items-center justify-center bg-parchment/80">
         <div className="text-center px-3">
@@ -93,7 +93,7 @@ export default function OrganizerStatsPage() {
     return (
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="vintage-card p-6 text-center">
-          <p className="text-espresso/60">{error}</p>
+          <p className="text-espresso/75">{error}</p>
         </div>
       </div>
     )
@@ -108,7 +108,7 @@ export default function OrganizerStatsPage() {
             &larr; Tillbaka till profil
           </Link>
           <h1 className="font-display text-2xl font-bold mt-2">Statistik</h1>
-          <p className="text-sm text-espresso/60 mt-1">Senaste 30 dagarna</p>
+          <p className="text-sm text-espresso/75 mt-1">Senaste 30 dagarna</p>
         </div>
       </div>
 
@@ -144,14 +144,14 @@ export default function OrganizerStatsPage() {
       {/* Conversion — premium only */}
       {isPremium && totals.conversion_30d > 0 && (
         <div className="vintage-card p-5 mb-8 animate-fade-up delay-2">
-          <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
+          <p className="text-sm text-espresso/75 mb-1">Konvertering (besök till bokning)</p>
           <p className="font-display text-2xl font-bold">{totals.conversion_30d}%</p>
         </div>
       )}
 
       {skyltfonstretEnabled && !isPremium && (
         <div className="vintage-card p-5 mb-8 relative overflow-hidden animate-fade-up delay-2">
-          <p className="text-sm text-espresso/60 mb-1">Konvertering (besök till bokning)</p>
+          <p className="text-sm text-espresso/75 mb-1">Konvertering (besök till bokning)</p>
           <p className="font-display text-2xl font-bold text-espresso/15">—</p>
           <div className="absolute inset-0 flex items-center justify-center bg-parchment/80">
             <div className="text-center px-3">
@@ -174,12 +174,12 @@ export default function OrganizerStatsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-espresso/10">
-                    <th className="text-left p-4 font-medium text-espresso/60">Loppis</th>
-                    <th className="text-right p-4 font-medium text-espresso/60">Visningar</th>
-                    <th className="text-right p-4 font-medium text-espresso/60">Bokningar</th>
-                    <th className="text-right p-4 font-medium text-espresso/60">Intäkter</th>
-                    <th className="text-right p-4 font-medium text-espresso/60">I rundor</th>
-                    <th className="text-right p-4 font-medium text-espresso/60">Konv.</th>
+                    <th className="text-left p-4 font-medium text-espresso/75">Loppis</th>
+                    <th className="text-right p-4 font-medium text-espresso/75">Visningar</th>
+                    <th className="text-right p-4 font-medium text-espresso/75">Bokningar</th>
+                    <th className="text-right p-4 font-medium text-espresso/75">Intäkter</th>
+                    <th className="text-right p-4 font-medium text-espresso/75">I rundor</th>
+                    <th className="text-right p-4 font-medium text-espresso/75">Konv.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -211,7 +211,7 @@ export default function OrganizerStatsPage() {
             <path d="M7 9V6a3 3 0 0 1 6 0v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <p className="font-display font-bold mb-1">Detaljerad statistik per loppis</p>
-          <p className="text-sm text-espresso/60">Uppgradera till Skyltfönstret för att se visningar, konvertering och mer per loppis.</p>
+          <p className="text-sm text-espresso/75">Uppgradera till Skyltfönstret för att se visningar, konvertering och mer per loppis.</p>
         </div>
       )}
 
@@ -240,7 +240,7 @@ export default function OrganizerStatsPage() {
       {/* Empty state */}
       {markets.length === 0 && (
         <div className="vintage-card p-8 text-center animate-fade-up delay-2">
-          <p className="text-espresso/60">Du har inga publicerade loppisar ännu.</p>
+          <p className="text-espresso/75">Du har inga publicerade loppisar ännu.</p>
           <Link href="/fleamarkets/new" className="text-rust mt-2 inline-block">
             Skapa din första loppis &rarr;
           </Link>

@@ -72,7 +72,7 @@ export default function AuthPage() {
             <FyndstigenLogo size={52} className="text-rust" />
           </div>
           <h1 className="font-display text-2xl font-bold">Kolla din mejl</h1>
-          <p className="text-sm text-espresso/65 mt-3">
+          <p className="text-sm text-espresso/75 mt-3">
             {confirmationSent ? (
               <>Vi har skickat en bekräftelselänk till <strong>{email}</strong>. Klicka på länken för att aktivera ditt konto.</>
             ) : (
@@ -107,7 +107,7 @@ export default function AuthPage() {
         <h1 className="font-display text-2xl font-bold text-center">
           {mode === 'signin' ? 'Välkommen tillbaka' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'}
         </h1>
-        <p className="text-sm text-espresso/65 text-center mt-2 max-w-xs mx-auto">
+        <p className="text-sm text-espresso/75 text-center mt-2 max-w-xs mx-auto">
           {mode === 'signin'
             ? 'Logga in för att hantera dina loppisar och fynd.'
             : mode === 'signup'
@@ -125,7 +125,7 @@ export default function AuthPage() {
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   mode === m
                     ? 'bg-card text-espresso shadow-sm'
-                    : 'text-espresso/60 hover:text-espresso/60'
+                    : 'text-espresso/75 hover:text-espresso/75'
                 }`}
               >
                 {m === 'signin' ? 'Logga in' : 'Skapa konto'}
@@ -212,7 +212,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => { setMode('signin'); setError('') }}
-              className="text-xs font-semibold text-espresso/60 hover:text-espresso transition-colors -mt-2"
+              className="text-xs font-semibold text-espresso/75 hover:text-espresso transition-colors -mt-2"
             >
               ← Tillbaka till inloggning
             </button>

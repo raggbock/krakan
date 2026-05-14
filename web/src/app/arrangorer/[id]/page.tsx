@@ -74,12 +74,12 @@ export default function OrganizerProfilePage() {
             </div>
 
             {organizer.bio && (
-              <p className="text-espresso/60 mt-2 leading-relaxed">
+              <p className="text-espresso/75 mt-2 leading-relaxed">
                 {organizer.bio}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-espresso/60">
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-espresso/75">
               {organizer.website && (
                 <a
                   href={organizer.website}
@@ -132,7 +132,7 @@ export default function OrganizerProfilePage() {
                   <h3 className="font-display font-bold group-hover:text-rust transition-colors">
                     {market.name}
                   </h3>
-                  <p className="text-sm text-espresso/65 mt-0.5">
+                  <p className="text-sm text-espresso/75 mt-0.5">
                     {market.city}
                   </p>
                 </div>

@@ -60,7 +60,7 @@ export function RouteMap({
       popup: (
         <div className="min-w-[180px] p-1">
           <p className="font-display font-bold text-sm">{market.name}</p>
-          <p className="text-xs text-espresso/65 mt-1">{market.city}</p>
+          <p className="text-xs text-espresso/75 mt-1">{market.city}</p>
           <button
             onClick={() => onToggleMarket(market)}
             className={`mt-2 text-xs font-semibold ${inRoute ? 'text-error' : 'text-rust'}`}

@@ -55,7 +55,7 @@ export function NavBell({ userId }: NavBellProps) {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-label={`Notiser${unread > 0 ? `, ${unread} olästa` : ''}`}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg text-espresso/60 hover:text-espresso hover:bg-cream-warm/60 transition-all duration-200"
+        className="relative flex items-center justify-center w-9 h-9 rounded-lg text-espresso/75 hover:text-espresso hover:bg-cream-warm/60 transition-all duration-200"
       >
         {/* Bell SVG */}
         <svg

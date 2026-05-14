@@ -39,7 +39,7 @@ export default function ApplyPage() {
         <h1 className="font-display text-2xl font-bold">Ansök om stånd</h1>
         <p className="text-espresso/70">{bs.name}</p>
       </header>
-      <p className="text-sm text-espresso/65">
+      <p className="text-sm text-espresso/75">
         Fyll i din adress och vad du tänker sälja. Vi skickar ett bekräftelsemail —
         klicka på länken där så går ansökan till arrangören.
       </p>

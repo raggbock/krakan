@@ -24,7 +24,7 @@ const BlockSaleMapInner = dynamic(() => import('./map-inner'), { ssr: false })
 export function BlockSalePublicMap(props: Props) {
   if (props.stands.length === 0) {
     return (
-      <div className="bg-parchment-light border border-cream-warm rounded-card p-8 text-center text-espresso/60">
+      <div className="bg-parchment-light border border-cream-warm rounded-card p-8 text-center text-espresso/75">
         <p className="font-medium">Inga godkända stånd ännu.</p>
         <p className="text-sm mt-1">Ansök nedan för att bli ett av de första stånden!</p>
       </div>
@@ -63,7 +63,7 @@ function StandList({ stands, onSelect }: { stands: Stand[]; onSelect: (id: strin
                 {stand.street}
               </p>
               {stand.description && (
-                <p className="text-espresso/65 text-sm mt-0.5 line-clamp-2">{stand.description}</p>
+                <p className="text-espresso/75 text-sm mt-0.5 line-clamp-2">{stand.description}</p>
               )}
             </button>
           </li>

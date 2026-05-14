@@ -21,6 +21,13 @@ function formatRuleSummary(rule: OpeningHourRuleView, upcoming: { date: string }
   })
 }
 
+function formatExceptionDate(date: string): string {
+  return new Date(date + 'T12:00:00').toLocaleDateString('sv-SE', {
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
 export function OpeningHoursCard({
   rules,
   exceptions,
@@ -32,72 +39,139 @@ export function OpeningHoursCard({
   const upcoming = getUpcomingOpenDates(rules, exceptions, today, 90)
 
   const recurringRules = rules.filter((r) => r.type === 'weekly' || r.type === 'biweekly')
+  const oneOffRules = rules.filter((r) => r.type !== 'weekly' && r.type !== 'biweekly')
 
-  // Build upcoming list including exceptions for display
-  const upcomingWithExceptions = (() => {
-    const dates = upcoming.slice(0, 10).map((u) => ({ ...u, closed: false, reason: null as string | null }))
-    for (const ex of exceptions) {
-      if (ex.date >= today && !dates.find((d) => d.date === ex.date)) {
-        dates.push({ date: ex.date, hours: [], closed: true, reason: ex.reason })
+  // Cut-off for "near" exceptions worth surfacing as an inline notice on the
+  // weekly row. Two weeks keeps the line from getting noisy on permanent
+  // markets that rack up lots of exceptions over the year.
+  const HORIZON_DAYS = 14
+  const horizonDate = (() => {
+    const d = new Date(today + 'T12:00:00')
+    d.setDate(d.getDate() + HORIZON_DAYS)
+    return d.toISOString().slice(0, 10)
+  })()
+
+  // Group near-term exceptions by the weekday they fall on so each weekly
+  // row can show only the exceptions that actually affect it.
+  const nearExceptionsByDow = new Map<number, OpeningHourExceptionView[]>()
+  const orphanExceptions: OpeningHourExceptionView[] = []
+  for (const ex of exceptions) {
+    if (ex.date < today || ex.date > horizonDate) continue
+    const dow = new Date(ex.date + 'T12:00:00').getDay()
+    const matchesWeekly = recurringRules.some((r) => r.dayOfWeek === dow)
+    if (matchesWeekly) {
+      const list = nearExceptionsByDow.get(dow) ?? []
+      list.push(ex)
+      nearExceptionsByDow.set(dow, list)
+    } else {
+      orphanExceptions.push(ex)
+    }
+  }
+
+  // One row per (rule-type, dayOfWeek, anchor) — merging multiple time ranges
+  // into a comma-joined list ("10-13, 14-18").
+  type WeeklyRow = {
+    key: string
+    label: string
+    times: string[]
+    dayOfWeek: number | null
+  }
+  const weeklyRows: WeeklyRow[] = []
+  {
+    const groups = new Map<string, WeeklyRow>()
+    for (const rule of recurringRules) {
+      const key = `${rule.type}-${rule.dayOfWeek}-${rule.anchorDate ?? ''}`
+      const time = `${rule.openTime.slice(0, 5)} – ${rule.closeTime.slice(0, 5)}`
+      const existing = groups.get(key)
+      if (existing) {
+        existing.times.push(time)
+      } else {
+        const row: WeeklyRow = {
+          key,
+          label: formatRuleSummary(rule, upcoming),
+          times: [time],
+          dayOfWeek: rule.dayOfWeek ?? null,
+        }
+        groups.set(key, row)
+        weeklyRows.push(row)
       }
     }
-    dates.sort((a, b) => a.date.localeCompare(b.date))
-    return dates.slice(0, 10)
-  })()
+  }
+
+  const oneOffRows = oneOffRules.map((r) => ({
+    key: `oneoff-${r.id}`,
+    label: formatRuleSummary(r, upcoming),
+    time: `${r.openTime.slice(0, 5)} – ${r.closeTime.slice(0, 5)}`,
+  }))
+
+  const hasAnyContent =
+    weeklyRows.length > 0 || oneOffRows.length > 0 || orphanExceptions.length > 0
+
+  if (!hasAnyContent) return null
 
   return (
     <div className="vintage-card p-6">
       <h2 className="font-display text-lg font-bold text-espresso mb-4">Öppettider</h2>
 
-      {recurringRules.length > 0 && (
-        <div className="space-y-2 mb-4">
-          {(() => {
-            const groups = new Map<string, { label: string; times: string[] }>()
-            for (const rule of recurringRules) {
-              const key = `${rule.type}-${rule.dayOfWeek}-${rule.anchorDate ?? ''}`
-              const existing = groups.get(key)
-              if (existing) {
-                existing.times.push(`${rule.openTime.slice(0, 5)} – ${rule.closeTime.slice(0, 5)}`)
-              } else {
-                groups.set(key, {
-                  label: formatRuleSummary(rule, upcoming),
-                  times: [`${rule.openTime.slice(0, 5)} – ${rule.closeTime.slice(0, 5)}`],
-                })
-              }
-            }
-            return [...groups.entries()].map(([key, { label, times }]) => (
-              <div key={key} className="flex justify-between items-center">
-                <span className="text-espresso">{label}</span>
-                <span className="font-medium tabular-nums text-espresso">
-                  {times.join(', ')}
-                </span>
+      {weeklyRows.length > 0 && (
+        <div className="space-y-3">
+          {weeklyRows.map((row) => {
+            const dowExceptions = row.dayOfWeek != null ? nearExceptionsByDow.get(row.dayOfWeek) ?? [] : []
+            return (
+              <div key={row.key}>
+                <div className="flex justify-between items-center">
+                  <span className="text-espresso">{row.label}</span>
+                  <span className="font-medium tabular-nums text-espresso">
+                    {row.times.join(', ')}
+                  </span>
+                </div>
+                {dowExceptions.length > 0 && (
+                  <ul className="mt-1 ml-1 space-y-0.5 text-xs text-rust/85">
+                    {dowExceptions.map((ex) => (
+                      <li key={ex.id}>
+                        Stängt {formatExceptionDate(ex.date)}
+                        {ex.reason ? ` (${ex.reason})` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ))
-          })()}
+            )
+          })}
         </div>
       )}
 
-      {upcomingWithExceptions.length > 0 && (
-        <div>
-          {recurringRules.length > 0 && (
-            <p className="text-sm font-semibold text-espresso/60 mb-2 mt-4">Kommande tillfällen</p>
+      {oneOffRows.length > 0 && (
+        <div className={`space-y-1 ${weeklyRows.length > 0 ? 'mt-4 pt-4 border-t border-cream-warm' : ''}`}>
+          {weeklyRows.length > 0 && (
+            <p className="text-sm font-semibold text-espresso/75 mb-2">Specialdagar</p>
           )}
-          <div className="space-y-1">
-            {upcomingWithExceptions.map((d) => (
-              <div key={d.date} className="flex justify-between items-center text-sm">
-                <span className="text-espresso/80">
-                  {new Date(d.date + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </span>
-                {d.closed ? (
-                  <span className="text-rust font-medium">Stängt{d.reason ? ` (${d.reason})` : ''}</span>
-                ) : (
-                  <span className="tabular-nums text-espresso/80">
-                    {d.hours.map((h) => `${h.openTime.slice(0, 5)} – ${h.closeTime.slice(0, 5)}`).join(', ')}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          {oneOffRows.map((r) => (
+            <div key={r.key} className="flex justify-between items-center">
+              <span className="text-espresso">{r.label}</span>
+              <span className="font-medium tabular-nums text-espresso">{r.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {orphanExceptions.length > 0 && (
+        <div className={`space-y-1 ${weeklyRows.length > 0 || oneOffRows.length > 0 ? 'mt-4 pt-4 border-t border-cream-warm' : ''}`}>
+          <p className="text-sm font-semibold text-espresso/75 mb-2">Kommande avvikelser</p>
+          {orphanExceptions.map((ex) => (
+            <div key={ex.id} className="flex justify-between items-center text-sm">
+              <span className="text-espresso">
+                {new Date(ex.date + 'T12:00:00').toLocaleDateString('sv-SE', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </span>
+              <span className="text-rust font-medium">
+                Stängt{ex.reason ? ` (${ex.reason})` : ''}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>

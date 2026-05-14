@@ -45,7 +45,7 @@ export default function RouteBuilder() {
           {/* Header */}
           <Link
             href="/map"
-            className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-4"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path
@@ -60,7 +60,7 @@ export default function RouteBuilder() {
           </Link>
 
           <h1 className="font-display text-2xl font-bold">Skapa loppisrunda</h1>
-          <p className="text-sm text-espresso/65 mt-1">
+          <p className="text-sm text-espresso/75 mt-1">
             Klicka på loppisar i kartan eller sök nedan.
           </p>
 
@@ -103,7 +103,7 @@ export default function RouteBuilder() {
                 userPos={vm.userPos}
                 onSaved={vm.clearDraft}
               />
-              <p className="text-xs text-espresso/60 text-center">
+              <p className="text-xs text-espresso/75 text-center">
                 Eller{' '}
                 <Link href="/auth" className="text-rust font-semibold underline">
                   logga in
@@ -113,7 +113,7 @@ export default function RouteBuilder() {
             </div>
           ) : (
             <div className="mt-6 vintage-card p-4 text-center">
-              <p className="text-sm text-espresso/65">
+              <p className="text-sm text-espresso/75">
                 <Link href="/auth" className="text-rust font-semibold">
                   Logga in
                 </Link>{' '}

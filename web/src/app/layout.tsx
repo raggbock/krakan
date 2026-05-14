@@ -173,7 +173,7 @@ export default async function RootLayout({
               <div className="max-w-6xl mx-auto px-6 py-10">
                 {popularCities.length > 0 && (
                   <div className="mb-8 pb-8 border-b border-cream-warm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-espresso/60 mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-espresso/75 mb-3">
                       Populära städer
                     </p>
                     <ul className="flex flex-wrap gap-x-2 gap-y-1">
@@ -196,11 +196,11 @@ export default async function RootLayout({
                     <p className="font-display font-bold text-lg text-espresso">
                       Fyndstigen
                     </p>
-                    <p className="text-sm text-espresso/65 mt-1">
+                    <p className="text-sm text-espresso/75 mt-1">
                       Varje stig leder till ett fynd.
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-espresso/60">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-espresso/75">
                     <Link href="/fragor-svar" prefetch={false} className="hover:text-espresso transition-colors">
                       Frågor & svar
                     </Link>

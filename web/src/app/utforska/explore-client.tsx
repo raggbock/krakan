@@ -171,7 +171,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                 <span className="text-rust">nästa fynd</span>
               </h1>
 
-              <p className="text-espresso/60 mt-5 max-w-md text-lg leading-relaxed">
+              <p className="text-espresso/75 mt-5 max-w-md text-lg leading-relaxed">
                 Fyndstigen samlar loppisar på ett ställe &mdash; hitta
                 skatter, boka bord och planera din loppisrunda.
               </p>
@@ -246,7 +246,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
               >
                 {markets.length > 0 ? markets.length : ' '}
               </span>
-              <span className="text-xs text-espresso/65 mt-1 font-medium">
+              <span className="text-xs text-espresso/75 mt-1 font-medium">
                 loppisar
               </span>
             </div>
@@ -272,7 +272,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
           Öppet just nu
         </button>
         {openNowOnly && (
-          <span className="text-sm text-espresso/60">
+          <span className="text-sm text-espresso/75">
             {openLoading ? 'Hämtar öppettider…' : `${markets.length} öppna just nu`}
           </span>
         )}
@@ -325,7 +325,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
           <h2 className="font-display text-xl font-bold">
             Inga loppisar ännu
           </h2>
-          <p className="text-espresso/65 mt-2 max-w-sm mx-auto">
+          <p className="text-espresso/75 mt-2 max-w-sm mx-auto">
             När arrangörer börjar publicera loppisar kommer de dyka upp här.
             Fyndstigen håller utkik!
           </p>
@@ -340,7 +340,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
               <h2 className="font-display text-2xl font-bold">
                 Loppisar nära dig
               </h2>
-              <p className="text-sm text-espresso/65 mt-1">
+              <p className="text-sm text-espresso/75 mt-1">
                 Bläddra bland loppisar i ditt område.
               </p>
             </div>
@@ -408,7 +408,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                   <h3 className="font-display font-bold text-lg group-hover:text-rust transition-colors duration-200">
                     {market.name}
                   </h3>
-                  <p className="text-sm text-espresso/65 mt-1.5 flex items-center gap-1.5">
+                  <p className="text-sm text-espresso/75 mt-1.5 flex items-center gap-1.5">
                     <svg
                       width="12"
                       height="12"
@@ -434,7 +434,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                     )}
                   </p>
                   {market.description && (
-                    <p className="text-sm text-espresso/60 mt-2.5 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-espresso/75 mt-2.5 line-clamp-2 leading-relaxed">
                       {market.description}
                     </p>
                   )}
@@ -455,7 +455,7 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
                 <span className="sm:hidden">&larr;</span>
                 <span className="hidden sm:inline">&larr; Föregående</span>
               </button>
-              <span className="text-sm text-espresso/65 order-first w-full text-center sm:order-none sm:w-auto">
+              <span className="text-sm text-espresso/75 order-first w-full text-center sm:order-none sm:w-auto">
                 Sida {page} av {totalPages}
               </span>
               <button

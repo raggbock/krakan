@@ -82,7 +82,7 @@ function NearbyMarketsSection({ markets }: { markets: FleaMarketNearByView[] }) 
                   {m.isPermanent ? 'Permanent' : 'Tillfällig'}
                 </span>
               </div>
-              <p className="text-sm text-espresso/65">{m.city}</p>
+              <p className="text-sm text-espresso/75">{m.city}</p>
               <p className="text-xs text-espresso/45 mt-0.5">
                 {formatDistanceKm(m.distanceKm)} bort
               </p>

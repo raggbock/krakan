@@ -85,7 +85,7 @@ export default function EditMarketPage() {
       <div className="max-w-md mx-auto px-6 py-20 text-center">
         <FyndstigenLogo size={48} className="text-espresso/15 mx-auto mb-4" />
         <h1 className="font-display text-xl font-bold">Logga in först</h1>
-        <p className="text-sm text-espresso/65 mt-2">
+        <p className="text-sm text-espresso/75 mt-2">
           Du behöver vara inloggad för att redigera en loppis.
         </p>
         <Link
@@ -104,7 +104,7 @@ export default function EditMarketPage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <Link
         href={`/fleamarkets/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -113,7 +113,7 @@ export default function EditMarketPage() {
       </Link>
 
       <h1 className="font-display text-2xl font-bold">Redigera loppis</h1>
-      <p className="text-sm text-espresso/65 mt-1 mb-8">
+      <p className="text-sm text-espresso/75 mt-1 mb-8">
         Uppdatera information, bilder, öppettider och bord.
       </p>
 
@@ -158,7 +158,7 @@ export default function EditMarketPage() {
         <section className="vintage-card p-6 animate-fade-up delay-2">
           <h2 className="font-display font-bold text-lg mb-4">
             Bilder
-            <span className="text-sm font-normal text-espresso/60 ml-2">({totalImageCount}/6)</span>
+            <span className="text-sm font-normal text-espresso/75 ml-2">({totalImageCount}/6)</span>
           </h2>
           <div className="grid grid-cols-3 gap-2 mb-3">
             {images.existingImages.map((img) => {
@@ -240,7 +240,7 @@ export default function EditMarketPage() {
           <section className="rounded-xl border border-mustard/30 bg-mustard/5 p-5 space-y-3">
             <div>
               <h3 className="font-display font-bold text-espresso text-lg">Redo att publicera?</h3>
-              <p className="text-sm text-espresso/65 mt-1">
+              <p className="text-sm text-espresso/75 mt-1">
                 Din loppis är ett utkast och syns bara för dig. Publicera för att den ska synas för besökare.
               </p>
             </div>
@@ -261,7 +261,7 @@ export default function EditMarketPage() {
         <div className="flex gap-3 pt-2">
           <Link
             href={`/fleamarkets/${id}`}
-            className="flex-1 h-12 rounded-xl bg-cream-warm text-sm font-semibold text-espresso/60 hover:bg-espresso/8 transition-colors flex items-center justify-center"
+            className="flex-1 h-12 rounded-xl bg-cream-warm text-sm font-semibold text-espresso/75 hover:bg-espresso/8 transition-colors flex items-center justify-center"
           >
             Avbryt
           </Link>
@@ -296,7 +296,7 @@ function TableSection({ tables }: { tables: TableDraftResult }) {
             >
               <div>
                 <p className="font-medium text-sm">{t.label}</p>
-                <p className="text-xs text-espresso/60 mt-0.5">
+                <p className="text-xs text-espresso/75 mt-0.5">
                   {t.sizeDescription}{t.description && ` — ${t.description}`}
                 </p>
               </div>
@@ -321,14 +321,14 @@ function TableSection({ tables }: { tables: TableDraftResult }) {
 
       {tables.newTables.length > 0 && (
         <div className="space-y-2 mb-4">
-          <p className="text-xs font-semibold text-espresso/60 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-espresso/75 uppercase tracking-wide">
             Nya bord (sparas vid uppdatering)
           </p>
           {tables.newTables.map((t, i) => (
             <div key={`new-${i}`} className="flex items-center justify-between bg-forest/5 rounded-xl p-4 border border-forest/10">
               <div>
                 <p className="font-medium text-sm">{t.label}</p>
-                <p className="text-xs text-espresso/60 mt-0.5">
+                <p className="text-xs text-espresso/75 mt-0.5">
                   {t.sizeDescription}{t.description && ` — ${t.description}`}
                 </p>
               </div>

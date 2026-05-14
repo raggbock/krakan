@@ -47,7 +47,7 @@ export default function NotiserPage() {
       {/* Back link */}
       <Link
         href="/profile"
-        className="inline-flex items-center gap-1.5 text-sm text-espresso/60 hover:text-espresso transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-espresso/75 hover:text-espresso transition-colors mb-6"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -59,7 +59,7 @@ export default function NotiserPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-2xl font-bold">Notiser</h1>
-          <p className="text-sm text-espresso/60 mt-0.5">
+          <p className="text-sm text-espresso/75 mt-0.5">
             Aktivitet från loppisar och städer du följer, senaste 30 dagarna.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function NotiserPage() {
             </svg>
           </div>
           <h2 className="font-display text-lg font-bold mb-2">Inga notiser ännu</h2>
-          <p className="text-sm text-espresso/60 max-w-xs mx-auto">
+          <p className="text-sm text-espresso/75 max-w-xs mx-auto">
             Följ loppisar och städer för att få notiser när något nytt händer.
           </p>
           <Link

@@ -79,7 +79,7 @@ export default function FaqPage() {
       />
 
       <h1 className="font-display text-3xl sm:text-4xl font-bold">Frågor & svar</h1>
-      <p className="text-espresso/65 mt-2">
+      <p className="text-espresso/75 mt-2">
         Vanliga frågor om hur Fyndstigen funkar.
       </p>
 
@@ -97,7 +97,7 @@ export default function FaqPage() {
 
       <div className="mt-12 vintage-card p-6 text-center">
         <p className="font-display font-bold">Hittar du inte svaret?</p>
-        <p className="text-sm text-espresso/65 mt-1">
+        <p className="text-sm text-espresso/75 mt-1">
           Hör av dig till oss på{' '}
           <a href="mailto:hej@fyndstigen.se" className="text-rust underline">
             hej@fyndstigen.se
