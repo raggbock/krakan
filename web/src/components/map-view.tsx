@@ -207,7 +207,12 @@ export default function MapView() {
       }
     }
     return out
-  }, [blockSales, markets, posthog, hasTarget, targetLat, targetLng, targetName, targetSlug])
+    // posthog is intentionally excluded — it's only invoked from the popup
+    // onClick handler, where the closure captures it correctly. Including it
+    // here invalidates the entire marker JSX on PostHog's async init,
+    // defeating the memoisation when it matters most.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockSales, markets, hasTarget, targetLat, targetLng, targetName, targetSlug])
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>

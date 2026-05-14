@@ -52,14 +52,20 @@ export function OpeningHoursCard({
   })()
 
   // Group near-term exceptions by the weekday they fall on so each weekly
-  // row can show only the exceptions that actually affect it.
+  // row can show only the exceptions that actually affect it. Only attach
+  // to a *weekly* row — biweekly rules fire on specific anchored weeks, and
+  // saying "Stängt 14 nov" under a biweekly row would imply the market was
+  // due to open that day when it might not have been. Those exceptions fall
+  // through to "Kommande avvikelser" instead.
+  const weeklyDays = new Set(
+    recurringRules.filter((r) => r.type === 'weekly').map((r) => r.dayOfWeek),
+  )
   const nearExceptionsByDow = new Map<number, OpeningHourExceptionView[]>()
   const orphanExceptions: OpeningHourExceptionView[] = []
   for (const ex of exceptions) {
     if (ex.date < today || ex.date > horizonDate) continue
     const dow = new Date(ex.date + 'T12:00:00').getDay()
-    const matchesWeekly = recurringRules.some((r) => r.dayOfWeek === dow)
-    if (matchesWeekly) {
+    if (weeklyDays.has(dow)) {
       const list = nearExceptionsByDow.get(dow) ?? []
       list.push(ex)
       nearExceptionsByDow.set(dow, list)
@@ -75,6 +81,7 @@ export function OpeningHoursCard({
     label: string
     times: string[]
     dayOfWeek: number | null
+    isWeekly: boolean
   }
   const weeklyRows: WeeklyRow[] = []
   {
@@ -91,6 +98,7 @@ export function OpeningHoursCard({
           label: formatRuleSummary(rule, upcoming),
           times: [time],
           dayOfWeek: rule.dayOfWeek ?? null,
+          isWeekly: rule.type === 'weekly',
         }
         groups.set(key, row)
         weeklyRows.push(row)
@@ -116,7 +124,10 @@ export function OpeningHoursCard({
       {weeklyRows.length > 0 && (
         <div className="space-y-3">
           {weeklyRows.map((row) => {
-            const dowExceptions = row.dayOfWeek != null ? nearExceptionsByDow.get(row.dayOfWeek) ?? [] : []
+            const dowExceptions =
+              row.isWeekly && row.dayOfWeek != null
+                ? nearExceptionsByDow.get(row.dayOfWeek) ?? []
+                : []
             return (
               <div key={row.key}>
                 <div className="flex justify-between items-center">

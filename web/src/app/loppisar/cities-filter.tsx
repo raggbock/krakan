@@ -86,7 +86,7 @@ export function CitiesFilter({ cities }: { cities: City[] }) {
       </div>
 
       {filtered.length > 0 && (
-        <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up delay-2">
           {filtered.map((city) => (
             <li
               key={city.slug}

@@ -46,7 +46,12 @@ export default function BookingsPage() {
         setStats(s)
       } catch (err) {
         if (cancelled) return
-        setLoadError(err instanceof Error ? err.message : 'Kunde inte ladda bokningar')
+        // Never surface raw DB / network errors to the UI — they leak table
+        // names, column names, and constraint identifiers. Log the detail
+        // for diagnostics, show the visitor a generic message.
+        // eslint-disable-next-line no-console -- intentional diagnostic surface
+        console.error('bookings load failed', err)
+        setLoadError('Kunde inte ladda bokningar. Försök igen om en stund.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -112,8 +117,7 @@ export default function BookingsPage() {
           role="alert"
           className="mb-6 rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
         >
-          <p className="font-semibold">Kunde inte ladda bokningar</p>
-          <p className="mt-1 text-error/80">{loadError}</p>
+          <p>{loadError}</p>
         </div>
       )}
 

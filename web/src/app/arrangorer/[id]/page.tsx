@@ -9,6 +9,21 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { useDeps } from '@/providers/deps-provider'
 import { marketUrl } from '@/lib/urls'
 
+/**
+ * Guard user-supplied URLs before they hit an href. The website field is
+ * editable from the organizer profile form, so a malicious value like
+ * `javascript:alert(1)` would otherwise fire on click. Only http(s) passes.
+ */
+function safeHttpUrl(url: string | null | undefined): boolean {
+  if (!url) return false
+  try {
+    const protocol = new URL(url).protocol
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export default function OrganizerProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
@@ -40,9 +55,14 @@ export default function OrganizerProfilePage() {
   }
 
   if (!organizer) {
-    // Trigger the global not-found.tsx so crawlers get a real 404 and the
-    // user sees the styled fallback consistent with other missing-resource
-    // pages (/loppis, /rundor, /loppisar).
+    // Render the global not-found.tsx UI consistent with the other missing-
+    // resource pages. Caveat: because this is a client component the
+    // initial SSR response is still 200 — `notFound()` only affects the
+    // client render. A real 404 status would require moving the lookup to
+    // a server component or a server-side handler. Worth doing if SEO de-
+    // indexing of stale organizer IDs matters; for now this avoids the
+    // earlier worse outcome (a fully-styled "Arrangören hittades inte" page
+    // that looked indexable).
     notFound()
   }
 
@@ -80,14 +100,14 @@ export default function OrganizerProfilePage() {
             )}
 
             <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-espresso/75">
-              {organizer.website && (
+              {safeHttpUrl(organizer.website) && (
                 <a
-                  href={organizer.website}
+                  href={organizer.website!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-rust hover:text-rust-light transition-colors"
                 >
-                  {organizer.website.replace(/^https?:\/\//, '')}
+                  {organizer.website!.replace(/^https?:\/\//, '')}
                 </a>
               )}
               <span>{markets.length} loppisar</span>

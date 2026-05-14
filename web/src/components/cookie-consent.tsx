@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
 const CONSENT_KEY = 'fyndstigen-cookie-consent'
@@ -23,6 +23,7 @@ export function openCookieSettings() {
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false)
+  const bannerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const onReopen = () => setVisible(true)
@@ -46,13 +47,21 @@ export function CookieConsent() {
   }, [])
 
   // While the banner is visible, push page content up so its tail isn't hidden
-  // behind it. Mobile is the worst case — empty-state messaging and bottom
-  // CTAs were all sitting under the banner before. Use a CSS variable on
-  // <body> so the layout can read it via a global rule.
+  // behind it. The banner's height changes with viewport (one line on desktop,
+  // wrapped + safe-area-inset on mobile), so measure it live with a
+  // ResizeObserver rather than guessing.
   useEffect(() => {
     if (!visible) return
-    document.body.style.paddingBottom = 'var(--cookie-banner-h, 9rem)'
+    const el = bannerRef.current
+    if (!el) return
+    const apply = () => {
+      document.body.style.paddingBottom = `${el.offsetHeight}px`
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
     return () => {
+      ro.disconnect()
       document.body.style.paddingBottom = ''
     }
   }, [visible])
@@ -72,6 +81,7 @@ export function CookieConsent() {
 
   return (
     <div
+      ref={bannerRef}
       role="region"
       aria-label="Cookieinställningar"
       className="fixed bottom-0 inset-x-0 z-50 bg-card border-t border-cream-warm shadow-[0_-8px_24px_rgba(61,43,31,0.12)] pb-[env(safe-area-inset-bottom)]"
