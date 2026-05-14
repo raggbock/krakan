@@ -1,12 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 
 export default function AuthPage() {
+  // useSearchParams forces CSR-bailout during prerender unless wrapped in a
+  // Suspense boundary at the page-level. Without this, /auth fails the
+  // production build (missing-suspense-with-csr-bailout).
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-20">
+          <FyndstigenLogo size={40} className="text-rust animate-bob" />
+        </div>
+      }
+    >
+      <AuthPageInner />
+    </Suspense>
+  )
+}
+
+function AuthPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const posthog = usePostHog()

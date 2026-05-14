@@ -41,10 +41,13 @@ beforeEach(() => {
 })
 
 describe('SearchPage', () => {
-  it('shows idle state initially — "Börja skriva för att söka"', () => {
+  it('shows popular search suggestions in the idle state', () => {
     setupSearch({ results: null, loading: false })
     render(<SearchPage />)
-    expect(screen.getByText(/Börja skriva för att söka/)).toBeInTheDocument()
+    expect(screen.getByText(/Populära sökningar/i)).toBeInTheDocument()
+    // A couple of the hardcoded chips — guards against accidental removal.
+    expect(screen.getByRole('button', { name: 'Stockholm' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Erikshjälpen' })).toBeInTheDocument()
   })
 
   it('shows loading state during search', () => {

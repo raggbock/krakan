@@ -28,8 +28,11 @@ test.describe('/rundor/skapa — anonymous save panel', () => {
 
     await page.goto('/rundor/skapa')
 
-    // Wait for the draft restore to fire (markets must load first).
-    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    // Wait for the draft restore to fire (markets must load first). Scope to
+    // the stop-list region so we don't double-match the same name in the
+    // "Loppisar nära dig" sidebar picker.
+    const stopList = page.getByRole('region', { name: /^Stopp/ })
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).toBeVisible()
 
     // Prompt + form + login fallback link.
     await expect(page.getByText(/Du har 1 stopp på din runda/i)).toBeVisible()

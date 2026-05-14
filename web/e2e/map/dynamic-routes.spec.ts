@@ -11,7 +11,9 @@ test.use({ permissions: [] })
 test.describe('SSR bypass — dynamic detail routes', () => {
   test('/arrangorer/[id] renders the not-found branch when organizer unseeded', async ({ page }) => {
     await page.goto('/arrangorer/nonexistent')
-    await expect(page.getByRole('heading', { name: /Arrangören hittades inte/i })).toBeVisible()
+    // The page now delegates to next/navigation's notFound(), which renders
+    // the global not-found.tsx ("Sidan hittades inte").
+    await expect(page.getByRole('heading', { name: /Sidan hittades inte/i })).toBeVisible()
   })
 
   test('/kvartersloppis/[slug] renders the error branch when slug unseeded', async ({ page }) => {

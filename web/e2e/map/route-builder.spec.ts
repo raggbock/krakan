@@ -48,8 +48,11 @@ test.describe('/rundor/skapa — route-builder', () => {
 
     // The draft restore fires once `useMarketsQuery` resolves — both seeded
     // stops should appear in the stop list (and form fields hydrate too).
-    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
-    await expect(page.getByText('Linnéstaden Loppis')).toBeVisible()
+    // Scope to the stop-list region so we don't false-match the same market
+    // names in the "Loppisar nära dig" picker that now sits in the sidebar.
+    const stopList = page.getByRole('region', { name: /^Stopp/ })
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    await expect(stopList.getByText('Linnéstaden Loppis')).toBeVisible()
     await expect(page.locator('input').first()).toHaveValue('Söndagsrundan')
   })
 
@@ -69,14 +72,15 @@ test.describe('/rundor/skapa — route-builder', () => {
     })
 
     await page.goto('/rundor/skapa')
-    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
-    await expect(page.getByText('Linnéstaden Loppis')).toBeVisible()
+    const stopList = page.getByRole('region', { name: /^Stopp/ })
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    await expect(stopList.getByText('Linnéstaden Loppis')).toBeVisible()
 
     // Two remove buttons (one per stop) — click the first.
-    await page.getByRole('button', { name: 'Ta bort stopp' }).first().click()
+    await stopList.getByRole('button', { name: 'Ta bort stopp' }).first().click()
 
-    await expect(page.getByText('Kungsportsavenyn Loppis')).not.toBeVisible()
-    await expect(page.getByText('Linnéstaden Loppis')).toBeVisible()
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).not.toBeVisible()
+    await expect(stopList.getByText('Linnéstaden Loppis')).toBeVisible()
 
     // Debounced persist (250ms) — wait for the draft to be rewritten.
     await expect.poll(async () => {
@@ -112,9 +116,10 @@ test.describe('/rundor/skapa — route-builder', () => {
     await optimizeBtn.click()
 
     // All three stops still present after optimize — no markets dropped.
-    await expect(page.getByText('Kungsportsavenyn Loppis')).toBeVisible()
-    await expect(page.getByText('Haga Loppis')).toBeVisible()
-    await expect(page.getByText('Partille Loppis')).toBeVisible()
+    const stopList = page.getByRole('region', { name: /^Stopp/ })
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).toBeVisible()
+    await expect(stopList.getByText('Haga Loppis')).toBeVisible()
+    await expect(stopList.getByText('Partille Loppis')).toBeVisible()
   })
 
   test('empty draft leaves an empty stop list', async ({ page, seedMarkets, setNow }) => {
@@ -124,6 +129,7 @@ test.describe('/rundor/skapa — route-builder', () => {
 
     await expect(page.getByRole('heading', { name: /Skapa loppisrunda/i })).toBeVisible()
     // No stop names should have leaked from a previous test's localStorage.
-    await expect(page.getByText('Kungsportsavenyn Loppis')).not.toBeVisible()
+    const stopList = page.getByRole('region', { name: /^Stopp/ })
+    await expect(stopList.getByText('Kungsportsavenyn Loppis')).not.toBeVisible()
   })
 })

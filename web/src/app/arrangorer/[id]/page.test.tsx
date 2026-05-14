@@ -5,11 +5,28 @@ import type { Deps } from '@fyndstigen/shared'
 import { makeInMemoryDeps } from '@fyndstigen/shared/deps-factory'
 import { DepsProvider } from '@/providers/deps-provider'
 
+// next/navigation's real notFound() throws an error with digest
+// 'NEXT_NOT_FOUND'. We mirror the throw so the component's render unwinds,
+// then catch it in a test-only ErrorBoundary below — otherwise the error
+// bubbles to vitest's "unhandled error" handler and fails CI.
+const NEXT_NOT_FOUND = 'NEXT_NOT_FOUND'
 const mockNotFound = vi.fn(() => {
-  // next/navigation's real notFound() throws to unwind rendering. Mirror that
-  // so the component doesn't keep running past the call in tests.
-  throw new Error('NEXT_NOT_FOUND')
+  const err = new Error(NEXT_NOT_FOUND) as Error & { digest?: string }
+  err.digest = NEXT_NOT_FOUND
+  throw err
 })
+
+class NotFoundBoundary extends React.Component<{ children: React.ReactNode }, { thrown: boolean }> {
+  state = { thrown: false }
+  static getDerivedStateFromError(err: unknown) {
+    const digest = (err as { digest?: string } | null)?.digest
+    if (digest === NEXT_NOT_FOUND) return { thrown: true }
+    throw err
+  }
+  render() {
+    return this.state.thrown ? null : this.props.children
+  }
+}
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'org-1' }),
   notFound: () => mockNotFound(),
@@ -53,7 +70,11 @@ const testDeps: Deps = (() => {
 const render = (ui: React.ReactElement) =>
   rtlRender(ui, {
     wrapper: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(DepsProvider, { deps: testDeps }, children),
+      React.createElement(
+        DepsProvider,
+        { deps: testDeps },
+        React.createElement(NotFoundBoundary, null, children),
+      ),
   })
 
 function setupMocks({

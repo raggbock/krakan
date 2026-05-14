@@ -46,9 +46,9 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
   }
 
   return (
-    <div className="mt-6">
+    <section className="mt-6" aria-labelledby="stop-list-heading">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display font-bold">
+        <h2 id="stop-list-heading" className="font-display font-bold">
           Stopp ({stops.length})
         </h2>
         {canOptimize && (
@@ -146,6 +146,6 @@ export function StopList({ stops, plannedDate, onReorder, onRemove, onOptimize, 
           })}
         </div>
       )}
-    </div>
+    </section>
   )
 }
