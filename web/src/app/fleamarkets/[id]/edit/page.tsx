@@ -15,6 +15,7 @@ import { ImageUploadList } from '@/components/image-upload-list'
 import { useMarketForm } from '@/hooks/market-form'
 import type { TableDraftResult } from '@/hooks/market-form'
 import { MarketBasicInfoSection } from '@/components/market-form/MarketBasicInfoSection'
+import { MarketContactSection } from '@/components/market-form/MarketContactSection'
 import { OpeningHoursSection } from '@/components/market-form/OpeningHoursSection'
 import { MarketTableAddForm } from '@/components/market-form/MarketTableAddForm'
 
@@ -141,6 +142,22 @@ export default function EditMarketPage() {
             setAddress={fields.setAddress}
             isPermanent={fields.isPermanent}
             setIsPermanent={fields.setIsPermanent}
+            inputBg="bg-parchment"
+          />
+        </section>
+
+        <section className="vintage-card p-6 animate-fade-up">
+          <MarketContactSection
+            website={fields.contactWebsite}
+            setWebsite={fields.setContactWebsite}
+            phone={fields.contactPhone}
+            setPhone={fields.setContactPhone}
+            email={fields.contactEmail}
+            setEmail={fields.setContactEmail}
+            instagram={fields.contactInstagram}
+            setInstagram={fields.setContactInstagram}
+            facebook={fields.contactFacebook}
+            setFacebook={fields.setContactFacebook}
             inputBg="bg-parchment"
           />
         </section>

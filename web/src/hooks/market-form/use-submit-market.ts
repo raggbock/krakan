@@ -95,6 +95,19 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
           : undefined,
     }
 
+    // Empty string → null (clear the column). Whitespace-only trims the same.
+    const nullableContact = (v: string): string | null => {
+      const trimmed = v.trim()
+      return trimmed === '' ? null : trimmed
+    }
+    const contactFields = {
+      contactWebsite: nullableContact(fields.contactWebsite),
+      contactPhone: nullableContact(fields.contactPhone),
+      contactEmail: nullableContact(fields.contactEmail),
+      contactInstagram: nullableContact(fields.contactInstagram),
+      contactFacebook: nullableContact(fields.contactFacebook),
+    }
+
     const plan =
       mode === 'create'
         ? {
@@ -106,6 +119,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
                 isPermanent: fields.isPermanent,
                 organizerId: organizerId!,
                 autoAcceptBookings,
+                ...contactFields,
               },
             },
             images: { add: imageSer.add, remove: imageSer.remove },
@@ -122,6 +136,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
                   address,
                   isPermanent: fields.isPermanent,
                   alreadyPublished: publishedAt != null,
+                  ...contactFields,
                 },
               },
             },

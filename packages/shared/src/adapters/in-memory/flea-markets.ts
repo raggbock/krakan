@@ -122,6 +122,11 @@ function buildRepo(
         isPermanent: payload.isPermanent,
         organizerId: payload.organizerId,
         autoAcceptBookings: payload.autoAcceptBookings ?? false,
+        contactWebsite: payload.contactWebsite ?? null,
+        contactPhone: payload.contactPhone ?? null,
+        contactEmail: payload.contactEmail ?? null,
+        contactInstagram: payload.contactInstagram ?? null,
+        contactFacebook: payload.contactFacebook ?? null,
         publishedAt: null,
         isDeleted: false,
         createdAt: now,
@@ -156,6 +161,12 @@ function buildRepo(
       })
 
       try {
+        const contactPatch: Partial<StoredMarket> = {}
+        if (payload.contactWebsite !== undefined) contactPatch.contactWebsite = payload.contactWebsite
+        if (payload.contactPhone !== undefined) contactPatch.contactPhone = payload.contactPhone
+        if (payload.contactEmail !== undefined) contactPatch.contactEmail = payload.contactEmail
+        if (payload.contactInstagram !== undefined) contactPatch.contactInstagram = payload.contactInstagram
+        if (payload.contactFacebook !== undefined) contactPatch.contactFacebook = payload.contactFacebook
         store.set(id, {
           ...existing,
           name: payload.name,
@@ -169,6 +180,7 @@ function buildRepo(
           isPermanent: payload.isPermanent,
           openingHourRules: newRules,
           updatedAt: new Date().toISOString(),
+          ...contactPatch,
         })
       } catch (err) {
         // Restore previous state on failure.

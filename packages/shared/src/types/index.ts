@@ -90,6 +90,12 @@ export type CreateFleaMarketPayload = {
   isPermanent: boolean
   organizerId: string
   autoAcceptBookings?: boolean
+  /** Optional contact channels. `null` clears any existing value on update. */
+  contactWebsite?: string | null
+  contactPhone?: string | null
+  contactEmail?: string | null
+  contactInstagram?: string | null
+  contactFacebook?: string | null
   openingHours: {
     type: RuleType
     dayOfWeek: number | null

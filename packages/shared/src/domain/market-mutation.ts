@@ -72,7 +72,15 @@ export type MarketPlanAddress = {
 }
 
 /** Fields used to build CreateFleaMarketPayload on create-new-market. */
-export type MarketCreateFields = {
+export type MarketContactFields = {
+  contactWebsite?: string | null
+  contactPhone?: string | null
+  contactEmail?: string | null
+  contactInstagram?: string | null
+  contactFacebook?: string | null
+}
+
+export type MarketCreateFields = MarketContactFields & {
   name: string
   description: string
   address: MarketPlanAddress
@@ -82,7 +90,7 @@ export type MarketCreateFields = {
 }
 
 /** Fields used to build UpdateFleaMarketPayload on edit. */
-export type MarketUpdateFields = {
+export type MarketUpdateFields = MarketContactFields & {
   name: string
   description: string
   address: MarketPlanAddress
@@ -223,6 +231,11 @@ export async function* runMarketMutation(
         isPermanent: f.isPermanent,
         organizerId: f.organizerId,
         autoAcceptBookings: f.autoAcceptBookings,
+        contactWebsite: f.contactWebsite,
+        contactPhone: f.contactPhone,
+        contactEmail: f.contactEmail,
+        contactInstagram: f.contactInstagram,
+        contactFacebook: f.contactFacebook,
         openingHours: plan.opening.rules,
         openingHourExceptions: plan.opening.exceptions,
       })
@@ -240,6 +253,11 @@ export async function* runMarketMutation(
           location: { latitude, longitude },
         },
         isPermanent: patch.isPermanent,
+        contactWebsite: patch.contactWebsite,
+        contactPhone: patch.contactPhone,
+        contactEmail: patch.contactEmail,
+        contactInstagram: patch.contactInstagram,
+        contactFacebook: patch.contactFacebook,
         openingHours: plan.opening.rules,
         openingHourExceptions: plan.opening.exceptions,
       })

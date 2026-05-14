@@ -18,6 +18,7 @@ import { useMarketForm } from '@/hooks/market-form'
 import type { RuleDraft, ExceptionDraft } from '@fyndstigen/shared'
 import type { AddressValue } from '@/components/address-picker'
 import { MarketBasicInfoSection } from '@/components/market-form/MarketBasicInfoSection'
+import { MarketContactSection } from '@/components/market-form/MarketContactSection'
 import { OpeningHoursSection } from '@/components/market-form/OpeningHoursSection'
 import { MarketTableAddForm } from '@/components/market-form/MarketTableAddForm'
 
@@ -37,6 +38,11 @@ type CreateMarketDraft = {
   address: AddressValue
   isPermanent: boolean
   autoAcceptBookings: boolean
+  contactWebsite?: string
+  contactPhone?: string
+  contactEmail?: string
+  contactInstagram?: string
+  contactFacebook?: string
   rules: RuleDraft[]
   exceptions: ExceptionDraft[]
   tables: TableDraft[]
@@ -91,6 +97,11 @@ export default function CreateMarketPage() {
       fields.setAddress(d.address)
       fields.setIsPermanent(d.isPermanent)
       fields.setAutoAcceptBookings(d.autoAcceptBookings)
+      if (d.contactWebsite !== undefined) fields.setContactWebsite(d.contactWebsite)
+      if (d.contactPhone !== undefined) fields.setContactPhone(d.contactPhone)
+      if (d.contactEmail !== undefined) fields.setContactEmail(d.contactEmail)
+      if (d.contactInstagram !== undefined) fields.setContactInstagram(d.contactInstagram)
+      if (d.contactFacebook !== undefined) fields.setContactFacebook(d.contactFacebook)
       openingHours.reset(d.rules, d.exceptions)
       tables.addBatch(d.tables)
       const hasContent =
@@ -118,12 +129,22 @@ export default function CreateMarketPage() {
       address: fields.address,
       isPermanent: fields.isPermanent,
       autoAcceptBookings: fields.autoAcceptBookings,
+      contactWebsite: fields.contactWebsite,
+      contactPhone: fields.contactPhone,
+      contactEmail: fields.contactEmail,
+      contactInstagram: fields.contactInstagram,
+      contactFacebook: fields.contactFacebook,
       rules: openingHours.rules,
       exceptions: openingHours.exceptions,
       tables: tables.newTables,
     }),
-    [step, fields.name, fields.description, fields.address, fields.isPermanent,
-     fields.autoAcceptBookings, openingHours.rules, openingHours.exceptions, tables.newTables],
+    [
+      step, fields.name, fields.description, fields.address, fields.isPermanent,
+      fields.autoAcceptBookings,
+      fields.contactWebsite, fields.contactPhone, fields.contactEmail,
+      fields.contactInstagram, fields.contactFacebook,
+      openingHours.rules, openingHours.exceptions, tables.newTables,
+    ],
   )
 
   useDraftAutosave(DRAFT_KEY, draft, { enabled: hydrated })
@@ -136,6 +157,11 @@ export default function CreateMarketPage() {
     fields.setAddress({ street: '', zipCode: '', city: '', latitude: null, longitude: null })
     fields.setIsPermanent(true)
     fields.setAutoAcceptBookings(false)
+    fields.setContactWebsite('')
+    fields.setContactPhone('')
+    fields.setContactEmail('')
+    fields.setContactInstagram('')
+    fields.setContactFacebook('')
     openingHours.reset([], [])
     tables.resetNew()
     setRestoredAgeLabel(null)
@@ -255,6 +281,18 @@ export default function CreateMarketPage() {
             isPermanent={fields.isPermanent}
             setIsPermanent={fields.setIsPermanent}
             showPlaceholders
+          />
+          <MarketContactSection
+            website={fields.contactWebsite}
+            setWebsite={fields.setContactWebsite}
+            phone={fields.contactPhone}
+            setPhone={fields.setContactPhone}
+            email={fields.contactEmail}
+            setEmail={fields.setContactEmail}
+            instagram={fields.contactInstagram}
+            setInstagram={fields.setContactInstagram}
+            facebook={fields.contactFacebook}
+            setFacebook={fields.setContactFacebook}
           />
           <div>
             <label className="text-sm font-semibold text-espresso/70 block mb-1.5">Öppettider</label>

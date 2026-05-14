@@ -156,6 +156,11 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
           is_permanent: payload.isPermanent,
           organizer_id: payload.organizerId,
           auto_accept_bookings: payload.autoAcceptBookings ?? false,
+          contact_website: payload.contactWebsite ?? null,
+          contact_phone: payload.contactPhone ?? null,
+          contact_email: payload.contactEmail ?? null,
+          contact_instagram: payload.contactInstagram ?? null,
+          contact_facebook: payload.contactFacebook ?? null,
         })
         .select('id')
         .single()
@@ -191,6 +196,15 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
     },
 
     async update(id, payload) {
+      // Only include contact_* keys when explicitly present in the payload so
+      // we don't blow away values an admin set elsewhere.
+      const contactPatch: Record<string, string | null> = {}
+      if (payload.contactWebsite !== undefined) contactPatch.contact_website = payload.contactWebsite
+      if (payload.contactPhone !== undefined) contactPatch.contact_phone = payload.contactPhone
+      if (payload.contactEmail !== undefined) contactPatch.contact_email = payload.contactEmail
+      if (payload.contactInstagram !== undefined) contactPatch.contact_instagram = payload.contactInstagram
+      if (payload.contactFacebook !== undefined) contactPatch.contact_facebook = payload.contactFacebook
+
       const { error } = await supabase
         .from('flea_markets')
         .update({
@@ -202,6 +216,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
           country: payload.address.country,
           location: `POINT(${payload.address.location.longitude} ${payload.address.location.latitude})`,
           is_permanent: payload.isPermanent,
+          ...contactPatch,
         })
         .eq('id', id)
 
