@@ -206,6 +206,12 @@ export default async function RootLayout({
                     </Link>
                     <a
                       href="https://fyndstigen.se/integritetspolicy"
+                      // Absolute href + English aria-label so Google's OAuth
+                      // app-verification scanner picks the link up — the
+                      // reviewer couldn't see the footer-only Swedish link.
+                      // Keep the English label even though it announces
+                      // English to screen readers (compliance > a11y here).
+                      aria-label="Privacy Policy"
                       className="hover:text-espresso transition-colors"
                     >
                       Integritetspolicy
