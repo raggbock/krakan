@@ -51,6 +51,10 @@ export type FleaMarketView = {
   contactPhone?: string | null
   /** Organizer-supplied or auto-imported contact e-mail. */
   contactEmail?: string | null
+  /** Organizer-supplied Instagram profile URL or @handle. */
+  contactInstagram?: string | null
+  /** Organizer-supplied Facebook page URL. */
+  contactFacebook?: string | null
   /** Cached Google Places ID — used to deep-link visitors to the canonical Google listing. */
   googlePlaceId?: string | null
   /**

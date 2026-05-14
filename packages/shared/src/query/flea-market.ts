@@ -82,6 +82,8 @@ export const FleaMarketQuery = {
         contactWebsite: rest.contact_website,
         contactPhone: rest.contact_phone,
         contactEmail: rest.contact_email,
+        contactInstagram: rest.contact_instagram,
+        contactFacebook: rest.contact_facebook,
         googlePlaceId: rest.google_place_id,
         organizerName: formatName(profiles),
         organizerSubscriptionTier: profiles?.subscription_tier ?? 0,

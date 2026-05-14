@@ -10,6 +10,7 @@ import { BookableTablesCard } from '@/components/booking/tables-card'
 import { AutoImportedNotice } from '@/components/auto-imported-notice'
 import { ClaimMarketButton } from '@/components/claim-market-button'
 import { MarketImageGallery } from '@/components/market/image-gallery'
+import { SocialLinks } from '@/components/market/social-links'
 import { AddToRouteButton } from '@/components/add-to-route-button'
 import { FollowButton } from '@/components/follow-button'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
@@ -170,6 +171,11 @@ function MarketDetailLayout({
             )}
           </div>
         )}
+
+        <SocialLinks
+          instagram={market.contactInstagram ?? null}
+          facebook={market.contactFacebook ?? null}
+        />
 
         {market.organizerName && (
           <OrganizerCard

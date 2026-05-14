@@ -56,6 +56,8 @@ type VisibleFleaMarketRow = {
   contact_website: string | null
   contact_phone: string | null
   contact_email: string | null
+  contact_instagram: string | null
+  contact_facebook: string | null
   google_place_id: string | null
 }
 
@@ -80,6 +82,8 @@ function mapVisibleFleaMarketRow(r: VisibleFleaMarketRow): FleaMarketView {
     contactWebsite: r.contact_website ?? null,
     contactPhone: r.contact_phone ?? null,
     contactEmail: r.contact_email ?? null,
+    contactInstagram: r.contact_instagram ?? null,
+    contactFacebook: r.contact_facebook ?? null,
     googlePlaceId: r.google_place_id ?? null,
   }
 }

@@ -90,6 +90,8 @@ const mockMarket: FleaMarketDetailsView = {
   contactWebsite: null,
   contactPhone: null,
   contactEmail: null,
+  contactInstagram: null,
+  contactFacebook: null,
   googlePlaceId: null,
   openingHourRules: [
     { id: 'r1', type: 'weekly', dayOfWeek: 1, anchorDate: null, openTime: '10:00', closeTime: '18:00' },
