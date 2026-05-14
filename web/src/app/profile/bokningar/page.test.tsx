@@ -153,7 +153,7 @@ describe('BookingsPage', () => {
     mockAuthLoggedOut()
     render(<BookingsPage />)
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/auth')
+      expect(mockPush).toHaveBeenCalledWith('/auth?next=/profile/bokningar&reason=auth-required')
     })
   })
 

@@ -25,8 +25,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (authLoading) return
-    if (!user) router.push('/auth')
-  }, [user, authLoading])
+    if (!user) router.push('/auth?next=/profile&reason=auth-required')
+  }, [user, authLoading, router])
 
   if (authLoading || loading) {
     return (

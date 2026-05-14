@@ -23,7 +23,7 @@ export default function BookingsPage() {
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      router.push('/auth')
+      router.push('/auth?next=/profile/bokningar&reason=auth-required')
       return
     }
     let cancelled = false

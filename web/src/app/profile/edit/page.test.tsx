@@ -114,7 +114,7 @@ describe('EditProfilePage', () => {
     })
     render(<EditProfilePage />)
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/auth')
+      expect(mockPush).toHaveBeenCalledWith('/auth?next=/profile/edit&reason=auth-required')
     })
   })
 

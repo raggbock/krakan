@@ -188,26 +188,33 @@ function MarketDetailLayout({
         )}
       </div>
 
-      <div className="mt-8 animate-fade-up delay-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-        {market.publishedAt && (
-          <AddToRouteButton
-            marketId={id}
-            marketName={market.name}
-            marketCity={market.city}
-            source="market_detail"
-          />
-        )}
-        {market.publishedAt && (
-          <FollowButton kind="market" target={id} source="detail" />
-        )}
-        <Link
-          href={mapUrl}
-          className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
-        >
-          Visa på karta &rarr;
-        </Link>
+      <div className="mt-8 animate-fade-up delay-5 space-y-3">
+        {/* Primary actions */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {market.publishedAt && (
+            <AddToRouteButton
+              marketId={id}
+              marketName={market.name}
+              marketCity={market.city}
+              source="market_detail"
+            />
+          )}
+          {market.publishedAt && (
+            <FollowButton kind="market" target={id} source="detail" />
+          )}
+          <Link
+            href={mapUrl}
+            className="inline-flex items-center gap-2 text-sm font-medium text-rust hover:text-rust-light transition-colors"
+          >
+            Visa på karta &rarr;
+          </Link>
+        </div>
+        {/* Tertiary admin action — visually separated so it doesn't compete
+            with the primary CTAs above. */}
         {market.isSystemOwned && (
-          <ClaimMarketButton marketId={id} marketName={market.name} />
+          <div className="pt-3 border-t border-cream-warm/60">
+            <ClaimMarketButton marketId={id} marketName={market.name} />
+          </div>
         )}
       </div>
     </div>

@@ -445,23 +445,27 @@ export default function ExploreClient({ initialMarkets, initialCount, initialPag
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-10">
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mt-10">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
+                aria-label="Föregående sida"
                 className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                &larr; Föregående
+                <span className="sm:hidden">&larr;</span>
+                <span className="hidden sm:inline">&larr; Föregående</span>
               </button>
-              <span className="text-sm text-espresso/65">
+              <span className="text-sm text-espresso/65 order-first w-full text-center sm:order-none sm:w-auto">
                 Sida {page} av {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
+                aria-label="Nästa sida"
                 className="px-4 py-2 rounded-full text-sm font-semibold bg-cream-warm text-espresso hover:bg-mustard/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Nästa &rarr;
+                <span className="sm:hidden">&rarr;</span>
+                <span className="hidden sm:inline">Nästa &rarr;</span>
               </button>
             </div>
           )}

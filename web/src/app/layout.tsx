@@ -176,12 +176,12 @@ export default async function RootLayout({
                     <p className="text-xs font-semibold uppercase tracking-wide text-espresso/60 mb-3">
                       Populära städer
                     </p>
-                    <ul className="flex flex-wrap gap-x-4 gap-y-2">
+                    <ul className="flex flex-wrap gap-x-2 gap-y-1">
                       {popularCities.map((city) => (
                         <li key={city.slug}>
                           <Link
                             href={`/loppisar/${city.slug}`}
-                            className="text-sm text-espresso/65 hover:text-espresso transition-colors"
+                            className="inline-flex items-center min-h-[44px] py-2 px-1 text-sm text-espresso/70 hover:text-espresso transition-colors"
                             prefetch={false}
                           >
                             {city.canonicalName}

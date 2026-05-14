@@ -24,6 +24,7 @@ export default function AuthPage() {
     rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
       ? rawNext
       : '/utforska'
+  const authRequired = searchParams.get('reason') === 'auth-required'
 
   useEffect(() => {
     if (user) router.push(nextPath)
@@ -93,6 +94,15 @@ export default function AuthPage() {
         <div className="flex justify-center mb-6">
           <FyndstigenLogo size={52} className="text-espresso" />
         </div>
+
+        {authRequired && (
+          <div
+            role="status"
+            className="mb-5 rounded-lg bg-mustard/10 border border-mustard/30 text-espresso px-4 py-3 text-sm text-center"
+          >
+            Du behöver logga in för att fortsätta.
+          </div>
+        )}
 
         <h1 className="font-display text-2xl font-bold text-center">
           {mode === 'signin' ? 'Välkommen tillbaka' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'}

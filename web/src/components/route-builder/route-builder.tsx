@@ -40,7 +40,7 @@ export default function RouteBuilder() {
   return (
     <div className="flex flex-col lg:flex-row lg:h-[calc(100dvh-64px)]">
       {/* Sidebar */}
-      <div className="w-full lg:w-[400px] bg-card border-r border-cream-warm overflow-y-auto shrink-0 order-2 lg:order-1">
+      <div className="w-full lg:w-[440px] xl:w-[480px] bg-card border-r border-cream-warm overflow-y-auto shrink-0 order-2 lg:order-1">
         <div className="p-6">
           {/* Header */}
           <Link

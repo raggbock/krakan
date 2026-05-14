@@ -76,7 +76,7 @@ function EditProfilePageInner() {
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      router.push('/auth')
+      router.push('/auth?next=/profile/edit&reason=auth-required')
       return
     }
     organizers
