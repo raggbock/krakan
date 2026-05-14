@@ -172,7 +172,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             onChange={(e) => handleQueryChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             placeholder="Sök gata, stad eller plats..."
-            className={`w-full h-11 rounded-xl ${inputBg} px-4 pr-10 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25`}
+            className={`w-full h-11 rounded-xl ${inputBg} px-4 pr-10 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55`}
           />
           {searching && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -207,7 +207,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
           value={value.street}
           onChange={(e) => onChange({ ...value, street: e.target.value })}
           placeholder="Storgatan 1"
-          className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25`}
+          className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55`}
         />
       </div>
 
@@ -221,7 +221,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             value={value.zipCode}
             onChange={(e) => onChange({ ...value, zipCode: e.target.value })}
             placeholder="702 11"
-            className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25`}
+            className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55`}
           />
         </div>
         <div>
@@ -233,7 +233,7 @@ export default function AddressPicker({ value, onChange, inputBg = 'bg-card' }: 
             value={value.city}
             onChange={(e) => onChange({ ...value, city: e.target.value })}
             placeholder="Örebro"
-            className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25`}
+            className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55`}
           />
         </div>
       </div>

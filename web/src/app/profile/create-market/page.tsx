@@ -356,15 +356,15 @@ export default function CreateMarketPage() {
             {batchMode ? (
               <div className="space-y-3">
                 <div className={`grid gap-3 ${paymentsEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                  <input type="text" value={batchPrefix} onChange={(e) => setBatchPrefix(e.target.value)} placeholder="Prefix, t.ex. Bord" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                  <input type="number" value={batchCount} onChange={(e) => setBatchCount(e.target.value)} placeholder="Antal" min="1" max="50" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
+                  <input type="text" value={batchPrefix} onChange={(e) => setBatchPrefix(e.target.value)} placeholder="Prefix, t.ex. Bord" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55" />
+                  <input type="number" value={batchCount} onChange={(e) => setBatchCount(e.target.value)} placeholder="Antal" min="1" max="50" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55" />
                   {paymentsEnabled && (
-                    <input type="number" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} placeholder="Pris/st (kr)" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
+                    <input type="number" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} placeholder="Pris/st (kr)" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55" />
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" value={tableSize} onChange={(e) => setTableSize(e.target.value)} placeholder="Storlek, t.ex. 2x1 meter" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
-                  <input type="text" value={tableDesc} onChange={(e) => setTableDesc(e.target.value)} placeholder="Beskrivning (valfri)" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25" />
+                  <input type="text" value={tableSize} onChange={(e) => setTableSize(e.target.value)} placeholder="Storlek, t.ex. 2x1 meter" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55" />
+                  <input type="text" value={tableDesc} onChange={(e) => setTableDesc(e.target.value)} placeholder="Beskrivning (valfri)" className="h-10 rounded-lg bg-parchment px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55" />
                 </div>
                 <button
                   onClick={addBatchTables}

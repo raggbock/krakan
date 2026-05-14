@@ -41,7 +41,7 @@ export function MarketBasicInfoSection({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={showPlaceholders ? 'T.ex. Södermalms Loppis' : undefined}
-          className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25`}
+          className={`w-full h-11 rounded-xl ${inputBg} px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55`}
         />
       </div>
       <div>
@@ -51,7 +51,7 @@ export function MarketBasicInfoSection({
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           placeholder={showPlaceholders ? 'Berätta om din loppis...' : undefined}
-          className={`w-full rounded-xl ${inputBg} px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25`}
+          className={`w-full rounded-xl ${inputBg} px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/55`}
         />
       </div>
       <AddressPicker value={address} onChange={setAddress} inputBg={inputBg} />

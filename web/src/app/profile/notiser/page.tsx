@@ -23,7 +23,7 @@ export default function NotiserPage() {
   // Auth guard — redirect anon users with next param
   useEffect(() => {
     if (authLoading) return
-    if (!user) router.push('/auth?next=/profile/notiser')
+    if (!user) router.push('/auth?next=/profile/notiser&reason=auth-required')
   }, [user, authLoading, router])
 
   if (authLoading || (!user && !authLoading)) {

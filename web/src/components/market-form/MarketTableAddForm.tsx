@@ -46,7 +46,7 @@ export function MarketTableAddForm({ onAdd, showPrice = true }: MarketTableAddFo
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="Namn, t.ex. Bord 1"
-          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
         />
         {showPrice && (
           <input
@@ -54,7 +54,7 @@ export function MarketTableAddForm({ onAdd, showPrice = true }: MarketTableAddFo
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Pris (kr)"
-            className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+            className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
           />
         )}
       </div>
@@ -64,14 +64,14 @@ export function MarketTableAddForm({ onAdd, showPrice = true }: MarketTableAddFo
           value={size}
           onChange={(e) => setSize(e.target.value)}
           placeholder="Storlek, t.ex. 2x1 meter"
-          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
         />
         <input
           type="text"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
           placeholder="Beskrivning"
-          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+          className="h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
         />
       </div>
       <button

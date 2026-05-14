@@ -160,7 +160,7 @@ function BookableTablesInner({
                           onChange={(e) => booking.setMessage(e.target.value)}
                           rows={2}
                           placeholder="Berätta vad du säljer..."
-                          className="w-full rounded-lg bg-card px-3 py-2 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
+                          className="w-full rounded-lg bg-card px-3 py-2 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/55"
                         />
                       </div>
                       {!booking.isFree && (

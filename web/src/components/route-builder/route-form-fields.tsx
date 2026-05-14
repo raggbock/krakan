@@ -33,7 +33,7 @@ export function RouteFormFields({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="T.ex. Söndagsrundan Södermalm"
-          className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+          className="w-full h-11 rounded-xl bg-parchment px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
         />
       </div>
 

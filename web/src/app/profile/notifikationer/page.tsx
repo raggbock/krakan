@@ -14,7 +14,7 @@ export default async function NotifikationerPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth?next=/profile/notifikationer')
+    redirect('/auth?next=/profile/notifikationer&reason=auth-required')
   }
 
   // Load current prefs — may not exist yet (row created on first follow)

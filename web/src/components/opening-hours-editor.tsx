@@ -334,7 +334,7 @@ export function OpeningHoursEditor({
                 value={exReason}
                 onChange={(e) => setExReason(e.target.value)}
                 placeholder="T.ex. helgdag"
-                className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 placeholder:text-espresso/25"
+                className="w-full h-10 rounded-lg bg-card px-3 text-sm border border-cream-warm outline-none focus:border-rust/40 placeholder:text-espresso/55"
               />
             </div>
           </div>

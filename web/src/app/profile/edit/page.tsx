@@ -184,7 +184,7 @@ function EditProfilePageInner() {
             <button
               onClick={handleUpgrade}
               disabled={upgradeLoading}
-              className="h-11 px-6 rounded-xl bg-mustard text-white font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
+              className="h-11 px-6 rounded-xl bg-mustard text-espresso font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
             >
               {upgradeLoading ? 'Laddar...' : 'Uppgradera — 69 kr/mån'}
             </button>
@@ -228,7 +228,7 @@ function EditProfilePageInner() {
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             placeholder="Berätta lite om dig och dina loppisar..."
-            className="w-full rounded-xl bg-card px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/25"
+            className="w-full rounded-xl bg-card px-4 py-3 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all resize-none placeholder:text-espresso/55"
           />
         </div>
 
@@ -241,7 +241,7 @@ function EditProfilePageInner() {
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             placeholder="https://..."
-            className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+            className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
           />
         </div>
 
@@ -254,7 +254,7 @@ function EditProfilePageInner() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="070-123 45 67"
-            className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/25"
+            className="w-full h-11 rounded-xl bg-card px-4 text-sm border border-cream-warm outline-none focus:border-rust/40 transition-all placeholder:text-espresso/55"
           />
         </div>
 

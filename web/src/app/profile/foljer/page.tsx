@@ -15,7 +15,7 @@ export default async function FoljerPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth?next=/profile/foljer')
+    redirect('/auth?next=/profile/foljer&reason=auth-required')
   }
 
   // ── Fetch followed markets with display data ──────────────────────────────

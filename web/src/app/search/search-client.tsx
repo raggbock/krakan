@@ -117,7 +117,7 @@ export default function SearchPage() {
           value={query}
           onChange={(e) => search(e.target.value)}
           placeholder="Skriv namn på en loppis..."
-          className="w-full h-14 rounded-2xl bg-card pl-12 pr-5 text-base border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/30"
+          className="w-full h-14 rounded-2xl bg-card pl-12 pr-5 text-base border border-cream-warm outline-none focus:border-rust/40 focus:shadow-[0_0_0_3px_rgba(196,91,53,0.08)] transition-all duration-200 placeholder:text-espresso/55"
         />
       </div>
 

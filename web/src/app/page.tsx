@@ -330,7 +330,7 @@ export default async function LandingPage() {
           </div>
           <Link
             href="/profile/create-market"
-            className="inline-flex items-center gap-2 bg-mustard text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-mustard-light transition-colors shadow-sm shrink-0"
+            className="inline-flex items-center gap-2 bg-mustard text-espresso px-6 py-3 rounded-full text-sm font-semibold hover:bg-mustard-light transition-colors shadow-sm shrink-0"
           >
             Publicera
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

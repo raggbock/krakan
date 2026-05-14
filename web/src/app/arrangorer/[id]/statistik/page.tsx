@@ -230,7 +230,7 @@ export default function OrganizerStatsPage() {
           <button
             onClick={handleUpgrade}
             disabled={upgradeLoading}
-            className="h-11 px-6 rounded-xl bg-mustard text-white font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
+            className="h-11 px-6 rounded-xl bg-mustard text-espresso font-semibold text-sm hover:bg-mustard/90 transition-colors disabled:opacity-50 shadow-sm"
           >
             {upgradeLoading ? 'Laddar...' : 'Uppgradera — 69 kr/mån'}
           </button>
