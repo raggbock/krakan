@@ -110,9 +110,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isPremium = meta.organizer_subscription_tier >= 1
   const title = `${market.name} — öppettider & boka bord i ${market.city}`
 
+  // Meta description doesn't render line breaks — flatten any newlines from
+  // the seller's free-text description into single spaces so the snippet
+  // doesn't look like it was written with stray whitespace.
+  const flatDescription = market.description?.replace(/\s+/g, ' ').trim()
   let description: string
-  if (market.description) {
-    description = market.description.slice(0, 160)
+  if (flatDescription) {
+    description = flatDescription.slice(0, 160)
   } else if (isPremium && meta.price_range) {
     description = `${market.name} i ${market.city}. ${market.isPermanent ? 'Permanent' : 'Tillfällig'} loppis. Bord från ${meta.price_range.min_sek} kr. Hitta öppettider och boka bord på Fyndstigen.`
   } else {
@@ -200,7 +204,7 @@ export default async function LoppisLayout({ params, children }: Props) {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: market.name,
-    description: market.description,
+    description: flatDescription,
     address: {
       '@type': 'PostalAddress',
       streetAddress: market.street,
@@ -292,7 +296,7 @@ export default async function LoppisLayout({ params, children }: Props) {
         url: 'https://fyndstigen.se',
       },
       url: `https://fyndstigen.se/loppis/${slug}`,
-      ...(market.description ? { description: market.description.slice(0, 500) } : {}),
+      ...(flatDescription ? { description: flatDescription.slice(0, 500) } : {}),
       ...(meta.image_url ? { image: meta.image_url } : {}),
       ...(meta.price_range
         ? {

@@ -132,7 +132,7 @@ function MarketDetailLayout({
         </div>
 
         {market.description && (
-          <p className="text-espresso/75 text-lg leading-relaxed mt-3 max-w-2xl">
+          <p className="text-espresso/75 text-lg leading-relaxed mt-3 max-w-2xl whitespace-pre-line">
             {market.description}
           </p>
         )}
