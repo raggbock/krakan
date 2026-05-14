@@ -28,6 +28,7 @@ mobile/.next/
 
 # Script output (regenerated each run — not source of truth)
 scripts/*-found.json
+demo-output/
 scripts/*-failed.json
 app/.env
 app/.config/*.env

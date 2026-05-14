@@ -38,7 +38,7 @@ export default function RouteBuilder() {
       : ''
 
   return (
-    <div className="flex flex-col lg:flex-row" style={{ height: 'calc(100dvh - 64px)' }}>
+    <div className="flex flex-col lg:flex-row lg:h-[calc(100dvh-64px)]">
       {/* Sidebar */}
       <div className="w-full lg:w-[400px] bg-card border-r border-cream-warm overflow-y-auto shrink-0 order-2 lg:order-1">
         <div className="p-6">
@@ -125,7 +125,7 @@ export default function RouteBuilder() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative order-1 lg:order-2 min-h-[300px] lg:min-h-0">
+      <div className="relative order-1 lg:order-2 h-[350px] lg:h-auto lg:flex-1 lg:min-h-0">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-parchment/50">
             <FyndstigenLogo size={40} className="text-rust animate-bob" />
