@@ -33,7 +33,17 @@ jobs:
           SENTRY_ORG: fyndstigen
           SENTRY_PROJECT: fyndstigen
 
-      - name: Deploy to Cloudflare Workers
+      # Deploy to staging first so we can spot-check the same bundle that
+      # is about to hit production. Both targets ride the same OpenNext build
+      # output — no separate build step.
+      - name: Deploy to Cloudflare Workers (staging)
+        working-directory: web
+        run: npx wrangler deploy --config wrangler.staging.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy to Cloudflare Workers (production)
         working-directory: web
         run: npx wrangler deploy
         env:
