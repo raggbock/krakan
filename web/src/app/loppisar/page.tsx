@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
-import { FollowButton } from '@/components/follow-button'
+import { CitiesFilter } from './cities-filter'
 
 // ISR: revalidate every hour — city list changes infrequently.
 export const revalidate = 3600
@@ -132,32 +132,14 @@ export default async function LoppisarPage() {
         )}
       </div>
 
-      {/* City grid */}
+      {/* City grid — filter UI is client-side but the full list still
+          renders server-side via the JSON-LD above for SEO/crawlers. */}
       {cities.length === 0 ? (
         <div className="vintage-card p-10 text-center mt-10 animate-fade-up">
           <p className="text-espresso/75">Inga städer hittades ännu.</p>
         </div>
       ) : (
-        <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up delay-1">
-          {cities.map((city) => (
-            <li key={city.slug} className="vintage-card overflow-hidden">
-              <div className="flex items-center justify-between gap-3 p-4">
-                <Link
-                  href={`/loppisar/${city.slug}`}
-                  className="flex-1 min-w-0 group hover:text-rust transition-colors"
-                >
-                  <span className="font-display font-bold group-hover:text-rust transition-colors truncate block">
-                    {city.canonicalName}
-                  </span>
-                  <span className="text-sm text-espresso/55 mt-0.5 block">
-                    {city.marketCount === 1 ? '1 loppis' : `${city.marketCount} loppisar`}
-                  </span>
-                </Link>
-                <FollowButton kind="city" target={city.slug} source="hub" />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <CitiesFilter cities={cities} />
       )}
 
       {/* Footer CTA */}

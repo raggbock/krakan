@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { FyndstigenLogo } from '../fyndstigen-logo'
 import { RouteFormFields } from './route-form-fields'
 import { StopList, type RouteBuilderStop } from './stop-list'
+import { NearbyMarketsList } from './nearby-markets-list'
 import { RouteMap } from './route-map'
 import { SaveRouteButton } from './save-route-button'
 import { AnonSaveForm } from './anon-save-form'
@@ -71,6 +72,16 @@ export default function RouteBuilder() {
             onPlannedDateChange={vm.setPlannedDate}
             useGps={vm.useGps}
             onUseGpsChange={vm.setUseGps}
+          />
+
+          {/* Keyboard-accessible alternative to clicking markers on the map —
+              the marker <img>s are not focusable, so this gives screen-reader
+              users (and anyone navigating with Tab) a real way in. */}
+          <NearbyMarketsList
+            markets={vm.markets}
+            stops={vm.stops}
+            userPos={vm.userPos}
+            onAdd={vm.toggleStop}
           />
 
           <StopList
