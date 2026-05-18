@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { market, meta } = data
   const isPremium = meta.organizer_subscription_tier >= 1
-  const title = `${market.name} — öppettider & boka bord i ${market.city}`
+  const title = `${market.name} — öppettider i ${market.city}`
 
   // Meta description doesn't render line breaks — flatten any newlines from
   // the seller's free-text description into single spaces so the snippet
@@ -130,7 +130,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isDraft = !market.publishedAt
 
   const url = `/loppis/${slug}`
-  const ogTitle = `${market.name} — öppettider & boka bord i ${market.city}`
+  const ogTitle = `${market.name} — öppettider i ${market.city}`
   const ogImages = meta.image_url
     ? [{ url: meta.image_url }]
     : [{ url: '/logo-512.png', width: 512, height: 512, alt: 'Fyndstigen' }]
@@ -171,6 +171,11 @@ export default async function LoppisLayout({ params, children }: Props) {
   if (!data) notFound()
 
   const { market, meta } = data
+
+  // Flatten newlines from the seller's free-text description — JSON-LD
+  // description fields render as a single run of text. Mirrors the same
+  // transform in generateMetadata().
+  const flatDescription = market.description?.replace(/\s+/g, ' ').trim()
 
   // Drafts are organizer-only previews (cookie-auth, RLS-gated). Skip
   // JSON-LD + the SEO cross-linking block so no structured data for
