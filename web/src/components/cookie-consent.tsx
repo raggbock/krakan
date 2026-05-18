@@ -90,7 +90,7 @@ export function CookieConsent() {
         <p className="text-sm text-espresso/75 flex-1">
           Vi använder cookies för att förbättra din upplevelse och analysera trafik.{' '}
           <Link href="/integritetspolicy" className="text-rust underline">
-            Läs mer
+            Läs mer i integritetspolicyn
           </Link>
         </p>
         <div className="flex gap-2 shrink-0 self-stretch sm:self-auto">

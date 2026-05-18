@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
+// Stats (marknadsantal, städer, bord) ändras sällan. Utan revalidate faller
+// routen tillbaka på dynamisk rendering — getStats() + footerns stadslista
+// gör okacheliga Supabase-anrop. ISR ger edge-cache + <300ms TTFB istället
+// för ~2s serverrendering per request. Samma mönster som /loppis/[slug].
+export const revalidate = 3600
+
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
