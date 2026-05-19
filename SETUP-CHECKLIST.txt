@@ -282,6 +282,38 @@ Staging deploy (Cloudflare Workers):
 
 
 ========================================================
+9. CLOUDFLARE R2 — Incremental cache (ISR)
+========================================================
+
+OpenNext persisterar ISR-/förrenderade sidor i en R2-bucket
+(open-next.config.ts → r2IncrementalCache). Utan bucketen
+faller varje kallt worker-isolat tillbaka på full omrendering
+(~2.5 s TTFB). Buckets måste finnas innan deploy.
+
+9.1  Aktivera R2 i Cloudflare-dashboarden:
+     Dashboard > R2 > "Enable R2"
+     (kräver att ett betalkort finns på kontot, men
+     gratisnivån räcker: 10 GB lagring, 1M/10M operationer
+     per månad — långt under projektets behov).
+
+9.2  Skapa buckets (kör från repo root):
+
+       node node_modules/wrangler/bin/wrangler.js r2 bucket create fyndstigen-opennext-cache
+       node node_modules/wrangler/bin/wrangler.js r2 bucket create fyndstigen-opennext-cache-staging
+
+     Prod och staging har separata buckets så att staging-
+     renderingar inte förorenar prod-cachen.
+
+9.3  Bindningarna finns redan i config (binding-namn som
+     OpenNext kräver — ändra inte):
+       web/wrangler.jsonc          → NEXT_INC_CACHE_R2_BUCKET = fyndstigen-opennext-cache
+       web/wrangler.staging.jsonc  → NEXT_INC_CACHE_R2_BUCKET = fyndstigen-opennext-cache-staging
+
+     Svara INTE "yes" om wrangler erbjuder sig att lägga till
+     r2_buckets åt dig — den föreslår fel binding-namn.
+
+
+========================================================
 SAMMANFATTNING AV NYA DATABASTABELLER
 ========================================================
 
