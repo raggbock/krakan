@@ -2,6 +2,32 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createEndpointInvokers } from './endpoints'
 
 /**
+ * Supabase wraps every non-2xx edge-function response in a `FunctionsHttpError`
+ * whose `.message` is always the generic string
+ * "Edge Function returned a non-2xx status code". The structured
+ * `{ error: '<code>' }` body that our edge functions emit via
+ * `definePublicEndpoint` / `createHandler` lives on `err.context` (a `Response`
+ * object) but is never surfaced by the SDK. This helper unwraps it so that
+ * callers' code-to-label maps (e.g. `ERROR_LABEL` in
+ * `takeover/[token]/page.tsx`) receive the real error code as `err.message`
+ * instead of the unhelpful generic string.
+ */
+async function unwrapEdgeError(rawErr: unknown): Promise<never> {
+  const ctx = (rawErr as { context?: Response } | null)?.context
+  if (ctx && typeof ctx.json === 'function') {
+    let body: unknown = null
+    try { body = await ctx.clone().json() } catch { /* not JSON — fall through */ }
+    if (
+      body && typeof body === 'object' && 'error' in body
+      && typeof (body as { error: unknown }).error === 'string'
+    ) {
+      throw Object.assign(new Error((body as { error: string }).error), { cause: rawErr })
+    }
+  }
+  throw rawErr
+}
+
+/**
  * Thin wrapper around supabase.functions.invoke that:
  *   - fetches the current session and attaches a Bearer token
  *   - throws a plain Error('Not authenticated') when no access token exists
@@ -33,7 +59,7 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
       if (body !== undefined) options.body = body
 
       const res = await supabase.functions.invoke(name, options as Parameters<typeof supabase.functions.invoke>[1])
-      if (res.error) throw res.error
+      if (res.error) await unwrapEdgeError(res.error)
       return res.data as TOut
     },
 
@@ -41,7 +67,7 @@ export function createEdgeClient(supabase: SupabaseClient): EdgeClient {
       const options: Record<string, unknown> = {}
       if (body !== undefined) options.body = body
       const res = await supabase.functions.invoke(name, options as Parameters<typeof supabase.functions.invoke>[1])
-      if (res.error) throw res.error
+      if (res.error) await unwrapEdgeError(res.error)
       return res.data as TOut
     },
   }
