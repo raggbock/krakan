@@ -168,6 +168,21 @@ describe('TakeoverPage — PostHog events', () => {
     )
   })
 
+  // ── token_already_used friendly state ────────────────────────────────────
+
+  it('renders login CTA linking to /auth for token_already_used — not the generic error heading', async () => {
+    mockUseTakeoverInfo.mockReturnValue(infoError('token_already_used'))
+
+    await renderPage()
+
+    // Must have a link to /auth
+    const loginLink = await screen.findByRole('link', { name: /logga in/i })
+    expect(loginLink).toHaveAttribute('href', '/auth')
+
+    // Must NOT show the generic dead-end heading
+    expect(screen.queryByText('Det gick inte')).toBeNull()
+  })
+
   // ── 3–5. takeover_path_chosen ────────────────────────────────────────────
 
   it('fires takeover_path_chosen { path: claim } when claim card clicked', async () => {

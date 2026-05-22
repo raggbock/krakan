@@ -79,6 +79,28 @@ export default function TakeoverPage({ params }: { params: Promise<{ token: stri
   }
 
   if (info.isError) {
+    const errorCode = info.error instanceof Error ? info.error.message : String(info.error)
+    if (errorCode === 'token_already_used') {
+      return (
+        <main className="min-h-dvh grid place-items-center p-6">
+          <div className="max-w-md text-center">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-forest text-parchment grid place-items-center text-3xl font-bold">
+              ✓
+            </div>
+            <h1 className="font-display text-2xl font-semibold">Den här sidan är redan din</h1>
+            <p className="mt-2 text-espresso/75">
+              Du har redan tagit över den här sidan. Logga in så kan du redigera den direkt.
+            </p>
+            <a
+              href="/auth"
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-forest text-parchment rounded-pill text-sm font-bold hover:bg-forest-light transition-colors"
+            >
+              Logga in
+            </a>
+          </div>
+        </main>
+      )
+    }
     return (
       <main className="min-h-dvh grid place-items-center p-6">
         <div className="max-w-md text-center">
