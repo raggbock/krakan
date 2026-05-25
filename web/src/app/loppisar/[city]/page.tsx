@@ -9,6 +9,7 @@ import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
 import { CityMarketLink } from './city-market-link'
 import { TrackCityEmailClick } from './track-city-email-click'
+import { formatWeeklyHoursSummary } from './format-weekly-hours'
 
 // ISR: revalidate every hour — city listing pages are stable; kvartersloppisar
 // are dated events so 1h staleness is acceptable.
@@ -85,9 +86,10 @@ export default async function CityPage({ params }: Props) {
   if (!resolved) notFound()
 
   const server = getServerData()
-  const [markets, blockSalesInCity] = await Promise.all([
+  const [markets, blockSalesInCity, nearbyCities] = await Promise.all([
     server.listMarketsInCity(resolved.cityNames),
     server.listBlockSalesInCity(resolved.canonicalName),
+    server.nearbyCitiesWithMarkets(resolved.canonicalName),
   ])
 
   const breadcrumbLd = {
@@ -198,11 +200,48 @@ export default async function CityPage({ params }: Props) {
               {m.description && (
                 <p className="text-sm text-espresso/55 mt-1 line-clamp-2">{m.description}</p>
               )}
+              {(() => {
+                const hours = formatWeeklyHoursSummary(m.openingHourRules)
+                if (!hours) return null
+                return (
+                  <p className="text-sm text-espresso/65 mt-1">
+                    <span aria-hidden="true">🕐</span>
+                    <span className="sr-only">Öppettider:</span>
+                    {' '}{hours}
+                    {m.isSystemOwned && (
+                      <span className="text-espresso/40 text-xs ml-2">· auto-importerat</span>
+                    )}
+                  </p>
+                )
+              })()}
             </div>
             <span className="text-espresso/20 shrink-0">→</span>
           </CityMarketLink>
         ))}
       </div>
+
+      {nearbyCities.length > 0 && (
+        <section className="mt-10 pt-8 border-t border-cream-warm">
+          <h2 className="font-display text-xl font-bold mb-3">
+            Loppisar i närheten av {resolved.canonicalName}
+          </h2>
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            {nearbyCities.map((c) => (
+              <li key={c.city}>
+                <Link
+                  href={`/loppisar/${slugifyCity(c.city)}`}
+                  className="text-rust hover:underline"
+                >
+                  {c.city}
+                </Link>
+                <span className="text-espresso/55 ml-1">
+                  ({c.marketCount}, {Math.round(c.distanceKm)} km)
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-10 text-center">
         <p className="text-sm text-espresso/75">

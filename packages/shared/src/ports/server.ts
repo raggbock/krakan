@@ -105,5 +105,12 @@ export interface ServerDataPort {
     is_permanent: boolean
     city: string
     image_url: string | null
+    openingHourRules: Array<{ type: string; dayOfWeek: number | null; openTime: string; closeTime: string }>
+    isSystemOwned: boolean
   }>>
+
+  nearbyCitiesWithMarkets(
+    cityName: string,
+    opts?: { maxKm?: number; limit?: number }
+  ): Promise<Array<{ city: string; marketCount: number; distanceKm: number }>>
 }

@@ -102,6 +102,7 @@ export function createInMemoryServerData(seed?: {
       }))
     },
     async listMarketsInCity() { return [] },
+    async nearbyCitiesWithMarkets() { return [] },
     async listBlockSalesInCity(city) {
       const today = new Date().toISOString().slice(0, 10)
       return blockSales

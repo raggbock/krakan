@@ -304,7 +304,7 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
       if (cityNames.length === 0) return []
       const { data } = await supabase
         .from('visible_flea_markets')
-        .select('id, slug, name, description, street, is_permanent, city, flea_market_images(storage_path, sort_order)')
+        .select('id, slug, name, description, street, is_permanent, city, is_system_owned, flea_market_images(storage_path, sort_order), opening_hour_rules(type, day_of_week, open_time, close_time)')
         .in('city', cityNames)
         .order('updated_at', { ascending: false })
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -312,6 +312,7 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         const images = (m.flea_market_images as unknown as Array<{ storage_path: string; sort_order: number }>) ?? []
         const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
         const first = sorted[0]
+        const rules = (m.opening_hour_rules as unknown as Array<{ type: string; day_of_week: number | null; open_time: string; close_time: string }>) ?? []
         return {
           id: m.id as string,
           slug: (m.slug as string | null | undefined) ?? null,
@@ -323,8 +324,34 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
           image_url: first
             ? `${supabaseUrl}/storage/v1/object/public/flea-market-images/${first.storage_path}`
             : null,
+          openingHourRules: rules.map((r) => ({
+            type: r.type,
+            dayOfWeek: r.day_of_week,
+            openTime: r.open_time,
+            closeTime: r.close_time,
+          })),
+          isSystemOwned: (m.is_system_owned as boolean | null) ?? false,
         }
       })
+    },
+
+    async nearbyCitiesWithMarkets(cityName, opts) {
+      const maxKm = opts?.maxKm ?? 100
+      const maxResults = opts?.limit ?? 6
+      const { data, error } = await supabase.rpc('nearby_cities_with_markets', {
+        target_city: cityName,
+        max_km: maxKm,
+        max_results: maxResults,
+      })
+      if (error) {
+        console.error('nearbyCitiesWithMarkets RPC error:', error)
+        return []
+      }
+      return (data ?? []).map((r: { city: string; market_count: number; distance_km: number }) => ({
+        city: r.city,
+        marketCount: r.market_count,
+        distanceKm: r.distance_km,
+      }))
     },
   }
 }
