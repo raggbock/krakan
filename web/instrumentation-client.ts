@@ -26,6 +26,11 @@ Sentry.init({
     // när en annan flik/instans stjäl låset rejectar den hängande request
     // med AbortError. Inget stacktrace, inget vi kan göra.
     /^Lock broken by another request with the 'steal' option$/,
+    // React Server Components-streamen avbryts mitt i (användaren navigerar
+    // bort, stänger fliken eller tappar nätet) → Reacts Flight-klient rejectar
+    // med "Connection closed." som en oavhanterad rejection. Transient brus,
+    // ingen förstaparts-kod inblandad.
+    /^Connection closed\.$/,
   ],
 
   beforeSend(event) {
