@@ -14,6 +14,12 @@ const utforskaDescription =
 export const metadata: Metadata = {
   title: utforskaTitle,
   description: utforskaDescription,
+  // App-feed surface, not an SEO landing page: it competes with /loppisar
+  // (browse-by-city) and /search for the same generic "browse all" intent,
+  // and its h1 is a brand tagline rather than a keyword. noindex stops the
+  // self-cannibalization; follow:true still passes equity to the linked
+  // detail pages. /loppisar + /loppisar/[city] are the canonical SEO hubs.
+  robots: { index: false, follow: true },
   alternates: { canonical: '/utforska' },
   openGraph: {
     title: utforskaTitle,

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { createSupabaseServerData, createGeo } from '@fyndstigen/shared'
+import { createSupabaseServerData, createGeo, slugifyCity } from '@fyndstigen/shared'
 import type { FleaMarketNearByView } from '@fyndstigen/shared'
 import { marketUrl } from '@/lib/urls'
 import { resolveLoppis } from './market-cache'
@@ -250,13 +250,18 @@ export default async function LoppisLayout({ params, children }: Props) {
     ...(meta.image_url ? { image: meta.image_url } : {}),
   }
 
+  // Breadcrumb funnels link equity from the (large) detail-page set up into
+  // the SEO hubs we actually want to rank: /loppisar → /loppisar/[city].
+  // Previously this pointed at /search and /search?city= — but /search?q= is
+  // noindex, so the hierarchy leaked authority into a dead end.
+  const citySlug = slugifyCity(market.city)
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Fyndstigen', item: 'https://fyndstigen.se' },
-      { '@type': 'ListItem', position: 2, name: 'Loppisar', item: 'https://fyndstigen.se/search' },
-      { '@type': 'ListItem', position: 3, name: market.city, item: `https://fyndstigen.se/search?city=${encodeURIComponent(market.city)}` },
+      { '@type': 'ListItem', position: 2, name: 'Loppisar', item: 'https://fyndstigen.se/loppisar' },
+      { '@type': 'ListItem', position: 3, name: market.city, item: `https://fyndstigen.se/loppisar/${citySlug}` },
       { '@type': 'ListItem', position: 4, name: market.name },
     ],
   }
@@ -334,6 +339,14 @@ export default async function LoppisLayout({ params, children }: Props) {
         />
       ))}
       {children}
+      <section className="max-w-4xl mx-auto px-6 pb-4">
+        <Link
+          href={`/loppisar/${citySlug}`}
+          className="text-rust hover:underline font-medium"
+        >
+          Alla loppisar i {market.city} →
+        </Link>
+      </section>
       {nearby.length > 0 && <NearbyMarketsSection markets={nearby} />}
     </>
   )

@@ -56,8 +56,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { city: slug } = await params
   const resolved = await resolveCity(slug)
   if (!resolved) return { title: 'Stad hittades inte' }
-  const title = `Hitta loppis i ${resolved.canonicalName} — ${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'}`
-  const description = `${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'} och loppmarknader i ${resolved.canonicalName}. Hitta öppettider, adresser och boka bord på Fyndstigen.`
+  // Front-load the head terms people actually search: "loppis [stad]",
+  // "second hand [stad]", "loppmarknad [stad]" (all seen in GSC). The old
+  // title only mentioned "loppis", so we never ranked for the second-hand
+  // variants despite having the inventory.
+  const title = `Loppis & second hand i ${resolved.canonicalName} — ${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'}`
+  const description = `${resolved.marketCount} ${resolved.marketCount === 1 ? 'loppis' : 'loppisar'}, second hand-butiker och loppmarknader i ${resolved.canonicalName}. Hitta öppettider, adresser och boka bord på Fyndstigen.`
   const url = `/loppisar/${slug}`
   return {
     title,
@@ -91,6 +95,17 @@ export default async function CityPage({ params }: Props) {
     server.listBlockSalesInCity(resolved.canonicalName),
     server.nearbyCitiesWithMarkets(resolved.canonicalName),
   ])
+
+  // Data-driven intro prose — gives each city page unique, keyword-rich body
+  // text instead of a bare list (thin content ranks poorly). The permanent vs
+  // temporary split is computed from the markets actually listed below, so the
+  // numbers always match what the visitor sees.
+  const permanentCount = markets.filter((m) => m.is_permanent).length
+  const temporaryCount = markets.length - permanentCount
+  const introParts: string[] = []
+  if (permanentCount > 0) introParts.push(`${permanentCount} permanenta second hand-butiker`)
+  if (temporaryCount > 0) introParts.push(`${temporaryCount} tillfälliga loppisar och loppmarknader`)
+  const introBreakdown = introParts.join(' och ')
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
@@ -136,10 +151,11 @@ export default async function CityPage({ params }: Props) {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl font-bold">
-            Hitta loppis i {resolved.canonicalName}
+            Loppis &amp; second hand i {resolved.canonicalName}
           </h1>
           <p className="text-espresso/75 mt-2">
-            {resolved.marketCount} {resolved.marketCount === 1 ? 'loppis' : 'loppisar och loppmarknader'} i {resolved.canonicalName} — se öppettider, adress och boka bord direkt.
+            I {resolved.canonicalName} har Fyndstigen samlat {markets.length} {markets.length === 1 ? 'loppis' : 'loppisar'}
+            {introBreakdown ? ` — ${introBreakdown}` : ''}. Se öppettider, adress och boka bord direkt.
           </p>
         </div>
         <div className="shrink-0 mt-1">
