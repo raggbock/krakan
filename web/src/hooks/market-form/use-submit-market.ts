@@ -38,6 +38,8 @@ export type UseSubmitMarketOptions = {
   openingHours: OpeningHoursDraftResult
   images: ImageDraftResult
   tables: TableDraftResult
+  /** When false, tables are excluded from the mutation plan (default: true). */
+  includeTables?: boolean
   onSuccess?: (marketId: string) => void
 }
 
@@ -66,7 +68,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
 
   const submit = useCallback(async (): Promise<SubmitMarketResult> => {
     const { mode, marketId, publishedAt, organizerId, autoAcceptBookings,
-            fields, openingHours, images, tables, onSuccess } = optsRef.current
+            fields, openingHours, images, tables, includeTables, onSuccess } = optsRef.current
 
     if (!fields.isValid) {
       const msg = 'Fyll i namn, gatuadress och stad.'
@@ -82,7 +84,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
     setImageStatuses(imageSer.add.map((f) => ({ name: f.name, state: 'pending' as const })))
 
     const { rules, exceptions } = openingHours.serialize()
-    const tablesSer = tables.serialize()
+    const tablesSer = (includeTables ?? true) ? tables.serialize() : { add: [], remove: [] }
 
     const address = {
       street: fields.address.street.trim(),

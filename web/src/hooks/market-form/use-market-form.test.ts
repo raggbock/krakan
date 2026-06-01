@@ -98,6 +98,67 @@ describe('useMarketForm — create mode', () => {
   })
 })
 
+describe('useMarketForm — includeTables flag', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(geo, 'geocode').mockResolvedValue({ lat: 59.33, lng: 18.07 })
+    vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1', slug: 'test-loppis-stockholm' })
+    vi.spyOn(testDeps.markets, 'publish').mockResolvedValue(undefined)
+    vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
+    vi.spyOn(testDeps.marketTables, 'create').mockResolvedValue({ id: 'table-1' })
+    vi.spyOn(testDeps.marketTables, 'delete').mockResolvedValue(undefined)
+    vi.spyOn(testDeps.images, 'add').mockResolvedValue({ id: 'img-1', storagePath: 'p/1.jpg', sortOrder: 0 })
+    vi.spyOn(testDeps.images, 'remove').mockResolvedValue(undefined)
+  })
+
+  it('includeTables: false — does NOT call marketTables.create even when table rows exist', async () => {
+    const { result } = renderHook(
+      () => useMarketForm({ mode: 'create', organizerId: 'user-1', includeTables: false }),
+      { wrapper: createWrapper() },
+    )
+    act(() => {
+      result.current.fields.setName('Test Loppis')
+      result.current.fields.setAddress({ street: 'Storgatan 1', zipCode: '111 22', city: 'Stockholm', latitude: null, longitude: null })
+      result.current.tables.addBatch([{ label: 'Bord 1', description: '', priceSek: 100, sizeDescription: '2x1m' }])
+    })
+    await act(async () => { await result.current.submit() })
+    expect(testDeps.markets.create).toHaveBeenCalled()
+    expect(testDeps.marketTables.create).not.toHaveBeenCalled()
+  })
+
+  it('includeTables: true — DOES call marketTables.create when table rows exist', async () => {
+    const { result } = renderHook(
+      () => useMarketForm({ mode: 'create', organizerId: 'user-1', includeTables: true }),
+      { wrapper: createWrapper() },
+    )
+    act(() => {
+      result.current.fields.setName('Test Loppis')
+      result.current.fields.setAddress({ street: 'Storgatan 1', zipCode: '111 22', city: 'Stockholm', latitude: null, longitude: null })
+      result.current.tables.addBatch([{ label: 'Bord 1', description: '', priceSek: 0, sizeDescription: '2x1m' }])
+    })
+    await act(async () => { await result.current.submit() })
+    expect(testDeps.markets.create).toHaveBeenCalled()
+    expect(testDeps.marketTables.create).toHaveBeenCalled()
+  })
+
+  it('includeTables: false — table rows are preserved in state after submit', async () => {
+    const { result } = renderHook(
+      () => useMarketForm({ mode: 'create', organizerId: 'user-1', includeTables: false }),
+      { wrapper: createWrapper() },
+    )
+    act(() => {
+      result.current.fields.setName('Test Loppis')
+      result.current.fields.setAddress({ street: 'Storgatan 1', zipCode: '111 22', city: 'Stockholm', latitude: null, longitude: null })
+      result.current.tables.addBatch([{ label: 'Bord 1', description: '', priceSek: 100, sizeDescription: '2x1m' }])
+    })
+    // Tables should be in state before submit
+    expect(result.current.tables.newTables).toHaveLength(1)
+    await act(async () => { await result.current.submit() })
+    // Still in state after submit (not cleared by the submit)
+    expect(result.current.tables.newTables).toHaveLength(1)
+  })
+})
+
 describe('useMarketForm — edit mode', () => {
   beforeEach(() => {
     vi.clearAllMocks()

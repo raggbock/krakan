@@ -20,9 +20,11 @@ export type UseMarketFormOptions = {
   initial?: FleaMarketDetailsView & { market_tables?: MarketTableView[] }
   /** For create mode: the organizer's user id. */
   organizerId?: string
+  /** When false, tables are excluded from the mutation plan (default: true). */
+  includeTables?: boolean
 }
 
-export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptions) {
+export function useMarketForm({ mode, initial, organizerId, includeTables }: UseMarketFormOptions) {
   const fields = useMarketFields(initial)
 
   const openingHours = useOpeningHoursDraft(
@@ -59,6 +61,7 @@ export function useMarketForm({ mode, initial, organizerId }: UseMarketFormOptio
     openingHours,
     images,
     tables,
+    includeTables,
   })
 
   // Re-seed sub-hooks when `initial` changes (e.g. edit page reloads after save).
