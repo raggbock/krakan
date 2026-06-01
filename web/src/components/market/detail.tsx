@@ -16,6 +16,7 @@ import { FollowButton } from '@/components/follow-button'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { useAuth } from '@/lib/auth/auth-context'
 import { marketEditUrl } from '@/lib/urls'
+import { slugifyCity } from '@fyndstigen/shared'
 import { useMarketDetailViewModel } from '@/hooks/use-market-detail-view-model'
 import type {
   FleaMarketDetailsView,
@@ -152,6 +153,14 @@ function MarketDetailLayout({
               contactWebsite={market.contactWebsite}
               googlePlaceId={market.googlePlaceId}
             />
+          )}
+          {market.city && slugifyCity(market.city) && (
+            <Link
+              href={`/loppisar/${slugifyCity(market.city)}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-rust hover:text-rust-light transition-colors mt-2"
+            >
+              Fler loppisar &amp; second hand i {market.city} &rarr;
+            </Link>
           )}
         </div>
 
