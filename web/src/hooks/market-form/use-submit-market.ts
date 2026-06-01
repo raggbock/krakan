@@ -17,7 +17,7 @@ export type ImageUploadStatus = {
 export type Progress = 'idle' | 'geocoding' | 'creating' | 'tables' | 'images' | 'publishing'
 
 export type SubmitMarketResult =
-  | { ok: true; marketId: string }
+  | { ok: true; marketId: string; slug?: string | null }
   | { ok: false; error: string }
 
 export type SubmitMarketState = {
@@ -146,6 +146,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
           }
 
     let resolvedMarketId: string | null = null
+    let resolvedSlug: string | null | undefined
     let failedMsg: string | null = null
     let anyItemError = false
     let firstFailedTableLabel: string | null = null
@@ -153,7 +154,10 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
     try {
       for await (const ev of runMarketMutation(plan, { markets, marketTables, images: imagesPort, geo })) {
         if ('type' in ev) {
-          if (ev.type === 'complete') resolvedMarketId = ev.marketId
+          if (ev.type === 'complete') {
+            resolvedMarketId = ev.marketId
+            resolvedSlug = ev.slug
+          }
           if (ev.type === 'failed') failedMsg = messageFor(ev.error)
           continue
         }
@@ -216,17 +220,17 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
     if (mode === 'create' && anyItemError && firstFailedTableLabel) {
       const msg = `Kunde inte skapa bord "${firstFailedTableLabel}". Loppisen publicerades men vissa bord sparades inte.`
       setError(msg)
-      return { ok: true, marketId: resolvedMarketId }
+      return { ok: true, marketId: resolvedMarketId, slug: resolvedSlug }
     }
     if (mode === 'create' && anyItemError) {
       const msg = 'Kunde inte ladda upp alla bilder. Loppisen publicerades men vissa bilder sparades inte.'
       setError(msg)
-      return { ok: true, marketId: resolvedMarketId }
+      return { ok: true, marketId: resolvedMarketId, slug: resolvedSlug }
     }
     if (mode === 'edit' && anyItemError) {
       const msg = 'Vissa ändringar kunde inte sparas. Kontrollera och försök igen.'
       setError(msg)
-      return { ok: true, marketId: resolvedMarketId }
+      return { ok: true, marketId: resolvedMarketId, slug: resolvedSlug }
     }
 
     if (mode === 'edit') {
@@ -234,7 +238,7 @@ export function useSubmitMarket(opts: UseSubmitMarketOptions): {
     }
 
     onSuccess?.(resolvedMarketId)
-    return { ok: true, marketId: resolvedMarketId }
+    return { ok: true, marketId: resolvedMarketId, slug: resolvedSlug }
   }, []) // stable — reads from optsRef.current at call time
 
   const clearError = useCallback(() => setError(null), [])

@@ -12,7 +12,7 @@ type ImagesDeps = MarketMutationDeps['images']
 
 function makeMarkets(overrides: Partial<MarketsDeps> = {}): MarketsDeps {
   return {
-    create: vi.fn().mockResolvedValue({ id: 'market-1' }),
+    create: vi.fn().mockResolvedValue({ id: 'market-1', slug: 'test-loppis-stockholm' }),
     update: vi.fn().mockResolvedValue(undefined),
     publish: vi.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -116,7 +116,7 @@ describe('runMarketMutation — create new market', () => {
     expect(deps.images.add).toHaveBeenCalledTimes(1)
 
     const complete = events.at(-1)!
-    expect(complete).toEqual({ type: 'complete', marketId: 'market-1' })
+    expect(complete).toEqual({ type: 'complete', marketId: 'market-1', slug: 'test-loppis-stockholm' })
   })
 
   it('skips geocoding when coordinates are pre-supplied', async () => {
@@ -190,7 +190,7 @@ describe('runMarketMutation — failures', () => {
     expect(imageEvents[2]).toMatchObject({ status: 'item_error', kind: 'add', index: 0 })
     expect(imageEvents[3]).toMatchObject({ status: 'item_start', kind: 'add', index: 1 })
     expect(imageEvents[4]).toMatchObject({ status: 'item_ok', kind: 'add', index: 1 })
-    expect(events.at(-1)).toEqual({ type: 'complete', marketId: 'market-1' })
+    expect(events.at(-1)).toMatchObject({ type: 'complete', marketId: 'market-1' })
   })
 
   it('non-critical: table create failure emits item_error and continues', async () => {

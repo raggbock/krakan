@@ -24,6 +24,7 @@ import type {
 import type { FleaMarketNearByView, MarketTableView, OpeningHourRuleView, OpeningHourExceptionView, FleaMarketImageView } from '../../types/domain'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../../ports/flea-markets'
 import type { ProfileRepository } from '../../ports/profiles'
+import { slugifyCity } from '../../format'
 
 let _id = 1
 function nextId() {
@@ -109,6 +110,7 @@ function buildRepo(
     async create(payload) {
       const id = nextId()
       const now = new Date().toISOString()
+      const slug = slugifyCity(`${payload.name}-${payload.address.city}`) || null
       const market: StoredMarket = {
         id,
         name: payload.name,
@@ -131,9 +133,10 @@ function buildRepo(
         isDeleted: false,
         createdAt: now,
         updatedAt: now,
+        slug,
       }
       store.set(id, market)
-      return { id }
+      return { id, slug }
     },
 
     async update(id, payload) {

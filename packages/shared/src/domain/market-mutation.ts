@@ -139,7 +139,7 @@ export type MarketEvent =
   | { phase: 'saving_images'; status: 'item_error'; kind: 'remove'; index: number; imageId: string; error: AppError }
   | { phase: 'saving_images'; status: 'done' }
   // Terminal events
-  | { type: 'complete'; marketId: string }
+  | { type: 'complete'; marketId: string; slug?: string | null }
   | { type: 'failed'; error: AppError }
 
 // ---------- Deps ----------
@@ -215,10 +215,11 @@ export async function* runMarketMutation(
   // ---------- 2. Save market (create or update) ----------
   yield { phase: 'saving_market', status: 'start' }
   let marketId: string
+  let createdSlug: string | null | undefined
   try {
     if (isCreate) {
       const f = fields as MarketCreateFields
-      const { id } = await markets.create({
+      const { id, slug } = await markets.create({
         name: f.name.trim(),
         description: f.description.trim(),
         address: {
@@ -240,6 +241,7 @@ export async function* runMarketMutation(
         openingHourExceptions: plan.opening.exceptions,
       })
       marketId = id
+      createdSlug = slug
     } else {
       const { id, patch } = (plan.market as { update: { id: string; patch: MarketUpdateFields } }).update
       await markets.update(id, {
@@ -370,7 +372,7 @@ export async function* runMarketMutation(
   yield { phase: 'saving_images', status: 'done' }
 
   // ---------- Complete ----------
-  yield { type: 'complete', marketId }
+  yield { type: 'complete', marketId, slug: createdSlug }
 }
 
 /**

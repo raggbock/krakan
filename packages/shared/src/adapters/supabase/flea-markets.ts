@@ -162,7 +162,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
           contact_instagram: payload.contactInstagram ?? null,
           contact_facebook: payload.contactFacebook ?? null,
         })
-        .select('id')
+        .select('id, slug')
         .single()
 
       if (error) throw error
@@ -192,7 +192,7 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         if (exError) throw exError
       }
 
-      return { id: data.id }
+      return { id: data.id, slug: (data.slug as string | null) ?? null }
     },
 
     async update(id, payload) {

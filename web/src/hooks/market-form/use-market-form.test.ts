@@ -24,7 +24,7 @@ describe('useMarketForm — create mode', () => {
     vi.clearAllMocks()
     vi.spyOn(geo, 'geocode').mockResolvedValue({ lat: 59.33, lng: 18.07 })
     // Re-apply default spies on the in-memory adapters for clean per-test state.
-    vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1' })
+    vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1', slug: 'test-loppis-stockholm' })
     vi.spyOn(testDeps.markets, 'publish').mockResolvedValue(undefined)
     vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
     vi.spyOn(testDeps.marketTables, 'create').mockResolvedValue({ id: 'table-1' })
@@ -102,7 +102,7 @@ describe('useMarketForm — edit mode', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(geo, 'geocode').mockResolvedValue({ lat: 59.33, lng: 18.07 })
-    vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1' })
+    vi.spyOn(testDeps.markets, 'create').mockResolvedValue({ id: 'market-1', slug: 'test-loppis-stockholm' })
     vi.spyOn(testDeps.markets, 'publish').mockResolvedValue(undefined)
     vi.spyOn(testDeps.markets, 'update').mockResolvedValue(undefined)
     vi.spyOn(testDeps.marketTables, 'create').mockResolvedValue({ id: 'table-1' })

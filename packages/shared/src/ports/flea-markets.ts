@@ -41,7 +41,7 @@ export interface FleaMarketRepository extends Publishable {
   list(params?: { page?: number; pageSize?: number }): Promise<{ items: FleaMarketView[]; count: number }>
   details(id: string): Promise<FleaMarketDetailsView>
   nearBy(params: { latitude: number; longitude: number; radiusKm: number }): Promise<FleaMarketNearByView[]>
-  create(payload: CreateFleaMarketPayload): Promise<{ id: string }>
+  create(payload: CreateFleaMarketPayload): Promise<{ id: string; slug: string | null }>
   update(id: string, payload: UpdateFleaMarketPayload): Promise<void>
   delete(id: string): Promise<void>
   listByOrganizer(organizerId: string): Promise<FleaMarketView[]>

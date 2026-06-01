@@ -199,7 +199,7 @@ export default function CreateMarketPage() {
         auto_accept: fields.autoAcceptBookings,
       })
       clearDraft(DRAFT_KEY)
-      router.push(`/fleamarkets/${result.marketId}`)
+      router.push(result.slug ? `/loppis/${result.slug}` : `/fleamarkets/${result.marketId}`)
     }
   }
 
