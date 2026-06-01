@@ -31,6 +31,7 @@ export default function EditMarketPage() {
   const [initial, setInitial] = useState<(FleaMarketDetailsView & { market_tables?: MarketTableView[] }) | undefined>()
   const [publishedAt, setPublishedAt] = useState<string | null>(null)
   const [initialised, setInitialised] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   // Seed the form once the market data first arrives
   useEffect(() => {
@@ -49,8 +50,26 @@ export default function EditMarketPage() {
 
   const publishMutation = useMutation({
     mutationFn: () => markets.publish(id),
-    onSuccess: () => {
-      router.push(`/fleamarkets/${id}`)
+    onSuccess: async () => {
+      setPublishedAt(new Date().toISOString())
+      await queryClient.invalidateQueries({ queryKey: queryKeys.markets.details(id) })
+    },
+  })
+
+  const unpublishMutation = useMutation({
+    mutationFn: () => markets.unpublish(id),
+    onSuccess: async () => {
+      setPublishedAt(null)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.markets.details(id) })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: () => markets.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.markets.details(id) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.markets.byOrganizer(user?.id ?? '') })
+      router.push('/profile')
     },
   })
 
@@ -69,6 +88,11 @@ export default function EditMarketPage() {
     if (!user) return
     clearError()
     publishMutation.mutate()
+  }
+
+  function handleUnpublish() {
+    clearError()
+    unpublishMutation.mutate()
   }
 
   const loading = marketLoading && !initialised
@@ -252,8 +276,8 @@ export default function EditMarketPage() {
           <TableSection tables={tables} />
         </section>
 
-        {/* === Publish (drafts only) === */}
-        {!publishedAt && (
+        {/* === Publish / Unpublish toggle === */}
+        {!publishedAt ? (
           <section className="rounded-xl border border-mustard/30 bg-mustard/5 p-5 space-y-3">
             <div>
               <h3 className="font-display font-bold text-espresso text-lg">Redo att publicera?</h3>
@@ -269,7 +293,63 @@ export default function EditMarketPage() {
               {publishMutation.isPending ? 'Publicerar...' : 'Publicera loppisen'}
             </button>
           </section>
+        ) : (
+          <section className="rounded-xl border border-forest/20 bg-forest/5 p-5 space-y-3">
+            <div>
+              <p className="font-semibold text-sm text-forest">🟢 Publicerad — syns för besökare</p>
+              <p className="text-xs text-espresso/75 mt-1">
+                Avpublicera för att tillfälligt dölja den från besökare.
+              </p>
+            </div>
+            <button
+              onClick={handleUnpublish}
+              disabled={unpublishMutation.isPending || status.isSubmitting}
+              className="w-full h-11 rounded-xl bg-cream-warm text-espresso/75 hover:bg-espresso/8 font-semibold text-sm transition-colors disabled:opacity-40"
+            >
+              {unpublishMutation.isPending ? 'Avpublicerar...' : 'Avpublicera'}
+            </button>
+          </section>
         )}
+
+        {/* === Danger zone: Ta bort loppis === */}
+        <section className="rounded-xl border border-error/15 bg-error/8 p-5 space-y-3">
+          {!confirmDelete ? (
+            <>
+              <div>
+                <h3 className="font-display font-bold text-espresso text-lg">Ta bort loppis</h3>
+                <p className="text-sm text-espresso/75 mt-1">
+                  Loppisen döljs från Fyndstigen. Du kan inte ångra det här.
+                </p>
+              </div>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-full h-11 rounded-xl border border-error/30 text-error hover:bg-error/10 font-semibold text-sm transition-colors"
+              >
+                Ta bort loppis
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-semibold text-espresso">Är du säker? Loppisen tas bort.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => deleteMutation.mutate()}
+                  disabled={deleteMutation.isPending}
+                  className="flex-1 h-11 rounded-xl bg-error text-white font-semibold text-sm hover:bg-error/90 transition-colors disabled:opacity-40"
+                >
+                  {deleteMutation.isPending ? 'Tar bort...' : 'Ja, ta bort'}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleteMutation.isPending}
+                  className="flex-1 h-11 rounded-xl bg-cream-warm text-espresso/75 hover:bg-espresso/8 font-semibold text-sm transition-colors disabled:opacity-40"
+                >
+                  Avbryt
+                </button>
+              </div>
+            </>
+          )}
+        </section>
 
         {status.isSubmitting && status.imageStatuses.length > 0 && (
           <ImageUploadList statuses={status.imageStatuses} />
@@ -284,7 +364,7 @@ export default function EditMarketPage() {
           </Link>
           <button
             onClick={handleSubmit}
-            disabled={status.isSubmitting || publishMutation.isPending || !fields.isValid}
+            disabled={status.isSubmitting || publishMutation.isPending || unpublishMutation.isPending || deleteMutation.isPending || !fields.isValid}
             className="flex-1 h-12 rounded-xl bg-rust text-white font-semibold text-sm hover:bg-rust-light transition-colors disabled:opacity-40 shadow-sm"
           >
             {status.isSubmitting && status.imageStatuses.some((s) => s.state === 'uploading' || s.state === 'pending')
