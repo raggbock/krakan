@@ -17,7 +17,9 @@ test.describe('/loppis/[slug] — market detail', () => {
     await expect(page.getByRole('heading', { name: 'Kungsportsavenyn Loppis', level: 1 })).toBeVisible()
     await expect(page.getByText('Permanent')).toBeVisible()
     await expect(page.getByText('Kungsportsavenyn 1')).toBeVisible()
-    await expect(page.getByText(/Göteborg/)).toBeVisible()
+    // .first() = the address card's city (a second "Göteborg" now appears in
+    // the "Fler loppisar i …" city-hub link below the address).
+    await expect(page.getByText(/Göteborg/).first()).toBeVisible()
   })
 
   test('legacy /fleamarkets/[id] route also renders detail under E2E', async ({ page, seedMarkets, setNow }) => {
