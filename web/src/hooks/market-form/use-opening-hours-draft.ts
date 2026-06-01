@@ -19,6 +19,18 @@ export type OpeningHoursDraftResult = {
   setExceptions: Dispatch<SetStateAction<ExceptionDraft[]>>
   reset: (rules: RuleDraft[], exceptions: ExceptionDraft[]) => void
   serialize: () => { rules: RuleDraft[]; exceptions: ExceptionDraft[] }
+  /** Setter for pending (un-committed) rules — pass as onPendingChange to OpeningHoursEditor. */
+  setPendingRules: Dispatch<SetStateAction<RuleDraft[]>>
+}
+
+function sameRule(a: RuleDraft, b: RuleDraft): boolean {
+  return (
+    a.type === b.type &&
+    a.dayOfWeek === b.dayOfWeek &&
+    a.anchorDate === b.anchorDate &&
+    a.openTime === b.openTime &&
+    a.closeTime === b.closeTime
+  )
 }
 
 export function useOpeningHoursDraft(
@@ -27,6 +39,7 @@ export function useOpeningHoursDraft(
 ): OpeningHoursDraftResult {
   const [rules, setRules] = useState<RuleDraft[]>(initialRules)
   const [exceptions, setExceptions] = useState<ExceptionDraft[]>(initialExceptions)
+  const [pending, setPending] = useState<RuleDraft[]>([])
 
   const addRule = useCallback((rule: RuleDraft) => {
     setRules((prev) => [...prev, rule])
@@ -51,9 +64,16 @@ export function useOpeningHoursDraft(
   const reset = useCallback((nextRules: RuleDraft[], nextExceptions: ExceptionDraft[]) => {
     setRules(nextRules)
     setExceptions(nextExceptions)
+    setPending([])
   }, [])
 
-  const serialize = useCallback(() => ({ rules, exceptions }), [rules, exceptions])
+  const serialize = useCallback(
+    () => ({
+      rules: [...rules, ...pending.filter((p) => !rules.some((r) => sameRule(r, p)))],
+      exceptions,
+    }),
+    [rules, pending, exceptions],
+  )
 
   return useMemo(
     () => ({
@@ -68,6 +88,7 @@ export function useOpeningHoursDraft(
       setExceptions,
       reset,
       serialize,
+      setPendingRules: setPending,
     }),
     [rules, exceptions, addRule, updateRule, removeRule, addException, removeException, reset, serialize],
   )

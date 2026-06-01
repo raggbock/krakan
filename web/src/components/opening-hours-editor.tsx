@@ -5,11 +5,15 @@ import type { RuleDraft, ExceptionDraft } from '@fyndstigen/shared'
 
 export const DAY_NAMES = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']
 
+/** Display order: Monday-first (Mån, Tis, Ons, Tor, Fre, Lör, Sön). Values are Postgres day_of_week indices. */
+const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
+
 type OpeningHoursEditorProps = {
   rules: RuleDraft[]
   setRules: React.Dispatch<React.SetStateAction<RuleDraft[]>>
   exceptions: ExceptionDraft[]
   setExceptions: React.Dispatch<React.SetStateAction<ExceptionDraft[]>>
+  onPendingChange?: (pending: RuleDraft[]) => void
 }
 
 export function OpeningHoursEditor({
@@ -17,6 +21,7 @@ export function OpeningHoursEditor({
   setRules,
   exceptions,
   setExceptions,
+  onPendingChange,
 }: OpeningHoursEditorProps) {
   const [ruleType, setRuleType] = useState<'weekly' | 'biweekly' | 'date'>('weekly')
   const [ohDays, setOhDays] = useState<number[]>([])
@@ -46,6 +51,34 @@ export function OpeningHoursEditor({
     ohOpen && ohClose && ohOpen < ohClose &&
     (ruleType === 'date' ? !!ohAnchorDate : ohDays.length > 0) &&
     (ruleType === 'biweekly' ? !!ohAnchorDate : true)
+
+  // Notify parent of the current valid pending rules whenever entry fields change.
+  useEffect(() => {
+    if (!onPendingChange) return
+    if (!canAddRule) {
+      onPendingChange([])
+      return
+    }
+    if (ruleType === 'date') {
+      const rule: RuleDraft = { type: ruleType, dayOfWeek: null, anchorDate: ohAnchorDate || null, openTime: ohOpen, closeTime: ohClose }
+      if (isDuplicate(rules, rule) || hasOverlap(rules, rule)) {
+        onPendingChange([])
+      } else {
+        onPendingChange([rule])
+      }
+    } else {
+      const candidates = ohDays.map((day) => ({
+        type: ruleType,
+        dayOfWeek: day,
+        anchorDate: ohAnchorDate || null,
+        openTime: ohOpen,
+        closeTime: ohClose,
+      } as RuleDraft))
+      const valid = candidates.filter((r) => !isDuplicate(rules, r) && !hasOverlap(rules, r))
+      onPendingChange(valid)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ruleType, ohDays, ohAnchorDate, ohOpen, ohClose, rules, onPendingChange])
 
   function toggleDay(day: number) {
     setOhDays((prev) =>
@@ -189,7 +222,7 @@ export function OpeningHoursEditor({
                 <span className={ohDays.length ? 'text-espresso' : 'text-espresso/40'}>
                   {ohDays.length
                     ? [...ohDays]
-                        .sort((a, b) => a - b)
+                        .sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b))
                         .map((d) => DAY_NAMES[d])
                         .join(', ')
                     : 'Välj dagar'}
@@ -199,19 +232,19 @@ export function OpeningHoursEditor({
                 </svg>
               </button>
               {ohDaysOpen && (
-                <div className="absolute z-10 mt-1 w-full bg-card rounded-lg border border-cream-warm shadow-lg py-1">
-                  {DAY_NAMES.map((dayName, i) => (
+                <div className="mt-1 w-full bg-card rounded-lg border border-cream-warm shadow-lg py-1 max-h-56 overflow-y-auto">
+                  {WEEKDAY_ORDER.map((dow) => (
                     <label
-                      key={i}
+                      key={dow}
                       className="flex items-center gap-2.5 px-3 py-2 hover:bg-parchment cursor-pointer text-sm"
                     >
                       <input
                         type="checkbox"
-                        checked={ohDays.includes(i)}
-                        onChange={() => toggleDay(i)}
+                        checked={ohDays.includes(dow)}
+                        onChange={() => toggleDay(dow)}
                         className="accent-rust w-4 h-4"
                       />
-                      {dayName}
+                      {DAY_NAMES[dow]}
                     </label>
                   ))}
                 </div>

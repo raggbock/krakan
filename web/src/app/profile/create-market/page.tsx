@@ -301,6 +301,7 @@ export default function CreateMarketPage() {
               setRules={openingHours.setRules}
               exceptions={openingHours.exceptions}
               setExceptions={openingHours.setExceptions}
+              onPendingChange={openingHours.setPendingRules}
               variant="bare"
             />
           </div>

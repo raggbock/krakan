@@ -76,4 +76,44 @@ describe('useOpeningHoursDraft', () => {
     rerender()
     expect(result.current).toBe(first)
   })
+
+  it('serialize includes a pending rule set via setPendingRules', () => {
+    const pendingRule: RuleDraft = {
+      type: 'weekly',
+      dayOfWeek: 1,
+      anchorDate: null,
+      openTime: '09:00',
+      closeTime: '15:00',
+    }
+    const { result } = renderHook(() => useOpeningHoursDraft())
+    act(() => result.current.setPendingRules([pendingRule]))
+    const s = result.current.serialize()
+    expect(s.rules).toHaveLength(1)
+    expect(s.rules[0]).toEqual(pendingRule)
+  })
+
+  it('serialize does not duplicate a pending rule that is already committed', () => {
+    const { result } = renderHook(() => useOpeningHoursDraft([weeklyRule]))
+    // weeklyRule is already committed; setting it as pending should not add it twice.
+    act(() => result.current.setPendingRules([weeklyRule]))
+    const s = result.current.serialize()
+    expect(s.rules).toHaveLength(1)
+    expect(s.rules[0]).toEqual(weeklyRule)
+  })
+
+  it('reset clears pending rules', () => {
+    const pendingRule: RuleDraft = {
+      type: 'weekly',
+      dayOfWeek: 2,
+      anchorDate: null,
+      openTime: '08:00',
+      closeTime: '14:00',
+    }
+    const { result } = renderHook(() => useOpeningHoursDraft())
+    act(() => result.current.setPendingRules([pendingRule]))
+    // Confirm it was set.
+    expect(result.current.serialize().rules).toHaveLength(1)
+    act(() => result.current.reset([], []))
+    expect(result.current.serialize().rules).toHaveLength(0)
+  })
 })

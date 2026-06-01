@@ -192,6 +192,7 @@ export default function EditMarketPage() {
           setRules={openingHours.setRules}
           exceptions={openingHours.exceptions}
           setExceptions={openingHours.setExceptions}
+          onPendingChange={openingHours.setPendingRules}
           withScrollAnchor
         />
 

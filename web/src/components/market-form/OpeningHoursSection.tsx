@@ -9,6 +9,7 @@ export type OpeningHoursSectionProps = {
   setRules: Dispatch<SetStateAction<RuleDraft[]>>
   exceptions: ExceptionDraft[]
   setExceptions: Dispatch<SetStateAction<ExceptionDraft[]>>
+  onPendingChange?: (pending: RuleDraft[]) => void
   /** When true, renders with the scroll-anchor id (needed for edit page Gömd CTA). */
   withScrollAnchor?: boolean
   /**
@@ -23,6 +24,7 @@ export function OpeningHoursSection({
   setRules,
   exceptions,
   setExceptions,
+  onPendingChange,
   withScrollAnchor = false,
   variant = 'card',
 }: OpeningHoursSectionProps) {
@@ -32,6 +34,7 @@ export function OpeningHoursSection({
       setRules={setRules}
       exceptions={exceptions}
       setExceptions={setExceptions}
+      onPendingChange={onPendingChange}
     />
   )
 
