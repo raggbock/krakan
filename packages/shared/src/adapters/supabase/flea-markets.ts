@@ -235,7 +235,12 @@ export function createSupabaseFleaMarkets(supabase: SupabaseClient): FleaMarketR
         }))
         const { error: ohError } = await supabase.rpc('replace_opening_hours_atomic', {
           p_market_id: id,
-          p_rules: JSON.stringify(p_rules),
+          // Pass the raw array — supabase-js serializes it into the request body
+          // and PostgREST binds it to the jsonb param. JSON.stringify() here sends
+          // a jsonb *scalar string*, so jsonb_array_length() inside the function
+          // throws 22023 ("cannot get array length of a scalar") and every
+          // opening-hours edit fails with a generic "Något gick fel".
+          p_rules,
         })
         if (ohError) throw ohError
       }
