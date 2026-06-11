@@ -9,7 +9,14 @@ import { HttpError } from '../_shared/handler.ts'
 const FUTURE = new Date(Date.now() + 60_000).toISOString()
 const PAST = new Date(Date.now() - 60_000).toISOString()
 const MARKET_ID = '00000000-0000-0000-0000-000000000001'
-const TOKEN = 'a'.repeat(20)
+
+// handleTakeoverInfo caches results per token at module scope, so every
+// test must use a UNIQUE token — reusing one makes later tests hit the
+// cache from an earlier test instead of exercising their own fake data.
+let tokenCounter = 0
+function uniqueToken(): string {
+  return `test-token-${String(tokenCounter++).padStart(8, '0')}`
+}
 
 const TOKEN_ROW = {
   id: 'tok1',
@@ -85,7 +92,7 @@ Deno.test('takeover-info: returns market info when token is valid + market exist
     business_owner_tokens: { data: TOKEN_ROW, error: null },
     flea_markets: { data: MARKET_ROW, error: null },
   })
-  const result = await handleTakeoverInfo({ admin, input: { token: TOKEN } })
+  const result = await handleTakeoverInfo({ admin, input: { token: uniqueToken() } })
   assertEquals(result.name, 'Stortorgets Loppis')
   assertEquals(result.city, 'Stockholm')
   assertEquals(result.region, 'Stockholms län')
@@ -100,7 +107,7 @@ Deno.test('takeover-info: throws 404 on token_not_found (null token row)', async
     flea_markets: { data: MARKET_ROW, error: null },
   })
   const err = await assertRejects(
-    () => handleTakeoverInfo({ admin, input: { token: TOKEN } }),
+    () => handleTakeoverInfo({ admin, input: { token: uniqueToken() } }),
     HttpError,
     'token_not_found',
   ) as HttpError
@@ -113,7 +120,7 @@ Deno.test('takeover-info: throws 410 on token_expired', async () => {
     flea_markets: { data: MARKET_ROW, error: null },
   })
   const err = await assertRejects(
-    () => handleTakeoverInfo({ admin, input: { token: TOKEN } }),
+    () => handleTakeoverInfo({ admin, input: { token: uniqueToken() } }),
     HttpError,
     'token_expired',
   ) as HttpError
@@ -126,7 +133,7 @@ Deno.test('takeover-info: throws 410 on token_already_used', async () => {
     flea_markets: { data: MARKET_ROW, error: null },
   })
   const err = await assertRejects(
-    () => handleTakeoverInfo({ admin, input: { token: TOKEN } }),
+    () => handleTakeoverInfo({ admin, input: { token: uniqueToken() } }),
     HttpError,
     'token_already_used',
   ) as HttpError
@@ -139,7 +146,7 @@ Deno.test('takeover-info: throws 410 on token_invalidated', async () => {
     flea_markets: { data: MARKET_ROW, error: null },
   })
   const err = await assertRejects(
-    () => handleTakeoverInfo({ admin, input: { token: TOKEN } }),
+    () => handleTakeoverInfo({ admin, input: { token: uniqueToken() } }),
     HttpError,
     'token_invalidated',
   ) as HttpError
@@ -152,7 +159,7 @@ Deno.test('takeover-info: throws 410 on market_removed (is_deleted = true)', asy
     flea_markets: { data: { ...MARKET_ROW, is_deleted: true }, error: null },
   })
   const err = await assertRejects(
-    () => handleTakeoverInfo({ admin, input: { token: TOKEN } }),
+    () => handleTakeoverInfo({ admin, input: { token: uniqueToken() } }),
     HttpError,
     'market_removed',
   ) as HttpError
