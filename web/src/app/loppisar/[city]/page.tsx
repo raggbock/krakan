@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData, slugifyCity, canonicalCity, DISTRICT_SLUG_TO_PARENT_SLUG } from '@fyndstigen/shared'
+import { createSupabaseServerData, slugifyCity, DISTRICT_SLUG_TO_PARENT_SLUG } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
@@ -196,6 +196,14 @@ export default async function CityPage({ params }: Props) {
           return a.localeCompare(b, 'sv')
         })
         const showHeadings = groups.size > 1
+        // Precompute per-group position offsets so `position` is globally unique
+        // across all district groups (analytics regression guard).
+        const groupOffsets = new Map<string, number>()
+        let runningOffset = 0
+        for (const label of orderedLabels) {
+          groupOffsets.set(label, runningOffset)
+          runningOffset += groups.get(label)!.length
+        }
         return orderedLabels.map((label) => (
           <section key={label} className="mt-8">
             {showHeadings && (
@@ -211,7 +219,7 @@ export default async function CityPage({ params }: Props) {
                   marketId={m.id}
                   marketSlug={m.slug}
                   citySlug={slug}
-                  position={i}
+                  position={groupOffsets.get(label)! + i}
                 >
                   <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-cream-warm shrink-0">
                     {m.image_url ? (
