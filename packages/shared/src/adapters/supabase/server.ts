@@ -194,7 +194,10 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     },
 
     async listCitiesWithMarkets() {
-      // PostgREST caps a single response at 1000 rows — page through.
+      // PostgREST silently truncates any unbounded .select() at 1000 rows —
+      // there is no error, the response just stops at row 1000. Without paging,
+      // city market counts on the homepage would quietly under-report once the
+      // visible_flea_markets view exceeds 1000 rows. Page through to get all rows.
       const PAGE_SIZE = 1000
       const rows: Array<{ city: string | null; updatedAt: string }> = []
       for (let offset = 0; ; offset += PAGE_SIZE) {

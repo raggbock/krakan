@@ -196,6 +196,9 @@ export default async function CityPage({ params }: Props) {
           return a.localeCompare(b, 'sv')
         })
         const showHeadings = groups.size > 1
+        // When showHeadings is false (single group, no district <h2>), the
+        // market title must be <h2> to avoid skipping from <h1> to <h3>.
+        const MarketTitleTag = showHeadings ? 'h3' : 'h2'
         // Precompute per-group position offsets so `position` is globally unique
         // across all district groups (analytics regression guard).
         const groupOffsets = new Map<string, number>()
@@ -232,7 +235,7 @@ export default async function CityPage({ params }: Props) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                      <h3 className="font-display font-bold truncate min-w-0">{m.name}</h3>
+                      <MarketTitleTag className="font-display font-bold truncate min-w-0">{m.name}</MarketTitleTag>
                       <span className={`stamp text-xs self-start sm:self-auto shrink-0 ${m.is_permanent ? 'text-forest' : 'text-mustard'}`}>
                         {m.is_permanent ? 'Permanent' : 'Tillfällig'}
                       </span>
