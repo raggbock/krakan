@@ -95,7 +95,7 @@ export interface ServerDataPort {
     endDate: string
   }>>
 
-  listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string }>>
+  listCitiesWithMarkets(): Promise<Array<{ city: string; marketCount: number; latestUpdate: string; rawLabels: string[] }>>
   listMarketsInCity(cityNames: string[]): Promise<Array<{
     id: string
     slug: string | null

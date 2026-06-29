@@ -75,6 +75,42 @@ export function rawLabelsFor(canonical: string, allLabels: string[]): string[] {
   return allLabels.filter((l) => canonicalCity(l) === canonical)
 }
 
+/**
+ * Group raw market rows into canonical-city buckets. District rows fold into
+ * their parent; counts sum; latestUpdate is the newest in the group; rawLabels
+ * collects every raw `city` string that fell into the bucket (for `.in()`).
+ */
+export function aggregateCitiesByCanonical(
+  rows: Array<{ city: string | null; updatedAt: string }>,
+): Array<{ city: string; marketCount: number; latestUpdate: string; rawLabels: string[] }> {
+  const byCanonical = new Map<
+    string,
+    { marketCount: number; latestUpdate: string; rawLabels: Set<string> }
+  >()
+  for (const row of rows) {
+    if (!row.city) continue
+    const canonical = canonicalCity(row.city)
+    const cur = byCanonical.get(canonical)
+    if (cur) {
+      cur.marketCount += 1
+      if (row.updatedAt > cur.latestUpdate) cur.latestUpdate = row.updatedAt
+      cur.rawLabels.add(row.city)
+    } else {
+      byCanonical.set(canonical, {
+        marketCount: 1,
+        latestUpdate: row.updatedAt,
+        rawLabels: new Set([row.city]),
+      })
+    }
+  }
+  return Array.from(byCanonical.entries()).map(([city, v]) => ({
+    city,
+    marketCount: v.marketCount,
+    latestUpdate: v.latestUpdate,
+    rawLabels: Array.from(v.rawLabels),
+  }))
+}
+
 /** district-slug → parent-slug, for 301 redirect logic. Built from the map. */
 export const DISTRICT_SLUG_TO_PARENT_SLUG: Record<string, string> =
   Object.fromEntries(

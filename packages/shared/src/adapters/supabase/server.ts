@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ServerDataPort } from '../../ports/server'
+import { aggregateCitiesByCanonical } from '../../city-aliases'
 
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
@@ -193,12 +194,9 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
     },
 
     async listCitiesWithMarkets() {
-      // PostgREST's default `range` caps a single response at 1000 rows. With
-      // Sweden's market count already approaching that, an unbounded
-      // .select() silently truncates and the homepage stats start lying.
-      // Page through until we hit a short page.
+      // PostgREST caps a single response at 1000 rows — page through.
       const PAGE_SIZE = 1000
-      const byCity = new Map<string, { count: number; latest: string }>()
+      const rows: Array<{ city: string | null; updatedAt: string }> = []
       for (let offset = 0; ; offset += PAGE_SIZE) {
         const { data, error } = await supabase
           .from('visible_flea_markets')
@@ -206,22 +204,11 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
           .range(offset, offset + PAGE_SIZE - 1)
         if (error) break
         for (const row of data ?? []) {
-          if (!row.city) continue
-          const cur = byCity.get(row.city)
-          if (cur) {
-            cur.count += 1
-            if (row.updated_at > cur.latest) cur.latest = row.updated_at
-          } else {
-            byCity.set(row.city, { count: 1, latest: row.updated_at })
-          }
+          rows.push({ city: row.city as string | null, updatedAt: row.updated_at as string })
         }
         if (!data || data.length < PAGE_SIZE) break
       }
-      return Array.from(byCity.entries()).map(([city, { count, latest }]) => ({
-        city,
-        marketCount: count,
-        latestUpdate: latest,
-      }))
+      return aggregateCitiesByCanonical(rows)
     },
 
     async getBlockSaleIdBySlug(slug) {

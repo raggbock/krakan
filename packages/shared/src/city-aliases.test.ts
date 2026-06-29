@@ -4,6 +4,7 @@ import {
   rawLabelsFor,
   DISTRICT_SLUG_TO_PARENT_SLUG,
   CITY_ALIASES,
+  aggregateCitiesByCanonical,
 } from './city-aliases'
 
 describe('canonicalCity', () => {
@@ -33,6 +34,27 @@ describe('rawLabelsFor', () => {
     expect(rawLabelsFor('Stockholm', all).sort()).toEqual(
       ['Stockholm', 'Södermalm', 'Vasastaden'].sort(),
     )
+  })
+})
+
+describe('aggregateCitiesByCanonical', () => {
+  it('rolls district rows up under the parent and records raw labels', () => {
+    const rows = [
+      { city: 'Stockholm', updatedAt: '2026-06-01' },
+      { city: 'Södermalm', updatedAt: '2026-06-10' },
+      { city: 'Vasastaden', updatedAt: '2026-06-05' },
+      { city: 'Nacka', updatedAt: '2026-06-02' },
+      { city: null, updatedAt: '2026-06-09' },
+    ]
+    const out = aggregateCitiesByCanonical(rows)
+    const sthlm = out.find((c) => c.city === 'Stockholm')!
+    expect(sthlm.marketCount).toBe(3)
+    expect(sthlm.latestUpdate).toBe('2026-06-10') // newest across the group
+    expect(sthlm.rawLabels.sort()).toEqual(['Stockholm', 'Södermalm', 'Vasastaden'].sort())
+    const nacka = out.find((c) => c.city === 'Nacka')!
+    expect(nacka.marketCount).toBe(1)
+    expect(nacka.rawLabels).toEqual(['Nacka'])
+    expect(out.find((c) => c.city === 'Södermalm')).toBeUndefined() // folded away
   })
 })
 
