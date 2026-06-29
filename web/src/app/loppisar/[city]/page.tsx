@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseServerData, slugifyCity } from '@fyndstigen/shared'
+import { createSupabaseServerData, slugifyCity, DISTRICT_SLUG_TO_PARENT_SLUG } from '@fyndstigen/shared'
 import { FyndstigenLogo } from '@/components/fyndstigen-logo'
 import { FollowButton } from '@/components/follow-button'
 import { marketUrl } from '@/lib/urls'
@@ -35,12 +35,13 @@ function isPlaceholderEnv(): boolean {
 async function resolveCity(slug: string) {
   if (isPlaceholderEnv()) return null
   const cities = await getServerData().listCitiesWithMarkets()
-  const matches = cities.filter((c) => slugifyCity(c.city) === slug)
-  if (matches.length === 0) return null
+  // city values are already canonical (districts folded in by the adapter).
+  const match = cities.find((c) => slugifyCity(c.city) === slug)
+  if (!match) return null
   return {
-    canonicalName: matches[0].city,
-    cityNames: matches.map((c) => c.city),
-    marketCount: matches.reduce((sum, c) => sum + c.marketCount, 0),
+    canonicalName: match.city,
+    cityNames: match.rawLabels, // raw labels for listMarketsInCity(.in('city', …))
+    marketCount: match.marketCount,
   }
 }
 
@@ -86,6 +87,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CityPage({ params }: Props) {
   const { city: slug } = await params
+  const parentSlug = DISTRICT_SLUG_TO_PARENT_SLUG[slug]
+  if (parentSlug && parentSlug !== slug) {
+    permanentRedirect(`/loppisar/${parentSlug}`)
+  }
   const resolved = await resolveCity(slug)
   if (!resolved) notFound()
 
@@ -178,63 +183,89 @@ export default async function CityPage({ params }: Props) {
         </section>
       )}
 
-      <div className="mt-8 space-y-4">
-        {markets.map((m, i) => (
-          <CityMarketLink
-            key={m.id}
-            href={marketUrl(m)}
-            marketId={m.id}
-            marketSlug={m.slug}
-            citySlug={slug}
-            position={i}
-          >
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-cream-warm shrink-0">
-              {m.image_url ? (
-                <Image
-                  src={m.image_url}
-                  alt={m.name}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <FyndstigenLogo size={28} className="text-espresso/15" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                <h2 className="font-display font-bold truncate min-w-0">{m.name}</h2>
-                <span className={`stamp text-xs self-start sm:self-auto shrink-0 ${m.is_permanent ? 'text-forest' : 'text-mustard'}`}>
-                  {m.is_permanent ? 'Permanent' : 'Tillfällig'}
-                </span>
-              </div>
-              <p className="text-sm text-espresso/75 mt-0.5 truncate">
-                {m.street}, {m.city}
-              </p>
-              {m.description && (
-                <p className="text-sm text-espresso/55 mt-1 line-clamp-2">{m.description}</p>
-              )}
-              {(() => {
-                const hours = formatWeeklyHoursSummary(m.openingHourRules)
-                if (!hours) return null
-                return (
-                  <p className="text-sm text-espresso/65 mt-1">
-                    <span aria-hidden="true">🕐</span>
-                    <span className="sr-only">Öppettider:</span>
-                    {' '}{hours}
-                    {m.isSystemOwned && (
-                      <span className="text-espresso/40 text-xs ml-2">· auto-importerat</span>
+      {(() => {
+        const groups = new Map<string, typeof markets>()
+        for (const m of markets) {
+          const arr = groups.get(m.city) ?? []
+          arr.push(m)
+          groups.set(m.city, arr)
+        }
+        const orderedLabels = Array.from(groups.keys()).sort((a, b) => {
+          if (a === resolved.canonicalName) return -1
+          if (b === resolved.canonicalName) return 1
+          return a.localeCompare(b, 'sv')
+        })
+        const showHeadings = groups.size > 1
+        // When showHeadings is false (single group, no district <h2>), the
+        // market title must be <h2> to avoid skipping from <h1> to <h3>.
+        const MarketTitleTag = showHeadings ? 'h3' : 'h2'
+        // Precompute per-group position offsets so `position` is globally unique
+        // across all district groups (analytics regression guard).
+        const groupOffsets = new Map<string, number>()
+        let runningOffset = 0
+        for (const label of orderedLabels) {
+          groupOffsets.set(label, runningOffset)
+          runningOffset += groups.get(label)!.length
+        }
+        return orderedLabels.map((label) => (
+          <section key={label} className="mt-8">
+            {showHeadings && (
+              <h2 className="font-display text-xl font-bold mb-3">
+                {label} ({groups.get(label)!.length})
+              </h2>
+            )}
+            <div className="space-y-4">
+              {groups.get(label)!.map((m, i) => (
+                <CityMarketLink
+                  key={m.id}
+                  href={marketUrl(m)}
+                  marketId={m.id}
+                  marketSlug={m.slug}
+                  citySlug={slug}
+                  position={groupOffsets.get(label)! + i}
+                >
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-cream-warm shrink-0">
+                    {m.image_url ? (
+                      <Image src={m.image_url} alt={m.name} fill sizes="80px" className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FyndstigenLogo size={28} className="text-espresso/15" />
+                      </div>
                     )}
-                  </p>
-                )
-              })()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                      <MarketTitleTag className="font-display font-bold truncate min-w-0">{m.name}</MarketTitleTag>
+                      <span className={`stamp text-xs self-start sm:self-auto shrink-0 ${m.is_permanent ? 'text-forest' : 'text-mustard'}`}>
+                        {m.is_permanent ? 'Permanent' : 'Tillfällig'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-espresso/75 mt-0.5 truncate">{m.street}, {m.city}</p>
+                    {m.description && (
+                      <p className="text-sm text-espresso/55 mt-1 line-clamp-2">{m.description}</p>
+                    )}
+                    {(() => {
+                      const hours = formatWeeklyHoursSummary(m.openingHourRules)
+                      if (!hours) return null
+                      return (
+                        <p className="text-sm text-espresso/65 mt-1">
+                          <span aria-hidden="true">🕐</span>
+                          <span className="sr-only">Öppettider:</span>
+                          {' '}{hours}
+                          {m.isSystemOwned && (
+                            <span className="text-espresso/40 text-xs ml-2">· auto-importerat</span>
+                          )}
+                        </p>
+                      )
+                    })()}
+                  </div>
+                  <span className="text-espresso/20 shrink-0">→</span>
+                </CityMarketLink>
+              ))}
             </div>
-            <span className="text-espresso/20 shrink-0">→</span>
-          </CityMarketLink>
-        ))}
-      </div>
+          </section>
+        ))
+      })()}
 
       {nearbyCities.length > 0 && (
         <section className="mt-10 pt-8 border-t border-cream-warm">

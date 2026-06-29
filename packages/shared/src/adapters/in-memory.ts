@@ -1,5 +1,6 @@
 import type { AuthPort, AuthUser } from '../ports/auth'
 import type { ServerDataPort } from '../ports/server'
+import { aggregateCitiesByCanonical } from '../city-aliases'
 import type { FleaMarketRepository, SearchRepository, MarketTableRepository } from '../ports/flea-markets'
 import type { BookingRepository } from '../ports/bookings'
 import type { RouteRepository } from '../ports/routes'
@@ -85,21 +86,11 @@ export function createInMemoryServerData(seed?: {
       return markets.map((m) => ({ id: m.id, slug: m.slug ?? null, updatedAt: m.updatedAt, images: [] }))
     },
     async listCitiesWithMarkets() {
-      const byCity = new Map<string, { count: number; latest: string }>()
-      for (const m of markets) {
-        const city = (m as unknown as { city?: string }).city
-        if (!city) continue
-        const cur = byCity.get(city)
-        if (cur) {
-          cur.count += 1
-          if (m.updatedAt > cur.latest) cur.latest = m.updatedAt
-        } else {
-          byCity.set(city, { count: 1, latest: m.updatedAt })
-        }
-      }
-      return Array.from(byCity.entries()).map(([city, { count, latest }]) => ({
-        city, marketCount: count, latestUpdate: latest,
+      const rows = markets.map((m) => ({
+        city: (m as unknown as { city?: string }).city ?? null,
+        updatedAt: m.updatedAt,
       }))
+      return aggregateCitiesByCanonical(rows)
     },
     async listMarketsInCity() { return [] },
     async nearbyCitiesWithMarkets() { return [] },

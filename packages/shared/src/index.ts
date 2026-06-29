@@ -123,6 +123,9 @@ export type { Deps } from './deps'
 export { interpretWebhookEvent } from './stripe-webhook'
 export type { WebhookCommand, WebhookLookups, InterpretInput } from './stripe-webhook'
 
+// City aliasing
+export * from './city-aliases'
+
 // Utilities
 export { checkOpeningHours, getUpcomingOpenDates } from './domain/opening-hours'
 export type { OpeningHoursResult, UpcomingDate, TimeSlot } from './domain/opening-hours'
