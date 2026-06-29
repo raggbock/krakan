@@ -5,6 +5,7 @@ import {
   DISTRICT_SLUG_TO_PARENT_SLUG,
   CITY_ALIASES,
   aggregateCitiesByCanonical,
+  canonicalizeNearbyCities,
 } from './city-aliases'
 
 describe('canonicalCity', () => {
@@ -55,6 +56,33 @@ describe('aggregateCitiesByCanonical', () => {
     expect(nacka.marketCount).toBe(1)
     expect(nacka.rawLabels).toEqual(['Nacka'])
     expect(out.find((c) => c.city === 'Södermalm')).toBeUndefined() // folded away
+  })
+})
+
+describe('canonicalizeNearbyCities', () => {
+  it('folds districts, merges counts, keeps nearest distance, drops the target', () => {
+    const rows = [
+      { city: 'Södermalm', marketCount: 7, distanceKm: 2 },
+      { city: 'Vasastaden', marketCount: 9, distanceKm: 4 },
+      { city: 'Nacka', marketCount: 3, distanceKm: 8 },
+      { city: 'Stockholm', marketCount: 37, distanceKm: 1 },
+    ]
+    // target is Stockholm — its own canonical (incl. districts) must be removed
+    const out = canonicalizeNearbyCities(rows, 'Stockholm')
+    expect(out.find((c) => c.city === 'Stockholm')).toBeUndefined()
+    expect(out.find((c) => c.city === 'Södermalm')).toBeUndefined()
+    const nacka = out.find((c) => c.city === 'Nacka')!
+    expect(nacka.marketCount).toBe(3)
+  })
+  it('merges two districts of the same nearby parent into one entry', () => {
+    const rows = [
+      { city: 'Masthugget', marketCount: 5, distanceKm: 3 },
+      { city: 'Eriksberg', marketCount: 2, distanceKm: 6 },
+    ]
+    const out = canonicalizeNearbyCities(rows, 'Kungälv')
+    const gbg = out.find((c) => c.city === 'Göteborg')!
+    expect(gbg.marketCount).toBe(7)
+    expect(gbg.distanceKm).toBe(3) // nearest of the merged group
   })
 })
 

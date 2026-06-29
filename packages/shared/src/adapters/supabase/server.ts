@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ServerDataPort } from '../../ports/server'
-import { aggregateCitiesByCanonical } from '../../city-aliases'
+import { aggregateCitiesByCanonical, canonicalizeNearbyCities } from '../../city-aliases'
 
 export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPort {
   return {
@@ -334,11 +334,12 @@ export function createSupabaseServerData(supabase: SupabaseClient): ServerDataPo
         console.error('nearbyCitiesWithMarkets RPC error:', error)
         return []
       }
-      return (data ?? []).map((r: { city: string; market_count: number; distance_km: number }) => ({
+      const mapped = (data ?? []).map((r: { city: string; market_count: number; distance_km: number }) => ({
         city: r.city,
         marketCount: r.market_count,
         distanceKm: r.distance_km,
       }))
+      return canonicalizeNearbyCities(mapped, cityName)
     },
   }
 }

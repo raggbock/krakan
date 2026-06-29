@@ -111,6 +111,34 @@ export function aggregateCitiesByCanonical(
   }))
 }
 
+/**
+ * Canonicalize the nearby-cities RPC output: fold districts into parents,
+ * merge counts, keep the nearest distance per canonical city, and drop the
+ * target city's own canonical (so a hub never lists its own districts as
+ * "nearby"). Order preserved by nearest distance ascending.
+ */
+export function canonicalizeNearbyCities(
+  rows: Array<{ city: string; marketCount: number; distanceKm: number }>,
+  targetCity: string,
+): Array<{ city: string; marketCount: number; distanceKm: number }> {
+  const targetCanonical = canonicalCity(targetCity)
+  const byCanonical = new Map<string, { marketCount: number; distanceKm: number }>()
+  for (const row of rows) {
+    const canonical = canonicalCity(row.city)
+    if (canonical === targetCanonical) continue
+    const cur = byCanonical.get(canonical)
+    if (cur) {
+      cur.marketCount += row.marketCount
+      if (row.distanceKm < cur.distanceKm) cur.distanceKm = row.distanceKm
+    } else {
+      byCanonical.set(canonical, { marketCount: row.marketCount, distanceKm: row.distanceKm })
+    }
+  }
+  return Array.from(byCanonical.entries())
+    .map(([city, v]) => ({ city, marketCount: v.marketCount, distanceKm: v.distanceKm }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+}
+
 /** district-slug → parent-slug, for 301 redirect logic. Built from the map. */
 export const DISTRICT_SLUG_TO_PARENT_SLUG: Record<string, string> =
   Object.fromEntries(
