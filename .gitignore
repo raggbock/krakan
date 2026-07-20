@@ -51,6 +51,8 @@ Thumbs.db
 # Claude Code
 .claude/*
 !.claude/skills/
+# Claude config nested in sub-packages stays ignored (root skills above are tracked)
+*/.claude/
 .mcp.json
 .agents/
 skills-lock.json
