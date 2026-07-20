@@ -26,6 +26,10 @@ extraherar loppisar, geokodar + dedupar mot databasen, och visar en granska-tabe
 - Claude-in-Chrome-tillägget är anslutet (`tabs_context_mcp` svarar). Om inte:
   be användaren aktivera tillägget (claude.ai/chrome) och starta om Chrome.
 - Supabase-MCP och WebFetch är tillgängliga.
+- `mcp__supabase__execute_sql` måste köra med skrivrättigheter (service/privilegierad
+  roll) — `flea_markets` och `block_sales` har RLS som blockerar INSERT för
+  icke-ägarroller. Läsningar (Steg 4) fungerar ändå, men skrivningen i Steg 6 nekas
+  utan rätt roll.
 
 ## Pipeline
 
@@ -118,6 +122,16 @@ Fortsätt till Steg 6 endast när användaren svarat med ett urval och "kör".
 
 **Permanent butik → `flea_markets`** (slug sätts av trigger; lat/long genereras
 från `location` — sätt dem aldrig):
+
+> **Tillåtna värden för `category`** (CHECK-constraint — inga andra godtas):
+> `'Privat'`, `'Kyrklig-bistånd'`, `'Antik-retro'`, `'Kommunal'`, `'Kedja'`, `'Evenemang'`
+>
+> Vägledning: vanlig second hand/loppis (privat) → `Privat`; kyrklig eller biståndsdriven
+> second hand (t.ex. Emmaus, Frälsningsarmén) → `Kyrklig-bistånd`; antik/retro/vintage →
+> `Antik-retro`; kommunal (t.ex. återvinning eller kommunalt överskott) → `Kommunal`;
+> kedja (Myrorna, Erikshjälpen, Röda Korset m.fl.) → `Kedja`; datumsatt mässa/marknad →
+> `Evenemang`. `category` är nullable — använd `null` om osäker (hellre null än en gissad
+> ogiltig kategori).
 
 ```sql
 insert into flea_markets
