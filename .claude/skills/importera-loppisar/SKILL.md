@@ -96,3 +96,78 @@ Märk varje kandidat:
 - **DUBBLETT** — finns redan publicerad → hoppa.
 - **GÖMD-I-DB** — finns men `published_at` är null → **erbjud publicera i stället
   för att skapa dubblett** (vanligt: importbatchen skapade men publicerade aldrig).
+
+### Steg 5 — Granska-tabell (dry-run stannar här)
+
+Presentera kandidaterna grupperat. Föreslagen tabell:
+
+| # | Namn | Ort | Adress | Geo | Typ | Status |
+|---|------|-----|--------|-----|-----|--------|
+| 1 | Åströms Antik | Kumla | Holmagatan 63 | gata ✅ | perm | NY |
+| 2 | Navet | Kumla | Stenevägen 43 | — | perm | DUBBLETT |
+| 3 | Gåvan Secondhand | Nora | Brunnsgatan 20 | gata ✅ | perm | GÖMD → publicera |
+
+Sektioner: **NYA** (skapas), **DUBBLETTER** (hoppas), **GÖMDA** (publiceras i
+stället), **AMBIGUÖSA/LÅGKVALITET** (kräver ditt beslut).
+
+**Här stannar dry-run.** Skriv inget. Fråga: "Vilka ska in? (alla / t.ex. 1,3 /
+inga)". Fortsätt till Steg 6 endast när användaren svarat med ett urval.
+
+### Steg 6 — Skriv (endast efter explicit "kör" + urval)
+
+**Permanent butik → `flea_markets`** (slug sätts av trigger; lat/long genereras
+från `location` — sätt dem aldrig):
+
+```sql
+insert into flea_markets
+  (name, organizer_id, is_permanent, is_system_owned, city, street, zip_code, region, country, category, description, contact_phone, location, published_at)
+values
+  ('<namn>','f1d57000-1000-4000-8000-000000000001',true,true,'<ort>','<gata>','<postnr>','<län>','Sverige','<kategori>','<beskrivning>','<telefon el. null>',
+   st_setsrid(st_makepoint(<lon>,<lat>),4326)::geography, now())
+returning name, slug, city;
+```
+
+**Veckotider** (om kända):
+
+```sql
+insert into opening_hour_rules (flea_market_id, type, day_of_week, open_time, close_time)
+select id, 'weekly', <dow 0=sön..6=lör>, '<öppnar>', '<stänger>'
+from flea_markets where slug = '<genererad slug>';
+```
+
+**Datumsatt event → `block_sales`** (slug sätts manuellt; lat/long genereras från
+`center_location`):
+
+```sql
+insert into block_sales
+  (organizer_id, name, slug, description, start_date, end_date, daily_open, daily_close, city, region, center_location, published_at)
+values
+  ('f1d57000-1000-4000-8000-000000000001','<namn>','<slug>','<beskrivning>','<start>','<slut>','<öppnar>','<stänger>','<ort>','<län>',
+   st_setsrid(st_makepoint(<lon>,<lat>),4326)::geography, now())
+returning name, slug, city, start_date;
+```
+
+**Publicera en GÖMD-I-DB-rad** (rätta felflaggad permanens så den blir synlig):
+
+```sql
+update flea_markets set published_at = now(), is_permanent = true
+where id = '<id>' and is_deleted is not true and published_at is null
+returning name, city;
+```
+
+Efter skrivning: rapportera vad som skapades/publicerades + ev. uppföljning
+(saknade tider, grova koordinater, ambigösa som du bör titta på). Verifiera att
+raderna syns via `visible_flea_markets` / kommande `block_sales`.
+
+## Kvalitetsgrind (defaults)
+
+- Hoppa/flagga kandidater utan geokodbar adress ("PM för adress"), generiska
+  namn ("Second Hand" utan gata), eller frågeinlägg.
+- **Rör aldrig `is_deleted=true`-rader** — respektera medvetna borttagningar.
+- Geokod-miss → flagga, skapa aldrig med gissad koordinat.
+- Osäker permanens → flagga hellre än gissa (fel `is_permanent` döljer butiken).
+
+## Mekanik-referens
+
+Se minnesfilen `reference_market_data_ops` för synlighetsregeln, system-organizern,
+genererade kolumner, slug-trigger och geokodning.
