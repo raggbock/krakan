@@ -69,3 +69,30 @@ centroid — grov), **misslyckad** (ingen träff → flagga, skapa inte).
 - Permanent → `opening_hour_rules`: `type='weekly'`, `day_of_week` **0=sön,
   1=mån … 6=lör**, `open_time`/`close_time`.
 - Event → `start_date`/`end_date` + `daily_open`/`daily_close`.
+
+### Steg 4 — Deduplicera mot databasen
+
+För varje kandidat, matcha mot befintlig data via **fuzzy namn + ort** och
+**geo-närhet (~150 m)**. Kör (byt ut värden per kandidat):
+
+```sql
+-- Existerande/gömd match på namn+ort:
+select id, name, city, published_at is not null as published, is_deleted, is_permanent
+from flea_markets
+where is_deleted is not true
+  and city ilike '<ort>'
+  and name ilike '%<namnkärna>%';
+
+-- Geo-närhet (~150 m) som komplement när namn skiljer sig:
+select id, name, city
+from flea_markets
+where is_deleted is not true
+  and location is not null
+  and st_dwithin(location, st_setsrid(st_makepoint(<lon>,<lat>),4326)::geography, 150);
+```
+
+Märk varje kandidat:
+- **NY** — ingen träff → skapas.
+- **DUBBLETT** — finns redan publicerad → hoppa.
+- **GÖMD-I-DB** — finns men `published_at` är null → **erbjud publicera i stället
+  för att skapa dubblett** (vanligt: importbatchen skapade men publicerade aldrig).
