@@ -2,6 +2,12 @@ import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerData, createSupabaseImages, slugifyCity } from '@fyndstigen/shared'
 
+// ISR: regenerate daily so markets added directly to the DB (not via a
+// deploy) still enter the sitemap. Without this the sitemap is generated once
+// at build time and goes stale until the next deploy — new city hubs and
+// market pages never get discovered by Google. Mirrors the city pages' ISR.
+export const revalidate = 86400
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://fyndstigen.se'
 
