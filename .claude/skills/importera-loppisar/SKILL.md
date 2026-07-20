@@ -111,7 +111,8 @@ Sektioner: **NYA** (skapas), **DUBBLETTER** (hoppas), **GÖMDA** (publiceras i
 stället), **AMBIGUÖSA/LÅGKVALITET** (kräver ditt beslut).
 
 **Här stannar dry-run.** Skriv inget. Fråga: "Vilka ska in? (alla / t.ex. 1,3 /
-inga)". Fortsätt till Steg 6 endast när användaren svarat med ett urval.
+inga)". Svara med ett urval och skriv "kör" för att bekräfta skrivningen.
+Fortsätt till Steg 6 endast när användaren svarat med ett urval och "kör".
 
 ### Steg 6 — Skriv (endast efter explicit "kör" + urval)
 
