@@ -41,3 +41,31 @@ extraherar loppisar, geokodar + dedupar mot databasen, och visar en granska-tabe
    22/7, 24–25/7).
 4. **Djup:** default = senaste flödet (~30 dagar / ~6–8 skrollningar). Kan höjas
    om användaren ber om det.
+
+### Steg 2 — Extrahera & klassificera
+
+För varje relevant inlägg/event, strukturera:
+`name`, rå adresstext, datum/tider, öppettider, kontakt (telefon/webb).
+
+Klassa varje kandidat:
+- **PERMANENT** — stående butik (second hand, antik, gårdsbutik) → `flea_markets`.
+- **EVENT** — datumsatt (gatuloppis, kvartersloppis) → `block_sales`.
+- **AMBIGUÖST** — oklart → flagga för användaren, gissa inte.
+
+Släng icke-loppis-inlägg: frågor ("vilka har öppet på tisdag?"), efterlysningar,
+rena bildinlägg utan butik/plats.
+
+### Steg 3 — Berika
+
+**Geokoda** adressen via Nominatim (OpenStreetMap):
+`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=<adress> Sweden`
+(WebFetch, be om lat/lon från första träffen). Om husnummer inte löser (vanligt
+för rurala adresser), fallback:
+`https://nominatim.openstreetmap.org/search?format=json&limit=1&country=Sweden&postalcode=<postnr>`
+Märk träffsäkerhet: **gata** (husnr/gata löste), **postnr** (bara postnummer-
+centroid — grov), **misslyckad** (ingen träff → flagga, skapa inte).
+
+**Öppettider:**
+- Permanent → `opening_hour_rules`: `type='weekly'`, `day_of_week` **0=sön,
+  1=mån … 6=lör**, `open_time`/`close_time`.
+- Event → `start_date`/`end_date` + `daily_open`/`daily_close`.
