@@ -86,6 +86,68 @@ describe('canonicalizeNearbyCities', () => {
   })
 })
 
+describe('skiftlägesokänslig ortsammanslagning', () => {
+  it('folds a district regardless of casing', () => {
+    expect(canonicalCity('södermalm')).toBe('Stockholm')
+    expect(canonicalCity('SÖDERMALM')).toBe('Stockholm')
+  })
+
+  it('merges casing variants into one city with all raw labels', () => {
+    const rows = [
+      { city: 'Upplands väsby', updatedAt: '2026-01-01' },
+      { city: 'Upplands Väsby', updatedAt: '2026-01-02' },
+    ]
+    const result = aggregateCitiesByCanonical(rows)
+    expect(result).toHaveLength(1)
+    expect(result[0].marketCount).toBe(2)
+    expect(result[0].rawLabels.sort()).toEqual(['Upplands Väsby', 'Upplands väsby'])
+  })
+
+  it('picks the properly-cased label as the display name', () => {
+    const rows = [
+      { city: 'Upplands väsby', updatedAt: '2026-01-01' },
+      { city: 'Upplands Väsby', updatedAt: '2026-01-02' },
+    ]
+    expect(aggregateCitiesByCanonical(rows)[0].city).toBe('Upplands Väsby')
+  })
+
+  it('picks the most frequent label when casing differs', () => {
+    const rows = [
+      { city: 'nora', updatedAt: '2026-01-01' },
+      { city: 'nora', updatedAt: '2026-01-02' },
+      { city: 'Nora', updatedAt: '2026-01-03' },
+    ]
+    expect(aggregateCitiesByCanonical(rows)[0].city).toBe('nora')
+  })
+
+  it('keeps distinct cities distinct', () => {
+    const rows = [
+      { city: 'Nora', updatedAt: '2026-01-01' },
+      { city: 'Norra Djurgården', updatedAt: '2026-01-02' },
+    ]
+    const cities = aggregateCitiesByCanonical(rows).map((r) => r.city).sort()
+    expect(cities).toEqual(['Nora', 'Stockholm'])
+  })
+
+  it('rawLabelsFor collects casing variants', () => {
+    const labels = ['Upplands Väsby', 'Upplands väsby', 'Nora']
+    expect(rawLabelsFor('Upplands Väsby', labels).sort()).toEqual([
+      'Upplands Väsby',
+      'Upplands väsby',
+    ])
+  })
+
+  it('canonicalizeNearbyCities excludes a casing variant of the target city', () => {
+    const rows = [
+      { city: 'Upplands väsby', marketCount: 2, distanceKm: 0 },
+      { city: 'Nora', marketCount: 3, distanceKm: 8 },
+    ]
+    const out = canonicalizeNearbyCities(rows, 'Upplands Väsby')
+    expect(out.find((c) => c.city === 'Upplands väsby')).toBeUndefined()
+    expect(out.find((c) => c.city === 'Nora')).toBeDefined()
+  })
+})
+
 describe('DISTRICT_SLUG_TO_PARENT_SLUG', () => {
   it('maps a district slug to its parent slug', () => {
     expect(DISTRICT_SLUG_TO_PARENT_SLUG['sodermalm']).toBe('stockholm')
