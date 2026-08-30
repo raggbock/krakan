@@ -34,7 +34,7 @@ Hämta utbudet — bygg samma slug i SQL i stället för att jämföra mot rå `
 ```sql
 select
   trim(both '-' from regexp_replace(
-    lower(translate(city, 'åäöéèüÅÄÖÉÈÜ', 'aaoeuuaaoeuu')),
+    lower(translate(city, 'åäöéèüÅÄÖÉÈÜ', 'aaoeeuaaoeeu')),
     '[^a-z0-9]+', '-', 'g'
   )) as slug,
   min(city) as visningsnamn,
