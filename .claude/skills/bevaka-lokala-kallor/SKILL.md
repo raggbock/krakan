@@ -29,14 +29,14 @@ Hämta efterfrågan via GSC-MCP:
 `get_search_analytics(site_url='sc-domain:fyndstigen.se', days=28, dimensions='page', row_limit=200)`
 och behåll sidor under `/loppisar/`. Sluggen efter `/loppisar/` är orten.
 
-Hämta utbudet — bygg samma slug i SQL i stället för att jämföra mot rå `city`:
+Hämta utbudet — bygg samma slug i SQL i stället för att jämföra mot rå `city`,
+via `public.slugify_city(text)`. Det är samma funktion appens routing
+använder för att slå upp `/loppisar/<slug>`, så join-nyckeln kan inte driva
+isär från källan:
 
 ```sql
 select
-  trim(both '-' from regexp_replace(
-    lower(translate(city, 'åäöéèüÅÄÖÉÈÜ', 'aaoeeuaaoeeu')),
-    '[^a-z0-9]+', '-', 'g'
-  )) as slug,
+  public.slugify_city(city) as slug,
   min(city) as visningsnamn,
   count(*) as synliga
 from public.visible_flea_markets
