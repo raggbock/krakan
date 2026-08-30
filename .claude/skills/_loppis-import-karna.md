@@ -122,6 +122,10 @@ från `location` — sätt dem aldrig):
 > `Evenemang`. `category` är nullable — använd `null` om osäker (hellre null än en gissad
 > ogiltig kategori).
 
+**Kräver migration `00064_source_url`.** Kolumnen `source_url` finns bara efter
+att den migrationen körts. Är den inte på plats än: utelämna `source_url` ur
+båda mallarna nedan i stället för att låta skrivningen fela.
+
 ```sql
 insert into flea_markets
   (name, organizer_id, is_permanent, is_system_owned, city, street, zip_code, region, country, category, description, contact_phone, location, published_at, source_url)
