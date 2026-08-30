@@ -1,6 +1,6 @@
 ---
 name: bevaka-lokala-kallor
-description: Leta upp loppisar och kvartersloppisar i prioriterade småorter via öppna lokala källor (kommunkalendrar, församlingar, hembygdsföreningar) och importera dem via den delade kärnan. Obemannad — läser aldrig Facebook.
+description: Leta upp loppisar och kvartersloppisar i prioriterade småorter via öppna lokala källor (kommunkalendrar, församlingar, hembygdsföreningar) och identifiera dem via den delade kärnan. Obemannad — läser aldrig Facebook.
 disable-model-invocation: true
 ---
 
@@ -29,11 +29,27 @@ Hämta efterfrågan via GSC-MCP:
 `get_search_analytics(site_url='sc-domain:fyndstigen.se', days=28, dimensions='page', row_limit=200)`
 och behåll sidor under `/loppisar/`. Sluggen efter `/loppisar/` är orten.
 
-Hämta utbudet:
+Hämta utbudet — bygg samma slug i SQL i stället för att jämföra mot rå `city`:
 
 ```sql
-select city, count(*) as synliga from public.visible_flea_markets group by city;
+select
+  trim(both '-' from regexp_replace(
+    lower(translate(city, 'åäöéèüÅÄÖÉÈÜ', 'aaoeuuaaoeuu')),
+    '[^a-z0-9]+', '-', 'g'
+  )) as slug,
+  min(city) as visningsnamn,
+  count(*) as synliga
+from public.visible_flea_markets
+group by 1
+order by 1;
 ```
+
+Matcha alltid på `slug` mot `slug` — GSC-sökvägens segment efter `/loppisar/` på
+ena sidan och kolumnen `slug` ovan på den andra. Jämför **aldrig** rå `city`
+direkt mot en GSC-slug; `city` innehåller mellanslag, versaler och svenska
+tecken (å/ä/ö osv.) som GSC-sluggen redan har normaliserat bort, så en bokstavlig
+jämförelse missar flerordsorter och orter med diakritiska tecken helt.
+`visningsnamn` är bara till för rapporttabellen — identiteten är slugen.
 
 Regler:
 - Endast orter med **visningar < 250**. Över den tröskeln biter auktoritetstaket
