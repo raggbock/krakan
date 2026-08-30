@@ -145,20 +145,33 @@ export function canonicalizeNearbyCities(
   targetCity: string,
 ): Array<{ city: string; marketCount: number; distanceKm: number }> {
   const targetCanonical = canonicalCity(targetCity).toLowerCase()
-  const byCanonical = new Map<string, { marketCount: number; distanceKm: number }>()
+  const byKey = new Map<
+    string,
+    { marketCount: number; distanceKm: number; labelCounts: Map<string, number> }
+  >()
   for (const row of rows) {
     const canonical = canonicalCity(row.city)
-    if (canonical.toLowerCase() === targetCanonical) continue
-    const cur = byCanonical.get(canonical)
+    const key = canonical.toLowerCase()
+    if (key === targetCanonical) continue
+    const cur = byKey.get(key)
     if (cur) {
       cur.marketCount += row.marketCount
       if (row.distanceKm < cur.distanceKm) cur.distanceKm = row.distanceKm
+      cur.labelCounts.set(canonical, (cur.labelCounts.get(canonical) ?? 0) + 1)
     } else {
-      byCanonical.set(canonical, { marketCount: row.marketCount, distanceKm: row.distanceKm })
+      byKey.set(key, {
+        marketCount: row.marketCount,
+        distanceKm: row.distanceKm,
+        labelCounts: new Map([[canonical, 1]]),
+      })
     }
   }
-  return Array.from(byCanonical.entries())
-    .map(([city, v]) => ({ city, marketCount: v.marketCount, distanceKm: v.distanceKm }))
+  return Array.from(byKey.values())
+    .map((v) => ({
+      city: pickDisplayLabel(v.labelCounts),
+      marketCount: v.marketCount,
+      distanceKm: v.distanceKm,
+    }))
     .sort((a, b) => a.distanceKm - b.distanceKm)
 }
 

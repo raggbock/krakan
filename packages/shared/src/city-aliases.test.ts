@@ -146,6 +146,25 @@ describe('skiftlägesokänslig ortsammanslagning', () => {
     expect(out.find((c) => c.city === 'Upplands väsby')).toBeUndefined()
     expect(out.find((c) => c.city === 'Nora')).toBeDefined()
   })
+
+  it('canonicalizeNearbyCities merges two nearby cities differing only in casing from each other', () => {
+    const rows = [
+      { city: 'nora', marketCount: 2, distanceKm: 8 },
+      { city: 'Nora', marketCount: 3, distanceKm: 5 },
+    ]
+    const out = canonicalizeNearbyCities(rows, 'Stockholm')
+    expect(out).toHaveLength(1)
+    expect(out[0].marketCount).toBe(5)
+    expect(out[0].distanceKm).toBe(5)
+  })
+
+  it('pickDisplayLabel falls back to lexicographic order when frequency and uppercase count tie', () => {
+    const rows = [
+      { city: 'annA', updatedAt: '2026-01-01' },
+      { city: 'Anna', updatedAt: '2026-01-02' },
+    ]
+    expect(aggregateCitiesByCanonical(rows)[0].city).toBe('annA')
+  })
 })
 
 describe('DISTRICT_SLUG_TO_PARENT_SLUG', () => {
