@@ -30,6 +30,7 @@ mobile/.next/
 scripts/*-found.json
 demo-output/
 scripts/*-failed.json
+scripts/verify-hours-report.json
 app/.env
 app/.config/*.env
 web/.env*
