@@ -1,7 +1,11 @@
 # Delad import-kärna: extrahera, berika, deduplicera, skriv
 
-Källoberoende kärna som delas av `importera-loppisar` (FB, människa-i-loopen)
-och `bevaka-lokala-kallor` (obemannad). Framsidan anropar denna kärna med:
+Källoberoende kärna. Enda aktiva anropare är `importera-loppisar` (FB,
+människa-i-loopen), som kör med `grind: granskad`. Kärnan är byggd för att kunna
+ha flera framsidor — `bevaka-lokala-kallor` var den andra, men den lades ned
+2026-08-31 och den strikta grinden har därför ingen aktiv anropare i dag.
+
+Framsidan anropar denna kärna med:
 
 - `grind: strikt | granskad` — styr publiceringsbeslutet (se **Kvalitetsgrind** nedan).
 - `kandidater` — lista med rå text plus valfri `source_url` per kandidat.

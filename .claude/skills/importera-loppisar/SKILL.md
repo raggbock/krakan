@@ -31,11 +31,51 @@ extraherar loppisar, geokodar + dedupar mot databasen, och visar en granska-tabe
   icke-ägarroller. Läsningar (Steg 4) fungerar ändå, men skrivningen i Steg 6 nekas
   utan rätt roll.
 
-## Valfri ortstyrning
+## Steg 0 — Välj orter att leta efter (valfritt men rekommenderat)
 
-Anropet kan innehålla en ortlista (t.ex. från `bevaka-lokala-kallor`s
-prioritering). Prioritera då inlägg och event som rör de orterna; ignorera
-listan om gruppen inte täcker dem.
+Hoppa över det här om du redan vet vilken grupp och vilka orter du är ute efter.
+Annars: räkna fram var en runda ger mest, och prioritera inlägg och event som rör
+de orterna när du läser gruppen.
+
+Poäng per ort: `visningar_28d / max(1, antal_synliga)` — efterfrågan delat med
+utbud.
+
+Hämta efterfrågan via GSC-MCP:
+`get_search_analytics(site_url='sc-domain:fyndstigen.se', days=28, dimensions='page', row_limit=200)`
+och behåll sidor under `/loppisar/`. Sluggen efter `/loppisar/` är orten.
+
+Hämta utbudet — bygg samma slug i SQL i stället för att jämföra mot rå `city`,
+via `public.slugify_city(text)`. Det är samma funktion appens routing använder
+för att slå upp `/loppisar/<slug>`, så join-nyckeln kan inte driva isär från
+källan:
+
+```sql
+select
+  public.slugify_city(city) as slug,
+  min(city) as visningsnamn,
+  count(*) as synliga
+from public.visible_flea_markets
+group by 1
+order by 1;
+```
+
+Matcha alltid på `slug` mot `slug` — GSC-sökvägens segment efter `/loppisar/` på
+ena sidan och kolumnen `slug` ovan på den andra. Jämför **aldrig** rå `city`
+direkt mot en GSC-slug; `city` innehåller mellanslag, versaler och svenska
+tecken (å/ä/ö osv.) som GSC-sluggen redan har normaliserat bort, så en bokstavlig
+jämförelse missar flerordsorter och orter med diakritiska tecken helt.
+`visningsnamn` är bara till för rapporttabellen — identiteten är slugen.
+
+Regler:
+- Endast orter med **visningar < 250**. Över den tröskeln biter auktoritetstaket
+  och mer innehåll ger bevisligen ingen positionsvinst. (Riktlinje, inte hård
+  gräns — en ort strax över med bara 1 synlig loppis får tas med.)
+- Orter med ≤2 synliga men utan GSC-data får baspoäng **10**.
+- Ta de **5–8** högsta.
+
+Ortlistan kan också komma utifrån i anropet. Ignorera listan om gruppen du har
+öppen inte täcker de orterna — den styr vad du letar efter, inte vilken grupp du
+läser.
 
 ## Pipeline
 

@@ -6,6 +6,23 @@ disable-model-invocation: true
 
 # Bevaka lokala källor
 
+> **NEDLAGD 2026-08-31 — kör inte den här rutinen.**
+>
+> Valideringen mot Fagersta och Forshaga gav 0,5 verifierat korrekta fynd per
+> ort, under tröskeln på 1. Kommunala evenemangskalendrar innehåller inga
+> loppisar, lokaltidningarna är bakom betalvägg eller WAF, och den enda
+> Fagersta-källa som gav träffar var en statisk sida som inte uppdaterats sedan
+> mars — en engångsskörd, inte ett flöde. Se `validering-2026-08-31.md`.
+>
+> Filen behålls som dokumentation av försöket och som utgångspunkt om någon vill
+> ta upp det igen. Det som skulle ändra slutsatsen är en **öppen, löpande
+> uppdaterad källa till datumsatta loppisar** — betalväggarna på lokaltidningarna
+> är den enskilt största blockeraren.
+>
+> **Ortprioriteringen som stod i Steg 1 nedan är flyttad** till Steg 0 i
+> `importera-loppisar` och är fortfarande i bruk där. Prioriteringen var aldrig
+> problemet — det var källorna. Redigera den i FB-skillen, inte här.
+
 Obemannad rutin. Väljer orter där efterfrågan överstiger utbudet, letar upp
 loppisar i öppna lokala källor och kör dem genom den delade import-kärnan.
 
