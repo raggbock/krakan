@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { updateSupabaseSession } from "./lib/supabase/middleware";
+import { loppisRoute } from "./lib/loppis-routing";
 
 export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
@@ -37,6 +38,24 @@ export async function middleware(request: NextRequest) {
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
+  }
+
+  // /loppis/<slug> without a session goes to the ISR-cached copy; signed-in
+  // visitors stay on the cookie route so organizers see their drafts. See
+  // lib/loppis-routing.ts.
+  const loppis = loppisRoute(pathname, userId !== null);
+  if (loppis.kind === "redirect") {
+    const url = request.nextUrl.clone();
+    url.pathname = loppis.pathname;
+    return NextResponse.redirect(url, 308);
+  }
+  if (loppis.kind === "rewrite") {
+    const url = request.nextUrl.clone();
+    url.pathname = loppis.pathname;
+    const rewritten = NextResponse.rewrite(url, { request });
+    // Keep anything the session refresh wrote (e.g. clearing a dead session).
+    for (const cookie of response.cookies.getAll()) rewritten.cookies.set(cookie);
+    return rewritten;
   }
 
   return response;

@@ -14,7 +14,9 @@
  * from the already-fetched `market` and `tables` — no extra round-trip needed.
  */
 import { cache } from 'react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseAnonClient } from '@/lib/supabase/anon'
 import {
   createSupabaseServerData,
   createSupabaseFleaMarkets,
@@ -37,18 +39,16 @@ export type LoppisData = {
 }
 
 /**
- * Resolves slug → full LoppisData (market details, tables, derived metadata).
- * Returns null if the market does not exist (caller should notFound()).
- * React cache() dedupes calls within a single request.
+ * Resolves slug → full LoppisData (market details, tables, derived metadata)
+ * with whichever client the caller hands it — the queries are identical, only
+ * what RLS lets the client see differs. Returns null if the market does not
+ * exist (caller should notFound()).
  */
-export const resolveLoppis = cache(async (slug: string): Promise<LoppisData | null> => {
-  // CI / build environments without a real Supabase URL would otherwise
-  // hang ~30s on each /loppis/[slug] render waiting for fetch to fail.
-  // Bail fast so page.tsx 404s and the build proceeds.
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!url || url.includes('placeholder.supabase.co')) return null
-
-  const supabase = await createSupabaseServerClient()
+async function resolveWith(
+  supabase: SupabaseClient,
+  supabaseUrl: string,
+  slug: string,
+): Promise<LoppisData | null> {
   const server = createSupabaseServerData(supabase)
 
   // Round-trip 1: slug → id
@@ -76,7 +76,6 @@ export const resolveLoppis = cache(async (slug: string): Promise<LoppisData | nu
       }
     : null
 
-  const supabaseUrl = url
   const firstImage = [...market.images].sort((a, b) => a.sortOrder - b.sortOrder)[0]
   const image_url = firstImage
     ? `${supabaseUrl}/storage/v1/object/public/flea-market-images/${firstImage.storagePath}`
@@ -88,4 +87,52 @@ export const resolveLoppis = cache(async (slug: string): Promise<LoppisData | nu
     tables,
     meta: { organizer_subscription_tier, price_range, image_url },
   }
+}
+
+/**
+ * CI / build environments without a real Supabase URL would otherwise hang
+ * ~30s on each /loppis/[slug] render waiting for fetch to fail. Bail fast so
+ * the page 404s and the build proceeds.
+ */
+function realSupabaseUrl(): string | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!url || url.includes('placeholder.supabase.co')) return null
+  return url
+}
+
+/**
+ * Session-bound: reads the visitor's cookies, so an organizer sees their own
+ * drafts. Using it makes the route dynamic. React cache() dedupes calls within
+ * a single request.
+ */
+export const resolveLoppis = cache(async (slug: string): Promise<LoppisData | null> => {
+  const url = realSupabaseUrl()
+  if (!url) return null
+  return resolveWith(await createSupabaseServerClient(), url, slug)
 })
+
+/**
+ * Anonymous: no cookies, published markets only under RLS. Keeps the route
+ * ISR-cacheable; middleware sends every request without a session here.
+ */
+export const resolveLoppisPublic = cache(async (slug: string): Promise<LoppisData | null> => {
+  const url = realSupabaseUrl()
+  if (!url) return null
+  return resolveWith(createSupabaseAnonClient(), url, slug)
+})
+
+/** Where a /loppis render gets its data and its client for secondary reads. */
+export type LoppisSource = {
+  resolve: (slug: string) => Promise<LoppisData | null>
+  client: () => Promise<SupabaseClient>
+}
+
+export const sessionSource: LoppisSource = {
+  resolve: resolveLoppis,
+  client: createSupabaseServerClient,
+}
+
+export const publicSource: LoppisSource = {
+  resolve: resolveLoppisPublic,
+  client: async () => createSupabaseAnonClient(),
+}
