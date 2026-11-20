@@ -33,9 +33,29 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { sleep } from './lib/scrape-helpers.mjs'
 
+// --scope=unpublished (default): the original target set, see header.
+// --scope=visible: published, non-deleted, non-closed markets WITH a
+//   google_place_id — the live pages whose Places-derived hours must be
+//   refreshed within 30 days. Writes to separate report files.
+// --max-calls=N: hard cap on Place Details calls this run (including the
+//   day-index reference call). The run stops cleanly at the cap; rerun
+//   later to resume. Use it to stay inside the monthly free tier.
+const ARGS = process.argv.slice(2)
+const argValue = (name) => ARGS.find((a) => a.startsWith(`--${name}=`))?.split('=')[1]
+const SCOPE = argValue('scope') ?? 'unpublished'
+if (!['unpublished', 'visible'].includes(SCOPE)) {
+  console.error(`Unknown --scope=${SCOPE} (expected unpublished|visible).`)
+  process.exit(1)
+}
+const MAX_CALLS = argValue('max-calls') ? Number(argValue('max-calls')) : Infinity
+if (Number.isNaN(MAX_CALLS) || MAX_CALLS < 1) {
+  console.error('--max-calls must be a positive number.')
+  process.exit(1)
+}
+
 const here = dirname(fileURLToPath(import.meta.url))
-const REPORT_PATH = join(here, 'verify-hours-report.json')
-const SUMMARY_PATH = join(here, 'verify-hours-summary.md')
+const REPORT_PATH = join(here, SCOPE === 'visible' ? 'verify-hours-visible-report.json' : 'verify-hours-report.json')
+const SUMMARY_PATH = join(here, SCOPE === 'visible' ? 'verify-hours-visible-summary.md' : 'verify-hours-summary.md')
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -67,7 +87,7 @@ const sbHeaders = {
   'content-type': 'application/json',
 }
 
-const APPLY = new Set(process.argv.slice(2)).has('--apply')
+const APPLY = new Set(ARGS).has('--apply')
 if (APPLY) {
   console.error('Phase 2 (--apply) is not implemented in this script yet.')
   console.error('This run is read-only by design — see file header.')
@@ -84,7 +104,12 @@ if (APPLY) {
 
 const DETAILS_FIELDS = 'id,businessStatus,regularOpeningHours'
 
+let placeCalls = 0
+class CallCapReached extends Error {}
+
 async function getPlaceDetails(placeId) {
+  if (placeCalls >= MAX_CALLS) throw new CallCapReached(`--max-calls=${MAX_CALLS} reached`)
+  placeCalls++
   const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=sv`, {
     headers: {
       'x-goog-api-key': GOOGLE_KEY,
@@ -221,6 +246,7 @@ async function logDayIndexingEvidence(candidates) {
 // ---------------------------------------------------------------------------
 
 async function loadCandidates() {
+  if (SCOPE === 'visible') return loadVisibleCandidates()
   // Target set per spec: not deleted, unpublished, never entered the
   // owner-takeover funnel. business_owner_tokens has no direct
   // is-referenced filter in PostgREST for a "not exists" join, so we
@@ -241,6 +267,33 @@ async function loadCandidates() {
     if (page.length < PAGE) break
   }
   return all.filter((m) => !m.business_owner_tokens || m.business_owner_tokens.length === 0)
+}
+
+async function loadVisibleCandidates() {
+  // Live pages only: the visible_flea_markets view gives the exact
+  // is_market_visible() set (incl. the closed-status exclusion). Embeds
+  // don't resolve through the view, so fetch ids there, rules from the table.
+  const ids = new Set()
+  for (let from = 0; ; from += 1000) {
+    const url = `${SUPABASE_URL}/rest/v1/visible_flea_markets?select=id&google_place_id=not.is.null`
+    const res = await fetch(url, { headers: { ...sbHeaders, range: `${from}-${from + 999}`, 'range-unit': 'items' } })
+    if (!res.ok) throw new Error(`Visible ids fetch: ${res.status} ${await res.text()}`)
+    const page = await res.json()
+    for (const r of page) ids.add(r.id)
+    if (page.length < 1000) break
+  }
+  const select = 'id,slug,name,city,street,zip_code,google_place_id,'
+    + 'opening_hour_rules(day_of_week,open_time,close_time)'
+  const all = []
+  for (let from = 0; ; from += 500) {
+    const url = `${SUPABASE_URL}/rest/v1/flea_markets?select=${encodeURIComponent(select)}&is_deleted=eq.false&published_at=not.is.null&google_place_id=not.is.null`
+    const res = await fetch(url, { headers: { ...sbHeaders, range: `${from}-${from + 499}`, 'range-unit': 'items' } })
+    if (!res.ok) throw new Error(`Markets fetch: ${res.status} ${await res.text()}`)
+    const page = await res.json()
+    all.push(...page)
+    if (page.length < 500) break
+  }
+  return all.filter((m) => ids.has(m.id))
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +335,7 @@ function classify(m, googleResult) {
 
 async function verify() {
   const candidates = await loadCandidates()
-  console.log(`Target set: ${candidates.length} unpublished, non-deleted, un-contacted markets.`)
+  console.log(`Target set (${SCOPE}): ${candidates.length} markets. Call cap: ${MAX_CALLS}.`)
 
   await logDayIndexingEvidence(candidates)
 
@@ -335,6 +388,10 @@ async function verify() {
           entry = { id: m.id, slug: m.slug, name: m.name, city: m.city, street: m.street, zip_code: m.zip_code, google_place_id: m.google_place_id, ...c }
         }
       } catch (err) {
+        if (err instanceof CallCapReached) {
+          console.log(`Stopping: ${err.message} after ${results.length} recorded markets. Rerun to resume.`)
+          break
+        }
         entry = {
           id: m.id, slug: m.slug, name: m.name, city: m.city, street: m.street, zip_code: m.zip_code,
           google_place_id: m.google_place_id, bucket: 'ERROR', stored: m.opening_hour_rules ?? [],
