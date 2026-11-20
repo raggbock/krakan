@@ -88,6 +88,7 @@ function buildRepo(
       }
       const result: FleaMarketDetailsView = {
         ...m,
+        status: m.status ?? null,
         organizerName,
         organizerSubscriptionTier: 0,
         openingHourRules: (m.openingHourRules ?? []) as OpeningHourRuleView[],

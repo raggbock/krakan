@@ -104,6 +104,9 @@ export async function buildLoppisMetadata(slug: string, source: LoppisSource): P
   // them — half-finished pages would tank the SEO equity of the eventual
   // published version.
   const isDraft = !market.publishedAt
+  // Closed businesses stay reachable (Google has them indexed, owners may
+  // link to them) but must drop out of the index. Same robots as drafts.
+  const isClosed = market.status === 'closed'
 
   const url = `/loppis/${slug}`
   const ogTitle = `${market.name} — öppettider i ${market.city}`
@@ -114,7 +117,7 @@ export async function buildLoppisMetadata(slug: string, source: LoppisSource): P
     title,
     description,
     alternates: { canonical: url },
-    ...(isDraft ? { robots: { index: false, follow: false } } : {}),
+    ...(isDraft || isClosed ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: ogTitle,
       description,
@@ -164,7 +167,9 @@ export async function LoppisLayoutView({
   // JSON-LD + the SEO cross-linking block so no structured data for
   // unpublished markets ends up in the HTML body. generateMetadata
   // already emits robots:noindex for drafts.
-  if (!market.publishedAt) {
+  // Closed markets get the same treatment: no LocalBusiness/Event data
+  // advertising opening hours for a business that no longer exists.
+  if (!market.publishedAt || market.status === 'closed') {
     return <>{children}</>
   }
 

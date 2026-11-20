@@ -182,4 +182,20 @@ describe('MarketDetail', () => {
     render(<MarketDetail id="market-1" market={mockMarket} tables={[]} />)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Stockholms Loppis')
   })
+
+  it('does not show the closed banner for a confirmed market', () => {
+    render(<MarketDetail id="market-1" market={{ ...mockMarket, status: 'confirmed' }} tables={[]} />)
+    expect(screen.queryByText('Den här loppisen har stängt')).not.toBeInTheDocument()
+    expect(screen.getByTestId('opening-hours')).toBeInTheDocument()
+  })
+
+  it('shows the closed banner and hides hours, booking and route actions for a closed market', () => {
+    render(<MarketDetail id="market-1" market={{ ...mockMarket, status: 'closed' }} tables={mockTables} />)
+    expect(screen.getByText('Den här loppisen har stängt')).toBeInTheDocument()
+    expect(screen.getByText('Uppgifterna nedan är inte längre aktuella.')).toBeInTheDocument()
+    expect(screen.queryByTestId('opening-hours')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bookable-tables')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('add-to-route')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('follow-button')).not.toBeInTheDocument()
+  })
 })

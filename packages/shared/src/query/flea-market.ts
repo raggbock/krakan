@@ -34,6 +34,10 @@ export type FleaMarketDetailsRow = FleaMarketTableRow & {
   profiles: Pick<ProfileTableRow, 'first_name' | 'last_name' | 'subscription_tier'> | null
 }
 
+function toMarketStatus(value: string | null | undefined): 'confirmed' | 'unverified' | 'closed' | null {
+  return value === 'confirmed' || value === 'unverified' || value === 'closed' ? value : null
+}
+
 // --- Query module ---
 
 export const FleaMarketQuery = {
@@ -79,6 +83,7 @@ export const FleaMarketQuery = {
         createdAt: rest.created_at,
         slug: rest.slug ?? null,
         isSystemOwned: rest.is_system_owned,
+        status: toMarketStatus(rest.status),
         contactWebsite: rest.contact_website,
         contactPhone: rest.contact_phone,
         contactEmail: rest.contact_email,

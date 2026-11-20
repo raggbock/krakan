@@ -88,6 +88,7 @@ function MarketDetailLayout({
   tables: MarketTableView[]
 }) {
   const { user } = useAuth()
+  const isClosed = market.status === 'closed'
   const { images, openingHours, isOwner, editUrl, mapUrl } = useMemo(
     () => deriveViewModel(market, user?.id, id),
     [market, user?.id, id],
@@ -103,6 +104,18 @@ function MarketDetailLayout({
           <Link href={editUrl} className="underline font-medium">
             Redigera och publicera
           </Link>
+        </div>
+      )}
+
+      {isClosed && (
+        <div
+          role="alert"
+          className="bg-rust/10 border border-rust/30 rounded-xl px-4 py-3 mb-6 animate-fade-up"
+        >
+          <p className="font-display font-bold text-rust">Den här loppisen har stängt</p>
+          <p className="text-sm text-espresso/75 mt-0.5">
+            Uppgifterna nedan är inte längre aktuella.
+          </p>
         </div>
       )}
 
@@ -164,7 +177,7 @@ function MarketDetailLayout({
           )}
         </div>
 
-        {openingHours && (
+        {openingHours && !isClosed && (
           <div>
             <OpeningHoursCard
               rules={openingHours.rules}
@@ -193,7 +206,7 @@ function MarketDetailLayout({
           />
         )}
 
-        {tables.length > 0 && (
+        {tables.length > 0 && !isClosed && (
           <BookableTablesCard
             fleaMarketId={id}
             fleaMarketName={market.name}
@@ -206,7 +219,7 @@ function MarketDetailLayout({
       <div className="mt-8 animate-fade-up delay-5 space-y-3">
         {/* Primary actions */}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          {market.publishedAt && (
+          {market.publishedAt && !isClosed && (
             <AddToRouteButton
               marketId={id}
               marketName={market.name}
@@ -214,7 +227,7 @@ function MarketDetailLayout({
               source="market_detail"
             />
           )}
-          {market.publishedAt && (
+          {market.publishedAt && !isClosed && (
             <FollowButton kind="market" target={id} source="detail" />
           )}
           <Link
@@ -226,7 +239,7 @@ function MarketDetailLayout({
         </div>
         {/* Tertiary admin action — visually separated so it doesn't compete
             with the primary CTAs above. */}
-        {market.isSystemOwned && (
+        {market.isSystemOwned && !isClosed && (
           <div className="pt-3 border-t border-cream-warm/60">
             <ClaimMarketButton marketId={id} marketName={market.name} />
           </div>

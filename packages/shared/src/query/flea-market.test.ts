@@ -24,6 +24,7 @@ function makeDetailsRow(overrides: Partial<FleaMarketDetailsRow> = {}): FleaMark
     longitude: 18.073,
     is_permanent: true,
     is_deleted: false,
+    status: 'confirmed',
     organizer_id: 'org-1',
     auto_accept_bookings: false,
     published_at: '2026-01-01T00:00:00Z',
@@ -84,6 +85,12 @@ describe('FleaMarketQuery.details.mapRow', () => {
     expect(result.latitude).toBe(59.314)
     expect(result.organizerId).toBe('org-1')
     expect(result.autoAcceptBookings).toBe(false)
+  })
+
+  it('maps status, normalising unknown values to null', () => {
+    expect(FleaMarketQuery.details.mapRow(makeDetailsRow()).status).toBe('confirmed')
+    expect(FleaMarketQuery.details.mapRow(makeDetailsRow({ status: 'closed' })).status).toBe('closed')
+    expect(FleaMarketQuery.details.mapRow(makeDetailsRow({ status: 'bogus' })).status).toBeNull()
   })
 
   it('computes organizerName from profiles join', () => {

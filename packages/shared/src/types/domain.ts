@@ -45,6 +45,11 @@ export type FleaMarketView = {
    * renders a "data may be outdated" disclaimer when this is set.
    */
   isSystemOwned?: boolean
+  /**
+   * Lifecycle status. 'closed' = the business no longer exists (set by admins);
+   * the detail page then renders noindex + a closed banner and hides opening hours.
+   */
+  status?: 'confirmed' | 'unverified' | 'closed' | null
   /** Organizer-supplied or auto-imported contact website URL. */
   contactWebsite?: string | null
   /** Organizer-supplied or auto-imported contact phone number. */
